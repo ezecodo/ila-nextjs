@@ -1,7 +1,14 @@
+// src/app/page.tsx
+import Header from "@/components/Header";
+
 export default function Home() {
   return (
-    <main>
-      <h1>Hola aqui comienza la nueva Era de ILA-WEB.de 🚀</h1>
-    </main>
+    <>
+      <Header />
+      <main>
+        <h1>Bienvenido a ILA</h1>
+        <p>Esta es la página principal.</p>
+      </main>
+    </>
   );
 }

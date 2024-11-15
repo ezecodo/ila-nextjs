@@ -1,0 +1,49 @@
+/* src/components/Header.module.css */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #f8f9fa; /* Cambia según la paleta de ILA */
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  margin-right: 1rem;
+  border-radius: 50%; /* Opcional, para dar estilo al logo */
+}
+
+.tagline {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333; /* Cambia según el diseño */
+}
+
+.nav {
+  display: flex;
+}
+
+.menu {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu li {
+  margin-left: 2rem;
+}
+
+.menu a {
+  text-decoration: none;
+  color: #0070f3; /* Cambia según la paleta de ILA */
+  font-weight: bold;
+}
+
+.menu a:hover {
+  text-decoration: underline;
+}
