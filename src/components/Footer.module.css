@@ -1,0 +1,47 @@
+.footer {
+  background-color: #222;
+  color: #fff;
+  padding: 2rem;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.info,
+.links,
+.socials {
+  flex: 1;
+  min-width: 200px;
+}
+
+.links a,
+.socials a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0.5rem 0;
+  display: block;
+}
+
+.links a:hover,
+.socials a:hover {
+  color: #ffa500; /* Cambia a un color llamativo al pasar el ratón */
+}
+
+.copy {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    text-align: center;
+  }
+}
