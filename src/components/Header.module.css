@@ -1,10 +1,15 @@
-/* src/components/Header.module.css */
+/* Header.module.css */
+
+/* General styles for the header */
 .header {
+  background-color: #ffffff; /* Fondo blanco explícito */
+  color: #000000; /* Texto negro explícito */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background-color: #f8f9fa; /* Cambia según la paleta de ILA */
+  padding: 1rem;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #ddd;
 }
 
 .logoContainer {
@@ -13,37 +18,100 @@
 }
 
 .logo {
-  margin-right: 1rem;
-  border-radius: 50%; /* Opcional, para dar estilo al logo */
+  border-radius: 50%; /* Hace el logo redondo */
+  overflow: hidden; /* Recorta la imagen fuera del círculo */
+  width: 50px; /* Ajusta el tamaño según sea necesario */
+  height: 50px; /* Asegúrate de que sea igual al ancho para mantener la forma circular */
 }
 
 .tagline {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333; /* Cambia según el diseño */
+  margin-left: 30px; /* Ajusta este valor para separar el texto del logo */
+  font-size: 1.2rem; /* Opcional: ajusta el tamaño de la fuente si es necesario */
 }
 
+.menuButton {
+  display: none; /* Ocultamos el botón de hamburguesa por defecto */
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Menu styles */
 .nav {
-  display: flex;
+  display: flex; /* Mostramos el menú por defecto en pantallas grandes */
+}
+
+.nav.active {
+  display: flex; /* Aseguramos que funcione en pantallas pequeñas */
+}
+
+.nav a {
+  color: #f0f0f0; /* Enlaces en modo oscuro */
+}
+
+.nav a:hover {
+  color: #cccccc; /* Color más claro al pasar el cursor */
 }
 
 .menu {
-  display: flex;
   list-style: none;
-  margin: 0;
+  display: flex;
   padding: 0;
+  margin: 0;
 }
 
 .menu li {
-  margin-left: 2rem;
+  margin: 0 1rem;
 }
 
 .menu a {
   text-decoration: none;
-  color: #0070f3; /* Cambia según la paleta de ILA */
-  font-weight: bold;
+  color: #333;
+  font-size: 1rem;
 }
 
-.menu a:hover {
-  text-decoration: underline;
+/* Responsive styles */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .menuButton {
+    display: block; /* Mostramos el botón de hamburguesa en pantallas pequeñas */
+    margin-top: 1rem;
+  }
+
+  .nav {
+    display: none; /* Ocultamos el menú inicialmente */
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav.active {
+    display: flex; /* Mostramos el menú cuando esté activo */
+  }
+
+  .menu {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .menu li {
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .menu li:last-child {
+    border-bottom: none;
+  }
+
+  .menu a {
+    width: 100%;
+    display: block;
+  }
 }
