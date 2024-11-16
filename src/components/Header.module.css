@@ -10,6 +10,10 @@
   padding: 1rem;
   background-color: #f8f8f8;
   border-bottom: 1px solid #ddd;
+  position: sticky; /* Hace el header fijo */
+  top: 0; /* Posición fija en la parte superior */
+  z-index: 1000; /* Asegura que esté sobre otros elementos */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil para separarlo visualmente */
 }
 
 .logoContainer {
@@ -26,9 +30,10 @@
 
 .tagline {
   margin-left: 30px; /* Ajusta este valor para separar el texto del logo */
-  font-size: 1.2rem; /* Opcional: ajusta el tamaño de la fuente si es necesario */
+  font-size: 1.2rem; /* Ajusta el tamaño de la fuente */
 }
 
+/* Menu button for mobile */
 .menuButton {
   display: none; /* Ocultamos el botón de hamburguesa por defecto */
   font-size: 1.5rem;
@@ -47,11 +52,11 @@
 }
 
 .nav a {
-  color: #f0f0f0; /* Enlaces en modo oscuro */
+  color: #333; /* Enlaces en modo claro */
 }
 
 .nav a:hover {
-  color: #cccccc; /* Color más claro al pasar el cursor */
+  color: #666; /* Color más claro al pasar el cursor */
 }
 
 .menu {
@@ -74,8 +79,21 @@
 /* Responsive styles */
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: column; /* Cambia el diseño a vertical */
+    align-items: center; /* Centra los elementos */
+    padding: 1rem 0.5rem;
+  }
+
+  .logoContainer {
+    flex-direction: column; /* Coloca el logo y el texto uno debajo del otro */
+    align-items: center; /* Centra los elementos */
+  }
+
+  .tagline {
+    margin-left: 0; /* Elimina la separación horizontal */
+    margin-top: 0.5rem; /* Agrega separación vertical */
+    font-size: 1rem; /* Ajusta el tamaño de la fuente */
+    text-align: center; /* Centra el texto */
   }
 
   .menuButton {
@@ -87,6 +105,7 @@
     display: none; /* Ocultamos el menú inicialmente */
     flex-direction: column;
     align-items: flex-start;
+    width: 100%;
   }
 
   .nav.active {
