@@ -5,8 +5,8 @@
   background-color: #ffffff; /* Fondo blanco explícito */
   color: #000000; /* Texto negro explícito */
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column; /* Cambia la dirección a columna */
+  align-items: center; /* Centra los elementos horizontalmente */
   padding: 1rem;
   background-color: #f8f8f8;
   border-bottom: 1px solid #ddd;
@@ -19,6 +19,8 @@
 .logoContainer {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-direction: column; /* Coloca el logo y el tagline en columna */
 }
 
 .logo {
@@ -29,8 +31,9 @@
 }
 
 .tagline {
-  margin-left: 30px; /* Ajusta este valor para separar el texto del logo */
+  margin-top: 0.5rem; /* Espaciado entre el logo y el tagline */
   font-size: 1.2rem; /* Ajusta el tamaño de la fuente */
+  text-align: center; /* Centra el texto */
 }
 
 /* Menu button for mobile */
@@ -44,19 +47,14 @@
 
 /* Menu styles */
 .nav {
+  margin-top: 1rem; /* Espaciado superior para separar del logo y tagline */
   display: flex; /* Mostramos el menú por defecto en pantallas grandes */
+  justify-content: center; /* Centra los elementos del menú */
+  width: 100%;
 }
 
 .nav.active {
   display: flex; /* Aseguramos que funcione en pantallas pequeñas */
-}
-
-.nav a {
-  color: #333; /* Enlaces en modo claro */
-}
-
-.nav a:hover {
-  color: #666; /* Color más claro al pasar el cursor */
 }
 
 .menu {
@@ -64,26 +62,20 @@
   display: flex;
   padding: 0;
   margin: 0;
+  gap: 1.5rem; /* Espaciado entre los elementos del menú */
+  position: relative; /* Necesario para las barras separadoras */
 }
 
-/* Separadores entre elementos del menú */
 .menu li {
-  position: relative; /* Necesario para agregar los separadores */
-  margin: 0 1rem;
+  position: relative;
 }
 
-.menu li::after {
-  content: "|"; /* Este es el separador */
-  color: #333; /* Ajusta el color del separador */
-  font-size: 1rem;
-  margin-left: 1rem; /* Espacio después del texto */
+.menu li:not(:last-child)::after {
+  content: "|"; /* Barra separadora */
   position: absolute;
-  right: -0.5rem; /* Ajusta la posición horizontal del separador */
-}
-
-/* Elimina el separador en el último elemento */
-.menu li:last-child::after {
-  content: ""; /* No muestra el separador en el último elemento */
+  right: -0.8rem; /* Ajusta la posición horizontal */
+  color: #ccc; /* Color de la barra */
+  font-size: 1rem; /* Tamaño de la barra */
 }
 
 .menu a {
@@ -106,8 +98,7 @@
   }
 
   .tagline {
-    margin-left: 0; /* Elimina la separación horizontal */
-    margin-top: 0.5rem; /* Agrega separación vertical */
+    margin-top: 0.5rem; /* Espaciado adicional para móviles */
     font-size: 1rem; /* Ajusta el tamaño de la fuente */
     text-align: center; /* Centra el texto */
   }
@@ -134,8 +125,7 @@
   }
 
   .menu li {
-    position: static; /* Eliminamos el posicionamiento para móviles */
-    margin: 0; /* Ajustamos márgenes para móviles */
+    width: 100%;
     text-align: left;
     padding: 0.5rem 1rem;
     background-color: #f8f8f8;
@@ -147,7 +137,7 @@
   }
 
   .menu li::after {
-    content: ""; /* Elimina los separadores en móviles */
+    content: none; /* Eliminamos las barras en el menú responsivo */
   }
 
   .menu a {
