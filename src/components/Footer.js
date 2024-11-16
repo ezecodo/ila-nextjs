@@ -1,6 +1,7 @@
 // src/components/Footer.js
 import Link from "next/link";
 import Image from "next/image";
+import { FaFacebookF, FaTwitter, FaInstagram } from "react-icons/fa"; // Importa los iconos
 import styles from "./Footer.module.css";
 
 const Footer = () => (
@@ -19,29 +20,29 @@ const Footer = () => (
       <ul className={styles.socials}>
         <li>
           <Link
-            href="https://facebook.com"
+            href="https://www.facebook.com/ila.web"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Facebook
+            <FaFacebookF className={styles.icon} /> {/* Icono de Facebook */}
           </Link>
         </li>
         <li>
           <Link
-            href="https://twitter.com"
+            href="https://x.com/ila_Bonn"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Twitter
+            <FaTwitter className={styles.icon} /> {/* Icono de Twitter/X */}
           </Link>
         </li>
         <li>
           <Link
-            href="https://instagram.com"
+            href="https://www.instagram.com/ila_bonn/"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Instagram
+            <FaInstagram className={styles.icon} /> {/* Icono de Instagram */}
           </Link>
         </li>
       </ul>
