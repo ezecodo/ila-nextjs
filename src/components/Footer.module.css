@@ -1,47 +1,45 @@
+/* src/components/Footer.module.css */
 .footer {
-  background-color: #222;
+  background-color: #333;
   color: #fff;
-  padding: 2rem;
+  padding: 2rem 1rem;
   text-align: center;
 }
 
 .container {
   display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1.5rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
-.info,
-.links,
+.logoContainer {
+  margin-bottom: 1rem;
+}
+
+.logo {
+  border-radius: 50%; /* Hace que el logo sea redondo */
+}
+
+.text {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
 .socials {
-  flex: 1;
-  min-width: 200px;
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
 }
 
-.links a,
-.socials a {
+.socials li a {
   color: #fff;
   text-decoration: none;
-  margin: 0.5rem 0;
-  display: block;
+  transition: color 0.3s ease;
 }
 
-.links a:hover,
-.socials a:hover {
-  color: #ffa500; /* Cambia a un color llamativo al pasar el ratón */
-}
-
-.copy {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #aaa;
-}
-
-/* Responsividad */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    text-align: center;
-  }
+.socials li a:hover {
+  color: #ff6347; /* Rojo para el hover */
 }
