@@ -1,7 +1,7 @@
 // src/components/Footer.js
 import Link from "next/link";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
 import Image from "next/image";
-import { FaFacebookF, FaTwitter, FaInstagram } from "react-icons/fa"; // Importa los iconos
 import styles from "./Footer.module.css";
 
 const Footer = () => (
@@ -11,8 +11,8 @@ const Footer = () => (
         <Image
           src="/ila-logo.png"
           alt="ILA Logo"
-          width={50} // Cambia el tamaño si es necesario
-          height={50} // Cambia el tamaño si es necesario
+          width={50}
+          height={50}
           className={styles.logo}
         />
       </div>
@@ -24,16 +24,7 @@ const Footer = () => (
             target="_blank"
             rel="noopener noreferrer"
           >
-            <FaFacebookF className={styles.icon} /> {/* Icono de Facebook */}
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="https://x.com/ila_Bonn"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FaTwitter className={styles.icon} /> {/* Icono de Twitter/X */}
+            <FaFacebook className={styles.icon} aria-label="Facebook" />
           </Link>
         </li>
         <li>
@@ -42,7 +33,27 @@ const Footer = () => (
             target="_blank"
             rel="noopener noreferrer"
           >
-            <FaInstagram className={styles.icon} /> {/* Icono de Instagram */}
+            <FaInstagram className={styles.icon} aria-label="Instagram" />
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="https://x.com/ila_Bonn"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {/* Usamos un SVG inline para el logo de X */}
+            <span className={styles.icon} aria-label="X">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                width="24px"
+                height="24px"
+              >
+                <path d="M23.07 0H16.9L12 7.2 7.14 0H.93L9.9 11.7 0 24h6.14l5.85-7.74L17.93 24H24l-9.93-12.28L23.07 0z" />
+              </svg>
+            </span>
           </Link>
         </li>
       </ul>
