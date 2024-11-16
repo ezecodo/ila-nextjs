@@ -66,8 +66,24 @@
   margin: 0;
 }
 
+/* Separadores entre elementos del menú */
 .menu li {
+  position: relative; /* Necesario para agregar los separadores */
   margin: 0 1rem;
+}
+
+.menu li::after {
+  content: "|"; /* Este es el separador */
+  color: #333; /* Ajusta el color del separador */
+  font-size: 1rem;
+  margin-left: 1rem; /* Espacio después del texto */
+  position: absolute;
+  right: -0.5rem; /* Ajusta la posición horizontal del separador */
+}
+
+/* Elimina el separador en el último elemento */
+.menu li:last-child::after {
+  content: ""; /* No muestra el separador en el último elemento */
 }
 
 .menu a {
@@ -118,7 +134,8 @@
   }
 
   .menu li {
-    width: 100%;
+    position: static; /* Eliminamos el posicionamiento para móviles */
+    margin: 0; /* Ajustamos márgenes para móviles */
     text-align: left;
     padding: 0.5rem 1rem;
     background-color: #f8f8f8;
@@ -127,6 +144,10 @@
 
   .menu li:last-child {
     border-bottom: none;
+  }
+
+  .menu li::after {
+    content: ""; /* Elimina los separadores en móviles */
   }
 
   .menu a {
