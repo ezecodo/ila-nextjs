@@ -11,9 +11,14 @@ const Header = () => {
     setMenuOpen(!menuOpen);
   };
 
+  const reloadPage = () => {
+    window.location.href = "/"; // Forzar recarga completa
+  };
+
   return (
     <header className={styles.header}>
-      <div className={styles.logoContainer}>
+      <div className={styles.logoContainer} onClick={reloadPage}>
+        {/* Cambia el logo para que recargue la página */}
         <Image
           src="/ila-logo.png"
           alt="ILA Logo"
