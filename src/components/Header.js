@@ -17,15 +17,16 @@ const Header = () => {
 
   return (
     <header className={styles.header}>
-      <div className={styles.logoContainer} onClick={reloadPage}>
-        {/* Cambia el logo para que recargue la página */}
-        <Image
-          src="/ila-logo.png"
-          alt="ILA Logo"
-          width={50}
-          height={50}
-          className={styles.logo}
-        />
+      <div className={styles.logoContainer}>
+        <a onClick={reloadPage} style={{ cursor: "pointer" }}>
+          <Image
+            src="/ila-logo.png"
+            alt="ILA Logo"
+            width={50}
+            height={50}
+            className={styles.logo}
+          />
+        </a>
         <span className={styles.tagline}>Das Lateinamerika-Magazin</span>
       </div>
       <button
