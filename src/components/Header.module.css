@@ -2,146 +2,157 @@
 
 /* General styles for the header */
 .header {
-  background-color: #ffffff; /* Fondo blanco explícito */
-  color: #000000; /* Texto negro explícito */
   display: flex;
-  flex-direction: column; /* Cambia la dirección a columna */
-  align-items: center; /* Centra los elementos horizontalmente */
+  flex-direction: column; /* Apilamos logo/tagline, menú y botones */
+  align-items: center;
   padding: 1rem;
   background-color: #f8f8f8;
   border-bottom: 1px solid #ddd;
-  position: sticky; /* Hace el header fijo */
-  top: 0; /* Posición fija en la parte superior */
-  z-index: 1000; /* Asegura que esté sobre otros elementos */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil para separarlo visualmente */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between; /* Logo a la izquierda, botones a la derecha */
+  align-items: center;
+  width: 100%;
 }
 
 .logoContainer {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-direction: column; /* Coloca el logo y el tagline en columna */
+  gap: 1rem;
 }
 
 .logo {
-  border-radius: 50%; /* Hace el logo redondo */
-  overflow: hidden; /* Recorta la imagen fuera del círculo */
-  width: 50px; /* Ajusta el tamaño según sea necesario */
-  height: 50px; /* Asegúrate de que sea igual al ancho para mantener la forma circular */
+  border-radius: 50%;
+  overflow: hidden;
+  width: 50px;
+  height: 50px;
 }
 
 .tagline {
-  margin-top: 0.5rem; /* Espaciado entre el logo y el tagline */
-  font-size: 1.2rem; /* Ajusta el tamaño de la fuente */
-  text-align: center; /* Centra el texto */
+  font-size: 1.2rem;
+  color: #555;
 }
 
 /* Menu button for mobile */
 .menuButton {
-  display: none; /* Ocultamos el botón de hamburguesa por defecto */
+  display: none;
   font-size: 1.5rem;
   background: none;
   border: none;
   cursor: pointer;
 }
 
-/* Menu styles */
+/* Navigation styles */
 .nav {
-  margin-top: 1rem; /* Espaciado superior para separar del logo y tagline */
-  display: flex; /* Mostramos el menú por defecto en pantallas grandes */
-  justify-content: center; /* Centra los elementos del menú */
+  margin-top: 1rem; /* Añade espacio entre el logo y el menú */
+  display: flex;
+  justify-content: center;
   width: 100%;
 }
 
 .nav.active {
-  display: flex; /* Aseguramos que funcione en pantallas pequeñas */
+  display: flex;
 }
 
 .menu {
   list-style: none;
   display: flex;
-  padding: 0;
+  gap: 1.5rem;
   margin: 0;
-  gap: 1.5rem; /* Espaciado entre los elementos del menú */
-  position: relative; /* Necesario para las barras separadoras */
+  padding: 0;
 }
 
 .menu li {
   position: relative;
 }
 
-.menu li:not(:last-child)::after {
-  content: "|"; /* Barra separadora */
-  position: absolute;
-  right: -0.8rem; /* Ajusta la posición horizontal */
-  color: #ccc; /* Color de la barra */
-  font-size: 1rem; /* Tamaño de la barra */
-}
-
 .menu a {
   text-decoration: none;
   color: #333;
   font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Authentication buttons */
+.authButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.loginButton,
+.registerButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.loginButton {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.loginButton:hover {
+  background-color: #d6d6d6;
+}
+
+.registerButton {
+  background-color: #0070f3;
+  color: white;
+}
+
+.registerButton:hover {
+  background-color: #005bb5;
 }
 
 /* Responsive styles */
 @media (max-width: 768px) {
   .header {
-    flex-direction: column; /* Cambia el diseño a vertical */
-    align-items: center; /* Centra los elementos */
-    padding: 1rem 0.5rem;
+    flex-direction: column;
+    align-items: center;
   }
-
-  .logoContainer {
-    flex-direction: column; /* Coloca el logo y el texto uno debajo del otro */
-    align-items: center; /* Centra los elementos */
-  }
-
-  .tagline {
-    margin-top: 0.5rem; /* Espaciado adicional para móviles */
-    font-size: 1rem; /* Ajusta el tamaño de la fuente */
-    text-align: center; /* Centra el texto */
+  .headerTop {
+    flex-direction: column;
+    align-items: center;
   }
 
   .menuButton {
-    display: block; /* Mostramos el botón de hamburguesa en pantallas pequeñas */
+    display: block;
     margin-top: 1rem;
   }
 
   .nav {
-    display: none; /* Ocultamos el menú inicialmente */
+    display: none;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    gap: 1rem;
     width: 100%;
   }
 
   .nav.active {
-    display: flex; /* Mostramos el menú cuando esté activo */
+    display: flex;
   }
 
   .menu {
-    width: 100%;
     flex-direction: column;
+    gap: 1rem;
+    text-align: center;
   }
 
   .menu li {
-    width: 100%;
-    text-align: left;
-    padding: 0.5rem 1rem;
-    background-color: #f8f8f8;
-    border-bottom: 1px solid #ddd;
+    text-align: center;
   }
 
-  .menu li:last-child {
-    border-bottom: none;
-  }
-
-  .menu li::after {
-    content: none; /* Eliminamos las barras en el menú responsivo */
-  }
-
-  .menu a {
-    width: 100%;
-    display: block;
+  .authButtons {
+    margin-top: 1rem;
   }
 }

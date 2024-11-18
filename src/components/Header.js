@@ -17,6 +17,7 @@ const Header = () => {
 
   return (
     <header className={styles.header}>
+      {/* Contenedor del logo */}
       <div className={styles.logoContainer}>
         <a onClick={reloadPage} style={{ cursor: "pointer" }}>
           <Image
@@ -29,6 +30,8 @@ const Header = () => {
         </a>
         <span className={styles.tagline}>Das Lateinamerika-Magazin</span>
       </div>
+
+      {/* Botón para abrir/cerrar el menú en dispositivos móviles */}
       <button
         className={styles.menuButton}
         onClick={toggleMenu}
@@ -36,6 +39,8 @@ const Header = () => {
       >
         ☰
       </button>
+
+      {/* Navegación principal */}
       <nav className={`${styles.nav} ${menuOpen ? styles.active : ""}`}>
         <ul className={styles.menu}>
           <li>
@@ -52,6 +57,16 @@ const Header = () => {
           </li>
         </ul>
       </nav>
+
+      {/* Botones "Iniciar Sesión" y "Registrarse" */}
+      <div className={styles.authButtons}>
+        <Link href="/login">
+          <button className={styles.loginButton}>Iniciar Sesión</button>
+        </Link>
+        <Link href="/register">
+          <button className={styles.registerButton}>Registrarse</button>
+        </Link>
+      </div>
     </header>
   );
 };
