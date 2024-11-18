@@ -11,7 +11,7 @@ export default function Home() {
 
       {/* Bloque central */}
       <main className="w-full md:w-2/4">
-        <h1 className="text-2xl font-bold mb-4">Bienvenidos a ILA</h1>
+        <h1 className="text-2xl font-bold mb-4">Bienvenides a ILA</h1>
         <p className="mb-4">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eget
           risus porta, tincidunt turpis at, interdum tortor. Vivamus lacinia
