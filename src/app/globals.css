@@ -19,3 +19,50 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.page-content {
+  opacity: 0; /* Comienza invisible */
+  transform: translateY(10px); /* Comienza ligeramente desplazada */
+  transition: opacity 1s ease, transform 1s ease; /* Transición suave */
+}
+
+.page-content.fade-in {
+  opacity: 1; /* Totalmente visible */
+  transform: translateY(0); /* Sin desplazamiento */
+}
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff; /* Fondo blanco */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Asegura que esté encima de todo */
+}
+
+.logo-animation img {
+  border-radius: 50%; /* Hace que el logo sea redondo */
+  width: 150px; /* Ajusta el tamaño */
+  height: 150px;
+  object-fit: cover; /* Asegura que el contenido se ajuste al contenedor */
+  animation: fadeInOut 3s cubic-bezier(0.4, 0, 0.2, 1); /* Suaviza la animación */
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) rotate(360deg);
+  }
+}

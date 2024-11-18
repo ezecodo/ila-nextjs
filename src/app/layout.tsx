@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Header from "@/components/Header"; // Importa tu Header
-import Footer from "@/components/Footer"; // Importa tu Footer
-import SearchBar from "@/components/SearchBar"; // Importa la barra de búsqueda
+import ClientLayout from "@/components/ClientLayout";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,10 +29,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header /> {/* Encabezado de la página */}
-        <SearchBar /> {/* Barra de búsqueda */}
-        <main>{children}</main> {/* Contenido principal */}
-        <Footer /> {/* Pie de página */}
+        <ClientLayout>{children}</ClientLayout>{" "}
+        {/* Envolvemos con ClientLayout */}
       </body>
     </html>
   );
