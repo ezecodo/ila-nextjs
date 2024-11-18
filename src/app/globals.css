@@ -22,8 +22,9 @@ body {
 
 .page-content {
   opacity: 0; /* Comienza invisible */
-  transform: translateY(10px); /* Comienza ligeramente desplazada */
-  transition: opacity 1s ease, transform 1s ease; /* Transición suave */
+  transform: translateY(20px); /* Comienza ligeramente desplazada */
+  transition: opacity 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .page-content.fade-in {
