@@ -2,10 +2,17 @@
 
 export default function Home() {
   return (
-    <>
-      <main style={{ padding: "2rem" }}>
-        <h1>Bienvenidos a ILA</h1>
-        <p>
+    <div className="flex flex-col md:flex-row max-w-screen-xl mx-auto px-4 gap-4">
+      {/* Bloque de la izquierda */}
+      <aside className="hidden md:block md:w-1/4 bg-gray-100 p-4 rounded-lg shadow">
+        <h2 className="text-lg font-bold">Bloque Izquierdo</h2>
+        <p>Contenido pendiente por definir.</p>
+      </aside>
+
+      {/* Bloque central */}
+      <main className="w-full md:w-2/4">
+        <h1 className="text-2xl font-bold mb-4">Bienvenidos a ILA</h1>
+        <p className="mb-4">
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eget
           risus porta, tincidunt turpis at, interdum tortor. Vivamus lacinia
           tempor justo, nec venenatis nunc fringilla in. Maecenas ultrices,
@@ -19,7 +26,7 @@ export default function Home() {
           tincidunt, sit amet maximus justo dapibus. Suspendisse potenti. Nullam
           id tortor vel leo egestas faucibus non vel lacus.
         </p>
-        <p>
+        <p className="mb-4">
           Praesent at magna facilisis, congue nunc eget, auctor lorem. Integer
           vehicula urna eu velit laoreet, quis dignissim libero vehicula. Sed
           tempor lectus vitae velit consectetur varius. Curabitur eu purus in
@@ -33,7 +40,6 @@ export default function Home() {
           mollis metus.
         </p>
         <p>
-          {/* Repite este párrafo varias veces para hacer el contenido más largo */}
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eget
           risus porta, tincidunt turpis at, interdum tortor. Vivamus lacinia
           tempor justo, nec venenatis nunc fringilla in. Maecenas ultrices,
@@ -41,6 +47,12 @@ export default function Home() {
           suscipit nisi purus ut enim.
         </p>
       </main>
-    </>
+
+      {/* Bloque de la derecha */}
+      <aside className="hidden md:block md:w-1/4 bg-gray-100 p-4 rounded-lg shadow">
+        <h2 className="text-lg font-bold">Bloque Derecho</h2>
+        <p>Contenido pendiente por definir.</p>
+      </aside>
+    </div>
   );
 }
