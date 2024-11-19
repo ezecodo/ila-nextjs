@@ -2,13 +2,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { FaUser, FaUserPlus } from "react-icons/fa"; // Íconos
 import styles from "./Header.module.css";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
+    setMenuOpen(!menuOpen); // Cambiar estado del menú
   };
 
   const reloadPage = () => {
@@ -17,21 +18,37 @@ const Header = () => {
 
   return (
     <header className={styles.header}>
-      {/* Contenedor del logo */}
-      <div className={styles.logoContainer}>
-        <a onClick={reloadPage} style={{ cursor: "pointer" }}>
-          <Image
-            src="/ila-logo.png"
-            alt="ILA Logo"
-            width={50}
-            height={50}
-            className={styles.logo}
-          />
-        </a>
-        <span className={styles.tagline}>Das Lateinamerika-Magazin</span>
+      <div className={styles.headerTop}>
+        {/* Logo y tagline */}
+        <div className={styles.logoContainer}>
+          <a onClick={reloadPage} style={{ cursor: "pointer" }}>
+            <Image
+              src="/ila-logo.png"
+              alt="ILA Logo"
+              width={50}
+              height={50}
+              className={styles.logo}
+            />
+          </a>
+          <span className={styles.tagline}>Das Lateinamerika-Magazin</span>
+        </div>
+
+        {/* Botones de autenticación */}
+        <div className={styles.authButtons}>
+          <Link href="/login">
+            <button className={styles.iconButton}>
+              <FaUser size={16} />
+            </button>
+          </Link>
+          <Link href="/register">
+            <button className={styles.iconButton}>
+              <FaUserPlus size={16} />
+            </button>
+          </Link>
+        </div>
       </div>
 
-      {/* Botón para abrir/cerrar el menú en dispositivos móviles */}
+      {/* Botón hamburguesa */}
       <button
         className={styles.menuButton}
         onClick={toggleMenu}
@@ -40,7 +57,7 @@ const Header = () => {
         ☰
       </button>
 
-      {/* Navegación principal */}
+      {/* Menú de navegación */}
       <nav className={`${styles.nav} ${menuOpen ? styles.active : ""}`}>
         <ul className={styles.menu}>
           <li>
@@ -57,16 +74,6 @@ const Header = () => {
           </li>
         </ul>
       </nav>
-
-      {/* Botones "Iniciar Sesión" y "Registrarse" */}
-      <div className={styles.authButtons}>
-        <Link href="/login">
-          <button className={styles.loginButton}>Iniciar Sesión</button>
-        </Link>
-        <Link href="/register">
-          <button className={styles.registerButton}>Registrarse</button>
-        </Link>
-      </div>
     </header>
   );
 };
