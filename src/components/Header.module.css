@@ -29,10 +29,12 @@
 }
 
 .logo {
-  border-radius: 50%;
-  overflow: hidden;
-  width: 50px;
-  height: 50px;
+  border-radius: 50%; /* Hace el logo perfectamente redondo */
+  overflow: hidden; /* Recorta cualquier contenido fuera del contenedor circular */
+  width: 50px; /* Tamaño fijo para el ancho */
+  height: 50px; /* Tamaño fijo para el alto */
+  object-fit: cover; /* Ajusta la imagen para que no se deforme */
+  display: block; /* Asegura que la imagen se comporte como un bloque */
 }
 
 .tagline {
@@ -116,6 +118,23 @@
     justify-content: space-between;
     align-items: center;
     width: 100%;
+  }
+
+  .logoContainer {
+    justify-content: center; /* Centra el logo en la versión móvil */
+    align-items: center;
+    gap: 0.5rem; /* Ajusta el espacio entre logo y tagline */
+  }
+
+  .logo {
+    width: 40px; /* Tamaño más pequeño para móvil */
+    height: 40px; /* Mantén proporción circular */
+    object-fit: cover; /* Asegura que la imagen no se deforme */
+  }
+
+  .tagline {
+    font-size: 1rem; /* Reduce ligeramente el tamaño de la fuente */
+    text-align: center; /* Centra el texto debajo del logo */
   }
 
   .menuButton {
