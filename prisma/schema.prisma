@@ -1,103 +1,14 @@
-// Generador de Prisma Client
-generator client {
-  provider = "prisma-client-js"
-}
-
-// Fuente de datos: conexión con MySQL
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-// Modelos de la base de datos
+generator client {
+  provider = "prisma-client-js"
+}
+
 model Article {
-  id              String       @id @default(cuid())
-  title           String
-  subtitle        String?
-  previewText     String?
-  content         String
-  additionalInfo  String?
-  typeId          String
-  type            ArticleType  @relation(fields: [typeId], references: [id])
-  authorId        String
-  author          Author       @relation(fields: [authorId], references: [id])
-  personId        String?      @unique
-  person          Person?      @relation(fields: [personId], references: [id], name: "PersonArticles")
-  printEditionId  String?
-  edition         Ausgabe?     @relation(fields: [printEditionId], references: [id])
-  startPage       Int?
-  endPage         Int?
-  publicationDate DateTime
-  topics          Topic[]      @relation("ArticleTopics")
-  countries       Country[]    @relation("ArticleCountries")
-  contextInfo     ContextInfo?
-  media           Media[]
-  createdAt       DateTime     @default(now())
-}
-
-model Person {
-  id         String    @id @default(cuid())
-  name       String
-  middleName String?
-  lastName   String
-  lifeDates  String?
-  articles   Article[] @relation("PersonArticles")
-}
-
-model ArticleType {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  articles Article[]
-}
-
-model Author {
-  id       String    @id @default(cuid())
-  name     String
-  bio      String?
-  articles Article[]
-}
-
-model Topic {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  articles Article[] @relation("ArticleTopics")
-}
-
-model Country {
-  id       String    @id @default(cuid())
-  name     String    @unique
-  articles Article[] @relation("ArticleCountries")
-}
-
-model Ausgabe {
-  id       String    @id @default(cuid())
-  number   Int       @unique
-  title    String
-  articles Article[]
-}
-
-model ContextInfo {
-  id               String  @id @default(cuid())
-  literature       String?
-  links            Link[]
-  videoUrl         String?
-  videoDescription String?
-  articleId        String  @unique
-  article          Article @relation(fields: [articleId], references: [id])
-}
-
-model Link {
-  id            String      @id @default(cuid())
-  title         String
-  url           String
-  contextInfoId String
-  contextInfo   ContextInfo @relation(fields: [contextInfoId], references: [id])
-}
-
-model Media {
-  id        String  @id @default(cuid())
-  type      String
-  url       String
-  articleId String
-  article   Article @relation(fields: [articleId], references: [id])
+  id      Int    @id @default(autoincrement())
+  title   String // Título del artículo
+  content String // Contenido completo
 }
