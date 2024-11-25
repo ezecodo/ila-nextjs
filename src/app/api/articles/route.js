@@ -2,31 +2,40 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(req) {
+export async function POST(req) {
   try {
-    const articles = await prisma.article.findMany();
-    return new Response(JSON.stringify(articles), { status: 200 });
+    const { title, content } = await req.json();
+
+    if (!title || !content) {
+      return new Response(
+        JSON.stringify({ error: "Title and content are required" }),
+        { status: 400 }
+      );
+    }
+
+    const article = await prisma.article.create({
+      data: { title, content },
+    });
+
+    return new Response(JSON.stringify(article), { status: 201 });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error(error);
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
     });
   }
 }
 
-export async function POST(req) {
+export async function GET() {
   try {
-    const data = await req.json();
-
-    const article = await prisma.article.create({
-      data: {
-        title: data.title,
-        content: data.content,
-      },
+    const articles = await prisma.article.findMany({
+      orderBy: { id: "desc" },
     });
 
-    return new Response(JSON.stringify(article), { status: 201 });
+    return new Response(JSON.stringify(articles), { status: 200 });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error(error);
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
     });
   }
