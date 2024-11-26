@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import styles from "./NewArticlePage.module.css";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");
@@ -21,101 +22,45 @@ export default function NewArticlePage() {
       setTitle("");
       setContent("");
     } else {
-      setMessage("Error al crear el artículo.");
+      const errorData = await res.json();
+      setMessage(`Error: ${errorData.error}`);
     }
   };
 
   return (
-    <div className="container">
-      <h1 className="form-title">Crear un nuevo artículo</h1>
-      {message && <p className="message">{message}</p>}
-      <form onSubmit={handleSubmit} className="form">
-        <div className="form-group">
-          <label htmlFor="title">Título</label>
+    <div className={styles.container}>
+      <h1 className={styles.formTitle}>Crear un nuevo artículo</h1>
+      {message && <p className={styles.message}>{message}</p>}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <label htmlFor="title" className={styles.formLabel}>
+            Título
+          </label>
           <input
             id="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ingrese el título"
-            className="input"
+            className={styles.input}
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="content">Contenido</label>
+        <div className={styles.formGroup}>
+          <label htmlFor="content" className={styles.formLabel}>
+            Contenido
+          </label>
           <textarea
             id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Ingrese el contenido"
-            className="textarea"
+            className={styles.textarea}
           />
         </div>
-        <button type="submit" className="submit-button">
+        <button type="submit" className={styles.submitButton}>
           Crear artículo
         </button>
       </form>
-
-      <style jsx>{`
-        .container {
-          max-width: 600px;
-          margin: 50px auto;
-          padding: 20px;
-          border-radius: 10px;
-          background-color: #f9f9f9;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .form-title {
-          font-size: 24px;
-          margin-bottom: 20px;
-          text-align: center;
-          color: #333;
-        }
-        .message {
-          text-align: center;
-          color: green;
-          margin-bottom: 15px;
-        }
-        .form {
-          display: flex;
-          flex-direction: column;
-          gap: 15px;
-        }
-        .form-group {
-          display: flex;
-          flex-direction: column;
-        }
-        label {
-          font-size: 14px;
-          margin-bottom: 5px;
-          color: #555;
-        }
-        .input,
-        .textarea {
-          width: 100%;
-          padding: 10px;
-          font-size: 16px;
-          border: 1px solid #ccc;
-          border-radius: 5px;
-        }
-        .textarea {
-          min-height: 100px;
-          resize: vertical;
-        }
-        .submit-button {
-          background-color: #0070f3;
-          color: white;
-          padding: 10px 20px;
-          font-size: 16px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-        .submit-button:hover {
-          background-color: #005bb5;
-        }
-      `}</style>
     </div>
   );
 }

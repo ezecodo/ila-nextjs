@@ -10,5 +10,5 @@ generator client {
 model Article {
   id      Int    @id @default(autoincrement())
   title   String // Título del artículo
-  content String // Contenido completo
+  content String // Contenido del artículo
 }
