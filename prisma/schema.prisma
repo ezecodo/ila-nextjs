@@ -10,17 +10,29 @@ datasource db {
 
 model Article {
   id               Int             @id @default(autoincrement())
-  title            String
-  content          String
-  beitragstypId    Int
-  beitragssubtypId Int?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  beitragssubtyp   Beitragssubtyp? @relation(fields: [beitragssubtypId], references: [id])
+  title            String          // Título del artículo
+  content          String          // Contenido del artículo
+  beitragstypId    Int             // Relación con el tipo de artículo
+  beitragssubtypId Int?            // Relación opcional con el subtipo
+  editionId        Int?            // Relación opcional con la edición de la revista
+  createdAt        DateTime        @default(now())      // Fecha de creación
+  updatedAt        DateTime        @updatedAt           // Fecha de actualización automática
+
   beitragstyp      Beitragstyp     @relation(fields: [beitragstypId], references: [id])
+  beitragssubtyp   Beitragssubtyp? @relation(fields: [beitragssubtypId], references: [id])
+  edition          Edition?        @relation(fields: [editionId], references: [id]) // Relación con Edition
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
+  @@index([editionId], map: "Article_editionId_fkey") // Índice para la edición
+}
+
+model Edition {
+  id              Int              @id @default(autoincrement())
+  number          Int              @unique // Número único de la edición
+  title           String           // Título de la edición
+  datePublished   DateTime?        // Fecha de publicación opcional
+  articles        Article[]        // Relación con artículos
 }
 
 model Beitragstyp {

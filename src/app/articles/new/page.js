@@ -10,6 +10,8 @@ export default function NewArticlePage() {
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
   const [subtypen, setSubtypen] = useState([]);
   const [selectedSubtyp, setSelectedSubtyp] = useState("");
+  const [editions, setEditions] = useState([]); // Estado para las ediciones
+  const [selectedEdition, setSelectedEdition] = useState(""); // Edición seleccionada
   const [message, setMessage] = useState("");
 
   // Cargar los Beitragstypen y subtipos desde la API
@@ -45,6 +47,27 @@ export default function NewArticlePage() {
     }
   }, [selectedBeitragstyp, beitragstypen]);
 
+  // Cargar las ediciones desde la API
+  useEffect(() => {
+    const fetchEditions = async () => {
+      try {
+        const res = await fetch("/api/editions");
+        if (res.ok) {
+          const data = await res.json();
+          setEditions(data);
+        } else {
+          console.error("Error al cargar las ediciones.");
+          setMessage("Error al cargar las ediciones.");
+        }
+      } catch (error) {
+        console.error("Error al conectar con el servidor:", error);
+        setMessage("Error al conectar con el servidor.");
+      }
+    };
+
+    fetchEditions();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -61,6 +84,7 @@ export default function NewArticlePage() {
         content,
         beitragstypId: selectedBeitragstyp,
         beitragssubtypId: selectedSubtyp || null, // Permitir subtipos opcionales
+        editionId: selectedEdition || null, // Edición opcional
       }),
     });
 
@@ -70,6 +94,7 @@ export default function NewArticlePage() {
       setContent("");
       setSelectedBeitragstyp("");
       setSelectedSubtyp("");
+      setSelectedEdition("");
     } else {
       const errorData = await res.json();
       setMessage(`Error: ${errorData.error}`);
@@ -144,6 +169,24 @@ export default function NewArticlePage() {
             </select>
           </div>
         )}
+        <div className={styles.formGroup}>
+          <label htmlFor="edition" className={styles.formLabel}>
+            Edición
+          </label>
+          <select
+            id="edition"
+            value={selectedEdition}
+            onChange={(e) => setSelectedEdition(e.target.value)}
+            className={styles.select}
+          >
+            <option value="">Seleccione una edición</option>
+            {editions.map((edition) => (
+              <option key={edition.id} value={edition.id}>
+                {edition.number}: {edition.title}
+              </option>
+            ))}
+          </select>
+        </div>
         <button type="submit" className={styles.submitButton}>
           Crear artículo
         </button>
