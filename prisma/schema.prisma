@@ -1,14 +1,41 @@
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
 model Article {
-  id      Int    @id @default(autoincrement())
-  title   String // Título del artículo
-  content String // Contenido del artículo
+  id               Int             @id @default(autoincrement())
+  title            String
+  content          String
+  beitragstypId    Int
+  beitragssubtypId Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  beitragssubtyp   Beitragssubtyp? @relation(fields: [beitragssubtypId], references: [id])
+  beitragstyp      Beitragstyp     @relation(fields: [beitragstypId], references: [id])
+
+  @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
+  @@index([beitragstypId], map: "Article_beitragstypId_fkey")
+}
+
+model Beitragstyp {
+  id       Int              @id @default(autoincrement())
+  name     String           @unique
+  articles Article[]
+  subtypes Beitragssubtyp[]
+}
+
+model Beitragssubtyp {
+  id            Int          @id @default(autoincrement())
+  name          String
+  beitragstypId Int
+  beitragstyp   Beitragstyp  @relation(fields: [beitragstypId], references: [id])
+  articles      Article[]
+
+  @@unique([name, beitragstypId]) // Índice compuesto
 }

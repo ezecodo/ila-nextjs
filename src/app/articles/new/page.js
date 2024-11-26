@@ -1,26 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./NewArticlePage.module.css";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [beitragstypen, setBeitragstypen] = useState([]);
+  const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
+  const [subtypen, setSubtypen] = useState([]);
+  const [selectedSubtyp, setSelectedSubtyp] = useState("");
   const [message, setMessage] = useState("");
+
+  // Cargar los Beitragstypen y subtipos desde la API
+  useEffect(() => {
+    const fetchBeitragstypen = async () => {
+      try {
+        const res = await fetch("/api/beitragstypen");
+        if (res.ok) {
+          const data = await res.json();
+          setBeitragstypen(data);
+        } else {
+          console.error("Error al cargar los tipos de artículo.");
+          setMessage("Error al cargar los tipos de artículo.");
+        }
+      } catch (error) {
+        console.error("Error al conectar con el servidor:", error);
+        setMessage("Error al conectar con el servidor.");
+      }
+    };
+
+    fetchBeitragstypen();
+  }, []);
+
+  // Actualizar los subtipos según el tipo seleccionado
+  useEffect(() => {
+    if (selectedBeitragstyp) {
+      const selected = beitragstypen.find(
+        (typ) => typ.id === parseInt(selectedBeitragstyp)
+      );
+      setSubtypen(selected?.subtypes || []); // Filtrar subtipos del tipo seleccionado
+    } else {
+      setSubtypen([]);
+    }
+  }, [selectedBeitragstyp, beitragstypen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!selectedBeitragstyp) {
+      setMessage("Seleccione un tipo de artículo.");
+      return;
+    }
+
     const res = await fetch("/api/articles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content }),
+      body: JSON.stringify({
+        title,
+        content,
+        beitragstypId: selectedBeitragstyp,
+        beitragssubtypId: selectedSubtyp || null, // Permitir subtipos opcionales
+      }),
     });
 
     if (res.ok) {
       setMessage("Artículo creado con éxito.");
       setTitle("");
       setContent("");
+      setSelectedBeitragstyp("");
+      setSelectedSubtyp("");
     } else {
       const errorData = await res.json();
       setMessage(`Error: ${errorData.error}`);
@@ -57,6 +106,44 @@ export default function NewArticlePage() {
             className={styles.textarea}
           />
         </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="beitragstyp" className={styles.formLabel}>
+            Tipo de Artículo
+          </label>
+          <select
+            id="beitragstyp"
+            value={selectedBeitragstyp}
+            onChange={(e) => setSelectedBeitragstyp(e.target.value)}
+            className={styles.select}
+          >
+            <option value="">Seleccione un tipo</option>
+            {beitragstypen.map((typ) => (
+              <option key={typ.id} value={typ.id}>
+                {typ.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        {subtypen.length > 0 && (
+          <div className={styles.formGroup}>
+            <label htmlFor="subtyp" className={styles.formLabel}>
+              Subtipo de Artículo
+            </label>
+            <select
+              id="subtyp"
+              value={selectedSubtyp}
+              onChange={(e) => setSelectedSubtyp(e.target.value)}
+              className={styles.select}
+            >
+              <option value="">Seleccione un subtipo</option>
+              {subtypen.map((subtyp) => (
+                <option key={subtyp.id} value={subtyp.id}>
+                  {subtyp.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <button type="submit" className={styles.submitButton}>
           Crear artículo
         </button>

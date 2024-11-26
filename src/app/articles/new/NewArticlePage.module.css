@@ -17,6 +17,11 @@
   color: green;
   margin-bottom: 15px;
 }
+.errorMessage {
+  text-align: center;
+  color: red;
+  margin-bottom: 15px;
+}
 .form {
   display: flex;
   flex-direction: column;
@@ -32,7 +37,8 @@
   color: #555;
 }
 .input,
-.textarea {
+.textarea,
+.select {
   width: 100%;
   padding: 10px;
   font-size: 16px;
@@ -42,6 +48,11 @@
 .textarea {
   min-height: 100px;
   resize: vertical;
+}
+.select {
+  appearance: none; /* Para estilos personalizados */
+  background-color: white;
+  cursor: pointer;
 }
 .submitButton {
   background-color: #0070f3;
