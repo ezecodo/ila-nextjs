@@ -39,3 +39,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 delete-articles.js
+
+# Carpeta con Backups de diferentes archivos
+/backup/
+

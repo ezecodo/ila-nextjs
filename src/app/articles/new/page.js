@@ -13,6 +13,8 @@ export default function NewArticlePage() {
   const [isPrinted, setIsPrinted] = useState(false);
   const [editions, setEditions] = useState([]);
   const [selectedEdition, setSelectedEdition] = useState("");
+  const [startPage, setStartPage] = useState("");
+  const [endPage, setEndPage] = useState("");
   const [message, setMessage] = useState("");
 
   // Cargar los Beitragstypen y subtipos desde la API
@@ -40,9 +42,9 @@ export default function NewArticlePage() {
   useEffect(() => {
     if (selectedBeitragstyp) {
       const selected = beitragstypen.find(
-        (typ) => typ.id === parseInt(selectedBeitragstyp)
+        (typ) => typ.id === parseInt(selectedBeitragstyp, 10)
       );
-      setSubtypen(selected?.subtypes || []); // Filtrar subtipos del tipo seleccionado
+      setSubtypen(selected?.subtypes || []);
     } else {
       setSubtypen([]);
     }
@@ -77,6 +79,13 @@ export default function NewArticlePage() {
       return;
     }
 
+    if (isPrinted && (!selectedEdition || !startPage || !endPage)) {
+      setMessage(
+        "Complete todos los campos relacionados con la edición impresa."
+      );
+      return;
+    }
+
     try {
       const res = await fetch("/api/articles", {
         method: "POST",
@@ -85,23 +94,33 @@ export default function NewArticlePage() {
           title,
           content,
           beitragstypId: selectedBeitragstyp,
-          beitragssubtypId: selectedSubtyp || null, // Permitir subtipos opcionales
+          beitragssubtypId: selectedSubtyp || null,
           isPrinted,
-          editionId: isPrinted ? selectedEdition || null : null,
+          editionId: isPrinted ? parseInt(selectedEdition, 10) : null,
+          startPage: isPrinted ? parseInt(startPage, 10) : null,
+          endPage: isPrinted ? parseInt(endPage, 10) : null,
         }),
       });
 
       if (res.ok) {
+        const data = await res.json();
         setMessage("Artículo creado con éxito.");
+        console.log("Artículo creado:", data);
+
+        // Reiniciar los estados
         setTitle("");
         setContent("");
         setSelectedBeitragstyp("");
         setSelectedSubtyp("");
         setIsPrinted(false);
         setSelectedEdition("");
+        setStartPage("");
+        setEndPage("");
       } else {
-        const errorData = await res.json();
-        setMessage(`Error: ${errorData.error}`);
+        const errorData = await res.json().catch(() => null);
+        setMessage(
+          errorData?.error || "Error desconocido al crear el artículo."
+        );
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);
@@ -178,7 +197,7 @@ export default function NewArticlePage() {
           </div>
         )}
         <div className={styles.formGroup}>
-          <label htmlFor="isInPrintEdition" className={styles.formLabel}>
+          <label htmlFor="isPrinted" className={styles.formLabel}>
             ¿Está en la versión impresa?
           </label>
           <label className={styles.switch}>
@@ -191,24 +210,52 @@ export default function NewArticlePage() {
           </label>
         </div>
         {isPrinted && (
-          <div className={styles.formGroup}>
-            <label htmlFor="edition" className={styles.formLabel}>
-              Edición de la revista
-            </label>
-            <select
-              id="edition"
-              value={selectedEdition}
-              onChange={(e) => setSelectedEdition(e.target.value)}
-              className={styles.select}
-            >
-              <option value="">Seleccione una edición</option>
-              {editions.map((edition) => (
-                <option key={edition.id} value={edition.id}>
-                  {edition.number} - {edition.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          <>
+            <div className={styles.formGroup}>
+              <label htmlFor="edition" className={styles.formLabel}>
+                Edición de la revista
+              </label>
+              <select
+                id="edition"
+                value={selectedEdition}
+                onChange={(e) => setSelectedEdition(e.target.value)}
+                className={styles.select}
+              >
+                <option value="">Seleccione una edición</option>
+                {editions.map((edition) => (
+                  <option key={edition.id} value={edition.id}>
+                    {edition.number} - {edition.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="startPage" className={styles.formLabel}>
+                Página de inicio
+              </label>
+              <input
+                id="startPage"
+                type="number"
+                value={startPage}
+                onChange={(e) => setStartPage(e.target.value)}
+                placeholder="Página de inicio"
+                className={styles.input}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="endPage" className={styles.formLabel}>
+                Página de fin
+              </label>
+              <input
+                id="endPage"
+                type="number"
+                value={endPage}
+                onChange={(e) => setEndPage(e.target.value)}
+                placeholder="Página de fin"
+                className={styles.input}
+              />
+            </div>
+          </>
         )}
         <button type="submit" className={styles.submitButton}>
           Crear artículo

@@ -16,6 +16,8 @@ model Article {
   beitragssubtypId Int?            // Relación opcional con el subtipo
   editionId        Int?            // Relación opcional con la edición de la revista
   isInPrintEdition Boolean         @default(false) // Si aparece en versión impresa
+  startPage        Int?            // Página donde comienza el artículo en la revista
+  endPage          Int?            // Página donde termina el artículo en la revista
   createdAt        DateTime        @default(now())      // Fecha de creación
   updatedAt        DateTime        @updatedAt           // Fecha de actualización automática
 
