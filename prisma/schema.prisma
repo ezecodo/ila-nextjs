@@ -21,11 +21,13 @@ model Article {
   beitragstyp      Beitragstyp     @relation(fields: [beitragstypId], references: [id])
   beitragssubtyp   Beitragssubtyp? @relation(fields: [beitragssubtypId], references: [id])
   edition          Edition?        @relation(fields: [editionId], references: [id]) // Relación con Edition
+  favorites        Favorite[]      // Relación con favoritos
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
   @@index([editionId], map: "Article_editionId_fkey") // Índice para la edición
 }
+
 
 model Edition {
   id              Int              @id @default(autoincrement())
@@ -50,4 +52,24 @@ model Beitragssubtyp {
   articles      Article[]
 
   @@unique([name, beitragstypId]) // Índice compuesto
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique // Correo único para cada usuario
+  name       String?    // Nombre opcional
+  favorites  Favorite[] // Relación con favoritos
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int      // Usuario que favoritiza el artículo
+  articleId Int      // Artículo que se favoritiza
+  user      User     @relation(fields: [userId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id])
+  createdAt DateTime @default(now()) // Fecha de creación del favorito
+
+  @@unique([userId, articleId], map: "UniqueUserArticle") // Garantiza que un usuario no pueda repetir un favorito
 }
