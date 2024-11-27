@@ -4,9 +4,26 @@ const prisma = new PrismaClient();
 
 export async function POST(req) {
   try {
-    const { title, content, beitragstypId, beitragssubtypId, editionId } =
-      await req.json();
+    const {
+      title,
+      content,
+      beitragstypId,
+      beitragssubtypId,
+      editionId,
+      isPrinted,
+    } = await req.json();
 
+    // Log detallado para depuración
+    console.log("Datos recibidos en el POST:", {
+      title,
+      content,
+      beitragstypId,
+      beitragssubtypId,
+      editionId,
+      isPrinted,
+    });
+
+    // Validar datos obligatorios
     if (!title || !content || !beitragstypId) {
       return new Response(
         JSON.stringify({
@@ -16,15 +33,39 @@ export async function POST(req) {
       );
     }
 
+    // Validar lógica de edición impresa
+    if (isPrinted && !editionId) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Edition ID is required when the article is marked as printed.",
+        }),
+        { status: 400 }
+      );
+    }
+
+    // Log antes de la creación
+    console.log("Preparando datos para crear el artículo:", {
+      title,
+      content,
+      beitragstypId: parseInt(beitragstypId),
+      beitragssubtypId: beitragssubtypId ? parseInt(beitragssubtypId) : null,
+      editionId: isPrinted ? parseInt(editionId) : null,
+    });
+
+    // Crear el artículo
     const article = await prisma.article.create({
       data: {
         title,
         content,
         beitragstypId: parseInt(beitragstypId),
         beitragssubtypId: beitragssubtypId ? parseInt(beitragssubtypId) : null,
-        editionId: editionId ? parseInt(editionId) : null,
+        editionId: isPrinted ? parseInt(editionId) : null,
       },
     });
+
+    // Log después de la creación
+    console.log("Artículo creado con éxito:", article);
 
     return new Response(JSON.stringify(article), { status: 201 });
   } catch (error) {
@@ -47,8 +88,8 @@ export async function GET() {
         beitragssubtyp: true,
         edition: {
           select: {
-            number: true, // Seleccionar solo el número de la edición
-            title: true, // Puedes incluir el título si lo necesitas
+            number: true,
+            title: true,
           },
         },
       },

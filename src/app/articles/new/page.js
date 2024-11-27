@@ -10,8 +10,9 @@ export default function NewArticlePage() {
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
   const [subtypen, setSubtypen] = useState([]);
   const [selectedSubtyp, setSelectedSubtyp] = useState("");
-  const [editions, setEditions] = useState([]); // Estado para las ediciones
-  const [selectedEdition, setSelectedEdition] = useState(""); // Edición seleccionada
+  const [isPrinted, setIsPrinted] = useState(false);
+  const [editions, setEditions] = useState([]);
+  const [selectedEdition, setSelectedEdition] = useState("");
   const [message, setMessage] = useState("");
 
   // Cargar los Beitragstypen y subtipos desde la API
@@ -47,7 +48,7 @@ export default function NewArticlePage() {
     }
   }, [selectedBeitragstyp, beitragstypen]);
 
-  // Cargar las ediciones desde la API
+  // Cargar ediciones desde la API
   useEffect(() => {
     const fetchEditions = async () => {
       try {
@@ -76,28 +77,35 @@ export default function NewArticlePage() {
       return;
     }
 
-    const res = await fetch("/api/articles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        content,
-        beitragstypId: selectedBeitragstyp,
-        beitragssubtypId: selectedSubtyp || null, // Permitir subtipos opcionales
-        editionId: selectedEdition || null, // Edición opcional
-      }),
-    });
+    try {
+      const res = await fetch("/api/articles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content,
+          beitragstypId: selectedBeitragstyp,
+          beitragssubtypId: selectedSubtyp || null, // Permitir subtipos opcionales
+          isPrinted,
+          editionId: isPrinted ? selectedEdition || null : null,
+        }),
+      });
 
-    if (res.ok) {
-      setMessage("Artículo creado con éxito.");
-      setTitle("");
-      setContent("");
-      setSelectedBeitragstyp("");
-      setSelectedSubtyp("");
-      setSelectedEdition("");
-    } else {
-      const errorData = await res.json();
-      setMessage(`Error: ${errorData.error}`);
+      if (res.ok) {
+        setMessage("Artículo creado con éxito.");
+        setTitle("");
+        setContent("");
+        setSelectedBeitragstyp("");
+        setSelectedSubtyp("");
+        setIsPrinted(false);
+        setSelectedEdition("");
+      } else {
+        const errorData = await res.json();
+        setMessage(`Error: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      setMessage("Error al enviar los datos.");
     }
   };
 
@@ -170,23 +178,38 @@ export default function NewArticlePage() {
           </div>
         )}
         <div className={styles.formGroup}>
-          <label htmlFor="edition" className={styles.formLabel}>
-            Edición
+          <label htmlFor="isInPrintEdition" className={styles.formLabel}>
+            ¿Está en la versión impresa?
           </label>
-          <select
-            id="edition"
-            value={selectedEdition}
-            onChange={(e) => setSelectedEdition(e.target.value)}
-            className={styles.select}
-          >
-            <option value="">Seleccione una edición</option>
-            {editions.map((edition) => (
-              <option key={edition.id} value={edition.id}>
-                {edition.number}: {edition.title}
-              </option>
-            ))}
-          </select>
+          <label className={styles.switch}>
+            <input
+              type="checkbox"
+              checked={isPrinted}
+              onChange={(e) => setIsPrinted(e.target.checked)}
+            />
+            <span className={styles.slider}></span>
+          </label>
         </div>
+        {isPrinted && (
+          <div className={styles.formGroup}>
+            <label htmlFor="edition" className={styles.formLabel}>
+              Edición de la revista
+            </label>
+            <select
+              id="edition"
+              value={selectedEdition}
+              onChange={(e) => setSelectedEdition(e.target.value)}
+              className={styles.select}
+            >
+              <option value="">Seleccione una edición</option>
+              {editions.map((edition) => (
+                <option key={edition.id} value={edition.id}>
+                  {edition.number} - {edition.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <button type="submit" className={styles.submitButton}>
           Crear artículo
         </button>
