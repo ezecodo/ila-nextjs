@@ -5,6 +5,7 @@ import styles from "./NewArticlePage.module.css";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");
+  const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
@@ -92,6 +93,7 @@ export default function NewArticlePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
+          subtitle,
           content,
           beitragstypId: selectedBeitragstyp,
           beitragssubtypId: selectedSubtyp || null,
@@ -109,6 +111,7 @@ export default function NewArticlePage() {
 
         // Reiniciar los estados
         setTitle("");
+        setSubtitle("");
         setContent("");
         setSelectedBeitragstyp("");
         setSelectedSubtyp("");
@@ -143,6 +146,19 @@ export default function NewArticlePage() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Ingrese el título"
+            className={styles.input}
+          />
+        </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="subtitle" className={styles.formLabel}>
+            Subtítulo
+          </label>
+          <input
+            id="subtitle"
+            type="text"
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+            placeholder="Ingrese el subtítulo"
             className={styles.input}
           />
         </div>

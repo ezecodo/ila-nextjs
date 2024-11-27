@@ -11,6 +11,7 @@ datasource db {
 model Article {
   id               Int             @id @default(autoincrement())
   title            String          // Título del artículo
+  subtitle         String?         // Subtítulo del artículo
   content          String          @db.Text // Cambiar de String a Text
   beitragstypId    Int             // Relación con el tipo de artículo
   beitragssubtypId Int?            // Relación opcional con el subtipo

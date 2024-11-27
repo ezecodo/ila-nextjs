@@ -6,6 +6,7 @@ export async function POST(req) {
   try {
     const {
       title,
+      subtitle,
       content,
       beitragstypId,
       beitragssubtypId,
@@ -17,6 +18,7 @@ export async function POST(req) {
 
     console.log("Datos recibidos:", {
       title,
+      subtitle,
       content,
       beitragstypId,
       beitragssubtypId,
@@ -36,7 +38,7 @@ export async function POST(req) {
       );
     }
 
-    // Validar edición impresa
+    // Validaciones para edición impresa
     if (isPrinted) {
       if (!editionId) {
         return new Response(
@@ -77,6 +79,7 @@ export async function POST(req) {
     const article = await prisma.article.create({
       data: {
         title,
+        subtitle, // Incluir subtítulo
         content,
         beitragstypId: parseInt(beitragstypId, 10),
         beitragssubtypId: beitragssubtypId
