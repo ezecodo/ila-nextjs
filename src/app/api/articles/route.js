@@ -2,6 +2,35 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+export async function GET() {
+  try {
+    const articles = await prisma.article.findMany({
+      include: {
+        beitragstyp: true,
+        beitragssubtyp: true,
+        edition: {
+          select: {
+            number: true,
+            title: true,
+          },
+        },
+      },
+      orderBy: { id: "desc" }, // Ordenar los artículos por ID de forma descendente
+    });
+
+    return new Response(JSON.stringify(articles), { status: 200 });
+  } catch (error) {
+    console.error("Error en GET /api/articles:", error.message);
+    return new Response(
+      JSON.stringify({
+        error: "Internal Server Error",
+        details: error.message,
+      }),
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req) {
   try {
     const {
