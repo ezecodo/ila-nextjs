@@ -67,6 +67,16 @@ export async function POST(req) {
       );
     }
 
+    // Validación opcional para subtítulo (longitud máxima)
+    if (subtitle && subtitle.length > 255) {
+      return new Response(
+        JSON.stringify({
+          error: "Subtitle cannot exceed 255 characters.",
+        }),
+        { status: 400 }
+      );
+    }
+
     // Validaciones para edición impresa
     if (isPrinted) {
       if (!editionId) {
@@ -108,7 +118,7 @@ export async function POST(req) {
     const article = await prisma.article.create({
       data: {
         title,
-        subtitle, // Incluir subtítulo
+        subtitle, // Asegúrate de enviar el subtítulo al modelo
         content,
         beitragstypId: parseInt(beitragstypId, 10),
         beitragssubtypId: beitragssubtypId
