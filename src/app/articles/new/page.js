@@ -37,7 +37,7 @@ export default function NewArticlePage() {
         } else {
           setMessage("Error al cargar los tipos de artículo.");
         }
-      } catch (error) {
+      } catch {
         setMessage("Error al conectar con el servidor.");
       }
     };
@@ -52,11 +52,13 @@ export default function NewArticlePage() {
         const res = await fetch("/api/authors");
         if (res.ok) {
           const data = await res.json();
-          setAuthors(data);
+          setAuthors(
+            data.map((author) => ({ id: author.id, name: author.name }))
+          );
         } else {
           setMessage("Error al cargar los autores.");
         }
-      } catch (error) {
+      } catch {
         setMessage("Error al conectar con el servidor.");
       }
     };
@@ -83,11 +85,16 @@ export default function NewArticlePage() {
         const res = await fetch("/api/editions");
         if (res.ok) {
           const data = await res.json();
-          setEditions(data);
+          setEditions(
+            data.map((edition) => ({
+              id: edition.id,
+              name: `${edition.number} - ${edition.title}`,
+            }))
+          );
         } else {
           setMessage("Error al cargar las ediciones.");
         }
-      } catch (error) {
+      } catch {
         setMessage("Error al conectar con el servidor.");
       }
     };
@@ -150,7 +157,7 @@ export default function NewArticlePage() {
           errorData?.error || "Error desconocido al crear el artículo."
         );
       }
-    } catch (error) {
+    } catch {
       setMessage("Error al enviar los datos.");
     }
   };
@@ -218,10 +225,7 @@ export default function NewArticlePage() {
             <SelectField
               id="edition"
               label="Edición de la revista"
-              options={editions.map((edition) => ({
-                id: edition.id,
-                name: `${edition.number} - ${edition.title}`,
-              }))}
+              options={editions}
               value={selectedEdition}
               onChange={(e) => setSelectedEdition(e.target.value)}
               placeholder="Seleccione una edición"
