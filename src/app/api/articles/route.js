@@ -14,8 +14,14 @@ export async function GET() {
             title: true,
           },
         },
+        authors: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
-      orderBy: { id: "desc" }, // Ordenar los artículos por ID de forma descendente
+      orderBy: { id: "desc" },
     });
 
     return new Response(JSON.stringify(articles), { status: 200 });
@@ -43,6 +49,7 @@ export async function POST(req) {
       isPrinted,
       startPage,
       endPage,
+      authorId, // Recibe el ID del autor
     } = await req.json();
 
     console.log("Datos recibidos:", {
@@ -55,9 +62,9 @@ export async function POST(req) {
       isPrinted,
       startPage,
       endPage,
+      authorId,
     });
 
-    // Validaciones básicas
     if (!title || !content || !beitragstypId) {
       return new Response(
         JSON.stringify({
@@ -67,17 +74,6 @@ export async function POST(req) {
       );
     }
 
-    // Validación opcional para subtítulo (longitud máxima)
-    if (subtitle && subtitle.length > 255) {
-      return new Response(
-        JSON.stringify({
-          error: "Subtitle cannot exceed 255 characters.",
-        }),
-        { status: 400 }
-      );
-    }
-
-    // Validaciones para edición impresa
     if (isPrinted) {
       if (!editionId) {
         return new Response(
@@ -118,7 +114,7 @@ export async function POST(req) {
     const article = await prisma.article.create({
       data: {
         title,
-        subtitle, // Asegúrate de enviar el subtítulo al modelo
+        subtitle,
         content,
         beitragstypId: parseInt(beitragstypId, 10),
         beitragssubtypId: beitragssubtypId
@@ -127,6 +123,11 @@ export async function POST(req) {
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         startPage: isPrinted ? parseInt(startPage, 10) : null,
         endPage: isPrinted ? parseInt(endPage, 10) : null,
+        authors: authorId
+          ? {
+              connect: { id: parseInt(authorId, 10) }, // Relacionar autor
+            }
+          : undefined,
       },
     });
 

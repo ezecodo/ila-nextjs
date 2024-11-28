@@ -5,7 +5,7 @@ import styles from "./NewArticlePage.module.css";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");
-  const [subtitle, setSubtitle] = useState(""); // Estado para el subtítulo
+  const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
@@ -16,6 +16,8 @@ export default function NewArticlePage() {
   const [selectedEdition, setSelectedEdition] = useState("");
   const [startPage, setStartPage] = useState("");
   const [endPage, setEndPage] = useState("");
+  const [authors, setAuthors] = useState([]);
+  const [selectedAuthor, setSelectedAuthor] = useState("");
   const [message, setMessage] = useState("");
 
   // Cargar los Beitragstypen y subtipos desde la API
@@ -72,6 +74,27 @@ export default function NewArticlePage() {
     fetchEditions();
   }, []);
 
+  // Cargar autores desde la API
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      try {
+        const res = await fetch("/api/authors");
+        if (res.ok) {
+          const data = await res.json();
+          setAuthors(data);
+        } else {
+          console.error("Error al cargar los autores.");
+          setMessage("Error al cargar los autores.");
+        }
+      } catch (error) {
+        console.error("Error al conectar con el servidor:", error);
+        setMessage("Error al conectar con el servidor.");
+      }
+    };
+
+    fetchAuthors();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -93,7 +116,7 @@ export default function NewArticlePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          subtitle, // Subtítulo incluido
+          subtitle,
           content,
           beitragstypId: selectedBeitragstyp,
           beitragssubtypId: selectedSubtyp || null,
@@ -101,6 +124,7 @@ export default function NewArticlePage() {
           editionId: isPrinted ? parseInt(selectedEdition, 10) : null,
           startPage: isPrinted ? parseInt(startPage, 10) : null,
           endPage: isPrinted ? parseInt(endPage, 10) : null,
+          authorId: selectedAuthor ? parseInt(selectedAuthor, 10) : null,
         }),
       });
 
@@ -111,7 +135,7 @@ export default function NewArticlePage() {
 
         // Reiniciar los estados
         setTitle("");
-        setSubtitle(""); // Reiniciar subtítulo
+        setSubtitle("");
         setContent("");
         setSelectedBeitragstyp("");
         setSelectedSubtyp("");
@@ -119,6 +143,7 @@ export default function NewArticlePage() {
         setSelectedEdition("");
         setStartPage("");
         setEndPage("");
+        setSelectedAuthor("");
       } else {
         const errorData = await res.json().catch(() => null);
         setMessage(
@@ -173,6 +198,24 @@ export default function NewArticlePage() {
             placeholder="Ingrese el contenido"
             className={styles.textarea}
           />
+        </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="authors" className={styles.formLabel}>
+            Seleccionar autor
+          </label>
+          <select
+            id="authors"
+            value={selectedAuthor}
+            onChange={(e) => setSelectedAuthor(e.target.value)}
+            className={styles.select}
+          >
+            <option value="">Seleccione un autor</option>
+            {authors.map((author) => (
+              <option key={author.id} value={author.id}>
+                {author.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="beitragstyp" className={styles.formLabel}>
