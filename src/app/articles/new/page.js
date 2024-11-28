@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import InputField from "./components/InputField";
+import TextAreaField from "./components/TextAreaField";
+import SelectField from "./components/SelectField";
+import ToggleSwitch from "./components/ToggleSwitch";
+import FormMessage from "./components/FormMessage";
+import SubmitButton from "./components/SubmitButton";
 import styles from "./NewArticlePage.module.css";
 
 export default function NewArticlePage() {
@@ -16,11 +22,11 @@ export default function NewArticlePage() {
   const [selectedEdition, setSelectedEdition] = useState("");
   const [startPage, setStartPage] = useState("");
   const [endPage, setEndPage] = useState("");
+  const [message, setMessage] = useState("");
   const [authors, setAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState("");
-  const [message, setMessage] = useState("");
 
-  // Cargar los Beitragstypen y subtipos desde la API
+  // Fetch Beitragstypen
   useEffect(() => {
     const fetchBeitragstypen = async () => {
       try {
@@ -29,11 +35,9 @@ export default function NewArticlePage() {
           const data = await res.json();
           setBeitragstypen(data);
         } else {
-          console.error("Error al cargar los tipos de artículo.");
           setMessage("Error al cargar los tipos de artículo.");
         }
       } catch (error) {
-        console.error("Error al conectar con el servidor:", error);
         setMessage("Error al conectar con el servidor.");
       }
     };
@@ -41,7 +45,26 @@ export default function NewArticlePage() {
     fetchBeitragstypen();
   }, []);
 
-  // Actualizar los subtipos según el tipo seleccionado
+  // Fetch Authors
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      try {
+        const res = await fetch("/api/authors");
+        if (res.ok) {
+          const data = await res.json();
+          setAuthors(data);
+        } else {
+          setMessage("Error al cargar los autores.");
+        }
+      } catch (error) {
+        setMessage("Error al conectar con el servidor.");
+      }
+    };
+
+    fetchAuthors();
+  }, []);
+
+  // Update subtypes based on selected beitragstyp
   useEffect(() => {
     if (selectedBeitragstyp) {
       const selected = beitragstypen.find(
@@ -53,7 +76,7 @@ export default function NewArticlePage() {
     }
   }, [selectedBeitragstyp, beitragstypen]);
 
-  // Cargar ediciones desde la API
+  // Fetch Editions
   useEffect(() => {
     const fetchEditions = async () => {
       try {
@@ -62,37 +85,14 @@ export default function NewArticlePage() {
           const data = await res.json();
           setEditions(data);
         } else {
-          console.error("Error al cargar las ediciones.");
           setMessage("Error al cargar las ediciones.");
         }
       } catch (error) {
-        console.error("Error al conectar con el servidor:", error);
         setMessage("Error al conectar con el servidor.");
       }
     };
 
     fetchEditions();
-  }, []);
-
-  // Cargar autores desde la API
-  useEffect(() => {
-    const fetchAuthors = async () => {
-      try {
-        const res = await fetch("/api/authors");
-        if (res.ok) {
-          const data = await res.json();
-          setAuthors(data);
-        } else {
-          console.error("Error al cargar los autores.");
-          setMessage("Error al cargar los autores.");
-        }
-      } catch (error) {
-        console.error("Error al conectar con el servidor:", error);
-        setMessage("Error al conectar con el servidor.");
-      }
-    };
-
-    fetchAuthors();
   }, []);
 
   const handleSubmit = async (e) => {
@@ -124,7 +124,7 @@ export default function NewArticlePage() {
           editionId: isPrinted ? parseInt(selectedEdition, 10) : null,
           startPage: isPrinted ? parseInt(startPage, 10) : null,
           endPage: isPrinted ? parseInt(endPage, 10) : null,
-          authorId: selectedAuthor ? parseInt(selectedAuthor, 10) : null,
+          authorId: selectedAuthor || null,
         }),
       });
 
@@ -133,7 +133,7 @@ export default function NewArticlePage() {
         setMessage("Artículo creado con éxito.");
         console.log("Artículo creado:", data);
 
-        // Reiniciar los estados
+        // Reset states
         setTitle("");
         setSubtitle("");
         setContent("");
@@ -151,7 +151,6 @@ export default function NewArticlePage() {
         );
       }
     } catch (error) {
-      console.error("Error en la solicitud:", error);
       setMessage("Error al enviar los datos.");
     }
   };
@@ -159,166 +158,91 @@ export default function NewArticlePage() {
   return (
     <div className={styles.container}>
       <h1 className={styles.formTitle}>Crear un nuevo artículo</h1>
-      {message && <p className={styles.message}>{message}</p>}
+      {message && <FormMessage message={message} />}
       <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label htmlFor="title" className={styles.formLabel}>
-            Título
-          </label>
-          <input
-            id="title"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ingrese el título"
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="subtitle" className={styles.formLabel}>
-            Subtítulo
-          </label>
-          <input
-            id="subtitle"
-            type="text"
-            value={subtitle}
-            onChange={(e) => setSubtitle(e.target.value)}
-            placeholder="Ingrese el subtítulo"
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="content" className={styles.formLabel}>
-            Contenido
-          </label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Ingrese el contenido"
-            className={styles.textarea}
-          />
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="authors" className={styles.formLabel}>
-            Seleccionar autor
-          </label>
-          <select
-            id="authors"
-            value={selectedAuthor}
-            onChange={(e) => setSelectedAuthor(e.target.value)}
-            className={styles.select}
-          >
-            <option value="">Seleccione un autor</option>
-            {authors.map((author) => (
-              <option key={author.id} value={author.id}>
-                {author.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="beitragstyp" className={styles.formLabel}>
-            Tipo de Artículo
-          </label>
-          <select
-            id="beitragstyp"
-            value={selectedBeitragstyp}
-            onChange={(e) => setSelectedBeitragstyp(e.target.value)}
-            className={styles.select}
-          >
-            <option value="">Seleccione un tipo</option>
-            {beitragstypen.map((typ) => (
-              <option key={typ.id} value={typ.id}>
-                {typ.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <InputField
+          id="title"
+          label="Título"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Ingrese el título"
+        />
+        <InputField
+          id="subtitle"
+          label="Subtítulo"
+          value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)}
+          placeholder="Ingrese el subtítulo"
+        />
+        <TextAreaField
+          id="content"
+          label="Contenido"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Ingrese el contenido"
+        />
+        <SelectField
+          id="beitragstyp"
+          label="Tipo de Artículo"
+          options={beitragstypen}
+          value={selectedBeitragstyp}
+          onChange={(e) => setSelectedBeitragstyp(e.target.value)}
+          placeholder="Seleccione un tipo"
+        />
         {subtypen.length > 0 && (
-          <div className={styles.formGroup}>
-            <label htmlFor="subtyp" className={styles.formLabel}>
-              Subtipo de Artículo
-            </label>
-            <select
-              id="subtyp"
-              value={selectedSubtyp}
-              onChange={(e) => setSelectedSubtyp(e.target.value)}
-              className={styles.select}
-            >
-              <option value="">Seleccione un subtipo</option>
-              {subtypen.map((subtyp) => (
-                <option key={subtyp.id} value={subtyp.id}>
-                  {subtyp.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <SelectField
+            id="subtyp"
+            label="Subtipo de Artículo"
+            options={subtypen}
+            value={selectedSubtyp}
+            onChange={(e) => setSelectedSubtyp(e.target.value)}
+            placeholder="Seleccione un subtipo"
+          />
         )}
-        <div className={styles.formGroup}>
-          <label htmlFor="isPrinted" className={styles.formLabel}>
-            ¿Está en la versión impresa?
-          </label>
-          <label className={styles.switch}>
-            <input
-              type="checkbox"
-              checked={isPrinted}
-              onChange={(e) => setIsPrinted(e.target.checked)}
-            />
-            <span className={styles.slider}></span>
-          </label>
-        </div>
+        <SelectField
+          id="author"
+          label="Autor"
+          options={authors}
+          value={selectedAuthor}
+          onChange={(e) => setSelectedAuthor(e.target.value)}
+          placeholder="Seleccione un autor"
+        />
+        <ToggleSwitch
+          id="isPrinted"
+          label="¿Está en la versión impresa?"
+          checked={isPrinted}
+          onChange={(e) => setIsPrinted(e.target.checked)}
+        />
         {isPrinted && (
           <>
-            <div className={styles.formGroup}>
-              <label htmlFor="edition" className={styles.formLabel}>
-                Edición de la revista
-              </label>
-              <select
-                id="edition"
-                value={selectedEdition}
-                onChange={(e) => setSelectedEdition(e.target.value)}
-                className={styles.select}
-              >
-                <option value="">Seleccione una edición</option>
-                {editions.map((edition) => (
-                  <option key={edition.id} value={edition.id}>
-                    {edition.number} - {edition.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="startPage" className={styles.formLabel}>
-                Página de inicio
-              </label>
-              <input
-                id="startPage"
-                type="number"
-                value={startPage}
-                onChange={(e) => setStartPage(e.target.value)}
-                placeholder="Página de inicio"
-                className={styles.input}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="endPage" className={styles.formLabel}>
-                Página de fin
-              </label>
-              <input
-                id="endPage"
-                type="number"
-                value={endPage}
-                onChange={(e) => setEndPage(e.target.value)}
-                placeholder="Página de fin"
-                className={styles.input}
-              />
-            </div>
+            <SelectField
+              id="edition"
+              label="Edición de la revista"
+              options={editions.map((edition) => ({
+                id: edition.id,
+                name: `${edition.number} - ${edition.title}`,
+              }))}
+              value={selectedEdition}
+              onChange={(e) => setSelectedEdition(e.target.value)}
+              placeholder="Seleccione una edición"
+            />
+            <InputField
+              id="startPage"
+              label="Página de inicio"
+              value={startPage}
+              onChange={(e) => setStartPage(e.target.value)}
+              placeholder="Página de inicio"
+            />
+            <InputField
+              id="endPage"
+              label="Página de fin"
+              value={endPage}
+              onChange={(e) => setEndPage(e.target.value)}
+              placeholder="Página de fin"
+            />
           </>
         )}
-        <button type="submit" className={styles.submitButton}>
-          Crear artículo
-        </button>
+        <SubmitButton label="Crear artículo" />
       </form>
     </div>
   );
