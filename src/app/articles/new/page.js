@@ -7,6 +7,7 @@ import SelectField from "./components/SelectField";
 import ToggleSwitch from "./components/ToggleSwitch";
 import FormMessage from "./components/FormMessage";
 import SubmitButton from "./components/SubmitButton";
+import Modal from "./components/Modal";
 import styles from "./NewArticlePage.module.css";
 
 export default function NewArticlePage() {
@@ -25,6 +26,9 @@ export default function NewArticlePage() {
   const [message, setMessage] = useState("");
   const [authors, setAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newAuthorName, setNewAuthorName] = useState("");
+  const [newAuthorEmail, setNewAuthorEmail] = useState("");
 
   // Fetch Beitragstypen
   useEffect(() => {
@@ -52,9 +56,7 @@ export default function NewArticlePage() {
         const res = await fetch("/api/authors");
         if (res.ok) {
           const data = await res.json();
-          setAuthors(
-            data.map((author) => ({ id: author.id, name: author.name }))
-          );
+          setAuthors(data);
         } else {
           setMessage("Error al cargar los autores.");
         }
@@ -85,12 +87,7 @@ export default function NewArticlePage() {
         const res = await fetch("/api/editions");
         if (res.ok) {
           const data = await res.json();
-          setEditions(
-            data.map((edition) => ({
-              id: edition.id,
-              name: `${edition.number} - ${edition.title}`,
-            }))
-          );
+          setEditions(data);
         } else {
           setMessage("Error al cargar las ediciones.");
         }
@@ -152,13 +149,42 @@ export default function NewArticlePage() {
         setEndPage("");
         setSelectedAuthor("");
       } else {
-        const errorData = await res.json().catch(() => null);
-        setMessage(
-          errorData?.error || "Error desconocido al crear el artículo."
-        );
+        setMessage("Error desconocido al crear el artículo.");
       }
     } catch {
       setMessage("Error al enviar los datos.");
+    }
+  };
+
+  const handleAddAuthor = async () => {
+    if (!newAuthorName) {
+      setMessage("El nombre del autor es obligatorio.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/authors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newAuthorName,
+          email: newAuthorEmail || null,
+        }),
+      });
+
+      if (res.ok) {
+        const newAuthor = await res.json();
+        setAuthors((prev) => [...prev, newAuthor]);
+        setSelectedAuthor(newAuthor.id);
+        setMessage("Autor agregado con éxito.");
+        setIsModalOpen(false);
+        setNewAuthorName("");
+        setNewAuthorEmail("");
+      } else {
+        setMessage("Error al agregar el autor.");
+      }
+    } catch {
+      setMessage("Error al conectar con el servidor.");
     }
   };
 
@@ -206,14 +232,23 @@ export default function NewArticlePage() {
             placeholder="Seleccione un subtipo"
           />
         )}
-        <SelectField
-          id="author"
-          label="Autor"
-          options={authors}
-          value={selectedAuthor}
-          onChange={(e) => setSelectedAuthor(e.target.value)}
-          placeholder="Seleccione un autor"
-        />
+        <div className={styles.authorSection}>
+          <SelectField
+            id="author"
+            label="Autor"
+            options={authors}
+            value={selectedAuthor}
+            onChange={(e) => setSelectedAuthor(e.target.value)}
+            placeholder="Seleccione un autor"
+          />
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className={styles.addAuthorButton}
+          >
+            ¿Es un autor nuevo?
+          </button>
+        </div>
         <ToggleSwitch
           id="isPrinted"
           label="¿Está en la versión impresa?"
@@ -225,7 +260,10 @@ export default function NewArticlePage() {
             <SelectField
               id="edition"
               label="Edición de la revista"
-              options={editions}
+              options={editions.map((edition) => ({
+                id: edition.id,
+                name: `${edition.number} - ${edition.title}`,
+              }))}
               value={selectedEdition}
               onChange={(e) => setSelectedEdition(e.target.value)}
               placeholder="Seleccione una edición"
@@ -248,6 +286,28 @@ export default function NewArticlePage() {
         )}
         <SubmitButton label="Crear artículo" />
       </form>
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <h2>Agregar Nuevo Autor</h2>
+          <InputField
+            id="newAuthorName"
+            label="Nombre del Autor"
+            value={newAuthorName}
+            onChange={(e) => setNewAuthorName(e.target.value)}
+            placeholder="Ingrese el nombre del autor"
+          />
+          <InputField
+            id="newAuthorEmail"
+            label="Email del Autor (opcional)"
+            value={newAuthorEmail}
+            onChange={(e) => setNewAuthorEmail(e.target.value)}
+            placeholder="Ingrese el email del autor"
+          />
+          <button onClick={handleAddAuthor} className={styles.addAuthorButton}>
+            Agregar Autor
+          </button>
+        </Modal>
+      )}
     </div>
   );
 }
