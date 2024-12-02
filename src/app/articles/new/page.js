@@ -234,7 +234,7 @@ export default function NewArticlePage() {
       } else {
         setMessage("Error al agregar el entrevistado.");
       }
-    } catch (error) {
+    } catch {
       setMessage("Error al conectar con el servidor.");
     }
   };
