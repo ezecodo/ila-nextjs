@@ -29,6 +29,11 @@ export default function NewArticlePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAuthorName, setNewAuthorName] = useState("");
   const [newAuthorEmail, setNewAuthorEmail] = useState("");
+  const [isInterview, setIsInterview] = useState(false); // Toggle para entrevistas
+  const [interviewees, setInterviewees] = useState([]); // Lista de entrevistados
+  const [selectedInterviewee, setSelectedInterviewee] = useState(""); // Entrevistado seleccionado
+  const [isIntervieweeModalOpen, setIsIntervieweeModalOpen] = useState(false);
+  const [newIntervieweeName, setNewIntervieweeName] = useState("");
 
   // Fetch Beitragstypen
   useEffect(() => {
@@ -66,6 +71,25 @@ export default function NewArticlePage() {
     };
 
     fetchAuthors();
+  }, []);
+
+  // Fetch Interviewees
+  useEffect(() => {
+    const fetchInterviewees = async () => {
+      try {
+        const res = await fetch("/api/interviewees");
+        if (res.ok) {
+          const data = await res.json();
+          setInterviewees(data);
+        } else {
+          setMessage("Error al cargar los entrevistados.");
+        }
+      } catch {
+        setMessage("Error al conectar con el servidor.");
+      }
+    };
+
+    fetchInterviewees();
   }, []);
 
   // Update subtypes based on selected beitragstyp
@@ -129,15 +153,12 @@ export default function NewArticlePage() {
           startPage: isPrinted ? parseInt(startPage, 10) : null,
           endPage: isPrinted ? parseInt(endPage, 10) : null,
           authorId: selectedAuthor || null,
+          intervieweeId: isInterview ? parseInt(selectedInterviewee, 10) : null, // Entrevistado
         }),
       });
 
       if (res.ok) {
-        const data = await res.json();
         setMessage("Artículo creado con éxito.");
-        console.log("Artículo creado:", data);
-
-        // Reset states
         setTitle("");
         setSubtitle("");
         setContent("");
@@ -148,6 +169,8 @@ export default function NewArticlePage() {
         setStartPage("");
         setEndPage("");
         setSelectedAuthor("");
+        setSelectedInterviewee("");
+        setIsInterview(false);
       } else {
         setMessage("Error desconocido al crear el artículo.");
       }
@@ -184,6 +207,34 @@ export default function NewArticlePage() {
         setMessage("Error al agregar el autor.");
       }
     } catch {
+      setMessage("Error al conectar con el servidor.");
+    }
+  };
+
+  const handleAddInterviewee = async () => {
+    if (!newIntervieweeName) {
+      setMessage("El nombre del entrevistado es obligatorio.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/interviewees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newIntervieweeName }),
+      });
+
+      if (res.ok) {
+        const newInterviewee = await res.json();
+        setInterviewees((prev) => [...prev, newInterviewee]);
+        setSelectedInterviewee(newInterviewee.id);
+        setMessage("Entrevistado agregado con éxito.");
+        setIsIntervieweeModalOpen(false);
+        setNewIntervieweeName("");
+      } else {
+        setMessage("Error al agregar el entrevistado.");
+      }
+    } catch (error) {
       setMessage("Error al conectar con el servidor.");
     }
   };
@@ -250,6 +301,34 @@ export default function NewArticlePage() {
           </button>
         </div>
         <ToggleSwitch
+          id="isInterview"
+          label="¿Es una entrevista?"
+          checked={isInterview}
+          onChange={(e) => setIsInterview(e.target.checked)}
+        />
+        {isInterview && (
+          <>
+            <SelectField
+              id="interviewee"
+              label="Entrevistado"
+              options={interviewees.map((int) => ({
+                id: int.id,
+                name: int.name,
+              }))}
+              value={selectedInterviewee}
+              onChange={(e) => setSelectedInterviewee(e.target.value)}
+              placeholder="Seleccione un entrevistado"
+            />
+            <button
+              type="button"
+              onClick={() => setIsIntervieweeModalOpen(true)}
+              className={styles.addAuthorButton}
+            >
+              ¿Es un entrevistado nuevo?
+            </button>
+          </>
+        )}
+        <ToggleSwitch
           id="isPrinted"
           label="¿Está en la versión impresa?"
           checked={isPrinted}
@@ -305,6 +384,24 @@ export default function NewArticlePage() {
           />
           <button onClick={handleAddAuthor} className={styles.addAuthorButton}>
             Agregar Autor
+          </button>
+        </Modal>
+      )}
+      {isIntervieweeModalOpen && (
+        <Modal onClose={() => setIsIntervieweeModalOpen(false)}>
+          <h2>Agregar Nuevo Entrevistado</h2>
+          <InputField
+            id="newIntervieweeName"
+            label="Nombre del Entrevistado"
+            value={newIntervieweeName}
+            onChange={(e) => setNewIntervieweeName(e.target.value)}
+            placeholder="Ingrese el nombre del entrevistado"
+          />
+          <button
+            onClick={handleAddInterviewee}
+            className={styles.addAuthorButton}
+          >
+            Agregar Entrevistado
           </button>
         </Modal>
       )}

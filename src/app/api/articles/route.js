@@ -37,7 +37,7 @@ export async function GET() {
   }
 }
 
-export async function POST(req) {
+export async function POST(request) {
   try {
     const {
       title,
@@ -45,72 +45,23 @@ export async function POST(req) {
       content,
       beitragstypId,
       beitragssubtypId,
-      editionId,
       isPrinted,
-      startPage,
-      endPage,
-      authorId, // Recibe el ID del autor
-    } = await req.json();
-
-    console.log("Datos recibidos:", {
-      title,
-      subtitle,
-      content,
-      beitragstypId,
-      beitragssubtypId,
       editionId,
-      isPrinted,
       startPage,
       endPage,
       authorId,
-    });
+      intervieweeId,
+    } = await request.json();
 
     if (!title || !content || !beitragstypId) {
       return new Response(
         JSON.stringify({
-          error: "Title, content, and beitragstypId are required.",
+          error: "Título, contenido y tipo de artículo son obligatorios.",
         }),
         { status: 400 }
       );
     }
 
-    if (isPrinted) {
-      if (!editionId) {
-        return new Response(
-          JSON.stringify({ error: "Edition ID is required when printed." }),
-          { status: 400 }
-        );
-      }
-      if (startPage === undefined || endPage === undefined) {
-        return new Response(
-          JSON.stringify({ error: "Start page and end page are required." }),
-          { status: 400 }
-        );
-      }
-
-      const start = parseInt(startPage, 10);
-      const end = parseInt(endPage, 10);
-
-      if (isNaN(start) || isNaN(end) || start <= 0 || end <= 0) {
-        return new Response(
-          JSON.stringify({
-            error: "Start and end pages must be positive numbers.",
-          }),
-          { status: 400 }
-        );
-      }
-
-      if (start > end) {
-        return new Response(
-          JSON.stringify({
-            error: "Start page cannot be greater than end page.",
-          }),
-          { status: 400 }
-        );
-      }
-    }
-
-    // Crear artículo
     const article = await prisma.article.create({
       data: {
         title,
@@ -120,12 +71,18 @@ export async function POST(req) {
         beitragssubtypId: beitragssubtypId
           ? parseInt(beitragssubtypId, 10)
           : null,
+        isInPrintEdition: isPrinted,
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         startPage: isPrinted ? parseInt(startPage, 10) : null,
         endPage: isPrinted ? parseInt(endPage, 10) : null,
         authors: authorId
           ? {
-              connect: { id: parseInt(authorId, 10) }, // Relacionar autor
+              connect: { id: parseInt(authorId, 10) },
+            }
+          : undefined,
+        interviewees: intervieweeId
+          ? {
+              connect: { id: parseInt(intervieweeId, 10) },
             }
           : undefined,
       },
@@ -133,12 +90,9 @@ export async function POST(req) {
 
     return new Response(JSON.stringify(article), { status: 201 });
   } catch (error) {
-    console.error("Error en POST /api/articles:", error.message);
+    console.error("Error al crear el artículo:", error);
     return new Response(
-      JSON.stringify({
-        error: "Internal Server Error",
-        details: error.message,
-      }),
+      JSON.stringify({ error: "Error interno del servidor" }),
       { status: 500 }
     );
   }

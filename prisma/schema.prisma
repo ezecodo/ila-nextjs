@@ -27,12 +27,21 @@ model Article {
   edition          Edition?        @relation(fields: [editionId], references: [id]) // Relación con Edition
   favorites        Favorite[]      // Relación con favoritos
   authors          Author[]        @relation("ArticleAuthors") // Relación muchos a muchos con autores
-  
+  interviewees     Interviewee[]   @relation("ArticleInterviewees") // Relación muchos a muchos con entrevistados
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
   @@index([editionId], map: "Article_editionId_fkey") // Índice para la edición
 }
+
+model Interviewee {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique // Garantiza que el nombre sea único
+  articles   Article[]  @relation("ArticleInterviewees") // Relación con artículos
+ 
+
+}
+
 
 
 model Edition {
