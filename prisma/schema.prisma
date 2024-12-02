@@ -28,6 +28,8 @@ model Article {
   favorites        Favorite[]      // Relación con favoritos
   authors          Author[]        @relation("ArticleAuthors") // Relación muchos a muchos con autores
   interviewees     Interviewee[]   @relation("ArticleInterviewees") // Relación muchos a muchos con entrevistados
+  isPublished      Boolean   @default(false) // Publicado o no
+  publicationDate  DateTime?                 // Fecha programada para publicación
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")

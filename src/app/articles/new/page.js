@@ -34,6 +34,9 @@ export default function NewArticlePage() {
   const [selectedInterviewee, setSelectedInterviewee] = useState(""); // Entrevistado seleccionado
   const [isIntervieweeModalOpen, setIsIntervieweeModalOpen] = useState(false);
   const [newIntervieweeName, setNewIntervieweeName] = useState("");
+  const [isPublished, setIsPublished] = useState(false); // Toggle para "Publicar Ahora"
+  const [schedulePublish, setSchedulePublish] = useState(false); // Toggle para "Programar Publicación"
+  const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
 
   // Fetch Beitragstypen
   useEffect(() => {
@@ -137,6 +140,10 @@ export default function NewArticlePage() {
       );
       return;
     }
+    if (schedulePublish && !publicationDate) {
+      setMessage("Seleccione una fecha para programar la publicación.");
+      return;
+    }
 
     try {
       const res = await fetch("/api/articles", {
@@ -154,6 +161,8 @@ export default function NewArticlePage() {
           endPage: isPrinted ? parseInt(endPage, 10) : null,
           authorId: selectedAuthor || null,
           intervieweeId: isInterview ? parseInt(selectedInterviewee, 10) : null, // Entrevistado
+          isPublished: isPublished && !schedulePublish, // Publicar ahora si no está programado
+          publicationDate: schedulePublish ? publicationDate : null, // Fecha programada si corresponde
         }),
       });
 
@@ -362,6 +371,40 @@ export default function NewArticlePage() {
               placeholder="Página de fin"
             />
           </>
+        )}
+        <ToggleSwitch
+          id="isPublished"
+          label="Publicar Ahora"
+          checked={isPublished}
+          onChange={(e) => {
+            setIsPublished(e.target.checked);
+            if (e.target.checked) setSchedulePublish(false); // Desactiva programar publicación si está activo
+          }}
+        />
+
+        <ToggleSwitch
+          id="schedulePublish"
+          label="Programar Publicación"
+          checked={schedulePublish}
+          onChange={(e) => {
+            setSchedulePublish(e.target.checked);
+            if (e.target.checked) setIsPublished(false); // Desactiva "Publicar ahora" si está activo
+          }}
+        />
+
+        {schedulePublish && (
+          <div>
+            <label>Fecha de Publicación</label>
+            <input
+              type="datetime-local"
+              value={
+                publicationDate
+                  ? publicationDate.toISOString().slice(0, 16)
+                  : ""
+              }
+              onChange={(e) => setPublicationDate(new Date(e.target.value))}
+            />
+          </div>
         )}
         <SubmitButton label="Crear artículo" />
       </form>

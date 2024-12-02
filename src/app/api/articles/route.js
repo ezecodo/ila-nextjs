@@ -51,12 +51,23 @@ export async function POST(request) {
       endPage,
       authorId,
       intervieweeId,
+      isPublished, // Nuevo campo
+      publicationDate, // Nuevo campo
     } = await request.json();
 
     if (!title || !content || !beitragstypId) {
       return new Response(
         JSON.stringify({
           error: "Título, contenido y tipo de artículo son obligatorios.",
+        }),
+        { status: 400 }
+      );
+    }
+    if (!isPublished && !publicationDate) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Debe seleccionar 'Publicar ahora' o proporcionar una fecha para programar la publicación.",
         }),
         { status: 400 }
       );
@@ -75,6 +86,8 @@ export async function POST(request) {
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         startPage: isPrinted ? parseInt(startPage, 10) : null,
         endPage: isPrinted ? parseInt(endPage, 10) : null,
+        isPublished: isPublished || false, // Publicar ahora si está configurado
+        publicationDate: publicationDate ? new Date(publicationDate) : null, // Fecha programada si corresponde
         authors: authorId
           ? {
               connect: { id: parseInt(authorId, 10) },
