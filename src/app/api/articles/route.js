@@ -51,8 +51,13 @@ export async function POST(request) {
       endPage,
       authorId,
       intervieweeId,
-      isPublished, // Nuevo campo
-      publicationDate, // Nuevo campo
+      isPublished, // Publicar ahora
+      publicationDate, // Fecha de publicación programada
+      isNachruf, // Nuevo: Es Nachruf
+      deceasedFirstName, // Nuevo: Nombre del fallecido
+      deceasedLastName, // Nuevo: Apellido del fallecido
+      dateOfBirth, // Nuevo: Fecha de nacimiento
+      dateOfDeath, // Nuevo: Fecha de defunción
     } = await request.json();
 
     if (!title || !content || !beitragstypId) {
@@ -63,6 +68,7 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
     if (!isPublished && !publicationDate) {
       return new Response(
         JSON.stringify({
@@ -73,6 +79,19 @@ export async function POST(request) {
       );
     }
 
+    // Validación de datos de Nachruf
+    if (
+      isNachruf &&
+      (!deceasedFirstName || !deceasedLastName || !dateOfBirth || !dateOfDeath)
+    ) {
+      console.error("Error: Datos de Nachruf incompletos.");
+      return new Response(
+        JSON.stringify({ error: "Los campos de Nachruf son obligatorios." }),
+        { status: 400 }
+      );
+    }
+
+    // Crear el artículo
     const article = await prisma.article.create({
       data: {
         title,
@@ -96,6 +115,16 @@ export async function POST(request) {
         interviewees: intervieweeId
           ? {
               connect: { id: parseInt(intervieweeId, 10) },
+            }
+          : undefined,
+        obituaryDetails: isNachruf
+          ? {
+              create: {
+                deceasedFirstName,
+                deceasedLastName,
+                dateOfBirth: new Date(dateOfBirth),
+                dateOfDeath: new Date(dateOfDeath),
+              },
             }
           : undefined,
       },

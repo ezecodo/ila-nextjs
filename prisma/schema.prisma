@@ -30,6 +30,8 @@ model Article {
   interviewees     Interviewee[]   @relation("ArticleInterviewees") // Relación muchos a muchos con entrevistados
   isPublished      Boolean   @default(false) // Publicado o no
   publicationDate  DateTime?                 // Fecha programada para publicación
+  obituaryDetails  ObituaryDetails?  
+
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
@@ -100,4 +102,15 @@ model Author {
   updatedAt DateTime  @updatedAt
 
   articles  Article[] @relation("ArticleAuthors") // Relación muchos a muchos con artículos
+}
+
+model ObituaryDetails {
+  id               Int      @id @default(autoincrement())
+  articleId        Int      @unique // Relación uno a uno con Article
+  deceasedFirstName String   // Nombre de la persona fallecida
+  deceasedLastName  String   // Apellido de la persona fallecida
+  dateOfBirth       DateTime // Fecha de nacimiento
+  dateOfDeath       DateTime // Fecha de defunción
+
+  article          Article  @relation(fields: [articleId], references: [id])
 }

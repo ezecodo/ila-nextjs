@@ -37,6 +37,14 @@ export default function NewArticlePage() {
   const [isPublished, setIsPublished] = useState(false); // Toggle para "Publicar Ahora"
   const [schedulePublish, setSchedulePublish] = useState(false); // Toggle para "Programar Publicación"
   const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
+  const [deceasedFirstName, setDeceasedFirstName] = useState("");
+  const [deceasedLastName, setDeceasedLastName] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState(null);
+  const [dateOfDeath, setDateOfDeath] = useState(null);
+
+  const isNachruf =
+    beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
+      ?.name === "Nachruf";
 
   // Fetch Beitragstypen
   useEffect(() => {
@@ -128,9 +136,29 @@ export default function NewArticlePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log({
+      isNachruf,
+      deceasedFirstName,
+      deceasedLastName,
+      dateOfBirth,
+      dateOfDeath,
+    });
 
     if (!selectedBeitragstyp) {
       setMessage("Seleccione un tipo de artículo.");
+      return;
+    }
+    if (
+      isNachruf &&
+      (!deceasedFirstName || !deceasedLastName || !dateOfBirth || !dateOfDeath)
+    ) {
+      console.error("Faltan datos de Nachruf:", {
+        deceasedFirstName,
+        deceasedLastName,
+        dateOfBirth,
+        dateOfDeath,
+      });
+      setMessage("Todos los campos del Nachruf son obligatorios.");
       return;
     }
 
@@ -163,6 +191,11 @@ export default function NewArticlePage() {
           intervieweeId: isInterview ? parseInt(selectedInterviewee, 10) : null, // Entrevistado
           isPublished: isPublished && !schedulePublish, // Publicar ahora si no está programado
           publicationDate: schedulePublish ? publicationDate : null, // Fecha programada si corresponde
+          isNachruf, // Indica si es Nachruf
+          deceasedFirstName,
+          deceasedLastName,
+          dateOfBirth,
+          dateOfDeath,
         }),
       });
 
@@ -180,6 +213,10 @@ export default function NewArticlePage() {
         setSelectedAuthor("");
         setSelectedInterviewee("");
         setIsInterview(false);
+        setDeceasedFirstName("");
+        setDeceasedLastName("");
+        setDateOfBirth(null);
+        setDateOfDeath(null);
       } else {
         setMessage("Error desconocido al crear el artículo.");
       }
@@ -282,6 +319,46 @@ export default function NewArticlePage() {
           onChange={(e) => setSelectedBeitragstyp(e.target.value)}
           placeholder="Seleccione un tipo"
         />
+        {isNachruf && (
+          <div>
+            <h3>Detalles de la necrología</h3>
+            <InputField
+              id="deceasedFirstName"
+              label="Primer Nombre"
+              value={deceasedFirstName}
+              onChange={(e) => setDeceasedFirstName(e.target.value)}
+              placeholder="Ingrese el primer nombre"
+            />
+            <InputField
+              id="deceasedLastName"
+              label="Apellido"
+              value={deceasedLastName}
+              onChange={(e) => setDeceasedLastName(e.target.value)}
+              placeholder="Ingrese el apellido"
+            />
+            <div>
+              <label>Fecha de Nacimiento</label>
+              <input
+                type="date"
+                value={
+                  dateOfBirth ? dateOfBirth.toISOString().slice(0, 10) : ""
+                }
+                onChange={(e) => setDateOfBirth(new Date(e.target.value))}
+              />
+            </div>
+            <div>
+              <label>Fecha de Defunción</label>
+              <input
+                type="date"
+                value={
+                  dateOfDeath ? dateOfDeath.toISOString().slice(0, 10) : ""
+                }
+                onChange={(e) => setDateOfDeath(new Date(e.target.value))}
+              />
+            </div>
+          </div>
+        )}
+
         {subtypen.length > 0 && (
           <SelectField
             id="subtyp"
