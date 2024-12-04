@@ -39,8 +39,8 @@ export default function NewArticlePage() {
   const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
   const [deceasedFirstName, setDeceasedFirstName] = useState("");
   const [deceasedLastName, setDeceasedLastName] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState(null);
-  const [dateOfDeath, setDateOfDeath] = useState(null);
+  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [dateOfDeath, setDateOfDeath] = useState("");
 
   const isNachruf =
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
@@ -152,13 +152,24 @@ export default function NewArticlePage() {
       isNachruf &&
       (!deceasedFirstName || !deceasedLastName || !dateOfBirth || !dateOfDeath)
     ) {
-      console.error("Faltan datos de Nachruf:", {
-        deceasedFirstName,
-        deceasedLastName,
-        dateOfBirth,
-        dateOfDeath,
-      });
       setMessage("Todos los campos del Nachruf son obligatorios.");
+      return;
+    }
+
+    if (
+      isNachruf &&
+      (!/^\d{4}$/.test(dateOfBirth) || !/^\d{4}$/.test(dateOfDeath))
+    ) {
+      setMessage(
+        "Los años de nacimiento y defunción deben ser números de 4 dígitos."
+      );
+      return;
+    }
+
+    if (isNachruf && parseInt(dateOfBirth) > parseInt(dateOfDeath)) {
+      setMessage(
+        "El año de nacimiento no puede ser mayor que el año de defunción."
+      );
       return;
     }
 
@@ -194,8 +205,8 @@ export default function NewArticlePage() {
           isNachruf, // Indica si es Nachruf
           deceasedFirstName,
           deceasedLastName,
-          dateOfBirth,
-          dateOfDeath,
+          dateOfBirth: dateOfBirth || null, // Enviar como número
+          dateOfDeath: dateOfDeath || null, // Enviar como número
         }),
       });
 
@@ -336,26 +347,30 @@ export default function NewArticlePage() {
               onChange={(e) => setDeceasedLastName(e.target.value)}
               placeholder="Ingrese el apellido"
             />
-            <div>
-              <label>Fecha de Nacimiento</label>
-              <input
-                type="date"
-                value={
-                  dateOfBirth ? dateOfBirth.toISOString().slice(0, 10) : ""
+            <InputField
+              id="dateOfBirth"
+              label="Año de Nacimiento"
+              value={dateOfBirth || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d{0,4}$/.test(value)) {
+                  setDateOfBirth(value); // Permite solo hasta 4 dígitos
                 }
-                onChange={(e) => setDateOfBirth(new Date(e.target.value))}
-              />
-            </div>
-            <div>
-              <label>Fecha de Defunción</label>
-              <input
-                type="date"
-                value={
-                  dateOfDeath ? dateOfDeath.toISOString().slice(0, 10) : ""
+              }}
+              placeholder="Ingrese el año (ejemplo: 1990)"
+            />
+            <InputField
+              id="dateOfDeath"
+              label="Año de Defunción"
+              value={dateOfDeath || ""}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d{0,4}$/.test(value)) {
+                  setDateOfDeath(value); // Permite solo hasta 4 dígitos
                 }
-                onChange={(e) => setDateOfDeath(new Date(e.target.value))}
-              />
-            </div>
+              }}
+              placeholder="Ingrese el año (ejemplo: 2020)"
+            />
           </div>
         )}
 

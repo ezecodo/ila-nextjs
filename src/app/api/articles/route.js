@@ -80,17 +80,33 @@ export async function POST(request) {
     }
 
     // Validación de datos de Nachruf
-    if (
-      isNachruf &&
-      (!deceasedFirstName || !deceasedLastName || !dateOfBirth || !dateOfDeath)
-    ) {
-      console.error("Error: Datos de Nachruf incompletos.");
-      return new Response(
-        JSON.stringify({ error: "Los campos de Nachruf son obligatorios." }),
-        { status: 400 }
-      );
-    }
+    if (isNachruf) {
+      if (
+        !deceasedFirstName ||
+        !deceasedLastName ||
+        !dateOfBirth ||
+        !dateOfDeath ||
+        isNaN(parseInt(dateOfBirth, 10)) ||
+        isNaN(parseInt(dateOfDeath, 10))
+      ) {
+        return new Response(
+          JSON.stringify({
+            error: "Los datos del Nachruf son inválidos o están incompletos.",
+          }),
+          { status: 400 }
+        );
+      }
 
+      if (parseInt(dateOfBirth, 10) > parseInt(dateOfDeath, 10)) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "El año de nacimiento no puede ser mayor que el año de defunción.",
+          }),
+          { status: 400 }
+        );
+      }
+    }
     // Crear el artículo
     const article = await prisma.article.create({
       data: {
@@ -122,8 +138,8 @@ export async function POST(request) {
               create: {
                 deceasedFirstName,
                 deceasedLastName,
-                dateOfBirth: new Date(dateOfBirth),
-                dateOfDeath: new Date(dateOfDeath),
+                dateOfBirth: parseInt(dateOfBirth, 10), // Almacena directamente como número entero
+                dateOfDeath: parseInt(dateOfDeath, 10), // Almacena directamente como número entero
               },
             }
           : undefined,

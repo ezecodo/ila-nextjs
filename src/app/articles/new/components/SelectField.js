@@ -5,7 +5,7 @@ export default function SelectField({
   options,
   value,
   onChange,
-  placeholder,
+  placeholder = "Seleccione una opción",
 }) {
   return (
     <div className={styles.formGroup}>

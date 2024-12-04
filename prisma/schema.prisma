@@ -109,8 +109,8 @@ model ObituaryDetails {
   articleId        Int      @unique // Relación uno a uno con Article
   deceasedFirstName String   // Nombre de la persona fallecida
   deceasedLastName  String   // Apellido de la persona fallecida
-  dateOfBirth       DateTime // Fecha de nacimiento
-  dateOfDeath       DateTime // Fecha de defunción
+  dateOfBirth       Int // Fecha de nacimiento
+  dateOfDeath       Int // Fecha de defunción
 
   article          Article  @relation(fields: [articleId], references: [id])
 }
