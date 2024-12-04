@@ -58,7 +58,15 @@ export async function POST(request) {
       deceasedLastName, // Nuevo: Apellido del fallecido
       dateOfBirth, // Nuevo: Fecha de nacimiento
       dateOfDeath, // Nuevo: Fecha de defunción
+      previewText, // Vorschau Text
     } = await request.json();
+
+    console.log("Payload recibido:", {
+      title,
+      content,
+      beitragstypId,
+      previewText,
+    });
 
     if (!title || !content || !beitragstypId) {
       return new Response(
@@ -107,6 +115,8 @@ export async function POST(request) {
         );
       }
     }
+    const validPreviewText =
+      previewText && previewText.trim() !== "" ? previewText : null;
     // Crear el artículo
     const article = await prisma.article.create({
       data: {
@@ -143,6 +153,7 @@ export async function POST(request) {
               },
             }
           : undefined,
+        previewText: validPreviewText,
       },
     });
 

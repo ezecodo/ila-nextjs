@@ -42,6 +42,9 @@ export default function NewArticlePage() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [dateOfDeath, setDateOfDeath] = useState("");
 
+  const [previewTextEnabled, setPreviewTextEnabled] = useState(false); // Toggle para habilitarlo
+  const [previewText, setPreviewText] = useState(""); // Texto opcional
+
   const isNachruf =
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
       ?.name === "Nachruf";
@@ -207,6 +210,7 @@ export default function NewArticlePage() {
           deceasedLastName,
           dateOfBirth: dateOfBirth || null, // Enviar como número
           dateOfDeath: dateOfDeath || null, // Enviar como número
+          previewText: previewTextEnabled ? previewText : null,
         }),
       });
 
@@ -228,6 +232,8 @@ export default function NewArticlePage() {
         setDeceasedLastName("");
         setDateOfBirth(null);
         setDateOfDeath(null);
+        setPreviewTextEnabled(false);
+        setPreviewText("");
       } else {
         setMessage("Error desconocido al crear el artículo.");
       }
@@ -315,6 +321,23 @@ export default function NewArticlePage() {
           onChange={(e) => setSubtitle(e.target.value)}
           placeholder="Ingrese el subtítulo"
         />
+        <ToggleSwitch
+          id="enablePreviewText"
+          label="¿Agregar texto de vista previa?"
+          checked={previewTextEnabled}
+          onChange={(e) => setPreviewTextEnabled(e.target.checked)}
+        />
+
+        {previewTextEnabled && (
+          <TextAreaField
+            id="previewText"
+            label="Texto de vista previa"
+            value={previewText}
+            onChange={(e) => setPreviewText(e.target.value)}
+            placeholder="Ingrese un texto de vista previa opcional"
+          />
+        )}
+
         <TextAreaField
           id="content"
           label="Contenido"
