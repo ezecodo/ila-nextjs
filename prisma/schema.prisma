@@ -33,6 +33,7 @@ model Article {
   isPublished      Boolean   @default(false) // Publicado o no
   publicationDate  DateTime?                 // Fecha programada para publicación
   obituaryDetails  ObituaryDetails?  
+  articleCategories ArticleCategory[] // Relación con categorías
  
 
 
@@ -116,4 +117,19 @@ model ObituaryDetails {
   dateOfDeath       Int // Fecha de defunción
 
   article          Article  @relation(fields: [articleId], references: [id])
+}
+
+model Category {
+  id               Int           @id @default(autoincrement())
+  name             String        @unique
+  articleCategories ArticleCategory[] // Relación con artículos
+}
+
+model ArticleCategory {
+  articleId Int
+  categoryId Int
+  article   Article @relation(fields: [articleId], references: [id])
+  category  Category @relation(fields: [categoryId], references: [id])
+
+  @@id([articleId, categoryId]) // Índice compuesto para garantizar unicidad
 }

@@ -60,6 +60,7 @@ export async function POST(request) {
       dateOfDeath, // Nuevo: Fecha de defunción
       previewText, // Vorschau Text
       additionalInfo, // Campo opcional
+      categories,
     } = await request.json();
 
     console.log("Payload recibido:", {
@@ -68,6 +69,7 @@ export async function POST(request) {
       beitragstypId,
       previewText,
       additionalInfo,
+      categories,
     });
 
     if (!title || !content || !beitragstypId) {
@@ -163,6 +165,13 @@ export async function POST(request) {
                 dateOfBirth: parseInt(dateOfBirth, 10), // Almacena directamente como número entero
                 dateOfDeath: parseInt(dateOfDeath, 10), // Almacena directamente como número entero
               },
+            }
+          : undefined,
+        articleCategories: categories?.length
+          ? {
+              create: categories.map((categoryId) => ({
+                category: { connect: { id: categoryId } },
+              })),
             }
           : undefined,
         previewText: validPreviewText,

@@ -6,6 +6,33 @@
   background-color: #f9f9f9;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.customCheckbox {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid #e63946;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.customCheckbox:checked {
+  background-color: #007bff;
+  border-color: #0056b3;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  color: #333;
+}
+
 .formTitle {
   font-size: 24px;
   margin-bottom: 20px;

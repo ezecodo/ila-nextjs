@@ -9,6 +9,7 @@ import FormMessage from "./components/FormMessage";
 import SubmitButton from "./components/SubmitButton";
 import Modal from "./components/Modal";
 import styles from "./NewArticlePage.module.css";
+import CheckboxField from "./components/CheckboxField";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");
@@ -47,6 +48,8 @@ export default function NewArticlePage() {
   const [previewText, setPreviewText] = useState(""); // Texto opcional
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [additionalInfoEnabled, setAdditionalInfoEnabled] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   const isNachruf =
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
@@ -69,6 +72,25 @@ export default function NewArticlePage() {
     };
 
     fetchBeitragstypen();
+  }, []);
+
+  // Fetch de categorías desde la API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data); // Guardar las categorías
+        } else {
+          console.error("Error al cargar categorías");
+        }
+      } catch (error) {
+        console.error("Error al conectar con el servidor:", error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // Fetch Authors
@@ -139,6 +161,33 @@ export default function NewArticlePage() {
 
     fetchEditions();
   }, []);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data);
+        } else {
+          console.error("Error al cargar categorías");
+        }
+      } catch (error) {
+        console.error("Error al conectar con el servidor:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Manejar selección de categorías
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategories(
+      (prevSelected) =>
+        prevSelected.includes(categoryId)
+          ? prevSelected.filter((id) => id !== categoryId) // Eliminar si está seleccionado
+          : [...prevSelected, categoryId] // Agregar si no está seleccionado
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -208,6 +257,7 @@ export default function NewArticlePage() {
           dateOfDeath: dateOfDeath || null, // Enviar como número
           previewText: previewTextEnabled ? previewText : null,
           additionalInfo,
+          categories: selectedCategories,
         }),
       });
 
@@ -235,6 +285,7 @@ export default function NewArticlePage() {
 
         setAdditionalInfo("");
         setAdditionalInfoEnabled(false);
+        setSelectedCategories([]);
       } else {
         setMessage("Error desconocido al crear el artículo.");
       }
@@ -338,7 +389,18 @@ export default function NewArticlePage() {
             placeholder="Ingrese un texto de vista previa opcional"
           />
         )}
-
+        <div>
+          <h3>Categorías</h3>
+          {categories.map((category) => (
+            <CheckboxField
+              key={category.id}
+              id={`category-${category.id}`}
+              label={category.name}
+              checked={selectedCategories.includes(category.id)}
+              onChange={() => handleCategoryChange(category.id)}
+            />
+          ))}
+        </div>
         <TextAreaField
           id="content"
           label="Contenido"
