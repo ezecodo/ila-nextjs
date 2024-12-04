@@ -14,6 +14,7 @@ model Article {
   subtitle         String?         // Subtítulo del artículo
   content          String          @db.Text // Cambiar de String a Text
   previewText      String? 
+  additionalInfo   String? 
   beitragstypId    Int             // Relación con el tipo de artículo
   beitragssubtypId Int?            // Relación opcional con el subtipo
   editionId        Int?            // Relación opcional con la edición de la revista

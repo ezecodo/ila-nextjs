@@ -59,6 +59,7 @@ export async function POST(request) {
       dateOfBirth, // Nuevo: Fecha de nacimiento
       dateOfDeath, // Nuevo: Fecha de defunción
       previewText, // Vorschau Text
+      additionalInfo, // Campo opcional
     } = await request.json();
 
     console.log("Payload recibido:", {
@@ -66,6 +67,7 @@ export async function POST(request) {
       content,
       beitragstypId,
       previewText,
+      additionalInfo,
     });
 
     if (!title || !content || !beitragstypId) {
@@ -117,12 +119,22 @@ export async function POST(request) {
     }
     const validPreviewText =
       previewText && previewText.trim() !== "" ? previewText : null;
+
+    if (additionalInfo && typeof additionalInfo !== "string") {
+      return new Response(
+        JSON.stringify({
+          error: "El campo 'Información Adicional' debe ser un texto.",
+        }),
+        { status: 400 }
+      );
+    }
     // Crear el artículo
     const article = await prisma.article.create({
       data: {
         title,
         subtitle,
         content,
+        additionalInfo: additionalInfo || null,
         beitragstypId: parseInt(beitragstypId, 10),
         beitragssubtypId: beitragssubtypId
           ? parseInt(beitragssubtypId, 10)

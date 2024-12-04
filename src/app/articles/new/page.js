@@ -14,6 +14,7 @@ export default function NewArticlePage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
+
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
   const [subtypen, setSubtypen] = useState([]);
@@ -44,6 +45,8 @@ export default function NewArticlePage() {
 
   const [previewTextEnabled, setPreviewTextEnabled] = useState(false); // Toggle para habilitarlo
   const [previewText, setPreviewText] = useState(""); // Texto opcional
+  const [additionalInfo, setAdditionalInfo] = useState("");
+  const [additionalInfoEnabled, setAdditionalInfoEnabled] = useState(false);
 
   const isNachruf =
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
@@ -139,13 +142,6 @@ export default function NewArticlePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({
-      isNachruf,
-      deceasedFirstName,
-      deceasedLastName,
-      dateOfBirth,
-      dateOfDeath,
-    });
 
     if (!selectedBeitragstyp) {
       setMessage("Seleccione un tipo de artículo.");
@@ -211,6 +207,7 @@ export default function NewArticlePage() {
           dateOfBirth: dateOfBirth || null, // Enviar como número
           dateOfDeath: dateOfDeath || null, // Enviar como número
           previewText: previewTextEnabled ? previewText : null,
+          additionalInfo,
         }),
       });
 
@@ -234,6 +231,10 @@ export default function NewArticlePage() {
         setDateOfDeath(null);
         setPreviewTextEnabled(false);
         setPreviewText("");
+        setIsPublished(false);
+
+        setAdditionalInfo("");
+        setAdditionalInfoEnabled(false);
       } else {
         setMessage("Error desconocido al crear el artículo.");
       }
@@ -345,6 +346,22 @@ export default function NewArticlePage() {
           onChange={(e) => setContent(e.target.value)}
           placeholder="Ingrese el contenido"
         />
+        <ToggleSwitch
+          id="additionalInfoToggle"
+          label="¿Agregar Información Adicional?"
+          checked={additionalInfoEnabled}
+          onChange={(e) => setAdditionalInfoEnabled(e.target.checked)}
+        />
+        {additionalInfoEnabled && (
+          <InputField
+            id="additionalInfo"
+            label="Información Adicional"
+            value={additionalInfo}
+            onChange={(e) => setAdditionalInfo(e.target.value)}
+            placeholder="Ingrese información adicional"
+          />
+        )}
+
         <SelectField
           id="beitragstyp"
           label="Tipo de Artículo"
