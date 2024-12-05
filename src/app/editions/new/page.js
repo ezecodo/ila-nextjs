@@ -25,11 +25,11 @@ export default function NewEditionForm() {
     e.preventDefault();
 
     if (!coverImage || !backgroundImage) {
-      alert("Por favor, sube ambas imágenes.");
+      setMessage("Por favor, sube ambas imágenes.");
       return;
     }
     if (!year || isNaN(parseInt(year, 10))) {
-      alert("Por favor, selecciona un año válido.");
+      setMessage("Por favor, selecciona un año válido.");
       return;
     }
 
@@ -53,10 +53,12 @@ export default function NewEditionForm() {
 
       if (res.ok) {
         const data = await res.json();
+        setMessage("Edición creada con éxito.");
         console.log("Edición creada con éxito:", data);
         alert("Edición creada con éxito.");
       } else {
         const errorText = await res.text();
+        setMessage(`Error al crear la edición: ${errorText}`);
         console.error("Error al crear la edición:", errorText);
         alert(`Error: ${errorText}`);
       }
