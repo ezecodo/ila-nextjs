@@ -28,13 +28,17 @@ export default function NewEditionForm() {
       alert("Por favor, sube ambas imágenes.");
       return;
     }
+    if (!year || isNaN(parseInt(year, 10))) {
+      alert("Por favor, selecciona un año válido.");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("number", number);
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("datePublished", datePublished);
-    formData.append("year", year);
+    formData.append("year", parseInt(year, 10));
     formData.append("summary", summary);
     formData.append("tableOfContents", tableOfContents);
     formData.append("isCurrent", isCurrent);
@@ -97,15 +101,27 @@ export default function NewEditionForm() {
           value={datePublished}
           onChange={(e) => setDatePublished(e.target.value)}
         />
-        <InputField
-          id="year"
-          label="Año"
-          type="number"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          placeholder="Ingrese el año de la edición"
-          required
-        />
+        <div className={styles.formGroup}>
+          <label htmlFor="year" className={styles.formLabel}>
+            Año
+          </label>
+          <select
+            id="year"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className={styles.select}
+            required
+          >
+            <option value="">Seleccione un año</option>
+            {Array.from({ length: 2025 - 1991 + 1 }, (_, i) => 1991 + i).map(
+              (yr) => (
+                <option key={yr} value={yr}>
+                  {yr}
+                </option>
+              )
+            )}
+          </select>
+        </div>
         <TextAreaField
           id="summary"
           label="Resumen"

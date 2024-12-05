@@ -42,7 +42,7 @@ export async function POST(req) {
     const backgroundImageFile = formData.get("backgroundImage");
 
     // Validaciones básicas
-    if (!number || !title || !year || !summary) {
+    if (!number || !title || isNaN(year) || !summary) {
       return NextResponse.json(
         { error: "Campos obligatorios faltantes" },
         { status: 400 }
