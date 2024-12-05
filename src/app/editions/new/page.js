@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import InputField from "../../components/InputField";
+import TextAreaField from "../../components/TextAreaField";
+import ToggleSwitch from "../../components/ToggleSwitch";
+import SubmitButton from "../../components/SubmitButton";
+import FormMessage from "../../components/FormMessage";
+import styles from "../../styles/global.module.css";
 
 export default function NewEditionForm() {
   const [number, setNumber] = useState("");
@@ -13,6 +19,7 @@ export default function NewEditionForm() {
   const [isCurrent, setIsCurrent] = useState(false);
   const [coverImage, setCoverImage] = useState("");
   const [backgroundImage, setBackgroundImage] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,100 +63,96 @@ export default function NewEditionForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label htmlFor="number">Número:</label>
-        <input
-          type="number"
+    <div className={styles.container}>
+      <h1 className={styles.formTitle}>Crear una nueva edición</h1>
+      {message && <FormMessage message={message} />}
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <InputField
           id="number"
+          label="Número de Edición"
           value={number}
           onChange={(e) => setNumber(e.target.value)}
+          placeholder="Ingrese el número de la edición"
           required
         />
-      </div>
-      <div>
-        <label htmlFor="title">Título:</label>
-        <input
-          type="text"
+        <InputField
           id="title"
+          label="Título"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          placeholder="Ingrese el título de la edición"
           required
         />
-      </div>
-      <div>
-        <label htmlFor="subtitle">Subtítulo:</label>
-        <input
-          type="text"
+        <InputField
           id="subtitle"
+          label="Subtítulo"
           value={subtitle}
           onChange={(e) => setSubtitle(e.target.value)}
+          placeholder="Ingrese un subtítulo (opcional)"
         />
-      </div>
-      <div>
-        <label htmlFor="datePublished">Fecha de Publicación:</label>
-        <input
-          type="date"
+        <InputField
           id="datePublished"
+          label="Fecha de Publicación"
+          type="date"
           value={datePublished}
           onChange={(e) => setDatePublished(e.target.value)}
         />
-      </div>
-      <div>
-        <label htmlFor="year">Año:</label>
-        <input
-          type="number"
+        <InputField
           id="year"
+          label="Año"
+          type="number"
           value={year}
           onChange={(e) => setYear(e.target.value)}
+          placeholder="Ingrese el año de la edición"
           required
         />
-      </div>
-      <div>
-        <label htmlFor="summary">Resumen:</label>
-        <textarea
+        <TextAreaField
           id="summary"
+          label="Resumen"
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
+          placeholder="Ingrese el resumen de la edición"
           required
-        ></textarea>
-      </div>
-      <div>
-        <label htmlFor="tableOfContents">Tabla de Contenidos:</label>
-        <textarea
+        />
+        <TextAreaField
           id="tableOfContents"
+          label="Tabla de Contenidos"
           value={tableOfContents}
           onChange={(e) => setTableOfContents(e.target.value)}
-        ></textarea>
-      </div>
-      <div>
-        <label htmlFor="isCurrent">¿Es la edición actual?</label>
-        <input
-          type="checkbox"
+          placeholder="Ingrese la tabla de contenidos (opcional)"
+        />
+        <ToggleSwitch
           id="isCurrent"
+          label="¿Es la edición actual?"
           checked={isCurrent}
           onChange={(e) => setIsCurrent(e.target.checked)}
         />
-      </div>
-      <div>
-        <label htmlFor="coverImage">Imagen de Portada:</label>
-        <input
-          type="file"
-          id="coverImage"
-          onChange={(e) => setCoverImage(e.target.files[0])}
-          required
-        />
-      </div>
-      <div>
-        <label htmlFor="backgroundImage">Imagen de Fondo:</label>
-        <input
-          type="file"
-          id="backgroundImage"
-          onChange={(e) => setBackgroundImage(e.target.files[0])}
-          required
-        />
-      </div>
-      <button type="submit">Crear Edición</button>
-    </form>
+        <div className={styles.formGroup}>
+          <label htmlFor="coverImage" className={styles.formLabel}>
+            Imagen de Portada:
+          </label>
+          <input
+            type="file"
+            id="coverImage"
+            onChange={(e) => setCoverImage(e.target.files[0])}
+            className={styles.input}
+            required
+          />
+        </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="backgroundImage" className={styles.formLabel}>
+            Imagen de Fondo:
+          </label>
+          <input
+            type="file"
+            id="backgroundImage"
+            onChange={(e) => setBackgroundImage(e.target.files[0])}
+            className={styles.input}
+            required
+          />
+        </div>
+        <SubmitButton label="Crear Edición" />
+      </form>
+    </div>
   );
 }
