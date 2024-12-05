@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import InputField from "./components/InputField";
-import TextAreaField from "./components/TextAreaField";
-import SelectField from "./components/SelectField";
-import ToggleSwitch from "./components/ToggleSwitch";
-import FormMessage from "./components/FormMessage";
-import SubmitButton from "./components/SubmitButton";
-import Modal from "./components/Modal";
-import styles from "./NewArticlePage.module.css";
-import CheckboxField from "./components/CheckboxField";
+import InputField from "../../components/InputField";
+import TextAreaField from "../../components/TextAreaField";
+import SelectField from "../../components/SelectField";
+import ToggleSwitch from "../../components/ToggleSwitch";
+import FormMessage from "../../components/FormMessage";
+import SubmitButton from "../../components/SubmitButton";
+import Modal from "../../components/Modal";
+import styles from "../../styles/global.module.css";
+import CheckboxField from "../../components/CheckboxField";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");

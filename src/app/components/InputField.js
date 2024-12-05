@@ -1,4 +1,4 @@
-import styles from "../NewArticlePage.module.css";
+import styles from "../styles/global.module.css";
 
 export default function InputField({ label, value, onChange, placeholder }) {
   return (

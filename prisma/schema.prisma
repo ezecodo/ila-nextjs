@@ -53,11 +53,22 @@ model Interviewee {
 
 
 model Edition {
-  id              Int              @id @default(autoincrement())
-  number          Int              @unique // Número único de la edición
-  title           String           // Título de la edición
-  datePublished   DateTime?        // Fecha de publicación opcional
-  articles        Article[]        // Relación con artículos
+  id                Int              @id @default(autoincrement())
+  number            Int              @unique // Número único de la edición
+  title             String           // Título de la edición
+  subtitle          String?          // Subtítulo de la edición (opcional)
+  datePublished     DateTime?        // Fecha de publicación
+  year              Int              // Año para ordenación
+  summary           String           @db.Text // Resumen de la edición (obligatorio)
+  tableOfContents   String?          @db.Text // Tabla de contenido como texto (opcional)
+  coverImage        String?          // Imagen de portada
+  backgroundImage   String?          // Imagen de fondo de portada
+  isCurrent         Boolean          @default(false) // Indica si es la edición actual
+  isOrderable       Boolean          @default(false) // Disponible para pedido
+  isDiscounted      Boolean          @default(false) // Tiene precio reducido
+  articles          Article[]        // Relación con artículos
+  createdAt         DateTime         @default(now()) // Fecha de creación
+  updatedAt         DateTime         @updatedAt // Fecha de actualización automática
 }
 
 
