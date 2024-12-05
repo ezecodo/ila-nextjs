@@ -6,8 +6,6 @@ import TextAreaField from "../../components/TextAreaField";
 import CheckboxField from "../../components/CheckboxField";
 import SubmitButton from "../../components/SubmitButton";
 
-import styles from "../../styles/global.module.css";
-
 export default function NewEditionPage() {
   const [isCurrent, setIsCurrent] = useState(false);
   const [number, setNumber] = useState("");
