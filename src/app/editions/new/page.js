@@ -5,7 +5,7 @@ import InputField from "../../components/InputField";
 import TextAreaField from "../../components/TextAreaField";
 import CheckboxField from "../../components/CheckboxField";
 import SubmitButton from "../../components/SubmitButton";
-import FileUploadField from "../../components/FileUploadField";
+
 import styles from "../../styles/global.module.css";
 
 export default function NewEditionPage() {
