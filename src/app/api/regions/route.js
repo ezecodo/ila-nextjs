@@ -41,6 +41,7 @@ function filterRegionsByHierarchy(regions, filteredIds) {
   filteredIds.forEach((id) => {
     let current = regionMap[id];
 
+    // Agregar nodos padres
     while (current) {
       if (!result.find((r) => r.id === current.id)) {
         result.push(current);

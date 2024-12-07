@@ -14,6 +14,7 @@ export async function GET() {
   try {
     const editions = await prisma.edition.findMany({
       orderBy: { createdAt: "desc" },
+      include: { regions: true }, // Incluye las regiones asociadas
     });
     return NextResponse.json(editions, { status: 200 });
   } catch (error) {
@@ -38,16 +39,38 @@ export async function POST(req) {
     const tableOfContents = formData.get("tableOfContents") || null;
     const isCurrent = formData.get("isCurrent") === "true";
 
+    const regionId = formData.get("regionId")
+      ? parseInt(formData.get("regionId"), 10)
+      : null;
+
     const coverImageFile = formData.get("coverImage");
     const backgroundImageFile = formData.get("backgroundImage");
 
     // Validaciones básicas
     if (!number || !title || isNaN(year) || !summary) {
+      console.error("Campos obligatorios faltantes:", {
+        number,
+        title,
+        year,
+        summary,
+      });
       return NextResponse.json(
         { error: "Campos obligatorios faltantes" },
         { status: 400 }
       );
     }
+
+    console.log("Datos recibidos:", {
+      number,
+      title,
+      subtitle,
+      datePublished,
+      year,
+      summary,
+      tableOfContents,
+      isCurrent,
+      regionId,
+    });
 
     // Función para guardar imágenes
     const saveImage = async (file, fieldName) => {
@@ -66,6 +89,12 @@ export async function POST(req) {
       "backgroundImage"
     );
 
+    console.log("Paths de imágenes guardados:", {
+      coverImagePath,
+      backgroundImagePath,
+    });
+
+    // Crear nueva edición con asociación de regiones
     const newEdition = await prisma.edition.create({
       data: {
         number,
@@ -78,14 +107,22 @@ export async function POST(req) {
         isCurrent,
         coverImage: coverImagePath,
         backgroundImage: backgroundImagePath,
+        regions: regionId
+          ? {
+              connect: { id: regionId }, // Asocia la región usando `connect`
+            }
+          : undefined,
       },
+      include: { regions: true }, // Incluye las regiones asociadas en la respuesta
     });
+
+    console.log("Edición creada exitosamente:", newEdition);
 
     return NextResponse.json(newEdition, { status: 201 });
   } catch (error) {
     console.error("Error al crear la edición:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor" },
+      { error: "Error interno del servidor", details: error.message },
       { status: 500 }
     );
   }

@@ -23,16 +23,39 @@ export default function NewEditionForm() {
   const [region, setRegion] = useState(null); // Estado para la región seleccionada
   const [message, setMessage] = useState("");
 
-  // Función para cargar las regiones desde la API
+  /**
+   * Aplana la jerarquía de regiones en un formato adecuado para react-select
+   */
+  const flattenRegions = (regions, parentName = "") => {
+    const options = [];
+
+    regions.forEach((region) => {
+      const label = parentName ? `${parentName} > ${region.name}` : region.name;
+
+      options.push({
+        value: region.id,
+        label,
+      });
+
+      if (region.children && region.children.length > 0) {
+        options.push(...flattenRegions(region.children, label));
+      }
+    });
+
+    return options;
+  };
+
+  /**
+   * Función para cargar las regiones desde la API
+   */
   const loadRegions = async (inputValue) => {
     if (!inputValue) return [];
     try {
       const response = await fetch(`/api/regions?search=${inputValue}`);
       const data = await response.json();
-      return data.map((region) => ({
-        value: region.id,
-        label: region.name,
-      }));
+
+      // Aplanar la jerarquía para react-select
+      return flattenRegions(data);
     } catch (error) {
       console.error("Error al cargar regiones:", error);
       return [];
