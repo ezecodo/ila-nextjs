@@ -167,14 +167,10 @@ export default function NewArticlePage() {
     const fetchCategories = async () => {
       try {
         const res = await fetch("/api/categories");
-        if (res.ok) {
-          const data = await res.json();
-          setCategories(data);
-        } else {
-          console.error("Error al cargar categorías");
-        }
+        const data = await res.json();
+        setCategories(data); // Aquí simplemente guardamos los datos
       } catch (error) {
-        console.error("Error al conectar con el servidor:", error);
+        console.error("Error al cargar las categorías:", error);
       }
     };
 
@@ -191,14 +187,37 @@ export default function NewArticlePage() {
     );
   };
 
+  const flattenRegions = (regions, parentName = "") => {
+    const options = [];
+
+    regions.forEach((region) => {
+      const label = parentName ? `${parentName} > ${region.name}` : region.name;
+
+      options.push({
+        value: region.id,
+        label,
+      });
+
+      if (region.children && region.children.length > 0) {
+        options.push(...flattenRegions(region.children, label));
+      }
+    });
+
+    return options;
+  };
+
   const loadRegions = async (inputValue) => {
     if (!inputValue) return [];
-    const response = await fetch(`/api/regions?search=${inputValue}`);
-    const data = await response.json();
-    return data.map((region) => ({
-      value: region.id,
-      label: region.name,
-    }));
+    try {
+      const response = await fetch(`/api/regions?search=${inputValue}`);
+      const data = await response.json();
+
+      // Aplanar la jerarquía para react-select
+      return flattenRegions(data);
+    } catch (error) {
+      console.error("Error al cargar regiones:", error);
+      return [];
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -418,7 +437,7 @@ export default function NewArticlePage() {
         <AsyncSelect
           cacheOptions
           loadOptions={loadRegions} // Usa la función que busca regiones dinámicamente
-          onChange={setSelectedRegion} // Actualiza el estado con la región seleccionada
+          onChange={(selectedOption) => setSelectedRegion(selectedOption)} // Actualiza el estado con la región seleccionada
           placeholder="Busca una región..."
         />
         <TextAreaField

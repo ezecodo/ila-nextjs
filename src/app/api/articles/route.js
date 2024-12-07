@@ -20,11 +20,37 @@ export async function GET() {
             name: true,
           },
         },
+        regions: {
+          select: {
+            id: true,
+            name: true, // Incluir el nombre de las regiones
+          },
+        },
+        articleCategories: {
+          include: {
+            category: {
+              select: {
+                id: true,
+                name: true, // Incluir el nombre de las categorías
+              },
+            },
+          },
+        },
       },
       orderBy: { id: "desc" },
     });
 
-    return new Response(JSON.stringify(articles), { status: 200 });
+    // Transformar los datos para incluir solo el nombre de las categorías
+    const transformedArticles = articles.map((article) => ({
+      ...article,
+      categories: article.articleCategories.map((ac) => ({
+        id: ac.category.id,
+        name: ac.category.name, // Mostrar el nombre de la categoría
+      })),
+      articleCategories: undefined, // Eliminar el campo redundante
+    }));
+
+    return new Response(JSON.stringify(transformedArticles), { status: 200 });
   } catch (error) {
     console.error("Error en GET /api/articles:", error.message);
     return new Response(
@@ -51,24 +77,24 @@ export async function POST(request) {
       endPage,
       authorId,
       intervieweeId,
-      isPublished, // Publicar ahora
-      publicationDate, // Fecha de publicación programada
-      isNachruf, // Nuevo: Es Nachruf
-      deceasedFirstName, // Nuevo: Nombre del fallecido
-      deceasedLastName, // Nuevo: Apellido del fallecido
-      dateOfBirth, // Nuevo: Fecha de nacimiento
-      dateOfDeath, // Nuevo: Fecha de defunción
-      previewText, // Vorschau Text
-      additionalInfo, // Campo opcional
+      isPublished,
+      publicationDate,
+      isNachruf,
+      deceasedFirstName,
+      deceasedLastName,
+      dateOfBirth,
+      dateOfDeath,
+      previewText,
+      additionalInfo,
       categories,
+      regionId,
     } = await request.json();
 
     console.log("Payload recibido:", {
       title,
       content,
       beitragstypId,
-      previewText,
-      additionalInfo,
+      regionId,
       categories,
     });
 
@@ -119,6 +145,7 @@ export async function POST(request) {
         );
       }
     }
+
     const validPreviewText =
       previewText && previewText.trim() !== "" ? previewText : null;
 
@@ -130,6 +157,7 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
     // Crear el artículo
     const article = await prisma.article.create({
       data: {
@@ -145,8 +173,8 @@ export async function POST(request) {
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         startPage: isPrinted ? parseInt(startPage, 10) : null,
         endPage: isPrinted ? parseInt(endPage, 10) : null,
-        isPublished: isPublished || false, // Publicar ahora si está configurado
-        publicationDate: publicationDate ? new Date(publicationDate) : null, // Fecha programada si corresponde
+        isPublished: isPublished || false,
+        publicationDate: publicationDate ? new Date(publicationDate) : null,
         authors: authorId
           ? {
               connect: { id: parseInt(authorId, 10) },
@@ -162,8 +190,8 @@ export async function POST(request) {
               create: {
                 deceasedFirstName,
                 deceasedLastName,
-                dateOfBirth: parseInt(dateOfBirth, 10), // Almacena directamente como número entero
-                dateOfDeath: parseInt(dateOfDeath, 10), // Almacena directamente como número entero
+                dateOfBirth: parseInt(dateOfBirth, 10),
+                dateOfDeath: parseInt(dateOfDeath, 10),
               },
             }
           : undefined,
@@ -175,6 +203,11 @@ export async function POST(request) {
             }
           : undefined,
         previewText: validPreviewText,
+        regions: regionId
+          ? {
+              connect: { id: parseInt(regionId, 10) },
+            }
+          : undefined,
       },
     });
 
