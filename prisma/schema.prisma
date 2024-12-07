@@ -34,6 +34,7 @@ model Article {
   publicationDate  DateTime?                 // Fecha programada para publicación
   obituaryDetails  ObituaryDetails?  
   articleCategories ArticleCategory[] // Relación con categorías
+   regions   Region[]   @relation("ArticleRegions") // Relación con regiones
  
 
 
@@ -66,6 +67,7 @@ model Edition {
   datePublished     DateTime         @default(now()) // Fecha de publicación
   coverImage        String?          // Imagen de portada
   backgroundImage   String?          // Imagen de fondo de portada
+  regions   Region[]   @relation("EditionRegions")
   
 }
 
@@ -75,6 +77,16 @@ model Beitragstyp {
   name     String           @unique
   articles Article[]
   subtypes Beitragssubtyp[]
+}
+
+model Region {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  parentId  Int?      // Relación jerárquica
+  parent    Region?   @relation("RegionHierarchy", fields: [parentId], references: [id])
+  children  Region[]  @relation("RegionHierarchy")
+  editions  Edition[] @relation("EditionRegions")
+  articles  Article[] @relation("ArticleRegions") // Relación con artículos
 }
 
 model Beitragssubtyp {

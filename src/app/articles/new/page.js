@@ -10,6 +10,7 @@ import SubmitButton from "../../components/SubmitButton";
 import Modal from "../../components/Modal";
 import styles from "../../styles/global.module.css";
 import CheckboxField from "../../components/CheckboxField";
+import AsyncSelect from "react-select/async";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");
@@ -50,6 +51,7 @@ export default function NewArticlePage() {
   const [additionalInfoEnabled, setAdditionalInfoEnabled] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState(null);
 
   const isNachruf =
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
@@ -189,6 +191,16 @@ export default function NewArticlePage() {
     );
   };
 
+  const loadRegions = async (inputValue) => {
+    if (!inputValue) return [];
+    const response = await fetch(`/api/regions?search=${inputValue}`);
+    const data = await response.json();
+    return data.map((region) => ({
+      value: region.id,
+      label: region.name,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -258,6 +270,7 @@ export default function NewArticlePage() {
           previewText: previewTextEnabled ? previewText : null,
           additionalInfo,
           categories: selectedCategories,
+          regionId: selectedRegion?.value || null,
         }),
       });
 
@@ -401,6 +414,13 @@ export default function NewArticlePage() {
             />
           ))}
         </div>
+        <h3>Región</h3>
+        <AsyncSelect
+          cacheOptions
+          loadOptions={loadRegions} // Usa la función que busca regiones dinámicamente
+          onChange={setSelectedRegion} // Actualiza el estado con la región seleccionada
+          placeholder="Busca una región..."
+        />
         <TextAreaField
           id="content"
           label="Contenido"
