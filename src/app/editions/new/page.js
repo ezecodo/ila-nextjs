@@ -6,20 +6,38 @@ import TextAreaField from "../../components/TextAreaField";
 import ToggleSwitch from "../../components/ToggleSwitch";
 import SubmitButton from "../../components/SubmitButton";
 import FormMessage from "../../components/FormMessage";
+import AsyncSelect from "react-select/async"; // Importamos AsyncSelect
 import styles from "../../styles/global.module.css";
 
 export default function NewEditionForm() {
   const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
-  const [subtitle, setSubtitle] = useState(""); // Estado para el subtítulo
+  const [subtitle, setSubtitle] = useState("");
   const [datePublished, setDatePublished] = useState("");
-  const [year, setYear] = useState(""); // Nuevo estado para el año
-  const [summary, setSummary] = useState(""); // Nuevo estado para el resumen
+  const [year, setYear] = useState("");
+  const [summary, setSummary] = useState("");
   const [tableOfContents, setTableOfContents] = useState("");
   const [isCurrent, setIsCurrent] = useState(false);
   const [coverImage, setCoverImage] = useState("");
   const [backgroundImage, setBackgroundImage] = useState("");
+  const [region, setRegion] = useState(null); // Estado para la región seleccionada
   const [message, setMessage] = useState("");
+
+  // Función para cargar las regiones desde la API
+  const loadRegions = async (inputValue) => {
+    if (!inputValue) return [];
+    try {
+      const response = await fetch(`/api/regions?search=${inputValue}`);
+      const data = await response.json();
+      return data.map((region) => ({
+        value: region.id,
+        label: region.name,
+      }));
+    } catch (error) {
+      console.error("Error al cargar regiones:", error);
+      return [];
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,6 +62,11 @@ export default function NewEditionForm() {
     formData.append("isCurrent", isCurrent);
     formData.append("coverImage", coverImage);
     formData.append("backgroundImage", backgroundImage);
+
+    // Agregamos la región seleccionada al formulario
+    if (region) {
+      formData.append("regionId", region.value);
+    }
 
     try {
       const res = await fetch("/api/editions", {
@@ -145,6 +168,18 @@ export default function NewEditionForm() {
           checked={isCurrent}
           onChange={(e) => setIsCurrent(e.target.checked)}
         />
+        <div className={styles.formGroup}>
+          <label htmlFor="region" className={styles.formLabel}>
+            Categoría de Región:
+          </label>
+          <AsyncSelect
+            cacheOptions
+            defaultOptions
+            loadOptions={loadRegions}
+            onChange={(selectedOption) => setRegion(selectedOption)}
+            placeholder="Escriba para buscar regiones"
+          />
+        </div>
         <div className={styles.formGroup}>
           <label htmlFor="coverImage" className={styles.formLabel}>
             Imagen de Portada:
