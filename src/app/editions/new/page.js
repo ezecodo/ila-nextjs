@@ -21,18 +21,15 @@ export default function NewEditionForm() {
   const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
-  const [datePublished, setDatePublished] = useState(null); // Estado para fecha
+  const [datePublished, setDatePublished] = useState(null);
   const [summary, setSummary] = useState("");
   const [tableOfContents, setTableOfContents] = useState("");
   const [isCurrent, setIsCurrent] = useState(false);
   const [coverImage, setCoverImage] = useState("");
   const [backgroundImage, setBackgroundImage] = useState("");
-  const [region, setRegion] = useState(null); // Estado para la región seleccionada
+  const [region, setRegion] = useState(null);
   const [message, setMessage] = useState("");
 
-  /**
-   * Aplana la jerarquía de regiones en un formato adecuado para react-select
-   */
   const flattenRegions = (regions, parentName = "") => {
     const options = [];
 
@@ -52,16 +49,12 @@ export default function NewEditionForm() {
     return options;
   };
 
-  /**
-   * Función para cargar las regiones desde la API
-   */
   const loadRegions = async (inputValue) => {
     if (!inputValue) return [];
     try {
       const response = await fetch(`/api/regions?search=${inputValue}`);
       const data = await response.json();
 
-      // Aplanar la jerarquía para react-select
       return flattenRegions(data);
     } catch (error) {
       console.error("Error al cargar regiones:", error);
@@ -93,14 +86,12 @@ export default function NewEditionForm() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("datePublished", formattedDatePublished);
-
     formData.append("summary", summary);
     formData.append("tableOfContents", tableOfContents);
     formData.append("isCurrent", isCurrent);
     formData.append("coverImage", coverImage);
     formData.append("backgroundImage", backgroundImage);
 
-    // Agregamos la región seleccionada al formulario
     if (region) {
       formData.append("regionId", region.value);
     }
@@ -112,7 +103,6 @@ export default function NewEditionForm() {
       });
 
       if (res.ok) {
-        const data = await res.json();
         setMessage("Edición creada con éxito.");
         alert("Edición creada con éxito.");
       } else {
@@ -121,6 +111,7 @@ export default function NewEditionForm() {
         alert(`Error: ${errorText}`);
       }
     } catch (error) {
+      console.error("Error al enviar los datos:", error);
       alert("Error al enviar los datos.");
     }
   };
@@ -159,9 +150,9 @@ export default function NewEditionForm() {
           </label>
           <DatePicker
             selected={datePublished}
-            onChange={(date) => setDatePublished(date)} // Guardamos el objeto Date en el estado
-            dateFormat="MM/yyyy" // Formato de mes/año
-            showMonthYearPicker // Habilitamos la selección de solo mes y año
+            onChange={(date) => setDatePublished(date)}
+            dateFormat="MM/yyyy"
+            showMonthYearPicker
             className={styles.input}
             placeholderText="Selecciona el mes y año"
           />
