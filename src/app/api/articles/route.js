@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+const DEFAULT_IMAGE_URL = "/uploads/fallback/default-article.jpg";
 
 export async function GET() {
   try {
@@ -88,6 +89,7 @@ export async function POST(request) {
       additionalInfo,
       categories,
       regionId,
+      image,
     } = await request.json();
 
     console.log("Payload recibido:", {
@@ -175,6 +177,7 @@ export async function POST(request) {
         endPage: isPrinted ? parseInt(endPage, 10) : null,
         isPublished: isPublished || false,
         publicationDate: publicationDate ? new Date(publicationDate) : null,
+        image: image || DEFAULT_IMAGE_URL,
         authors: authorId
           ? {
               connect: { id: parseInt(authorId, 10) },
