@@ -1,20 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic"; // Importación dinámica
 import InputField from "../../components/InputField";
 import TextAreaField from "../../components/TextAreaField";
 import ToggleSwitch from "../../components/ToggleSwitch";
 import SubmitButton from "../../components/SubmitButton";
 import FormMessage from "../../components/FormMessage";
 import AsyncSelect from "react-select/async"; // Importamos AsyncSelect
+import "react-datepicker/dist/react-datepicker.css"; // Estilos de react-datepicker
 import styles from "../../styles/global.module.css";
+
+// Importación dinámica del DatePicker
+const DatePicker = dynamic(
+  () => import("react-datepicker").then((mod) => mod.default),
+  { ssr: false }
+);
 
 export default function NewEditionForm() {
   const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
-  const [datePublished, setDatePublished] = useState("");
-  const [year, setYear] = useState("");
+  const [datePublished, setDatePublished] = useState(null); // Estado para fecha
   const [summary, setSummary] = useState("");
   const [tableOfContents, setTableOfContents] = useState("");
   const [isCurrent, setIsCurrent] = useState(false);
@@ -69,17 +76,24 @@ export default function NewEditionForm() {
       setMessage("Por favor, sube ambas imágenes.");
       return;
     }
-    if (!year || isNaN(parseInt(year, 10))) {
-      setMessage("Por favor, selecciona un año válido.");
+
+    if (!datePublished) {
+      setMessage("Por favor, selecciona la fecha de publicación.");
       return;
     }
+
+    const formattedDatePublished = datePublished
+      ? `${datePublished.getFullYear()}-${String(
+          datePublished.getMonth() + 1
+        ).padStart(2, "0")}`
+      : "";
 
     const formData = new FormData();
     formData.append("number", number);
     formData.append("title", title);
     formData.append("subtitle", subtitle);
-    formData.append("datePublished", datePublished);
-    formData.append("year", parseInt(year, 10));
+    formData.append("datePublished", formattedDatePublished);
+
     formData.append("summary", summary);
     formData.append("tableOfContents", tableOfContents);
     formData.append("isCurrent", isCurrent);
@@ -100,16 +114,13 @@ export default function NewEditionForm() {
       if (res.ok) {
         const data = await res.json();
         setMessage("Edición creada con éxito.");
-        console.log("Edición creada con éxito:", data);
         alert("Edición creada con éxito.");
       } else {
         const errorText = await res.text();
         setMessage(`Error al crear la edición: ${errorText}`);
-        console.error("Error al crear la edición:", errorText);
         alert(`Error: ${errorText}`);
       }
     } catch (error) {
-      console.error("Error al enviar los datos:", error);
       alert("Error al enviar los datos.");
     }
   };
@@ -142,34 +153,20 @@ export default function NewEditionForm() {
           onChange={(e) => setSubtitle(e.target.value)}
           placeholder="Ingrese un subtítulo (opcional)"
         />
-        <InputField
-          id="datePublished"
-          label="Fecha de Publicación"
-          type="date"
-          value={datePublished}
-          onChange={(e) => setDatePublished(e.target.value)}
-        />
         <div className={styles.formGroup}>
-          <label htmlFor="year" className={styles.formLabel}>
-            Año
+          <label htmlFor="datePublished" className={styles.formLabel}>
+            Fecha de Publicación (Mes y Año)
           </label>
-          <select
-            id="year"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className={styles.select}
-            required
-          >
-            <option value="">Seleccione un año</option>
-            {Array.from({ length: 2025 - 1991 + 1 }, (_, i) => 1991 + i).map(
-              (yr) => (
-                <option key={yr} value={yr}>
-                  {yr}
-                </option>
-              )
-            )}
-          </select>
+          <DatePicker
+            selected={datePublished}
+            onChange={(date) => setDatePublished(date)} // Guardamos el objeto Date en el estado
+            dateFormat="MM/yyyy" // Formato de mes/año
+            showMonthYearPicker // Habilitamos la selección de solo mes y año
+            className={styles.input}
+            placeholderText="Selecciona el mes y año"
+          />
         </div>
+
         <TextAreaField
           id="summary"
           label="Resumen"

@@ -34,7 +34,7 @@ export async function POST(req) {
     const title = formData.get("title");
     const subtitle = formData.get("subtitle") || null;
     const datePublished = formData.get("datePublished");
-    const year = parseInt(formData.get("year"), 10);
+
     const summary = formData.get("summary");
     const tableOfContents = formData.get("tableOfContents") || null;
     const isCurrent = formData.get("isCurrent") === "true";
@@ -47,11 +47,10 @@ export async function POST(req) {
     const backgroundImageFile = formData.get("backgroundImage");
 
     // Validaciones básicas
-    if (!number || !title || isNaN(year) || !summary) {
+    if (!number || !title || !summary) {
       console.error("Campos obligatorios faltantes:", {
         number,
         title,
-        year,
         summary,
       });
       return NextResponse.json(
@@ -65,7 +64,6 @@ export async function POST(req) {
       title,
       subtitle,
       datePublished,
-      year,
       summary,
       tableOfContents,
       isCurrent,
@@ -100,8 +98,7 @@ export async function POST(req) {
         number,
         title,
         subtitle,
-        datePublished: datePublished ? new Date(datePublished) : undefined,
-        year,
+        datePublished: new Date(datePublished),
         summary,
         tableOfContents,
         isCurrent,

@@ -61,7 +61,6 @@ model Edition {
   articles          Article[]        // Relación con artículos
   createdAt         DateTime         @default(now()) // Fecha de creación
   subtitle          String?          // Subtítulo de la edición (opcional)
-  year              Int               // Año para ordenación
   summary           String           @db.Text // Resumen de la edición (obligatorio)
   tableOfContents   String?          @db.Text // Tabla de contenido como texto (opcional)
   isCurrent         Boolean          @default(false) // Indica si es la edición actual
