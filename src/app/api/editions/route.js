@@ -41,9 +41,7 @@ export async function POST(req) {
     const tableOfContents = formData.get("tableOfContents") || null;
     const isCurrent = formData.get("isCurrent") === "true";
 
-    const regionId = formData.get("regionId")
-      ? parseInt(formData.get("regionId"), 10)
-      : null;
+    const regions = JSON.parse(formData.get("regions") || "[]");
 
     const coverImageFile = formData.get("coverImage");
     const backgroundImageFile = formData.get("backgroundImage");
@@ -69,7 +67,7 @@ export async function POST(req) {
       summary,
       tableOfContents,
       isCurrent,
-      regionId,
+      regions,
     });
 
     // Función para guardar imágenes
@@ -107,13 +105,13 @@ export async function POST(req) {
         coverImage: coverImagePath,
         isAvailableToOrder,
         backgroundImage: backgroundImagePath,
-        regions: regionId
+        regions: regions.length
           ? {
-              connect: { id: regionId }, // Asocia la región usando `connect`
+              connect: regions.map((id) => ({ id })), // Conectar múltiples regiones
             }
           : undefined,
       },
-      include: { regions: true }, // Incluye las regiones asociadas en la respuesta
+      include: { regions: true }, // Incluir regiones asociadas en la respuesta
     });
 
     console.log("Edición creada exitosamente:", newEdition);

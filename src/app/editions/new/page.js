@@ -28,7 +28,8 @@ export default function NewEditionForm() {
   const [isCurrent, setIsCurrent] = useState(false);
   const [coverImage, setCoverImage] = useState("");
   const [backgroundImage, setBackgroundImage] = useState("");
-  const [region, setRegion] = useState(null);
+  const [regions, setRegions] = useState([]); // Cambia el estado a un array
+
   const [message, setMessage] = useState("");
 
   const flattenRegions = (regions, parentName = "") => {
@@ -81,6 +82,7 @@ export default function NewEditionForm() {
           datePublished.getMonth() + 1
         ).padStart(2, "0")}`
       : "";
+    const regionIds = regions.map((region) => region.value);
 
     const formData = new FormData();
     formData.append("number", number);
@@ -93,10 +95,7 @@ export default function NewEditionForm() {
     formData.append("isCurrent", isCurrent);
     formData.append("coverImage", coverImage);
     formData.append("backgroundImage", backgroundImage);
-
-    if (region) {
-      formData.append("regionId", region.value);
-    }
+    formData.append("regions", JSON.stringify(regionIds));
 
     try {
       const res = await fetch("/api/editions", {
@@ -192,10 +191,12 @@ export default function NewEditionForm() {
             Categoría de Región:
           </label>
           <AsyncSelect
+            isMulti // Permitir selección múltiple
             cacheOptions
             defaultOptions
             loadOptions={loadRegions}
-            onChange={(selectedOption) => setRegion(selectedOption)}
+            onChange={(selectedOptions) => setRegions(selectedOptions || [])} // Actualizar el array de regiones
+            value={regions} // Mostrar las regiones seleccionadas
             placeholder="Escriba para buscar regiones"
           />
         </div>
