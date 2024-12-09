@@ -32,6 +32,8 @@ export async function POST(req) {
 
     const number = parseInt(formData.get("number"), 10);
     const title = formData.get("title");
+    const isAvailableToOrder = formData.get("isAvailableToOrder") === "true"; // Capturar el campo del formulario
+
     const subtitle = formData.get("subtitle") || null;
     const datePublished = formData.get("datePublished");
 
@@ -103,6 +105,7 @@ export async function POST(req) {
         tableOfContents,
         isCurrent,
         coverImage: coverImagePath,
+        isAvailableToOrder,
         backgroundImage: backgroundImagePath,
         regions: regionId
           ? {

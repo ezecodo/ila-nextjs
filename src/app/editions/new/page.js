@@ -20,6 +20,7 @@ const DatePicker = dynamic(
 export default function NewEditionForm() {
   const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
+  const [isAvailableToOrder, setIsAvailableToOrder] = useState(false);
   const [subtitle, setSubtitle] = useState("");
   const [datePublished, setDatePublished] = useState(null);
   const [summary, setSummary] = useState("");
@@ -85,6 +86,7 @@ export default function NewEditionForm() {
     formData.append("number", number);
     formData.append("title", title);
     formData.append("subtitle", subtitle);
+    formData.append("isAvailableToOrder", isAvailableToOrder);
     formData.append("datePublished", formattedDatePublished);
     formData.append("summary", summary);
     formData.append("tableOfContents", tableOfContents);
@@ -178,6 +180,12 @@ export default function NewEditionForm() {
           label="¿Es la edición actual?"
           checked={isCurrent}
           onChange={(e) => setIsCurrent(e.target.checked)}
+        />
+        <ToggleSwitch
+          id="isAvailableToOrder"
+          label="¿Disponible para pedir?"
+          checked={isAvailableToOrder}
+          onChange={(e) => setIsAvailableToOrder(e.target.checked)}
         />
         <div className={styles.formGroup}>
           <label htmlFor="region" className={styles.formLabel}>

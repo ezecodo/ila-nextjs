@@ -67,6 +67,7 @@ model Edition {
   datePublished     DateTime         @default(now()) // Fecha de publicación
   coverImage        String?          // Imagen de portada
   backgroundImage   String?          // Imagen de fondo de portada
+  isAvailableToOrder Boolean?         // Disponible para Ordenar?
   regions   Region[]   @relation("EditionRegions")
   
 }
