@@ -106,6 +106,17 @@ export default function NewEditionForm() {
       if (res.ok) {
         setMessage("Edición creada con éxito.");
         alert("Edición creada con éxito.");
+        setNumber("");
+        setTitle("");
+        setSubtitle("");
+        setIsAvailableToOrder(false);
+        setDatePublished(null);
+        setSummary("");
+        setTableOfContents("");
+        setIsCurrent(false);
+        setCoverImage("");
+        setBackgroundImage("");
+        setRegions([]);
       } else {
         const errorText = await res.text();
         setMessage(`Error al crear la edición: ${errorText}`);
