@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function EditionsList() {
   const [editions, setEditions] = useState([]);
   const [error, setError] = useState(null);
-  const [modalIsOpen, setModalIsOpen] = useState(false); // Estado del modal
-  const [selectedImage, setSelectedImage] = useState(""); // Imagen seleccionada
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState("");
 
   useEffect(() => {
     async function fetchEditions() {
@@ -28,11 +29,17 @@ export default function EditionsList() {
   const openModal = (imageUrl) => {
     setSelectedImage(imageUrl);
     setModalIsOpen(true);
+
+    // Bloquear el scroll del fondo
+    document.body.style.overflow = "hidden";
   };
 
   const closeModal = () => {
     setModalIsOpen(false);
     setSelectedImage("");
+
+    // Restaurar el scroll del fondo
+    document.body.style.overflow = "";
   };
 
   if (error) {
@@ -51,11 +58,13 @@ export default function EditionsList() {
           <div
             key={edition.id}
             className="bg-white rounded-lg shadow p-4 flex flex-col items-center cursor-pointer"
-            onClick={() => openModal(edition.coverImage)} // Abrir modal al hacer clic
+            onClick={() => openModal(edition.coverImage)}
           >
-            <img
+            <Image
               src={edition.coverImage || "/uploads/fallback/default-cover.jpg"}
               alt={`Portada de ${edition.title}`}
+              width={200}
+              height={300}
               className="w-full h-48 object-cover rounded-lg mb-4"
             />
             <h2 className="text-lg font-bold mb-2">{edition.title}</h2>
@@ -71,26 +80,30 @@ export default function EditionsList() {
       </div>
 
       {/* Modal */}
-      {modalIsOpen && selectedImage && (
+      {modalIsOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center"
-          onClick={closeModal} // Cierra el modal al hacer clic en el fondo
+          className="fixed inset-0 z-50 bg-black bg-opacity-75 flex justify-center items-center"
+          onClick={closeModal}
         >
           <div
-            className="absolute bg-white rounded-lg shadow-lg p-6 max-w-lg w-full top-20"
-            onClick={(e) => e.stopPropagation()} // Evitar cerrar al hacer clic dentro del modal
+            className="relative bg-white rounded-lg shadow-lg p-4 max-w-lg w-full"
+            onClick={(e) => e.stopPropagation()}
           >
+            {/* Botón de cierre */}
             <button
               onClick={closeModal}
               className="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
             >
               ✖
             </button>
-            {/* Imagen redimensionada */}
-            <img
+
+            {/* Imagen dentro del modal */}
+            <Image
               src={selectedImage}
               alt="Imagen seleccionada"
-              className="w-full max-w-sm h-auto mx-auto" // Máximo ancho y auto-ajuste
+              width={600}
+              height={800}
+              className="w-full max-h-[80vh] object-contain"
             />
           </div>
         </div>
