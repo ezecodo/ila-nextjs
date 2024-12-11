@@ -97,11 +97,6 @@ export default function EditionsList() {
               ✖
             </button>
 
-<<<<<<< HEAD
-
-=======
-            {/* Imagen dentro del modal */}
->>>>>>> origin/main
             <Image
               src={selectedImage}
               alt="Imagen seleccionada"
