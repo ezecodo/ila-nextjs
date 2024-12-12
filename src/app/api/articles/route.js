@@ -21,18 +21,6 @@ export async function GET() {
             name: true,
           },
         },
-        regions: {
-          select: {
-            id: true,
-            name: true, // Incluir el nombre de las regiones
-          },
-        },
-        topics: {
-          select: {
-            id: true,
-            name: true, // Incluir el nombre de las regiones
-          },
-        },
         articleCategories: {
           include: {
             category: {
@@ -43,11 +31,12 @@ export async function GET() {
             },
           },
         },
+        regions: true, // Incluye las regiones asociadas
+        topics: true, // Incluye los temas asociados
       },
       orderBy: { id: "desc" },
     });
 
-    // Transformar los datos para incluir solo el nombre de las categorías
     const transformedArticles = articles.map((article) => ({
       ...article,
       categories: article.articleCategories.map((ac) => ({
@@ -94,8 +83,8 @@ export async function POST(request) {
       previewText,
       additionalInfo,
       categories,
-      regionId,
-      topicId,
+      regions,
+      topics,
       image,
     } = await request.json();
 
@@ -103,8 +92,8 @@ export async function POST(request) {
       title,
       content,
       beitragstypId,
-      regionId,
-      topicId,
+      regions,
+      topics,
       categories,
     });
 
@@ -154,6 +143,14 @@ export async function POST(request) {
           { status: 400 }
         );
       }
+    }
+
+    if (!Array.isArray(regions) || !Array.isArray(topics)) {
+      console.error("Error: regions o topics no son arrays.");
+      return new Response(
+        JSON.stringify({ error: "Formato inválido para regions o topics." }),
+        { status: 400 }
+      );
     }
 
     const validPreviewText =
@@ -214,18 +211,23 @@ export async function POST(request) {
             }
           : undefined,
         previewText: validPreviewText,
-        regions: regionId
+        regions: regions.length
           ? {
-              connect: { id: parseInt(regionId, 10) },
+              connect: regions.map((region) => ({ id: parseInt(region, 10) })),
             }
           : undefined,
-        topics: topicId
+        topics: topics.length
           ? {
-              connect: { id: parseInt(topicId, 10) },
+              connect: topics.map((topic) => ({ id: parseInt(topic, 10) })),
             }
           : undefined,
       },
+      include: {
+        regions: true,
+        topics: true,
+      },
     });
+    console.log("Artículo creado:", article);
 
     return new Response(JSON.stringify(article), { status: 201 });
   } catch (error) {

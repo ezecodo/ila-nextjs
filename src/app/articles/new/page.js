@@ -51,7 +51,75 @@ export default function NewArticlePage() {
   const [additionalInfoEnabled, setAdditionalInfoEnabled] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedRegion, setSelectedRegion] = useState(null);
+  const [regions, setRegions] = useState([]); // Cambia el estado a un array
+  const [topics, setTopics] = useState([]); // Cambia el estado a un array
+  // Maneja los Temas del articulo
+  const flattenTopics = (topics, parentName = "") => {
+    const options = [];
+
+    topics.forEach((topic) => {
+      const label = parentName ? `${parentName} > ${topic.name}` : topic.name;
+
+      options.push({
+        value: topic.id,
+        label,
+      });
+
+      if (topic.children && topic.children.length > 0) {
+        options.push(...flattenTopics(topic.children, label));
+      }
+    });
+
+    return options;
+  };
+
+  const loadTopics = async (inputValue) => {
+    if (!inputValue) return [];
+    try {
+      const response = await fetch(`/api/topics?search=${inputValue}`);
+      const data = await response.json();
+
+      // Aplanar la jerarquía para react-select
+      return flattenTopics(data);
+    } catch (error) {
+      console.error("Error al cargar Temas:", error);
+      return [];
+    }
+  };
+
+  // Maneja las Regiones del aritulo
+  const flattenRegions = (regions, parentName = "") => {
+    const options = [];
+
+    regions.forEach((region) => {
+      const label = parentName ? `${parentName} > ${region.name}` : region.name;
+
+      options.push({
+        value: region.id,
+        label,
+      });
+
+      if (region.children && region.children.length > 0) {
+        options.push(...flattenRegions(region.children, label));
+      }
+    });
+
+    return options;
+  };
+
+  const loadRegions = async (inputValue) => {
+    if (!inputValue) return [];
+    try {
+      const response = await fetch(`/api/regions?search=${inputValue}`);
+      const data = await response.json();
+
+      // Aplanar la jerarquía para react-select
+      return flattenRegions(data);
+    } catch (error) {
+      console.error("Error al cargar regiones:", error);
+      return [];
+    }
+  };
 
   const isNachruf =
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
@@ -187,41 +255,27 @@ export default function NewArticlePage() {
     );
   };
 
-  const flattenRegions = (regions, parentName = "") => {
-    const options = [];
-
-    regions.forEach((region) => {
-      const label = parentName ? `${parentName} > ${region.name}` : region.name;
-
-      options.push({
-        value: region.id,
-        label,
-      });
-
-      if (region.children && region.children.length > 0) {
-        options.push(...flattenRegions(region.children, label));
-      }
-    });
-
-    return options;
-  };
-
-  const loadRegions = async (inputValue) => {
-    if (!inputValue) return [];
-    try {
-      const response = await fetch(`/api/regions?search=${inputValue}`);
-      const data = await response.json();
-
-      // Aplanar la jerarquía para react-select
-      return flattenRegions(data);
-    } catch (error) {
-      console.error("Error al cargar regiones:", error);
-      return [];
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const regionIds = regions.map((region) => region.value);
+    const topicIds = topics.map((topic) => topic.value);
+    console.log("Datos enviados al backend:", {
+      title,
+      subtitle,
+      content,
+      beitragstypId: selectedBeitragstyp,
+      beitragssubtypId: selectedSubtyp || null,
+      regions: regionIds,
+      topics: topicIds,
+    });
+
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("subtitle", subtitle);
+    formData.append("content", content);
+    formData.append("regions", JSON.stringify(regionIds));
+    formData.append("topics", JSON.stringify(topicIds));
 
     if (!selectedBeitragstyp) {
       setMessage("Seleccione un tipo de artículo.");
@@ -289,7 +343,8 @@ export default function NewArticlePage() {
           previewText: previewTextEnabled ? previewText : null,
           additionalInfo,
           categories: selectedCategories,
-          regionId: selectedRegion?.value || null,
+          regions: regionIds,
+          topics: topicIds,
         }),
       });
 
@@ -318,6 +373,9 @@ export default function NewArticlePage() {
         setAdditionalInfo("");
         setAdditionalInfoEnabled(false);
         setSelectedCategories([]);
+
+        setRegions([]);
+        setTopics([]);
       } else {
         setMessage("Error desconocido al crear el artículo.");
       }
@@ -433,13 +491,34 @@ export default function NewArticlePage() {
             />
           ))}
         </div>
-        <h3>Región</h3>
-        <AsyncSelect
-          cacheOptions
-          loadOptions={loadRegions} // Usa la función que busca regiones dinámicamente
-          onChange={(selectedOption) => setSelectedRegion(selectedOption)} // Actualiza el estado con la región seleccionada
-          placeholder="Busca una región..."
-        />
+        <div className={styles.formGroup}>
+          <label htmlFor="region" className={styles.formLabel}>
+            Región/es:
+          </label>
+          <AsyncSelect
+            isMulti
+            cacheOptions
+            defaultOptions
+            loadOptions={loadRegions}
+            onChange={(selectedOptions) => setRegions(selectedOptions || [])}
+            value={regions}
+            placeholder="Escriba para buscar regiones"
+          />
+        </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="topic" className={styles.formLabel}>
+            Tema/s:
+          </label>
+          <AsyncSelect
+            isMulti
+            cacheOptions
+            defaultOptions
+            loadOptions={loadTopics}
+            onChange={(selectedOptions) => setTopics(selectedOptions || [])}
+            value={topics}
+            placeholder="Escriba para buscar temas"
+          />
+        </div>
         <TextAreaField
           id="content"
           label="Contenido"
