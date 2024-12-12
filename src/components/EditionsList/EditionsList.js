@@ -6,8 +6,6 @@ import Image from "next/image";
 export default function EditionsList() {
   const [editions, setEditions] = useState([]);
   const [error, setError] = useState(null);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState("");
 
   useEffect(() => {
     async function fetchEditions() {
@@ -17,7 +15,11 @@ export default function EditionsList() {
           throw new Error("Error al cargar las ediciones");
         }
         const data = await response.json();
-        setEditions(data);
+
+        // Ordenar ediciones por número en orden descendente
+        const sortedEditions = data.sort((a, b) => b.number - a.number);
+
+        setEditions(sortedEditions);
       } catch (err) {
         setError(err.message);
       }
@@ -26,20 +28,11 @@ export default function EditionsList() {
     fetchEditions();
   }, []);
 
-  const openModal = (imageUrl) => {
-    setSelectedImage(imageUrl);
-    setModalIsOpen(true);
-
-    // Bloquear el scroll del fondo
-    document.body.style.overflow = "hidden";
-  };
-
-  const closeModal = () => {
-    setModalIsOpen(false);
-    setSelectedImage("");
-
-    // Restaurar el scroll del fondo
-    document.body.style.overflow = "";
+  // Función para truncar texto
+  const truncateText = (text, maxLength) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return `${text.substring(0, maxLength)}...`;
   };
 
   if (error) {
@@ -52,61 +45,53 @@ export default function EditionsList() {
 
   return (
     <div>
-      {/* Lista de ediciones */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {editions.map((edition) => (
           <div
             key={edition.id}
-            className="bg-white rounded-lg shadow p-4 flex flex-col items-center cursor-pointer"
-            onClick={() => openModal(edition.coverImage)}
+            className="bg-white rounded-lg shadow p-6 flex flex-col items-center"
           >
-            <Image
-              src={edition.coverImage || "/uploads/fallback/default-cover.jpg"}
-              alt={`Portada de ${edition.title}`}
-              width={200}
-              height={300}
-              className="w-full h-48 object-cover rounded-lg mb-4"
-            />
-            <h2 className="text-lg font-bold mb-2">{edition.title}</h2>
-            <p className="text-sm text-gray-500 mb-4">
+            <div className="relative w-full h-96">
+              <Image
+                src={
+                  edition.coverImage || "/uploads/fallback/default-cover.jpg"
+                }
+                alt={`Portada de ${edition.title}`}
+                layout="fill"
+                objectFit="contain" // Asegura que la imagen no se recorte
+                className="rounded-lg"
+              />
+            </div>
+            {/* Aquí se agrega el texto "ILA {edition.number}" con la clase ila-edition */}
+            <p className="ila-edition">{`ila ${edition.number}`}</p>
+            <h2 className="text-lg font-bold mt-4 mb-2">{edition.title}</h2>
+            <p className="text-sm text-gray-500 mb-1">
               {new Date(edition.datePublished).toLocaleDateString("es-ES", {
                 year: "numeric",
                 month: "long",
               })}
             </p>
-            <p className="text-sm text-gray-700">{edition.summary}</p>
+            <p className="text-sm text-gray-500 mb-1">
+              {edition.regions.length > 0
+                ? `Regiones: ${edition.regions
+                    .map((region) => region.name)
+                    .join(", ")}`
+                : "Sin regiones asociadas"}
+            </p>
+            <p className="text-sm text-gray-500 mb-1">
+              {edition.topics.length > 0
+                ? `Temas: ${edition.topics
+                    .map((topic) => topic.name)
+                    .join(", ")}`
+                : "Sin temas asociados"}
+            </p>
+            <p className="text-sm text-gray-700">
+              {truncateText(edition.summary, 150)}{" "}
+              <span className="text-blue-500 cursor-pointer">Leer más</span>
+            </p>
           </div>
         ))}
       </div>
-
-      {/* Modal */}
-      {modalIsOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black bg-opacity-75 flex justify-center items-center"
-          onClick={closeModal}
-        >
-          <div
-            className="relative bg-white rounded-lg shadow-lg p-4 max-w-lg w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Botón de cierre */}
-            <button
-              onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
-            >
-              ✖
-            </button>
-
-            <Image
-              src={selectedImage}
-              alt="Imagen seleccionada"
-              width={600}
-              height={800}
-              className="w-full max-h-[80vh] object-contain"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

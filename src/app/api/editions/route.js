@@ -13,20 +13,30 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 export async function GET() {
   try {
     const editions = await prisma.edition.findMany({
-      orderBy: { createdAt: "desc" },
-      include: { regions: true }, // Incluye las regiones asociadas
-      include: { topics: true }, // Incluye las regiones asociadas
+      include: {
+        regions: {
+          select: {
+            id: true,
+            name: true, // Aseguramos que se incluyan los nombres de las regiones
+          },
+        },
+        topics: {
+          select: {
+            id: true,
+            name: true, // También incluimos los temas si son necesarios
+          },
+        },
+      },
     });
-    return NextResponse.json(editions, { status: 200 });
+
+    return new Response(JSON.stringify(editions), { status: 200 });
   } catch (error) {
-    console.error("Error al obtener las ediciones:", error);
-    return NextResponse.json(
-      { error: "Error al obtener las ediciones" },
-      { status: 500 }
-    );
+    console.error("Error fetching editions:", error);
+    return new Response(JSON.stringify({ error: "Error fetching editions" }), {
+      status: 500,
+    });
   }
 }
-
 export async function POST(req) {
   try {
     const formData = await req.formData();
