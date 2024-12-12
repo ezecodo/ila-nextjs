@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
@@ -126,10 +127,15 @@ export default function EditionsList() {
               </p>
             )}
 
-            <p className="text-sm text-gray-700">
-              {truncateText(edition.summary, 150)}{" "}
-              <span className="text-blue-500 cursor-pointer">Leer más</span>
+            <p className="text-gray-700">
+              {truncateText(edition.summary, 150)}
             </p>
+            <Link
+              href={`/editions/${edition.id}`}
+              className="text-blue-500 font-medium mt-2 inline-block"
+            >
+              Leer más
+            </Link>
           </div>
         ))}
       </div>
