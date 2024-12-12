@@ -27,6 +27,12 @@ export async function GET() {
             name: true, // Incluir el nombre de las regiones
           },
         },
+        topics: {
+          select: {
+            id: true,
+            name: true, // Incluir el nombre de las regiones
+          },
+        },
         articleCategories: {
           include: {
             category: {
@@ -89,6 +95,7 @@ export async function POST(request) {
       additionalInfo,
       categories,
       regionId,
+      topicId,
       image,
     } = await request.json();
 
@@ -97,6 +104,7 @@ export async function POST(request) {
       content,
       beitragstypId,
       regionId,
+      topicId,
       categories,
     });
 
@@ -209,6 +217,11 @@ export async function POST(request) {
         regions: regionId
           ? {
               connect: { id: parseInt(regionId, 10) },
+            }
+          : undefined,
+        topics: topicId
+          ? {
+              connect: { id: parseInt(topicId, 10) },
             }
           : undefined,
       },

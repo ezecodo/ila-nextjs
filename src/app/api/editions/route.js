@@ -15,6 +15,7 @@ export async function GET() {
     const editions = await prisma.edition.findMany({
       orderBy: { createdAt: "desc" },
       include: { regions: true }, // Incluye las regiones asociadas
+      include: { topics: true }, // Incluye las regiones asociadas
     });
     return NextResponse.json(editions, { status: 200 });
   } catch (error) {
@@ -42,6 +43,7 @@ export async function POST(req) {
     const isCurrent = formData.get("isCurrent") === "true";
 
     const regions = JSON.parse(formData.get("regions") || "[]");
+    const topics = JSON.parse(formData.get("topics") || "[]");
 
     const coverImageFile = formData.get("coverImage");
     const backgroundImageFile = formData.get("backgroundImage");
@@ -68,6 +70,7 @@ export async function POST(req) {
       tableOfContents,
       isCurrent,
       regions,
+      topics,
     });
 
     // Función para guardar imágenes
@@ -110,8 +113,14 @@ export async function POST(req) {
               connect: regions.map((id) => ({ id })), // Conectar múltiples regiones
             }
           : undefined,
+        topics: topics.length
+          ? {
+              connect: topics.map((id) => ({ id })), // Conectar múltiples regiones
+            }
+          : undefined,
       },
       include: { regions: true }, // Incluir regiones asociadas en la respuesta
+      include: { topics: true }, // Incluir los topicos asociadas en la respuesta
     });
 
     console.log("Edición creada exitosamente:", newEdition);

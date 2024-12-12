@@ -29,8 +29,42 @@ export default function NewEditionForm() {
   const [coverImage, setCoverImage] = useState("");
   const [backgroundImage, setBackgroundImage] = useState("");
   const [regions, setRegions] = useState([]); // Cambia el estado a un array
+  const [topics, setTopics] = useState([]); // Cambia el estado a un array
 
   const [message, setMessage] = useState("");
+
+  const flattenTopics = (topics, parentName = "") => {
+    const options = [];
+
+    topics.forEach((topic) => {
+      const label = parentName ? `${parentName} > ${topic.name}` : topic.name;
+
+      options.push({
+        value: topic.id,
+        label,
+      });
+
+      if (topic.children && topic.children.length > 0) {
+        options.push(...flattenTopics(topic.children, label));
+      }
+    });
+
+    return options;
+  };
+
+  const loadTopics = async (inputValue) => {
+    if (!inputValue) return [];
+    try {
+      const response = await fetch(`/api/topics?search=${inputValue}`);
+      const data = await response.json();
+
+      return flattenTopics(data);
+    } catch (error) {
+      console.error("Error al cargar topicos:", error);
+      return [];
+    }
+  };
+  ///////////////////////
 
   const flattenRegions = (regions, parentName = "") => {
     const options = [];
@@ -83,6 +117,7 @@ export default function NewEditionForm() {
         ).padStart(2, "0")}`
       : "";
     const regionIds = regions.map((region) => region.value);
+    const topicIds = topics.map((topic) => topic.value);
 
     const formData = new FormData();
     formData.append("number", number);
@@ -96,6 +131,7 @@ export default function NewEditionForm() {
     formData.append("coverImage", coverImage);
     formData.append("backgroundImage", backgroundImage);
     formData.append("regions", JSON.stringify(regionIds));
+    formData.append("topics", JSON.stringify(topicIds));
 
     try {
       const res = await fetch("/api/editions", {
@@ -117,6 +153,7 @@ export default function NewEditionForm() {
         setCoverImage("");
         setBackgroundImage("");
         setRegions([]);
+        setTopics([]);
       } else {
         const errorText = await res.text();
         setMessage(`Error al crear la edición: ${errorText}`);
@@ -198,6 +235,20 @@ export default function NewEditionForm() {
           onChange={(e) => setIsAvailableToOrder(e.target.checked)}
         />
         <div className={styles.formGroup}>
+          <label htmlFor="topic" className={styles.formLabel}>
+            Tema/s:
+          </label>
+          <AsyncSelect
+            isMulti // Permitir selección múltiple
+            cacheOptions
+            defaultOptions
+            loadOptions={loadTopics}
+            onChange={(selectedOptions) => setTopics(selectedOptions || [])} // Actualizar el array de topicos
+            value={topics} // Mostrar las regiones seleccionadas
+            placeholder="Escriba para buscar temas"
+          />
+        </div>
+        <div className={styles.formGroup}>
           <label htmlFor="region" className={styles.formLabel}>
             Categoría de Región:
           </label>
@@ -211,6 +262,7 @@ export default function NewEditionForm() {
             placeholder="Escriba para buscar regiones"
           />
         </div>
+
         <div className={styles.formGroup}>
           <label htmlFor="coverImage" className={styles.formLabel}>
             Imagen de Portada:
