@@ -1,0 +1,1576 @@
+[
+  {
+    "name": "1968",
+    "children": []
+  },
+  {
+    "name": "Abfall",
+    "children": []
+  },
+  {
+    "name": "Abtreibung",
+    "children": []
+  },
+  {
+    "name": "Adoption",
+    "children": []
+  },
+  {
+    "name": "Agrarindustrie",
+    "children": [
+      {
+        "name": "Agrobusiness",
+        "children": []
+      },
+      {
+        "name": "Agrotreibstoff",
+        "children": []
+      },
+      {
+        "name": "Biotreibstoff",
+        "children": []
+      },
+      {
+        "name": "Biodiesel",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Agrarpolitik",
+    "children": [
+      {
+        "name": "Agrarreform",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Aids",
+    "children": []
+  },
+  {
+    "name": "ALCA",
+    "children": []
+  },
+  {
+    "name": "Allende",
+    "children": []
+  },
+  {
+    "name": "Alternative Kommunalpolitik",
+    "children": []
+  },
+  {
+    "name": "Anarchismus",
+    "children": []
+  },
+  {
+    "name": "Antisemitismus",
+    "children": []
+  },
+  {
+    "name": "Aquakultur",
+    "children": []
+  },
+  {
+    "name": "Araber*innen",
+    "children": []
+  },
+  {
+    "name": "Arbeit",
+    "children": []
+  },
+  {
+    "name": "Armut",
+    "children": [
+      {
+        "name": "Arme",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Asyl",
+    "children": []
+  },
+  {
+    "name": "Atom",
+    "children": []
+  },
+  {
+    "name": "Ausländerfeindlichkeit",
+    "children": []
+  },
+  {
+    "name": "Ausstellung",
+    "children": []
+  },
+  {
+    "name": "Auswanderung",
+    "children": []
+  },
+  {
+    "name": "Autonomie",
+    "children": []
+  },
+  {
+    "name": "Bahn",
+    "children": []
+  },
+  {
+    "name": "Basisorganisationen",
+    "children": []
+  },
+  {
+    "name": "Bauernorganisationen",
+    "children": []
+  },
+  {
+    "name": "Befreiungstheologie",
+    "children": []
+  },
+  {
+    "name": "Belletristik",
+    "children": []
+  },
+  {
+    "name": "Benzin",
+    "children": []
+  },
+  {
+    "name": "Bergbau",
+    "children": []
+  },
+  {
+    "name": "Bewegung",
+    "children": []
+  },
+  {
+    "name": "Beziehung",
+    "children": []
+  },
+  {
+    "name": "Bibliothek",
+    "children": []
+  },
+  {
+    "name": "Bier",
+    "children": []
+  },
+  {
+    "name": "Bildung",
+    "children": []
+  },
+  {
+    "name": "Binnenflüchtlinge",
+    "children": []
+  },
+  {
+    "name": "Biodiversität",
+    "children": []
+  },
+  {
+    "name": "Biographie",
+    "children": []
+  },
+  {
+    "name": "BIP",
+    "children": []
+  },
+  {
+    "name": "Blockupy",
+    "children": []
+  },
+  {
+    "name": "BMZ",
+    "children": []
+  },
+  {
+    "name": "Bodenschätze",
+    "children": []
+  },
+  {
+    "name": "Botschafter",
+    "children": []
+  },
+  {
+    "name": "Buen Vivir",
+    "children": []
+  },
+  {
+    "name": "Bürgerkrieg",
+    "children": []
+  },
+  {
+    "name": "Bus",
+    "children": []
+  },
+  {
+    "name": "Candomblé",
+    "children": []
+  },
+  {
+    "name": "Care-Arbeit",
+    "children": []
+  },
+  {
+    "name": "Che",
+    "children": []
+  },
+  {
+    "name": "Christdemokratie",
+    "children": []
+  },
+  {
+    "name": "Coca",
+    "children": []
+  },
+  {
+    "name": "Comic",
+    "children": []
+  },
+  {
+    "name": "Commons",
+    "children": []
+  },
+  {
+    "name": "Copacabana",
+    "children": []
+  },
+  {
+    "name": "Coronavirus",
+    "children": []
+  },
+  {
+    "name": "Cumbia",
+    "children": []
+  },
+  {
+    "name": "Demokratie",
+    "children": []
+  },
+  {
+    "name": "Diktatur",
+    "children": []
+  },
+  {
+    "name": "documenta",
+    "children": []
+  },
+  {
+    "name": "Dollar",
+    "children": []
+  },
+  {
+    "name": "Dritte Welt",
+    "children": []
+  },
+  {
+    "name": "Drogen",
+    "children": []
+  },
+  {
+    "name": "Dub",
+    "children": []
+  },
+  {
+    "name": "E-Book",
+    "children": []
+  },
+  {
+    "name": "Einwanderung",
+    "children": []
+  },
+  {
+    "name": "Eisenbahn",
+    "children": []
+  },
+  {
+    "name": "Emigration",
+    "children": []
+  },
+  {
+    "name": "Energie",
+    "children": [
+      {
+        "name": "Energiepolitik",
+        "children": []
+      },
+      {
+        "name": "Erdgas",
+        "children": []
+      },
+      {
+        "name": "Erdöl",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Entführung",
+    "children": []
+  },
+  {
+    "name": "Entwicklung",
+    "children": [
+      {
+        "name": "Entwicklungstheorie",
+        "children": []
+      },
+      {
+        "name": "Entwicklungszusammenarbeit",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Erdbeben",
+    "children": []
+  },
+  {
+    "name": "Erinnerung",
+    "children": []
+  },
+  {
+    "name": "Ernährung",
+    "children": [
+      {
+        "name": "Ernährungspolitik",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Eroberung",
+    "children": []
+  },
+  {
+    "name": "Erziehung",
+    "children": []
+  },
+  {
+    "name": "Essen",
+    "children": []
+  },
+  {
+    "name": "Europäische Union",
+    "children": [
+      {
+        "name": "EU",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Exil",
+    "children": []
+  },
+  {
+    "name": "EZLN",
+    "children": []
+  },
+  {
+    "name": "Fairer Handel",
+    "children": []
+  },
+  {
+    "name": "Familie",
+    "children": []
+  },
+  {
+    "name": "Feminicidio",
+    "children": []
+  },
+  {
+    "name": "Feminismus",
+    "children": []
+  },
+  {
+    "name": "Fernsehen",
+    "children": []
+  },
+  {
+    "name": "Feste",
+    "children": []
+  },
+  {
+    "name": "Finanzen",
+    "children": [
+      {
+        "name": "Finanzpolitik",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Fischerei",
+    "children": [
+      {
+        "name": "Fischfang",
+        "children": []
+      },
+      {
+        "name": "Fischindustrie",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Fleisch",
+    "children": [
+      {
+        "name": "Fleischkonsum",
+        "children": []
+      },
+      {
+        "name": "Fleischproduktion",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Flucht",
+    "children": [
+      {
+        "name": "Flüchtlinge",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Forstwirtschaft",
+    "children": []
+  },
+  {
+    "name": "Fotografie",
+    "children": []
+  },
+  {
+    "name": "Freihandel",
+    "children": []
+  },
+  {
+    "name": "Frente Amplio",
+    "children": []
+  },
+  {
+    "name": "Friedensbewegung",
+    "children": [
+      {
+        "name": "Friedensarbeit",
+        "children": []
+      },
+      {
+        "name": "Friedensprogramm",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Fußball",
+    "children": []
+  },
+  {
+    "name": "Garífuna",
+    "children": []
+  },
+  {
+    "name": "Garnelen",
+    "children": []
+  },
+  {
+    "name": "Gefängnis",
+    "children": []
+  },
+  {
+    "name": "Geheimdienst",
+    "children": []
+  },
+  {
+    "name": "Geld",
+    "children": []
+  },
+  {
+    "name": "Gemeingüter",
+    "children": []
+  },
+  {
+    "name": "Gender",
+    "children": [
+      {
+        "name": "Geschlecht",
+        "children": [
+          {
+            "name": "Frauen",
+            "children": [
+              {
+                "name": "Frauenbewegung",
+                "children": []
+              },
+              {
+                "name": "Frauenrechte",
+                "children": []
+              },
+              {
+                "name": "Frauenmorde",
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Genossenschaften",
+    "children": []
+  },
+  {
+    "name": "Gentechnologie",
+    "children": []
+  },
+  {
+    "name": "Geschichte",
+    "children": []
+  },
+  {
+    "name": "Gesellschaft",
+    "children": []
+  },
+  {
+    "name": "Gesundheit",
+    "children": []
+  },
+  {
+    "name": "Gewalt",
+    "children": []
+  },
+  {
+    "name": "Gewerkschaft",
+    "children": []
+  },
+  {
+    "name": "Gipfel",
+    "children": []
+  },
+  {
+    "name": "Globalisierung",
+    "children": []
+  },
+  {
+    "name": "Gold",
+    "children": []
+  },
+  {
+    "name": "Graffiti",
+    "children": []
+  },
+  {
+    "name": "Guaraní",
+    "children": []
+  },
+  {
+    "name": "Guerilla",
+    "children": []
+  },
+  {
+    "name": "Guevara",
+    "children": []
+  },
+  {
+    "name": "Gutes Leben",
+    "children": []
+  },
+  {
+    "name": "Handel",
+    "children": []
+  },
+  {
+    "name": "Hausbesetzung",
+    "children": []
+  },
+  {
+    "name": "Heilige",
+    "children": []
+  },
+  {
+    "name": "Hiphop",
+    "children": []
+  },
+  {
+    "name": "Hochschule",
+    "children": []
+  },
+  {
+    "name": "Holocaust",
+    "children": []
+  },
+  {
+    "name": "Holz",
+    "children": []
+  },
+  {
+    "name": "Homosexualität",
+    "children": []
+  },
+  {
+    "name": "Hunger",
+    "children": []
+  },
+  {
+    "name": "Hurrikan",
+    "children": []
+  },
+  {
+    "name": "Illegale",
+    "children": []
+  },
+  {
+    "name": "Indigene",
+    "children": []
+  },
+  {
+    "name": "Internationalismus",
+    "children": []
+  },
+  {
+    "name": "Internet",
+    "children": []
+  },
+  {
+    "name": "Israel",
+    "children": []
+  },
+  {
+    "name": "Jesuiten",
+    "children": [
+      {
+        "name": "Jesuitenstaat",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Juden",
+    "children": []
+  },
+  {
+    "name": "Jugend",
+    "children": [
+      {
+        "name": "Jugendliche",
+        "children": []
+      },
+      {
+        "name": "Jugendgewalt",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Justiz",
+    "children": []
+  },
+  {
+    "name": "Kaffee",
+    "children": []
+  },
+  {
+    "name": "Kapitalismus",
+    "children": []
+  },
+  {
+    "name": "Karneval",
+    "children": []
+  },
+  {
+    "name": "Kinder",
+    "children": [
+      {
+        "name": "Kinderarbeit",
+        "children": []
+      },
+      {
+        "name": "Kindergarten",
+        "children": []
+      },
+      {
+        "name": "Kita",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Kinderrechte",
+    "children": []
+  },
+  {
+    "name": "Kino",
+    "children": []
+  },
+  {
+    "name": "Kirche",
+    "children": []
+  },
+  {
+    "name": "Klima",
+    "children": []
+  },
+  {
+    "name": "Kochen",
+    "children": []
+  },
+  {
+    "name": "Kohle",
+    "children": []
+  },
+  {
+    "name": "Kolonialisierung",
+    "children": [
+      {
+        "name": "Kolonialwaren",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Kolonialismus",
+    "children": []
+  },
+  {
+    "name": "Kommunalpolitik",
+    "children": []
+  },
+  {
+    "name": "Kommunikation",
+    "children": []
+  },
+  {
+    "name": "Kommunismus",
+    "children": []
+  },
+  {
+    "name": "Kooperative",
+    "children": []
+  },
+  {
+    "name": "Kopenhagen",
+    "children": []
+  },
+  {
+    "name": "Korruption",
+    "children": []
+  },
+  {
+    "name": "Krankheit",
+    "children": []
+  },
+  {
+    "name": "Krieg",
+    "children": [
+      {
+        "name": "Kriegsverbrechen",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Kriminalität",
+    "children": []
+  },
+  {
+    "name": "Küche",
+    "children": []
+  },
+  {
+    "name": "Kultur",
+    "children": [
+      {
+        "name": "Kulturgeschichte",
+        "children": []
+      },
+      {
+        "name": "Kulturwissenschaft",
+        "children": []
+      },
+      {
+        "name": "Film",
+        "children": []
+      },
+      {
+        "name": "Kunst",
+        "children": []
+      },
+      {
+        "name": "Künstler",
+        "children": []
+      },
+      {
+        "name": "Literatur",
+        "children": []
+      },
+      {
+        "name": "Musik",
+        "children": [
+          {
+            "name": "Punkrock",
+            "children": []
+          },
+          {
+            "name": "Reggae",
+            "children": []
+          }
+        ]
+      },
+      {
+        "name": "Sport",
+        "children": []
+      },
+      {
+        "name": "Theater",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Kupfer",
+    "children": []
+  },
+  {
+    "name": "Land",
+    "children": [
+      {
+        "name": "Landfrage",
+        "children": []
+      },
+      {
+        "name": "Landgrabbing",
+        "children": []
+      },
+      {
+        "name": "Landkonflikt",
+        "children": []
+      },
+      {
+        "name": "Landlose",
+        "children": [
+          {
+            "name": "MST",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Landwirtschaft",
+    "children": [
+      {
+        "name": "Lebensmittel",
+        "children": []
+      },
+      {
+        "name": "Mais",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Latinos",
+    "children": []
+  },
+  {
+    "name": "LGBT",
+    "children": [
+      {
+        "name": "Schwule",
+        "children": []
+      },
+      {
+        "name": "Lesben",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Liebe",
+    "children": []
+  },
+  {
+    "name": "Lyrik",
+    "children": []
+  },
+  {
+    "name": "Mann",
+    "children": [
+      {
+        "name": "Männer",
+        "children": []
+      },
+      {
+        "name": "Machismo",
+        "children": [
+          {
+            "name": "Macho",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Mapuche",
+    "children": []
+  },
+  {
+    "name": "Maquila",
+    "children": []
+  },
+  {
+    "name": "Maras",
+    "children": []
+  },
+  {
+    "name": "Maya",
+    "children": []
+  },
+  {
+    "name": "Medien",
+    "children": []
+  },
+  {
+    "name": "Meer",
+    "children": []
+  },
+  {
+    "name": "Menschenrechte",
+    "children": []
+  },
+  {
+    "name": "Mercedes-Benz",
+    "children": []
+  },
+  {
+    "name": "Migration",
+    "children": [
+      {
+        "name": "Migranten",
+        "children": []
+      },
+      {
+        "name": "Migrantinnen",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Mikro-Erzählung",
+    "children": []
+  },
+  {
+    "name": "Militär",
+    "children": [
+      {
+        "name": "Putsch",
+        "children": []
+      },
+      {
+        "name": "Militärputsch",
+        "children": []
+      },
+      {
+        "name": "Rüstung",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Mitch",
+    "children": []
+  },
+  {
+    "name": "Müll",
+    "children": []
+  },
+  {
+    "name": "Multis",
+    "children": []
+  },
+  {
+    "name": "Nahrungsmittel",
+    "children": []
+  },
+  {
+    "name": "Nationalsozialismus",
+    "children": [
+      {
+        "name": "Nazis",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Natur",
+    "children": [
+      {
+        "name": "Naturschutz",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "NRO",
+    "children": []
+  },
+  {
+    "name": "Ohne Papiere",
+    "children": []
+  },
+  {
+    "name": "ÖPNV",
+    "children": []
+  },
+  {
+    "name": "Papier",
+    "children": []
+  },
+  {
+    "name": "Partnerschaft",
+    "children": []
+  },
+  {
+    "name": "Politik",
+    "children": [
+      {
+        "name": "Parteien",
+        "children": [
+          {
+            "name": "Linke",
+            "children": []
+          }
+        ]
+      },
+      {
+        "name": "Parlament",
+        "children": [
+          {
+            "name": "Opposition",
+            "children": []
+          }
+        ]
+      },
+      {
+        "name": "Präsident",
+        "children": [
+          {
+            "name": "Lula",
+            "children": []
+          },
+          {
+            "name": "Obama",
+            "children": []
+          },
+          {
+            "name": "Pinochet",
+            "children": []
+          }
+        ]
+      },
+      {
+        "name": "Reformpolitik",
+        "children": [
+          {
+            "name": "Modernisierung",
+            "children": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Post-Development",
+    "children": []
+  },
+  {
+    "name": "Postkolonialismus",
+    "children": []
+  },
+  {
+    "name": "Presse",
+    "children": []
+  },
+  {
+    "name": "Privatisierung",
+    "children": []
+  },
+  {
+    "name": "Prostitution",
+    "children": []
+  },
+  {
+    "name": "Protest",
+    "children": [
+      {
+        "name": "Protestbewegung",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Radio",
+    "children": []
+  },
+  {
+    "name": "Rap",
+    "children": []
+  },
+  {
+    "name": "Rassismus",
+    "children": [
+      {
+        "name": "Schwarze",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Recycling",
+    "children": []
+  },
+  {
+    "name": "Reduktionen",
+    "children": []
+  },
+  {
+    "name": "Reise",
+    "children": []
+  },
+  {
+    "name": "Religion",
+    "children": [
+      {
+        "name": "Romero",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Remesas",
+    "children": []
+  },
+  {
+    "name": "Rente",
+    "children": []
+  },
+  {
+    "name": "Reparationen",
+    "children": []
+  },
+  {
+    "name": "Repression",
+    "children": []
+  },
+  {
+    "name": "Revolution",
+    "children": []
+  },
+  {
+    "name": "Salsa",
+    "children": []
+  },
+  {
+    "name": "Schulden",
+    "children": []
+  },
+  {
+    "name": "Schule",
+    "children": []
+  },
+  {
+    "name": "Selbstverwaltung",
+    "children": []
+  },
+  {
+    "name": "Sicherheit",
+    "children": []
+  },
+  {
+    "name": "Silber",
+    "children": []
+  },
+  {
+    "name": "Sklaverei",
+    "children": [
+      {
+        "name": "Sklaven",
+        "children": []
+      },
+      {
+        "name": "Sklavenarbeit",
+        "children": []
+      },
+      {
+        "name": "Zwangsarbeit",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Soja",
+    "children": []
+  },
+  {
+    "name": "Solidarität",
+    "children": [
+      {
+        "name": "Soziale Bewegung",
+        "children": []
+      },
+      {
+        "name": "Soziales Engagement",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Sozialforum",
+    "children": []
+  },
+  {
+    "name": "Sozialwissenschaft",
+    "children": []
+  },
+  {
+    "name": "Soziologie",
+    "children": []
+  },
+  {
+    "name": "Sprache",
+    "children": []
+  },
+  {
+    "name": "Stadt",
+    "children": [
+      {
+        "name": "Städte",
+        "children": []
+      },
+      {
+        "name": "Stadtentwicklung",
+        "children": []
+      },
+      {
+        "name": "Städtepartnerschaft",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Staudamm",
+    "children": []
+  },
+  {
+    "name": "Steuern",
+    "children": [
+      {
+        "name": "Steuerreform",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Straffreiheit",
+    "children": []
+  },
+  {
+    "name": "Strafmündigkeit",
+    "children": []
+  },
+  {
+    "name": "Straßenhandel",
+    "children": []
+  },
+  {
+    "name": "Straßenkinder",
+    "children": []
+  },
+  {
+    "name": "Straßenkunst",
+    "children": []
+  },
+  {
+    "name": "Strukturanpassung",
+    "children": []
+  },
+  {
+    "name": "Studierende",
+    "children": []
+  },
+  {
+    "name": "Tango",
+    "children": []
+  },
+  {
+    "name": "Tanz",
+    "children": []
+  },
+  {
+    "name": "Telesur",
+    "children": []
+  },
+  {
+    "name": "Textilkooperative",
+    "children": []
+  },
+  {
+    "name": "Textilproduktion",
+    "children": []
+  },
+  {
+    "name": "Theologie",
+    "children": []
+  },
+  {
+    "name": "Tod",
+    "children": [
+      {
+        "name": "Totenkult",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Transnationale Konzerne",
+    "children": []
+  },
+  {
+    "name": "Tribunal",
+    "children": []
+  },
+  {
+    "name": "Turcos",
+    "children": []
+  },
+  {
+    "name": "Umwelt",
+    "children": [
+      {
+        "name": "Umweltpolitik",
+        "children": []
+      },
+      {
+        "name": "Umweltschutz",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Universität",
+    "children": []
+  },
+  {
+    "name": "Unterricht",
+    "children": []
+  },
+  {
+    "name": "Ureinwohner",
+    "children": []
+  },
+  {
+    "name": "Utopie",
+    "children": []
+  },
+  {
+    "name": "VENRO",
+    "children": []
+  },
+  {
+    "name": "Verbrechen",
+    "children": []
+  },
+  {
+    "name": "Verfassung",
+    "children": []
+  },
+  {
+    "name": "Verkehr",
+    "children": []
+  },
+  {
+    "name": "Verlag",
+    "children": [
+      {
+        "name": "Verlagswesen",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Verschwundene",
+    "children": []
+  },
+  {
+    "name": "Verstaatlichung",
+    "children": []
+  },
+  {
+    "name": "Vertreibung",
+    "children": [
+      {
+        "name": "Vertriebene",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Vodou",
+    "children": []
+  },
+  {
+    "name": "Volksbefragung",
+    "children": []
+  },
+  {
+    "name": "Vorschule",
+    "children": []
+  },
+  {
+    "name": "Waffen",
+    "children": []
+  },
+  {
+    "name": "Wahlen",
+    "children": []
+  },
+  {
+    "name": "Wahrheit",
+    "children": [
+      {
+        "name": "Wahrheitskommission",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Währung",
+    "children": []
+  },
+  {
+    "name": "Wandbilder",
+    "children": []
+  },
+  {
+    "name": "Wanderarbeit",
+    "children": [
+      {
+        "name": "Wanderarbeiter",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Wasser",
+    "children": []
+  },
+  {
+    "name": "Wehrpflicht",
+    "children": []
+  },
+  {
+    "name": "Weltkrieg",
+    "children": []
+  },
+  {
+    "name": "Weltsozialforum",
+    "children": []
+  },
+  {
+    "name": "Wetter",
+    "children": []
+  },
+  {
+    "name": "Widerstand",
+    "children": []
+  },
+  {
+    "name": "Wirtschaft / Finanzen",
+    "children": [
+      {
+        "name": "Wirtschaft",
+        "children": []
+      },
+      {
+        "name": "Weltwirtschaft",
+        "children": []
+      },
+      {
+        "name": "Welthandel",
+        "children": [
+          {
+            "name": "Welthandelsorganisation",
+            "children": [
+              {
+                "name": "WTO",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Wirtschaftspolitik",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Wohnungsbau",
+    "children": []
+  },
+  {
+    "name": "Wohnungsmarkt",
+    "children": []
+  },
+  {
+    "name": "Wüste",
+    "children": []
+  },
+  {
+    "name": "Zapatismus",
+    "children": [
+      {
+        "name": "Zapatistas",
+        "children": []
+      },
+      {
+        "name": "Zapatisten",
+        "children": []
+      },
+      {
+        "name": "Subcomandante Marcos",
+        "children": []
+      }
+    ]
+  },
+  {
+    "name": "Zapoteken",
+    "children": []
+  },
+  {
+    "name": "Zeitung",
+    "children": []
+  },
+  {
+    "name": "Zellulose",
+    "children": []
+  },
+  {
+    "name": "Zinn",
+    "children": []
+  },
+  {
+    "name": "Zucker",
+    "children": []
+  }
+]

@@ -36,6 +36,7 @@ model Article {
   obituaryDetails  ObituaryDetails?  
   articleCategories ArticleCategory[] // Relación con categorías
    regions   Region[]   @relation("ArticleRegions") // Relación con regiones
+   topics    Topic[]    @relation("ArticleTopics")
  
 
 
@@ -69,6 +70,7 @@ model Edition {
   backgroundImage   String?          // Imagen de fondo de portada
   isAvailableToOrder Boolean?         // Disponible para Ordenar?
   regions   Region[]   @relation("EditionRegions")
+  topics    Topic[]    @relation("EditionTopics")
   
 }
 
@@ -88,6 +90,16 @@ model Region {
   children  Region[]  @relation("RegionHierarchy")
   editions  Edition[] @relation("EditionRegions")
   articles  Article[] @relation("ArticleRegions") // Relación con artículos
+}
+
+model Topic {
+  id              Int         @id @default(autoincrement())
+  name            String     @unique
+  parentId        Int?
+  parent          Topic?      @relation("TopicHierarchy", fields: [parentId], references: [id])
+  children        Topic[]     @relation("TopicHierarchy")
+  editions        Edition[]   @relation("EditionTopics")
+  articles        Article[]   @relation("ArticleTopics") // Relación con artículos
 }
 
 model Beitragssubtyp {
