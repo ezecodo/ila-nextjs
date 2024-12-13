@@ -1,6 +1,7 @@
 /* Header.module.css */
 
 /* General styles for the header */
+
 .header {
   display: flex;
   flex-direction: column; /* Apilamos logo/tagline, menú y botones */
