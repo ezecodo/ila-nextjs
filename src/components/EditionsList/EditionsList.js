@@ -1,12 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
+import { Dialog } from "@headlessui/react"; // Para el modal
 import Image from "next/image";
+import Link from "next/link";
 
 export default function EditionsList() {
   const [editions, setEditions] = useState([]);
   const [error, setError] = useState(null);
+  const [isOpen, setIsOpen] = useState(false); // Controla el estado del modal
+  const [popupImage, setPopupImage] = useState(null); // Guarda la imagen que se mostrará en el modal
 
   useEffect(() => {
     async function fetchEditions() {
@@ -28,6 +31,18 @@ export default function EditionsList() {
 
     fetchEditions();
   }, []);
+
+  // Abre el modal y establece la imagen
+  const openPopup = (imageUrl) => {
+    setPopupImage(imageUrl);
+    setIsOpen(true);
+  };
+
+  // Cierra el modal
+  const closePopup = () => {
+    setIsOpen(false);
+    setPopupImage(null);
+  };
 
   // Función para truncar texto
   const truncateText = (text, maxLength) => {
@@ -53,15 +68,21 @@ export default function EditionsList() {
             className="bg-white rounded-lg shadow p-6 flex flex-col items-center"
           >
             {/* Contenedor de la imagen */}
-            <div className="relative w-full max-w-[300px] h-auto">
-              <div className="relative  overflow-hidden aspect-w-3 aspect-h-4">
+            <div
+              className="relative w-full max-w-[300px] cursor-pointer"
+              onClick={() =>
+                edition.coverImage && openPopup(edition.coverImage)
+              } // Solo abrir popup si hay imagen
+            >
+              <div className="relative overflow-hidden aspect-w-3 aspect-h-4">
                 {/* Imagen de la portada */}
                 <Image
                   src={edition.coverImage}
                   alt={`Portada de ${edition.title}`}
-                  width={300} // Ajusta el ancho según el diseño
-                  height={400} // Ajusta la altura proporcionalmente
-                  objectFit="contain" // Asegura que la imagen no se recorte ni deforme
+                  width={300}
+                  height={400}
+                  objectFit="contain"
+                  className="" // No redondear bordes
                 />
 
                 {/* Ícono del carrito */}
@@ -73,6 +94,7 @@ export default function EditionsList() {
               </div>
             </div>
 
+            {/* Título y datos adicionales */}
             <p className="ila-edition">{`ila ${edition.number}`}</p>
             <h2 className="text-lg font-bold mt-4 mb-2">{edition.title}</h2>
             <p className="text-sm text-gray-500 mb-1">
@@ -92,7 +114,7 @@ export default function EditionsList() {
                 : "Sin regiones asociadas"}
             </p>
 
-            {/* Mostrar los topics */}
+            {/* Mostrar los temas */}
             {edition.topics.length > 0 && (
               <p
                 className="text-left text-sm font-medium text-white bg-green-500 px-4 py-2 rounded-none shadow-md max-w-xs"
@@ -114,11 +136,37 @@ export default function EditionsList() {
             >
               Leer más
             </Link>
-
-            {/* Ícono para indicar que es bestellbar */}
           </div>
         ))}
       </div>
+
+      {/* Modal de Headless UI */}
+      <Dialog
+        open={isOpen}
+        onClose={closePopup}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+      >
+        <Dialog.Panel className="relative bg-white rounded-lg shadow-lg p-4 max-w-[600px]">
+          {/* Imagen ampliada */}
+          {popupImage && (
+            <Image
+              src={popupImage}
+              alt="Imagen ampliada"
+              width={500} // Tamaño ajustado
+              height={700}
+              objectFit="contain"
+              className=""
+            />
+          )}
+          {/* Botón de cierre */}
+          <button
+            className="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-800 text-xl font-bold rounded-full w-8 h-8 flex items-center justify-center shadow-lg"
+            onClick={closePopup}
+          >
+            ✕
+          </button>
+        </Dialog.Panel>
+      </Dialog>
     </div>
   );
 }
