@@ -16,6 +16,7 @@ export default function NewArticlePage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
+  const [articleImage, setArticleImage] = useState(null); // Manejar la imagen del artículo
 
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
@@ -265,6 +266,10 @@ export default function NewArticlePage() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
+    //Manejo de Imagen de articulo
+    if (articleImage) {
+      formData.append("image", articleImage);
+    }
 
     // Manejo de Autores
     formData.append("authorId", selectedAuthor || null);
@@ -508,6 +513,18 @@ export default function NewArticlePage() {
           onChange={(e) => setContent(e.target.value)}
           placeholder="Ingrese el contenido"
         />
+        <div className={styles.formGroup}>
+          <label htmlFor="articleImage" className={styles.formLabel}>
+            Imagen del Artículo:
+          </label>
+          <input
+            type="file"
+            id="articleImage"
+            onChange={(e) => setArticleImage(e.target.files[0])} // Guardar el archivo seleccionado
+            className={styles.input}
+            accept="image/*"
+          />
+        </div>
         <ToggleSwitch
           id="additionalInfoToggle"
           label="¿Agregar Información Adicional?"

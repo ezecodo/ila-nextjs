@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+import { writeFile } from "fs/promises";
+import path from "path";
 
 const prisma = new PrismaClient();
-const DEFAULT_IMAGE_URL = "/uploads/fallback/default-article.jpg";
 
 export async function GET() {
   try {
@@ -64,13 +65,13 @@ export async function POST(request) {
     // Leer datos desde FormData
     const formData = await request.formData();
 
-    const title = formData.get("title");
-    const subtitle = formData.get("subtitle");
-    const content = formData.get("content");
-    const beitragstypId = formData.get("beitragstypId");
-    const beitragssubtypId = formData.get("beitragssubtypId");
-    const isPrinted = formData.get("isPrinted") === "true";
-    const editionId = formData.get("editionId");
+    const title = formData.get("title"); // Titulo
+    const subtitle = formData.get("subtitle"); // Subtitulo
+    const content = formData.get("content"); // Contenido
+    const beitragstypId = formData.get("beitragstypId"); // Tipo de Contenido
+    const beitragssubtypId = formData.get("beitragssubtypId"); // Subtipo de contenido
+    const isPrinted = formData.get("isPrinted") === "true"; // Es Impreso en revista?
+    const editionId = formData.get("editionId"); // Id de la revista
     const startPage = formData.get("startPage");
     const endPage = formData.get("endPage");
     const authorId = formData.get("authorId");
@@ -87,6 +88,7 @@ export async function POST(request) {
     const categories = JSON.parse(formData.get("categories") || "[]");
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
+    const file = formData.get("image"); // Obtenemos la imagen del FormData
 
     console.log("Datos recibidos:", {
       title,
@@ -164,7 +166,8 @@ export async function POST(request) {
         endPage: isPrinted ? parseInt(endPage, 10) : null,
         isPublished: isPublished || false,
         publicationDate: publicationDate ? new Date(publicationDate) : null,
-        image: DEFAULT_IMAGE_URL, // Puedes manejar imágenes en otro momento si se suben
+        image: null, // Temporalmente sin imagen
+
         authors: authorId
           ? {
               connect: { id: parseInt(authorId, 10) },
@@ -211,6 +214,28 @@ export async function POST(request) {
     });
 
     console.log("Artículo creado:", article);
+    // Subir imagen de articulo
+    if (file) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const filePath = path.join(
+        process.cwd(),
+        "public",
+        "uploads",
+        "article-pics",
+        `${article.id}.jpg`
+      );
+
+      await writeFile(filePath, buffer);
+      console.log(`Imagen guardada en: ${filePath}`);
+
+      // Actualizar el artículo con la ruta de la imagen
+      await prisma.article.update({
+        where: { id: article.id },
+        data: { image: `public/uploads/article-pics/${article.id}.jpg` },
+      });
+    } else {
+      console.log("No se recibió un archivo válido. No se guardará imagen.");
+    }
 
     return new Response(JSON.stringify(article), { status: 201 });
   } catch (error) {

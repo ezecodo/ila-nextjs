@@ -23,7 +23,7 @@ model Article {
   endPage          Int?            // Página donde termina el artículo en la revista
   createdAt        DateTime        @default(now())      // Fecha de creación
   updatedAt        DateTime        @updatedAt           // Fecha de actualización automática
-    image            String          @default("/uploads/fallback/default-article.jpg") // Imagen del artículo
+    image            String?          
 
   beitragstyp      Beitragstyp     @relation(fields: [beitragstypId], references: [id])
   beitragssubtyp   Beitragssubtyp? @relation(fields: [beitragssubtypId], references: [id])
