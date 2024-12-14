@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function EditionsList() {
   const [editions, setEditions] = useState([]);
   const [error, setError] = useState(null);
-  const [modalImage, setModalImage] = useState(null); // Estado para la imagen del modal
-  const imageRefs = useRef([]); // Referencias para las imágenes
 
   useEffect(() => {
     async function fetchEditions() {
@@ -38,30 +36,6 @@ export default function EditionsList() {
     return `${text.substring(0, maxLength)}...`;
   };
 
-  // Función para abrir el modal y centrar la imagen en el viewport
-  const openModal = (imageUrl, index) => {
-    setModalImage(imageUrl); // Establece la imagen para mostrar en el modal
-
-    // Obtiene la referencia de la imagen
-    const imageElement = imageRefs.current[index];
-
-    // Calcula la posición de la imagen con respecto al viewport
-    const imagePosition =
-      imageElement.getBoundingClientRect().top + window.scrollY;
-    const viewportHeight = window.innerHeight;
-
-    // Desplaza la página suavemente para centrar la imagen en el viewport
-    window.scrollTo({
-      top: imagePosition - viewportHeight / 2 + imageElement.clientHeight / 2,
-      behavior: "smooth",
-    });
-  };
-
-  // Función para cerrar el modal
-  const closeModal = () => {
-    setModalImage(null); // Establece la imagen en null para cerrar el modal
-  };
-
   if (error) {
     return <p className="text-red-500">{error}</p>;
   }
@@ -73,31 +47,32 @@ export default function EditionsList() {
   return (
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {editions.map((edition, index) => (
+        {editions.map((edition) => (
           <div
             key={edition.id}
             className="bg-white rounded-lg shadow p-6 flex flex-col items-center"
           >
-            <div
-              className="relative w-full h-96 cursor-pointer"
-              onClick={() =>
-                openModal(
-                  edition.coverImage || "/uploads/fallback/default-cover.jpg",
-                  index
-                )
-              }
-              ref={(el) => (imageRefs.current[index] = el)} // Asignar la referencia de cada imagen
-            >
-              <Image
-                src={
-                  edition.coverImage || "/uploads/fallback/default-cover.jpg"
-                }
-                alt={`Portada de ${edition.title}`}
-                layout="fill"
-                objectFit="contain" // Asegura que la imagen no se recorte
-                className="rounded-lg"
-              />
+            {/* Contenedor de la imagen */}
+            <div className="relative w-full max-w-[300px] h-auto">
+              <div className="relative  overflow-hidden aspect-w-3 aspect-h-4">
+                {/* Imagen de la portada */}
+                <Image
+                  src={edition.coverImage}
+                  alt={`Portada de ${edition.title}`}
+                  width={300} // Ajusta el ancho según el diseño
+                  height={400} // Ajusta la altura proporcionalmente
+                  objectFit="contain" // Asegura que la imagen no se recorte ni deforme
+                />
+
+                {/* Ícono del carrito */}
+                {edition.isAvailableToOrder && (
+                  <div className="absolute top-2 right-2 z-10">
+                    <i className="fa fa-shopping-cart text-white text-xl bg-red-600 p-1 rounded-full shadow-lg transition-all duration-200 ease-in-out hover:bg-red-800 hover:scale-110"></i>
+                  </div>
+                )}
+              </div>
             </div>
+
             <p className="ila-edition">{`ila ${edition.number}`}</p>
             <h2 className="text-lg font-bold mt-4 mb-2">{edition.title}</h2>
             <p className="text-sm text-gray-500 mb-1">
@@ -107,63 +82,43 @@ export default function EditionsList() {
               })}
             </p>
 
-            {/* Mostrar las regiones alineadas a la izquierda pero sin ocupar todo el espacio */}
+            {/* Mostrar las regiones */}
             <p
               className="text-left text-sm font-medium text-white bg-red-500 px-4 py-2 rounded-none shadow-md max-w-xs"
-              style={{ backgroundColor: "#D32F2F" }} // Usando un rojo más mate
+              style={{ backgroundColor: "#D32F2F" }}
             >
               {edition.regions.length > 0
                 ? `${edition.regions.map((region) => region.name).join(", ")}`
                 : "Sin regiones asociadas"}
             </p>
 
-            {/* Mostrar los topics alineados a la izquierda pero sin ocupar todo el espacio */}
+            {/* Mostrar los topics */}
             {edition.topics.length > 0 && (
               <p
                 className="text-left text-sm font-medium text-white bg-green-500 px-4 py-2 rounded-none shadow-md max-w-xs"
-                style={{ backgroundColor: "#388E3C" }} // Verde mate
+                style={{ backgroundColor: "#388E3C" }}
               >
                 {edition.topics.map((topic) => topic.name).join(", ")}
               </p>
             )}
 
+            {/* Mostrar texto truncado */}
             <p className="text-gray-700">
               {truncateText(edition.summary, 150)}
             </p>
+
+            {/* Link para leer más */}
             <Link
               href={`/editions/${edition.id}`}
               className="text-blue-500 font-medium mt-2 inline-block"
             >
               Leer más
             </Link>
+
+            {/* Ícono para indicar que es bestellbar */}
           </div>
         ))}
       </div>
-
-      {/* Modal para ver la imagen ampliada */}
-      {modalImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-          onClick={closeModal}
-        >
-          <div className="relative">
-            <Image
-              src={modalImage}
-              alt="Imagen ampliada"
-              width={800}
-              height={800}
-              objectFit="contain"
-              className="rounded-lg"
-            />
-            <button
-              className="absolute top-4 right-4 text-white text-2xl font-bold"
-              onClick={closeModal}
-            >
-              X
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
