@@ -61,35 +61,36 @@ export async function GET() {
 
 export async function POST(request) {
   try {
-    const {
+    // Leer datos desde FormData
+    const formData = await request.formData();
+
+    const title = formData.get("title");
+    const subtitle = formData.get("subtitle");
+    const content = formData.get("content");
+    const beitragstypId = formData.get("beitragstypId");
+    const beitragssubtypId = formData.get("beitragssubtypId");
+    const isPrinted = formData.get("isPrinted") === "true";
+    const editionId = formData.get("editionId");
+    const startPage = formData.get("startPage");
+    const endPage = formData.get("endPage");
+    const authorId = formData.get("authorId");
+    const intervieweeId = formData.get("intervieweeId");
+    const isPublished = formData.get("isPublished") === "true";
+    const publicationDate = formData.get("publicationDate");
+    const isNachruf = formData.get("isNachruf") === "true";
+    const deceasedFirstName = formData.get("deceasedFirstName");
+    const deceasedLastName = formData.get("deceasedLastName");
+    const dateOfBirth = formData.get("dateOfBirth");
+    const dateOfDeath = formData.get("dateOfDeath");
+    const previewText = formData.get("previewText");
+    const additionalInfo = formData.get("additionalInfo");
+    const categories = JSON.parse(formData.get("categories") || "[]");
+    const regions = JSON.parse(formData.get("regions") || "[]");
+    const topics = JSON.parse(formData.get("topics") || "[]");
+
+    console.log("Datos recibidos:", {
       title,
       subtitle,
-      content,
-      beitragstypId,
-      beitragssubtypId,
-      isPrinted,
-      editionId,
-      startPage,
-      endPage,
-      authorId,
-      intervieweeId,
-      isPublished,
-      publicationDate,
-      isNachruf,
-      deceasedFirstName,
-      deceasedLastName,
-      dateOfBirth,
-      dateOfDeath,
-      previewText,
-      additionalInfo,
-      categories,
-      regions,
-      topics,
-      image,
-    } = await request.json();
-
-    console.log("Payload recibido:", {
-      title,
       content,
       beitragstypId,
       regions,
@@ -97,6 +98,7 @@ export async function POST(request) {
       categories,
     });
 
+    // Validaciones básicas
     if (!title || !content || !beitragstypId) {
       return new Response(
         JSON.stringify({
@@ -145,26 +147,6 @@ export async function POST(request) {
       }
     }
 
-    if (!Array.isArray(regions) || !Array.isArray(topics)) {
-      console.error("Error: regions o topics no son arrays.");
-      return new Response(
-        JSON.stringify({ error: "Formato inválido para regions o topics." }),
-        { status: 400 }
-      );
-    }
-
-    const validPreviewText =
-      previewText && previewText.trim() !== "" ? previewText : null;
-
-    if (additionalInfo && typeof additionalInfo !== "string") {
-      return new Response(
-        JSON.stringify({
-          error: "El campo 'Información Adicional' debe ser un texto.",
-        }),
-        { status: 400 }
-      );
-    }
-
     // Crear el artículo
     const article = await prisma.article.create({
       data: {
@@ -182,7 +164,7 @@ export async function POST(request) {
         endPage: isPrinted ? parseInt(endPage, 10) : null,
         isPublished: isPublished || false,
         publicationDate: publicationDate ? new Date(publicationDate) : null,
-        image: image || DEFAULT_IMAGE_URL,
+        image: DEFAULT_IMAGE_URL, // Puedes manejar imágenes en otro momento si se suben
         authors: authorId
           ? {
               connect: { id: parseInt(authorId, 10) },
@@ -203,14 +185,14 @@ export async function POST(request) {
               },
             }
           : undefined,
-        articleCategories: categories?.length
+        articleCategories: categories.length
           ? {
               create: categories.map((categoryId) => ({
                 category: { connect: { id: categoryId } },
               })),
             }
           : undefined,
-        previewText: validPreviewText,
+        previewText: previewText,
         regions: regions.length
           ? {
               connect: regions.map((region) => ({ id: parseInt(region, 10) })),
@@ -227,6 +209,7 @@ export async function POST(request) {
         topics: true,
       },
     });
+
     console.log("Artículo creado:", article);
 
     return new Response(JSON.stringify(article), { status: 201 });

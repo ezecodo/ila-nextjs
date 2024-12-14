@@ -258,130 +258,112 @@ export default function NewArticlePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const regionIds = regions.map((region) => region.value);
-    const topicIds = topics.map((topic) => topic.value);
-    console.log("Datos enviados al backend:", {
-      title,
-      subtitle,
-      content,
-      beitragstypId: selectedBeitragstyp,
-      beitragssubtypId: selectedSubtyp || null,
-      regions: regionIds,
-      topics: topicIds,
-    });
-
+    // Crear una instancia de FormData
     const formData = new FormData();
+
+    // Agregar campos básicos
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
-    formData.append("regions", JSON.stringify(regionIds));
-    formData.append("topics", JSON.stringify(topicIds));
 
-    if (!selectedBeitragstyp) {
-      setMessage("Seleccione un tipo de artículo.");
-      return;
-    }
-    if (
-      isNachruf &&
-      (!deceasedFirstName || !deceasedLastName || !dateOfBirth || !dateOfDeath)
-    ) {
-      setMessage("Todos los campos del Nachruf son obligatorios.");
-      return;
-    }
+    // Manejo de Autores
+    formData.append("authorId", selectedAuthor || null);
+    // Manejo de regiones y temas como JSON
+    formData.append(
+      "regions",
+      JSON.stringify(regions.map((region) => region.value))
+    );
+    formData.append(
+      "topics",
+      JSON.stringify(topics.map((topic) => topic.value))
+    );
 
-    if (
-      isNachruf &&
-      (!/^\d{4}$/.test(dateOfBirth) || !/^\d{4}$/.test(dateOfDeath))
-    ) {
-      setMessage(
-        "Los años de nacimiento y defunción deben ser números de 4 dígitos."
-      );
-      return;
-    }
+    // Agregar otros campos, verificando si están habilitados o tienen datos
+    formData.append("beitragstypId", selectedBeitragstyp);
+    formData.append("beitragssubtypId", selectedSubtyp || null);
 
-    if (isNachruf && parseInt(dateOfBirth) > parseInt(dateOfDeath)) {
-      setMessage(
-        "El año de nacimiento no puede ser mayor que el año de defunción."
-      );
-      return;
+    if (isPrinted) {
+      formData.append("isPrinted", isPrinted);
+      formData.append("editionId", selectedEdition);
+      formData.append("startPage", startPage);
+      formData.append("endPage", endPage);
     }
 
-    if (isPrinted && (!selectedEdition || !startPage || !endPage)) {
-      setMessage(
-        "Complete todos los campos relacionados con la edición impresa."
-      );
-      return;
+    if (isInterview) {
+      formData.append("isInterview", isInterview);
+      formData.append("intervieweeId", selectedInterviewee);
     }
-    if (schedulePublish && !publicationDate) {
-      setMessage("Seleccione una fecha para programar la publicación.");
-      return;
+
+    if (isNachruf) {
+      formData.append("deceasedFirstName", deceasedFirstName);
+      formData.append("deceasedLastName", deceasedLastName);
+      formData.append("dateOfBirth", dateOfBirth);
+      formData.append("dateOfDeath", dateOfDeath);
     }
+
+    if (previewTextEnabled) {
+      formData.append("previewText", previewText);
+    }
+
+    if (additionalInfoEnabled) {
+      formData.append("additionalInfo", additionalInfo);
+    }
+
+    formData.append("isPublished", isPublished);
+    formData.append("schedulePublish", schedulePublish);
+    if (schedulePublish) {
+      formData.append("publicationDate", publicationDate.toISOString());
+    }
+
+    // Agregar categorías seleccionadas
+    formData.append("categories", JSON.stringify(selectedCategories));
 
     try {
       const res = await fetch("/api/articles", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          subtitle,
-          content,
-          beitragstypId: selectedBeitragstyp,
-          beitragssubtypId: selectedSubtyp || null,
-          isPrinted,
-          editionId: isPrinted ? parseInt(selectedEdition, 10) : null,
-          startPage: isPrinted ? parseInt(startPage, 10) : null,
-          endPage: isPrinted ? parseInt(endPage, 10) : null,
-          authorId: selectedAuthor || null,
-          intervieweeId: isInterview ? parseInt(selectedInterviewee, 10) : null, // Entrevistado
-          isPublished: isPublished && !schedulePublish, // Publicar ahora si no está programado
-          publicationDate: schedulePublish ? publicationDate : null, // Fecha programada si corresponde
-          isNachruf, // Indica si es Nachruf
-          deceasedFirstName,
-          deceasedLastName,
-          dateOfBirth: dateOfBirth || null, // Enviar como número
-          dateOfDeath: dateOfDeath || null, // Enviar como número
-          previewText: previewTextEnabled ? previewText : null,
-          additionalInfo,
-          categories: selectedCategories,
-          regions: regionIds,
-          topics: topicIds,
-        }),
+        body: formData, // Aquí pasamos el FormData
       });
 
       if (res.ok) {
         setMessage("Artículo creado con éxito.");
-        setTitle("");
-        setSubtitle("");
-        setContent("");
-        setSelectedBeitragstyp("");
-        setSelectedSubtyp("");
-        setIsPrinted(false);
-        setSelectedEdition("");
-        setStartPage("");
-        setEndPage("");
-        setSelectedAuthor("");
-        setSelectedInterviewee("");
-        setIsInterview(false);
-        setDeceasedFirstName("");
-        setDeceasedLastName("");
-        setDateOfBirth(null);
-        setDateOfDeath(null);
-        setPreviewTextEnabled(false);
-        setPreviewText("");
-        setIsPublished(false);
-
-        setAdditionalInfo("");
-        setAdditionalInfoEnabled(false);
-        setSelectedCategories([]);
-
-        setRegions([]);
-        setTopics([]);
+        resetForm();
       } else {
-        setMessage("Error desconocido al crear el artículo.");
+        const errorText = await res.text();
+        setMessage(`Error al crear el artículo: ${errorText}`);
       }
-    } catch {
+    } catch (error) {
+      console.error("Error al enviar los datos:", error);
       setMessage("Error al enviar los datos.");
     }
+  };
+
+  // Función para reiniciar el formulario
+  const resetForm = () => {
+    setTitle("");
+    setSubtitle("");
+    setContent("");
+    setSelectedBeitragstyp("");
+    setSelectedSubtyp("");
+    setIsPrinted(false);
+    setSelectedEdition("");
+    setStartPage("");
+    setEndPage("");
+    setSelectedAuthor("");
+    setSelectedInterviewee("");
+    setIsInterview(false);
+    setDeceasedFirstName("");
+    setDeceasedLastName("");
+    setDateOfBirth("");
+    setDateOfDeath("");
+    setPreviewTextEnabled(false);
+    setPreviewText("");
+    setIsPublished(false);
+    setSchedulePublish(false);
+    setAdditionalInfo("");
+    setAdditionalInfoEnabled(false);
+    setSelectedCategories([]);
+    setRegions([]);
+    setTopics([]);
   };
 
   const handleAddAuthor = async () => {
