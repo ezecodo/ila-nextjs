@@ -90,7 +90,7 @@ export default function EditionDetails() {
           {/* Botón del carrito solo si la edición es bestellbar */}
           {edition.isAvailableToOrder && (
             <CartButton
-              onClick={() => console.log("Añadido al carrito")} // Reemplaza con tu lógica
+              onClick={() => console.log("Añadido al carrito")} //
               className="ml-2" // Espaciado izquierdo del carrito
             />
           )}
