@@ -29,10 +29,6 @@ export default function EditionDetails() {
 
     fetchEdition();
   }, [id]);
-  const handleAddToCart = () => {
-    alert(`Edición ${edition.number} añadida al carrito`);
-    // Aquí puedes implementar la funcionalidad real para agregar al carrito
-  };
 
   if (error) {
     return <p className="text-red-500">{error}</p>;
