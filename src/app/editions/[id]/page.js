@@ -45,7 +45,7 @@ export default function EditionDetails() {
         {/* Título */}
         <h1
           className="text-3xl font-bold text-gray-800 mb-4 text-center"
-          style={{ fontFamily: "Futura, sans-serif" }}
+          style={{ fontFamily: "Futura" }}
         >
           {`ila ${edition.number}: ${edition.title}`}
         </h1>
