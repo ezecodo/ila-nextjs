@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation"; // Usar useParams para obtener el ID
 import Link from "next/link";
 import Image from "next/image";
+import CartButton from "../../../components/CartButton/CartButton"; // Importar el componente
 
 export default function EditionDetails() {
   const { id } = useParams(); // Obtener el ID de la URL
@@ -28,6 +29,10 @@ export default function EditionDetails() {
 
     fetchEdition();
   }, [id]);
+  const handleAddToCart = () => {
+    alert(`Edición ${edition.number} añadida al carrito`);
+    // Aquí puedes implementar la funcionalidad real para agregar al carrito
+  };
 
   if (error) {
     return <p className="text-red-500">{error}</p>;
@@ -39,21 +44,57 @@ export default function EditionDetails() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Título */}
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">
-        {`ila ${edition.number}: ${edition.title}`}
-      </h1>
+      {/* Contenedor para centrar el título y la imagen */}
+      <div className="flex flex-col items-center mb-6">
+        {/* Título */}
+        <h1
+          className="text-3xl font-bold text-gray-800 mb-4 text-center"
+          style={{ fontFamily: "Futura, sans-serif" }}
+        >
+          {`ila ${edition.number}: ${edition.title}`}
+        </h1>
 
-      {/* Imagen de la portada */}
-      <div className="relative w-full max-w-md mx-auto mb-6">
-        <Image
-          src={edition.coverImage}
-          alt={`Portada de ${edition.title}`}
-          width={400}
-          height={500}
-          objectFit="contain"
-          className="rounded-lg"
-        />
+        {/* Imagen de la portada */}
+        <div className="relative max-w-[550px] mb-4">
+          <Image
+            src={edition.coverImage}
+            alt={`Portada de ${edition.title}`}
+            width={550}
+            height={700}
+            objectFit="contain"
+            className=""
+          />
+
+          {/* Regiones y Temas */}
+          <div className="flex flex-col items-start mt-2">
+            {/* Regiones */}
+            {edition.regions.length > 0 && (
+              <p
+                className="text-sm font-medium text-white bg-red-500 px-2 py-1 shadow-md"
+                style={{ backgroundColor: "#D32F2F" }}
+              >
+                {edition.regions.map((region) => region.name).join(", ")}
+              </p>
+            )}
+
+            {/* Temas */}
+            {edition.topics.length > 0 && (
+              <p
+                className="text-sm font-medium text-white bg-green-500 px-2 py-1 shadow-md"
+                style={{ backgroundColor: "#388E3C" }}
+              >
+                {edition.topics.map((topic) => topic.name).join(", ")}
+              </p>
+            )}
+          </div>
+          {/* Botón del carrito solo si la edición es bestellbar */}
+          {edition.isAvailableToOrder && (
+            <CartButton
+              onClick={() => console.log("Añadido al carrito")} // Reemplaza con tu lógica
+              className="ml-2" // Espaciado izquierdo del carrito
+            />
+          )}
+        </div>
       </div>
 
       {/* Fecha de publicación */}
@@ -68,30 +109,6 @@ export default function EditionDetails() {
 
       {/* Resumen */}
       <p className="text-gray-700 mb-6">{edition.summary || "Sin resumen"}</p>
-
-      {/* Regiones */}
-      {edition.regions.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Regiones:</h2>
-          <ul className="list-disc list-inside text-gray-700">
-            {edition.regions.map((region) => (
-              <li key={region.id}>{region.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Temas */}
-      {edition.topics.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Temas:</h2>
-          <ul className="list-disc list-inside text-gray-700">
-            {edition.topics.map((topic) => (
-              <li key={topic.id}>{topic.name}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Botón para volver */}
       <Link
