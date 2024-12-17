@@ -104,7 +104,17 @@ export default function EditionDetails() {
       </p>
 
       {/* Resumen */}
-      <p className="text-gray-700 mb-6">{edition.summary || "Sin resumen"}</p>
+      <div className="text-gray-700 mb-6">
+        {edition.summary
+          ? edition.summary.split("\n").map((line, index) => (
+              <p key={index} className="mb-4">
+                {" "}
+                {/* Espacio entre líneas */}
+                {line}
+              </p>
+            ))
+          : "Sin resumen"}
+      </div>
 
       {/* Botón para volver */}
       <Link
