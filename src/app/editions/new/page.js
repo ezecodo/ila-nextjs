@@ -10,6 +10,7 @@ import FormMessage from "../../components/FormMessage";
 import AsyncSelect from "react-select/async"; // Importamos AsyncSelect
 import "react-datepicker/dist/react-datepicker.css"; // Estilos de react-datepicker
 import styles from "../../styles/global.module.css";
+import QuillEditor from "../../../components/QuillEditor/QuillEditor";
 
 // Importación dinámica del DatePicker
 const DatePicker = dynamic(
@@ -32,6 +33,11 @@ export default function NewEditionForm() {
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
 
   const [message, setMessage] = useState("");
+
+  const handleSaveSummary = (content) => {
+    setSummary(content); // Guardar el texto con saltos de línea
+    console.log("Resumen guardado:", content);
+  };
 
   const flattenTopics = (topics, parentName = "") => {
     const options = [];
@@ -206,15 +212,7 @@ export default function NewEditionForm() {
             placeholderText="Selecciona el mes y año"
           />
         </div>
-
-        <TextAreaField
-          id="summary"
-          label="Resumen"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          placeholder="Ingrese el resumen de la edición"
-          required
-        />
+        <QuillEditor onChange={handleSaveSummary} />
         <TextAreaField
           id="tableOfContents"
           label="Tabla de Contenidos"

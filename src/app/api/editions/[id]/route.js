@@ -2,12 +2,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(req, { params }) {
+export async function GET(req, context) {
   try {
-    // Validar el parámetro ID
-    const editionId = parseInt(params.id, 10);
-    if (isNaN(editionId)) {
-      return new Response(JSON.stringify({ error: "ID inválido" }), {
+    // Extraer params de forma segura
+    const { params } = context;
+
+    // Validar la existencia del parámetro id
+    const editionId = params?.id ? parseInt(params.id, 10) : null;
+
+    if (!editionId || isNaN(editionId)) {
+      return new Response(JSON.stringify({ error: "ID inválido o faltante" }), {
         status: 400,
       });
     }
@@ -29,10 +33,12 @@ export async function GET(req, { params }) {
     }
 
     // Respuesta exitosa
-    return new Response(JSON.stringify(edition), { status: 200 });
+    return new Response(JSON.stringify(edition), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
-    console.error("Error en el backend:", error);
-
+    console.error("Error en la ruta dinámica:", error);
     return new Response(
       JSON.stringify({ error: "Error interno del servidor" }),
       { status: 500 }
