@@ -4,6 +4,14 @@ import path from "path";
 
 const prisma = new PrismaClient();
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "20mb", // Ajusta el límite según lo necesario
+    },
+  },
+};
+
 export async function GET() {
   try {
     const articles = await prisma.article.findMany({
@@ -67,7 +75,16 @@ export async function POST(request) {
 
     const title = formData.get("title"); // Titulo
     const subtitle = formData.get("subtitle"); // Subtitulo
-    const content = formData.get("content"); // Contenido
+    const content = formData.get("content");
+
+    if (!content || typeof content !== "string" || content.length === 0) {
+      return new Response(
+        JSON.stringify({
+          error: "El contenido del artículo no es válido o está vacío.",
+        }),
+        { status: 400 }
+      );
+    }
     const beitragstypId = formData.get("beitragstypId"); // Tipo de Contenido
     const beitragssubtypId = formData.get("beitragssubtypId"); // Subtipo de contenido
     const isPrinted = formData.get("isPrinted") === "true"; // Es Impreso en revista?
@@ -95,6 +112,18 @@ export async function POST(request) {
       subtitle,
       content,
       beitragstypId,
+      beitragssubtypId,
+      isPrinted,
+      editionId,
+      startPage,
+      authorId,
+      intervieweeId,
+      isPublished,
+      publicationDate,
+      isNachruf,
+      previewText,
+      additionalInfo,
+      file,
       regions,
       topics,
       categories,
@@ -239,9 +268,15 @@ export async function POST(request) {
 
     return new Response(JSON.stringify(article), { status: 201 });
   } catch (error) {
-    console.error("Error al crear el artículo:", error);
+    console.error("Error al crear el artículo:", error.message);
+    if (error.meta) {
+      console.error("Detalles del error:", error.meta);
+    }
     return new Response(
-      JSON.stringify({ error: "Error interno del servidor" }),
+      JSON.stringify({
+        error: "Error interno del servidor",
+        details: error.message,
+      }),
       { status: 500 }
     );
   }

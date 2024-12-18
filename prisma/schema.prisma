@@ -12,8 +12,8 @@ model Article {
   id               Int             @id @default(autoincrement())
   title            String          // Título del artículo
   subtitle         String?         // Subtítulo del artículo
-  content          String          @db.Text // Cambiar de String a Text
-  previewText      String? 
+  content          String          @db.LongText
+  previewText      String?         @db.LongText
   additionalInfo   String? 
   beitragstypId    Int             // Relación con el tipo de artículo
   beitragssubtypId Int?            // Relación opcional con el subtipo
