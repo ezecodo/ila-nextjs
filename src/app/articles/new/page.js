@@ -11,6 +11,7 @@ import Modal from "../../components/Modal";
 import styles from "../../styles/global.module.css";
 import CheckboxField from "../../components/CheckboxField";
 import AsyncSelect from "react-select/async";
+import QuillEditor from "@/components/QuillEditor/QuillEditor";
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");
@@ -54,6 +55,10 @@ export default function NewArticlePage() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [regions, setRegions] = useState([]); // Cambia el estado a un array
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
+
+  const handleSaveContent = (value) => {
+    setContent(value || ""); // Actualiza el estado con el contenido del editor
+  };
   // Maneja los Temas del articulo
   const flattenTopics = (topics, parentName = "") => {
     const options = [];
@@ -506,13 +511,7 @@ export default function NewArticlePage() {
             placeholder="Escriba para buscar temas"
           />
         </div>
-        <TextAreaField
-          id="content"
-          label="Contenido"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Ingrese el contenido"
-        />
+        <QuillEditor value={content} onChange={handleSaveContent} />
         <div className={styles.formGroup}>
           <label htmlFor="articleImage" className={styles.formLabel}>
             Imagen del Artículo:
