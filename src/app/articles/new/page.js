@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import InputField from "../../components/InputField";
 import TextAreaField from "../../components/TextAreaField";
 import SelectField from "../../components/SelectField";
@@ -17,6 +17,8 @@ export default function NewArticlePage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
+  const [resetTrigger, setResetTrigger] = useState(false);
+
   const [articleImage, setArticleImage] = useState(null); // Manejar la imagen del artículo
 
   const [beitragstypen, setBeitragstypen] = useState([]);
@@ -56,9 +58,8 @@ export default function NewArticlePage() {
   const [regions, setRegions] = useState([]); // Cambia el estado a un array
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
 
-  const handleSaveContent = (value) => {
-    setContent(value || ""); // Actualiza el estado con el contenido del editor
-  };
+  const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
+
   // Maneja los Temas del articulo
   const flattenTopics = (topics, parentName = "") => {
     const options = [];
@@ -345,13 +346,18 @@ export default function NewArticlePage() {
       console.error("Error al enviar los datos:", error);
       setMessage("Error al enviar los datos.");
     }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Resetea el valor del input file
+    }
   };
-
   // Función para reiniciar el formulario
   const resetForm = () => {
     setTitle("");
     setSubtitle("");
     setContent("");
+
+    setResetTrigger((prev) => !prev); // Reset temporal para permitir reutilización
+
     setSelectedBeitragstyp("");
     setSelectedSubtyp("");
     setIsPrinted(false);
@@ -374,6 +380,7 @@ export default function NewArticlePage() {
     setSelectedCategories([]);
     setRegions([]);
     setTopics([]);
+    setArticleImage(null);
   };
 
   const handleAddAuthor = async () => {
@@ -511,7 +518,10 @@ export default function NewArticlePage() {
             placeholder="Escriba para buscar temas"
           />
         </div>
-        <QuillEditor value={content} onChange={handleSaveContent} />
+        <QuillEditor
+          onChange={(value) => setContent(value)} // Actualiza el contenido
+          resetTrigger={resetTrigger} // Reinicia el editor
+        />
         <div className={styles.formGroup}>
           <label htmlFor="articleImage" className={styles.formLabel}>
             Imagen del Artículo:
@@ -519,6 +529,7 @@ export default function NewArticlePage() {
           <input
             type="file"
             id="articleImage"
+            ref={fileInputRef}
             onChange={(e) => setArticleImage(e.target.files[0])} // Guardar el archivo seleccionado
             className={styles.input}
             accept="image/*"
