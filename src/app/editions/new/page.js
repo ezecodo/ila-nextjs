@@ -25,6 +25,7 @@ export default function NewEditionForm() {
   const [subtitle, setSubtitle] = useState("");
   const [datePublished, setDatePublished] = useState(null);
   const [summary, setSummary] = useState("");
+  const [resetTrigger, setResetTrigger] = useState(false);
   const [tableOfContents, setTableOfContents] = useState("");
   const [isCurrent, setIsCurrent] = useState(false);
   const [coverImage, setCoverImage] = useState("");
@@ -33,11 +34,6 @@ export default function NewEditionForm() {
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
 
   const [message, setMessage] = useState("");
-
-  const handleSaveSummary = (content) => {
-    setSummary(content); // Guardar el texto con saltos de línea
-    console.log("Resumen guardado:", content);
-  };
 
   const flattenTopics = (topics, parentName = "") => {
     const options = [];
@@ -154,6 +150,7 @@ export default function NewEditionForm() {
         setIsAvailableToOrder(false);
         setDatePublished(null);
         setSummary("");
+        setResetTrigger((prev) => !prev);
         setTableOfContents("");
         setIsCurrent(false);
         setCoverImage("");
@@ -212,7 +209,12 @@ export default function NewEditionForm() {
             placeholderText="Selecciona el mes y año"
           />
         </div>
-        <QuillEditor onChange={handleSaveSummary} />
+        {/* <QuillEditor onChange={handleSaveSummary} /> */}
+        <QuillEditor
+          value={summary}
+          onChange={(newSummary) => setSummary(newSummary)}
+          resetTrigger={resetTrigger} // Pasamos el trigger al QuillEditor
+        />
         <TextAreaField
           id="tableOfContents"
           label="Tabla de Contenidos"
