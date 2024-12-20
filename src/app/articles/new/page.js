@@ -86,10 +86,15 @@ export default function NewArticlePage() {
       const response = await fetch(`/api/topics?search=${inputValue}`);
       const data = await response.json();
 
-      // Aplanar la jerarquía para react-select
-      return flattenTopics(data);
+      const flattenedTopics = flattenTopics(data);
+
+      // Agrega la opción "Crear tema"
+      return [
+        { value: "new", label: `Crear tema: "${inputValue}"` },
+        ...flattenedTopics,
+      ];
     } catch (error) {
-      console.error("Error al cargar Temas:", error);
+      console.error("Error al cargar los temas:", error);
       return [];
     }
   };
@@ -112,6 +117,55 @@ export default function NewArticlePage() {
     });
 
     return options;
+  };
+
+  const handleTopicChange = async (selectedOptions) => {
+    const lastOption = selectedOptions[selectedOptions.length - 1];
+
+    if (lastOption?.value === "new") {
+      const newTopic = await createNewTopic(
+        lastOption.label.replace('Crear tema: "', "").replace('"', "")
+      );
+
+      if (newTopic) {
+        setTopics((prev) => [...prev, newTopic]);
+      }
+    } else {
+      setTopics(selectedOptions || []);
+    }
+  };
+
+  const createNewTopic = async (inputValue) => {
+    // Verificar si el tema ya existe
+    const exists = topics.some(
+      (topic) => topic.label.toLowerCase() === inputValue.toLowerCase()
+    );
+
+    if (exists) {
+      setMessage(`El tema "${inputValue}" ya existe.`);
+      return null;
+    }
+
+    try {
+      const response = await fetch("/api/topics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: inputValue }),
+      });
+
+      if (response.ok) {
+        const newTopic = await response.json();
+        setMessage(`Tema "${newTopic.name}" creado exitosamente.`);
+        return { value: newTopic.id, label: newTopic.name };
+      } else {
+        setMessage("Error al crear el tema.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al conectar con el servidor:", error);
+      setMessage("Error al conectar con el servidor.");
+      return null;
+    }
   };
 
   const loadRegions = async (inputValue) => {
@@ -518,9 +572,9 @@ export default function NewArticlePage() {
             cacheOptions
             defaultOptions
             loadOptions={loadTopics}
-            onChange={(selectedOptions) => setTopics(selectedOptions || [])}
-            value={topics}
-            placeholder="Escriba para buscar temas"
+            onChange={handleTopicChange}
+            value={topics} // Temas seleccionados
+            placeholder="Escriba para buscar o agregar temas"
           />
         </div>
         <QuillEditor
