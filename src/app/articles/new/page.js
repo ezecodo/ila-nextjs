@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import InputField from "../../components/InputField";
-import TextAreaField from "../../components/TextAreaField";
+
 import SelectField from "../../components/SelectField";
 import ToggleSwitch from "../../components/ToggleSwitch";
 import FormMessage from "../../components/FormMessage";
@@ -466,17 +466,22 @@ export default function NewArticlePage() {
           id="enablePreviewText"
           label="¿Agregar texto de vista previa?"
           checked={previewTextEnabled}
-          onChange={(e) => setPreviewTextEnabled(e.target.checked)}
+          onChange={(e) => {
+            const isEnabled = e.target.checked;
+            setPreviewTextEnabled(isEnabled);
+            if (!isEnabled) {
+              setPreviewText(""); // Limpia el texto cuando se desactiva
+            }
+          }}
         />
 
         {previewTextEnabled && (
-          <TextAreaField
-            id="previewText"
-            label="Texto de vista previa"
-            value={previewText}
-            onChange={(e) => setPreviewText(e.target.value)}
-            placeholder="Ingrese un texto de vista previa opcional"
-          />
+          <div key={previewTextEnabled ? "editor-enabled" : "editor-disabled"}>
+            <QuillEditor
+              onChange={(value) => setPreviewText(value)} // Actualiza el contenido
+              resetTrigger={resetTrigger} // Reinicia el editor
+            />
+          </div>
         )}
         <div>
           <h3>Categorías</h3>

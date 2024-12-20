@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import dynamic from "next/dynamic"; // Importación dinámica
 import InputField from "../../components/InputField";
 import TextAreaField from "../../components/TextAreaField";
@@ -28,10 +28,12 @@ export default function NewEditionForm() {
   const [resetTrigger, setResetTrigger] = useState(false);
   const [tableOfContents, setTableOfContents] = useState("");
   const [isCurrent, setIsCurrent] = useState(false);
-  const [coverImage, setCoverImage] = useState("");
-  const [backgroundImage, setBackgroundImage] = useState("");
+  const [coverImage, setCoverImage] = useState(null);
+  const [backgroundImage, setBackgroundImage] = useState(null);
   const [regions, setRegions] = useState([]); // Cambia el estado a un array
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
+  const coverImageRef = useRef(null); // Crea una referencia para el input de archivo
+  const backgroundImageRef = useRef(null); // Crea una referencia para el input de archivo
 
   const [message, setMessage] = useState("");
 
@@ -153,8 +155,8 @@ export default function NewEditionForm() {
         setResetTrigger((prev) => !prev);
         setTableOfContents("");
         setIsCurrent(false);
-        setCoverImage("");
-        setBackgroundImage("");
+        setCoverImage(null);
+        setBackgroundImage(null);
         setRegions([]);
         setTopics([]);
       } else {
@@ -165,6 +167,12 @@ export default function NewEditionForm() {
     } catch (error) {
       console.error("Error al enviar los datos:", error);
       alert("Error al enviar los datos.");
+    }
+    if (coverImageRef.current) {
+      coverImageRef.current.value = ""; // Resetea el valor del input file
+    }
+    if (backgroundImageRef.current) {
+      backgroundImageRef.current.value = ""; // Resetea el valor del input file
     }
   };
 
@@ -270,6 +278,7 @@ export default function NewEditionForm() {
           <input
             type="file"
             id="coverImage"
+            ref={coverImageRef}
             onChange={(e) => setCoverImage(e.target.files[0])}
             className={styles.input}
             required
@@ -282,6 +291,7 @@ export default function NewEditionForm() {
           <input
             type="file"
             id="backgroundImage"
+            ref={backgroundImageRef}
             onChange={(e) => setBackgroundImage(e.target.files[0])}
             className={styles.input}
             required
