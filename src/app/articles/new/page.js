@@ -120,10 +120,7 @@ export default function NewArticlePage() {
 
     return options;
   };
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setBookImage(file);
-  };
+
   const handleTopicChange = async (selectedOptions) => {
     const lastOption = selectedOptions[selectedOptions.length - 1];
 
