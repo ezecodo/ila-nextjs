@@ -23,7 +23,7 @@ model Article {
   endPage          Int?            // Página donde termina el artículo en la revista
   createdAt        DateTime        @default(now())      // Fecha de creación
   updatedAt        DateTime        @updatedAt           // Fecha de actualización automática
-    image            String?          
+    articleImage            String?          
 
   beitragstyp      Beitragstyp     @relation(fields: [beitragstypId], references: [id])
   beitragssubtyp   Beitragssubtyp? @relation(fields: [beitragssubtypId], references: [id])
@@ -37,6 +37,8 @@ model Article {
   articleCategories ArticleCategory[] // Relación con categorías
    regions   Region[]   @relation("ArticleRegions") // Relación con regiones
    topics    Topic[]    @relation("ArticleTopics")
+   bookImage         String?   // Imagen del libro (para Buchbesprechung)
+  mediaTitle        String?   // Título completo del libro
  
 
 

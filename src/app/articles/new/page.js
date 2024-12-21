@@ -57,6 +57,8 @@ export default function NewArticlePage() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [regions, setRegions] = useState([]); // Cambia el estado a un array
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
+  const [bookImage, setBookImage] = useState(null); // Imagen del libro
+  const [mediaTitle, setMediaTitle] = useState(""); // Título completo del libro
 
   const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
 
@@ -118,7 +120,10 @@ export default function NewArticlePage() {
 
     return options;
   };
-
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setBookImage(file);
+  };
   const handleTopicChange = async (selectedOptions) => {
     const lastOption = selectedOptions[selectedOptions.length - 1];
 
@@ -273,6 +278,10 @@ export default function NewArticlePage() {
       setSubtypen([]);
     }
   }, [selectedBeitragstyp, beitragstypen]);
+  const isBuchBesprechung =
+    beitragstypen.length > 0 &&
+    beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
+      ?.name === "Buchbesprechung";
 
   // Fetch Editions
   useEffect(() => {
@@ -328,7 +337,7 @@ export default function NewArticlePage() {
     formData.append("content", content);
     //Manejo de Imagen de articulo
     if (articleImage) {
-      formData.append("image", articleImage);
+      formData.append("articleImage", articleImage);
     }
 
     // Manejo de Autores
@@ -352,6 +361,10 @@ export default function NewArticlePage() {
       formData.append("editionId", selectedEdition);
       formData.append("startPage", startPage);
       formData.append("endPage", endPage);
+    }
+    if (isBuchBesprechung) {
+      formData.append("bookImage", bookImage);
+      formData.append("mediaTitle", mediaTitle);
     }
 
     if (isInterview) {
@@ -435,6 +448,8 @@ export default function NewArticlePage() {
     setRegions([]);
     setTopics([]);
     setArticleImage(null);
+    setMediaTitle("");
+    setBookImage(null);
   };
 
   const handleAddAuthor = async () => {
@@ -618,6 +633,30 @@ export default function NewArticlePage() {
           onChange={(e) => setSelectedBeitragstyp(e.target.value)}
           placeholder="Seleccione un tipo"
         />
+        {isBuchBesprechung && (
+          <div>
+            <h3>Detalles del Libro</h3>
+            <InputField
+              id="mediaTitle"
+              label="Título del libro"
+              value={mediaTitle}
+              onChange={(e) => setMediaTitle(e.target.value)}
+              placeholder="Ingrese el título completo del libro"
+            />
+            <div className={styles.formGroup}>
+              <label htmlFor="bookImage" className={styles.formLabel}>
+                Imagen del libro
+              </label>
+              <input
+                type="file"
+                id="bookImage"
+                accept="image/*"
+                onChange={(e) => setBookImage(e.target.files[0])} // Actualiza el estado con el archivo
+              />
+            </div>
+          </div>
+        )}
+
         {isNachruf && (
           <div>
             <h3>Detalles de la necrología</h3>
@@ -661,7 +700,6 @@ export default function NewArticlePage() {
             />
           </div>
         )}
-
         {subtypen.length > 0 && (
           <SelectField
             id="subtyp"
@@ -672,6 +710,7 @@ export default function NewArticlePage() {
             placeholder="Seleccione un subtipo"
           />
         )}
+
         <div className={styles.authorSection}>
           <SelectField
             id="author"

@@ -105,7 +105,9 @@ export async function POST(request) {
     const categories = JSON.parse(formData.get("categories") || "[]");
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
-    const file = formData.get("image"); // Obtenemos la imagen del FormData
+    const articleImage = formData.get("articleImage"); // Obtenemos la imagen del FormData
+    const bookImage = formData.get("bookImage"); // Imagen del libro
+    const mediaTitle = formData.get("mediaTitle"); // Título del libro
 
     console.log("Datos recibidos:", {
       title,
@@ -123,10 +125,12 @@ export async function POST(request) {
       isNachruf,
       previewText,
       additionalInfo,
-      file,
+      articleImage,
       regions,
       topics,
       categories,
+      mediaTitle,
+      bookImage,
     });
 
     // Validaciones básicas
@@ -138,7 +142,22 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+    // Verificar si el tipo de artículo es "Buchbesprechung"
+    const beitragstyp = await prisma.beitragstyp.findUnique({
+      where: { id: parseInt(beitragstypId, 10) },
+    });
 
+    const isBuchBesprechung = beitragstyp?.name === "Buchbesprechung";
+
+    if (isBuchBesprechung && (!mediaTitle || !bookImage)) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Para 'Buchbesprechung', el título del libro y la imagen son obligatorios.",
+        }),
+        { status: 400 }
+      );
+    }
     if (!isPublished && !publicationDate) {
       return new Response(
         JSON.stringify({
@@ -179,6 +198,7 @@ export async function POST(request) {
     }
 
     // Crear el artículo
+    // Crear el artículo
     const article = await prisma.article.create({
       data: {
         title,
@@ -189,14 +209,15 @@ export async function POST(request) {
         beitragssubtypId: beitragssubtypId
           ? parseInt(beitragssubtypId, 10)
           : null,
+        mediaTitle: isBuchBesprechung ? mediaTitle : null,
+        bookImage: null, // Temporalmente null
         isInPrintEdition: isPrinted,
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         startPage: isPrinted ? parseInt(startPage, 10) : null,
         endPage: isPrinted ? parseInt(endPage, 10) : null,
         isPublished: isPublished || false,
         publicationDate: publicationDate ? new Date(publicationDate) : null,
-        image: null, // Temporalmente sin imagen
-
+        articleImage: null, // Temporalmente sin imagen
         authors: authorId
           ? {
               connect: { id: parseInt(authorId, 10) },
@@ -243,30 +264,74 @@ export async function POST(request) {
     });
 
     console.log("Artículo creado:", article);
-    // Subir imagen de articulo
-    if (file) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const filePath = path.join(
-        process.cwd(),
-        "public",
-        "uploads",
-        "article-pics",
-        `${article.id}.jpg`
-      );
 
-      await writeFile(filePath, buffer);
-      console.log(`Imagen guardada en: ${filePath}`);
+    // Procesar imagen del artículo
+    if (articleImage) {
+      try {
+        const buffer = Buffer.from(await articleImage.arrayBuffer());
+        const articleImagePath = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          "articles-pics",
+          `${article.id}.jpg`
+        );
 
-      // Actualizar el artículo con la ruta de la imagen
-      await prisma.article.update({
-        where: { id: article.id },
-        data: { image: `public/uploads/article-pics/${article.id}.jpg` },
-      });
-    } else {
-      console.log("No se recibió un archivo válido. No se guardará imagen.");
+        await writeFile(articleImagePath, buffer);
+        console.log(`Imagen del artículo guardada en: ${articleImagePath}`);
+
+        // Actualizar ruta de la imagen del artículo en la base de datos
+        await prisma.article.update({
+          where: { id: article.id },
+          data: { articleImage: `/uploads/articles-pics/${article.id}.jpg` },
+        });
+      } catch (error) {
+        console.error(
+          "Error al guardar la imagen del artículo:",
+          error.message
+        );
+      }
     }
 
-    return new Response(JSON.stringify(article), { status: 201 });
+    // Procesar imagen del libro si es Buchbesprechung
+    if (isBuchBesprechung && bookImage) {
+      try {
+        const buffer = Buffer.from(await bookImage.arrayBuffer());
+        const fileName = `${mediaTitle.replace(/\s+/g, "_")}-${Date.now()}.jpg`;
+        const bookImagePath = path.join(
+          process.cwd(),
+          "public",
+          "uploads",
+          "articles-pics",
+          "books",
+          fileName
+        );
+
+        await writeFile(bookImagePath, buffer);
+        console.log(`Imagen del libro guardada en: ${bookImagePath}`);
+
+        // Actualizar ruta de la imagen del libro en la base de datos
+        await prisma.article.update({
+          where: { id: article.id },
+          data: { bookImage: `/uploads/articles-pics/books/${fileName}` },
+        });
+      } catch (error) {
+        console.error("Error al guardar la imagen del libro:", error.message);
+      }
+    } else {
+      console.log("La imagen del articulo, se ha guardado con éxito! Congrats");
+    }
+
+    // Retornar el artículo con datos actualizados
+    const updatedArticle = await prisma.article.findUnique({
+      where: { id: article.id },
+      include: {
+        regions: true,
+        topics: true,
+      },
+    });
+
+    return new Response(JSON.stringify(updatedArticle), { status: 201 });
   } catch (error) {
     console.error("Error al crear el artículo:", error.message);
     if (error.meta) {
