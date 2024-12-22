@@ -1,6 +1,7 @@
 // src/app/page.tsx
 
 import EditionsList from "../components/EditionsList/EditionsList";
+import ArticlesList from "../components/ArticlesList/ArticlesList";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
 
       {/* Bloque central */}
       <main className="w-full md:w-4/6 flex-grow">
+        <ArticlesList />
         <EditionsList />
       </main>
 
