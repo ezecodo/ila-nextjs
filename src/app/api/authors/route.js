@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ["query", "info", "warn", "error"],
+});
 
 export async function GET() {
   try {
@@ -22,7 +24,19 @@ export async function GET() {
 
 export async function POST(req) {
   try {
-    const { name, email } = await req.json();
+    // Verificar que el cuerpo de la solicitud contiene datos
+    if (!req.body) {
+      return new Response(
+        JSON.stringify({ error: "Cuerpo de la solicitud vacío." }),
+        { status: 400 }
+      );
+    }
+
+    // Leer datos del cuerpo de la solicitud
+    const body = await req.json();
+    console.log("Datos recibidos:", body);
+
+    const { name, email, bio, location, role, regions, topics } = body;
 
     if (!name) {
       return new Response(
@@ -35,18 +49,31 @@ export async function POST(req) {
     const newAuthor = await prisma.author.create({
       data: {
         name,
-        email: email || null, // El email es opcional
+        email: email || null, // Manejar email opcional
+        bio: bio || null, // Manejar bio opcional
+        location: location || null, // Manejar location opcional
+        role: role || null, // Manejar role opcional
       },
     });
 
-    // Devolver el autor recién creado
+    if (!newAuthor) {
+      throw new Error("Error al crear el autor en la base de datos.");
+    }
+
+    console.log("Nuevo autor creado:", newAuthor);
+
     return new Response(JSON.stringify(newAuthor), { status: 201 });
   } catch (error) {
     console.error("Error al agregar autor:", error);
+
+    // Asegurarse de manejar errores que no sean JSON
+    const errorMessage =
+      error instanceof Error ? error.message : "Error desconocido";
+
     return new Response(
       JSON.stringify({
         error: "Error al agregar autor",
-        details: error.message,
+        details: errorMessage,
       }),
       { status: 500 }
     );

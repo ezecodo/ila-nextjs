@@ -21,7 +21,7 @@ async function insertTopics(topics, parentId = null) {
 async function main() {
   try {
     // Leer el archivo JSON de manera asíncrona
-    const topicsData = JSON.parse(await readFile("./topics.json", "utf-8"));
+    const topicsData = JSON.parse(await readFile("./ALI_topics.json", "utf-8"));
 
     // Insertar regiones en la base de datos
     await insertTopics(topicsData);

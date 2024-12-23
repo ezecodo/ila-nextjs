@@ -22,7 +22,7 @@ async function main() {
   try {
     // Leer el archivo JSON de manera asíncrona
     const regionsData = JSON.parse(
-      await readFile("./regional_categories_updated.json", "utf-8")
+      await readFile("./ALI_categories.json", "utf-8")
     );
 
     // Insertar regiones en la base de datos

@@ -460,23 +460,48 @@ export default function NewArticlePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: newAuthorName,
-          email: newAuthorEmail || null,
+          name: newAuthorName.trim(),
+          email: newAuthorEmail?.trim() || null,
         }),
       });
 
       if (res.ok) {
         const newAuthor = await res.json();
-        setAuthors((prev) => [...prev, newAuthor]);
+
+        if (!newAuthor || !newAuthor.id) {
+          setMessage("Error inesperado: no se recibió un ID de autor.");
+          return;
+        }
+
+        setAuthors((prev) => [
+          ...prev,
+          { id: newAuthor.id, name: newAuthor.name },
+        ]);
         setSelectedAuthor(newAuthor.id);
         setMessage("Autor agregado con éxito.");
         setIsModalOpen(false);
         setNewAuthorName("");
         setNewAuthorEmail("");
       } else {
-        setMessage("Error al agregar el autor.");
+        let errorMessage = "Error desconocido.";
+        const contentType = res.headers.get("content-type");
+
+        // Solo intentar parsear JSON si el tipo de contenido es JSON
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            const errorData = await res.json();
+            errorMessage = errorData?.error || errorMessage;
+          } catch (jsonError) {
+            console.error("Error al parsear la respuesta JSON:", jsonError);
+          }
+        } else {
+          errorMessage = `Error con código ${res.status}: ${res.statusText}`;
+        }
+
+        setMessage(`Error al agregar el autor: ${errorMessage}`);
       }
-    } catch {
+    } catch (error) {
+      console.error("Error al conectar con el servidor:", error);
       setMessage("Error al conectar con el servidor.");
     }
   };
