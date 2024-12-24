@@ -8,37 +8,49 @@ async function processCSV() {
   const authors = [];
   console.log("Leyendo archivo CSV...");
 
-  fs.createReadStream("./autores.csv") // Asegúrate de que el archivo esté en la misma carpeta
+  fs.createReadStream("./autores.csv")
     .pipe(csv())
     .on("data", (row) => {
-      // Mapeamos los campos del CSV
-      const drupalID = parseInt(row["Beitrags-ID"]);
-      const name = row["Name"];
-      const bio = row["TextKorper"] || null;
-      const personCategoryName = row["Personenkategorie"] || null; // Categoría
-      const topics = row["Themenschwerpunkte"]
-        ? row["Themenschwerpunkte"].split(",").map((topic) => topic.trim())
-        : []; // Procesamos los temas
-      const regions = row["Länder & Regionen"]
-        ? row["Länder & Regionen"].split(",").map((region) => region.trim())
-        : []; // Procesamos las regiones
+      // Mapear las columnas del CSV a variables
+      const name = row["_0"]?.trim(); // Nombre del autor
+      const drupalId = parseInt(row["_1"], 10); // ID de Drupal
+      const bio = row["_4"] || null; // Biografía o texto adicional
+      const personCategoryName = row["_5"]?.trim() || null; // Categoría de la persona
+      const topics = row["_2"]
+        ? row["_2"]
+            .split(",")
+            .map((topic) => topic.trim())
+            .filter(Boolean)
+        : []; // Temas
+      const regions = row["_6"]
+        ? row["_6"]
+            .split(",")
+            .map((region) => region.trim())
+            .filter(Boolean)
+        : []; // Regiones
 
-      authors.push({
-        drupalID,
-        name,
-        bio,
-        personCategoryName,
-        topics,
-        regions,
-      });
+      // Validar datos esenciales
+      if (name && !isNaN(drupalId)) {
+        authors.push({
+          drupalId,
+          name,
+          bio,
+          personCategoryName,
+          topics,
+          regions,
+        });
+      } else {
+        console.warn(`Datos inválidos: ${JSON.stringify(row)}`);
+      }
     })
     .on("end", async () => {
       console.log("Archivo CSV leído correctamente. Procesando datos...");
 
-      for (const author of authors.slice(0, 4)) {
+      for (const author of authors) {
         try {
-          // Buscar o crear la categoría de la persona
           let personCategory = null;
+
+          // Crear o buscar la categoría de persona
           if (author.personCategoryName) {
             personCategory = await prisma.personCategory.findUnique({
               where: { name: author.personCategoryName },
@@ -51,46 +63,39 @@ async function processCSV() {
             }
           }
 
-          // Crear el autor
+          // Crear el autor con drupalId como campo adicional
           const newAuthor = await prisma.author.create({
             data: {
               name: author.name,
               bio: author.bio,
-              drupalID: author.drupalID,
+              drupalId: author.drupalId, // Mantener drupalId como campo adicional
               personCategoryId: personCategory ? personCategory.id : null,
             },
           });
 
-          console.log(`Autor creado: ${newAuthor.name}`);
+          console.log(`\u2714 Autor creado: ${newAuthor.name}`);
 
-          // Procesar temas
+          // Relacionar temas
           for (const topicName of author.topics) {
             let topic = await prisma.topic.findUnique({
               where: { name: topicName },
             });
 
             if (!topic) {
-              topic = await prisma.topic.create({
-                data: { name: topicName },
-              });
+              topic = await prisma.topic.create({ data: { name: topicName } });
             }
 
-            // Relacionar autor y tema
             await prisma.author.update({
               where: { id: newAuthor.id },
-              data: {
-                topics: {
-                  connect: { id: topic.id },
-                },
-              },
+              data: { topics: { connect: { id: topic.id } } },
             });
 
             console.log(
-              `Tema relacionado: ${topic.name} para autor ${newAuthor.name}`
+              `\u2714 Tema relacionado: ${topic.name} para autor ${newAuthor.name}`
             );
           }
 
-          // Procesar regiones
+          // Relacionar regiones
           for (const regionName of author.regions) {
             let region = await prisma.region.findUnique({
               where: { name: regionName },
@@ -102,26 +107,38 @@ async function processCSV() {
               });
             }
 
-            // Relacionar autor y región
             await prisma.author.update({
               where: { id: newAuthor.id },
-              data: {
-                regions: {
-                  connect: { id: region.id },
-                },
-              },
+              data: { regions: { connect: { id: region.id } } },
             });
 
             console.log(
-              `Región relacionada: ${region.name} para autor ${newAuthor.name}`
+              `\u2714 Región relacionada: ${region.name} para autor ${newAuthor.name}`
             );
           }
         } catch (error) {
-          console.error("Error al procesar el autor:", author.name, error);
+          console.error(
+            "Error al procesar el autor:",
+            author.name || "desconocido",
+            error
+          );
         }
       }
 
-      console.log("Proceso de importación completado.");
+      console.log("\x1b[36m");
+      console.log(`
+
+        ███████╗███████╗███████╗
+        ██╔════╝╚════██║██╔════╝
+        █████╗░░░░███╔═╝█████╗░░
+        ██╔══╝░░██╔══╝░░██╔══╝░░
+        ███████╗███████╗███████╗
+        ╚══════╝╚══════╝╚══════╝   
+                         
+                   
+      Importación completada exitosamente!
+      `);
+      console.log("\x1b[0m");
       await prisma.$disconnect();
     });
 }

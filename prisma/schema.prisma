@@ -142,7 +142,7 @@ model Author {
   email     String?   @unique
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  bio       String?
+  bio       String?   @db.Text
   location  String?
   role      String?
   articles          Article[]       @relation("ArticleAuthors")   // Relación opuesta con artículos
