@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "./ArticlesList.module.css"; // Crear un archivo CSS para estilos personalizados
+import Image from "next/image";
 
 export default function ArticleList() {
   const [articles, setArticles] = useState([]);
@@ -36,7 +37,7 @@ export default function ArticleList() {
         <div key={article.id} className={styles.articleCard}>
           {/* Mostrar la imagen */}
           {article.articleImage && (
-            <img
+            <Image
               src={article.articleImage}
               alt={article.title}
               className={styles.articleImage}

@@ -36,7 +36,7 @@ export async function POST(req) {
     const body = await req.json();
     console.log("Datos recibidos:", body);
 
-    const { name, email, bio, location, role, regions, topics } = body;
+    const { name, email, bio, location, role } = body;
 
     if (!name) {
       return new Response(
