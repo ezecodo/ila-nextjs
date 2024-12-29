@@ -73,7 +73,7 @@ async function processCSV() {
             },
           });
 
-          console.log(`\u2714 Autor creado: ${newAuthor.name}`);
+          console.log(`\u2714 Autor creado: ${newAuthor.name}  ✅`);
 
           // Relacionar temas
           for (const topicName of author.topics) {
@@ -91,7 +91,7 @@ async function processCSV() {
             });
 
             console.log(
-              `\u2714 Tema relacionado: ${topic.name} para autor ${newAuthor.name}`
+              `\u2714 Tema 📚 relacionado: ${topic.name} para autor  👤 ${newAuthor.name}`
             );
           }
 
@@ -113,7 +113,7 @@ async function processCSV() {
             });
 
             console.log(
-              `\u2714 Región relacionada: ${region.name} para autor ${newAuthor.name}`
+              `\u2714 Región 🌍 relacionada: ${region.name} para autor  👤 ${newAuthor.name}`
             );
           }
         } catch (error) {
