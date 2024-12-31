@@ -54,6 +54,7 @@ model Interviewee {
 
 model Edition {
   id                 Int       @id @default(autoincrement())
+  drupalId           Int?
   number             Int       @unique
   title              String
   createdAt          DateTime  @default(now())
