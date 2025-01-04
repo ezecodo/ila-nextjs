@@ -42,6 +42,23 @@ delete-articles.js
 delete-authors.js
 delete-entrevistados.js
 
+clean-table.js
+delete-authores.js
+delete-obituary.js
+insertRegions.js
+insertTopics.js
+processImagePath.js
+processImages.js
+
+seed-authors.js
+seed-beitragstypen.js
+seed-categories.js
+seed-editions.js
+seed-personenCategories.js
+autores.csv
+editions.csv
+
 # Carpeta con Backups de diferentes archivos
 /backup/
+/csv/
 
