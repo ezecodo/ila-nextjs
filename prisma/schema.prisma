@@ -10,7 +10,6 @@ datasource db {
 
 model Article {
   id                Int               @id @default(autoincrement())
-  beitragsId        Int?              // ID original de Drupal
   title             String
   content           String            @db.LongText
   beitragstypId     Int
@@ -29,24 +28,22 @@ model Article {
   bookImage         String?
   mediaTitle        String?
   articleImage      String?
+  beitragsId        Int?
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
   beitragstyp       Beitragstyp       @relation(fields: [beitragstypId], references: [id])
   edition           Edition?          @relation(fields: [editionId], references: [id])
   articleCategories ArticleCategory[]
   favorites         Favorite[]
   obituaryDetails   ObituaryDetails?
-  
+  authors           Author[]          @relation("ArticleAuthors")
   interviewees      Interviewee[]     @relation("ArticleInterviewees")
   regions           Region[]          @relation("ArticleRegions")
   topics            Topic[]           @relation("ArticleTopics")
-  authors   Author[]  @relation("ArticleAuthors") // Relación muchos a muchos con autores
-  
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
   @@index([editionId], map: "Article_editionId_fkey")
 }
-
 
 model Interviewee {
   id       Int       @id @default(autoincrement())
@@ -56,7 +53,6 @@ model Interviewee {
 
 model Edition {
   id                 Int       @id @default(autoincrement())
-  drupalId           Int?
   number             Int       @unique
   title              String
   createdAt          DateTime  @default(now())
@@ -68,6 +64,7 @@ model Edition {
   backgroundImage    String?
   coverImage         String?
   isAvailableToOrder Boolean?
+  drupalId           Int?
   articles           Article[]
   regions            Region[]  @relation("EditionRegions")
   topics             Topic[]   @relation("EditionTopics")
@@ -87,8 +84,8 @@ model Region {
   parent   Region?   @relation("RegionHierarchy", fields: [parentId], references: [id])
   children Region[]  @relation("RegionHierarchy")
   articles Article[] @relation("ArticleRegions")
+  authors  Author[]  @relation("AuthorRegions")
   editions Edition[] @relation("EditionRegions")
-  authors    Author[]  @relation("AuthorRegions")   // Relación con autores
 
   @@index([parentId], map: "Region_parentId_fkey")
 }
@@ -100,8 +97,8 @@ model Topic {
   parent   Topic?    @relation("TopicHierarchy", fields: [parentId], references: [id])
   children Topic[]   @relation("TopicHierarchy")
   articles Article[] @relation("ArticleTopics")
+  authors  Author[]  @relation("AuthorTopics")
   editions Edition[] @relation("EditionTopics")
-  authors    Author[]  @relation("AuthorTopics")   // Relación con autores
 
   @@index([parentId], map: "Topic_parentId_fkey")
 }
@@ -139,27 +136,30 @@ model Favorite {
 }
 
 model Author {
-  id         Int       @id @default(autoincrement()) // Volvemos al autoincrement
-  drupalId   Int?      @unique // ID original de Drupal, opcional pero unico.
-  name      String
-  email     String?   @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  bio       String?   @db.Text
-  location  String?
-  role      String?
-  articles          Article[]       @relation("ArticleAuthors")   // Relación opuesta con artículos
-  personCategoryId Int?            // FK hacia PersonCategory
-  personCategory   PersonCategory? @relation("AuthorPersonCategory", fields: [personCategoryId], references: [id]) // Relación con PersonCategory
-  regions         Region[]        @relation("AuthorRegions") // Relación con regiones
-  topics          Topic[]         @relation("AuthorTopics") // Relación con temas
-}
-model PersonCategory {
-  id       Int      @id @default(autoincrement())
-  name     String   @unique // Nombre único para cada categoría
-  authors  Author[] @relation("AuthorPersonCategory") // Relación con autores
+  id               Int             @id @default(autoincrement())
+  name             String          @unique(map: "name")
+  email            String?         @unique
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  bio              String?         @db.Text
+  location         String?
+  role             String?
+  personCategoryId Int?
+  drupalId         Int?            @unique
+  personCategory   PersonCategory? @relation("AuthorPersonCategory", fields: [personCategoryId], references: [id])
+  articles         Article[]       @relation("ArticleAuthors")
+  regions          Region[]        @relation("AuthorRegions")
+  topics           Topic[]         @relation("AuthorTopics")
 
-  @@map("PersonCategory") // Aseguramos el mapeo a la tabla correcta
+  @@index([personCategoryId], map: "Author_personCategoryId_fkey")
+}
+
+model PersonCategory {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  authors Author[] @relation("AuthorPersonCategory")
+
+  @@map("PersonCategory")
 }
 
 model ObituaryDetails {
