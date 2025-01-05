@@ -10,6 +10,7 @@ datasource db {
 
 model Article {
   id                Int               @id @default(autoincrement())
+  beitragsId        Int?              // ID original de Drupal
   title             String
   content           String            @db.LongText
   beitragstypId     Int
@@ -45,6 +46,7 @@ model Article {
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
   @@index([editionId], map: "Article_editionId_fkey")
 }
+
 
 model Interviewee {
   id       Int       @id @default(autoincrement())
