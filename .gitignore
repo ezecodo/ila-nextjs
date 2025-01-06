@@ -57,6 +57,7 @@ seed-editions.js
 seed-personenCategories.js
 autores.csv
 editions.csv
+articulacionn.csv
 
 # Carpeta con Backups de diferentes archivos
 /backup/
