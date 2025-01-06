@@ -55,9 +55,14 @@ seed-beitragstypen.js
 seed-categories.js
 seed-editions.js
 seed-personenCategories.js
+seed-articles.js
 autores.csv
 editions.csv
 articulacionn.csv
+coverImages.js
+renameImages.js
+ALI_categories.json
+ALI_topics.json
 
 # Carpeta con Backups de diferentes archivos
 /backup/
