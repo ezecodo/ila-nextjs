@@ -77,15 +77,12 @@ export default function EditionsList() {
               <div className="relative overflow-hidden aspect-w-3 aspect-h-4">
                 {/* Imagen de la portada */}
                 <Image
-                  src={
-                    edition.coverImage.startsWith("/")
-                      ? edition.coverImage
-                      : `/uploads/editions-pics/${edition.coverImage}`
-                  }
+                  src={edition.coverImage}
                   alt={`Portada de ${edition.title}`}
                   width={300}
                   height={400}
                   objectFit="contain"
+                  className="" // No redondear bordes
                 />
 
                 {/* Ícono del carrito */}
