@@ -63,6 +63,6 @@ editions.csv
 /csv/
 
 # Incluir específicamente la carpeta editions-pics
-!public/uploads/editions-pics/
-!public/uploads/editions-pics/*
+!public/up/edi/
+!public/up/edi/*
 

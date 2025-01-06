@@ -10,9 +10,10 @@ async function updateCoverImages() {
     const editions = await prisma.edition.findMany();
 
     for (const edition of editions) {
-      const coverImage = `/uploads/editions-pics/ila${edition.number}_cover.jpg`;
+      // Mantener el formato actual del nombre de las imágenes
+      const coverImage = `/up/edi/ila${edition.number}_cover.jpg`;
 
-      // Actualizar la columna `coverImage` con la ruta correcta
+      // Actualizar la columna `coverImage` con la nueva ruta
       await prisma.edition.update({
         where: { id: edition.id },
         data: { coverImage },
