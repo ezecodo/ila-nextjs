@@ -24,21 +24,22 @@ model Article {
   isPublished       Boolean           @default(false)
   publicationDate   DateTime?
   previewText       String?           @db.LongText
-  additionalInfo    String?
+  additionalInfo    String?           @db.Text
   bookImage         String?
-  mediaTitle        String?
-  articleImage      String?
+  mediaTitle        String?           @db.Text
+  articleImage      String?           @db.Text
   beitragsId        Int?
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
   beitragstyp       Beitragstyp       @relation(fields: [beitragstypId], references: [id])
   edition           Edition?          @relation(fields: [editionId], references: [id])
-  articleCategories ArticleCategory[]
+  
   favorites         Favorite[]
   obituaryDetails   ObituaryDetails?
   authors           Author[]          @relation("ArticleAuthors")
   interviewees      Interviewee[]     @relation("ArticleInterviewees")
   regions           Region[]          @relation("ArticleRegions")
   topics            Topic[]           @relation("ArticleTopics")
+  categories        Category[]        @relation("ArticleCategories")
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
@@ -175,15 +176,7 @@ model ObituaryDetails {
 model Category {
   id                Int               @id @default(autoincrement())
   name              String            @unique
-  articleCategories ArticleCategory[]
+  articles           Article[]         @relation("ArticleCategories")
 }
 
-model ArticleCategory {
-  articleId  Int
-  categoryId Int
-  article    Article  @relation(fields: [articleId], references: [id])
-  category   Category @relation(fields: [categoryId], references: [id])
 
-  @@id([articleId, categoryId])
-  @@index([categoryId], map: "ArticleCategory_categoryId_fkey")
-}
