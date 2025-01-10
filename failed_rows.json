@@ -1,0 +1,874 @@
+[
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "8",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "Error al guardar: \nInvalid `prisma.image.create()` invocation:\n\n{\n  data: {\n    contentType: \"ARTICLE\",\n    url: \"public://img/beitragsfotos/Jose Cestero.jpg\",\n    title: \"In jeder Kneipe hängt ein Bild des Künstlers José Cestero\",\n    alt: \"\",\n+   contentId: Int\n  }\n}\n\nArgument `contentId` is missing.",
+    "row": {
+      "Beitrags-ID": "\"\n\"43\"",
+      "url": "public://img/beitragsfotos/Jose Cestero.jpg",
+      "titelAlt": "In jeder Kneipe hängt ein Bild des Künstlers José Cestero\n\n\n"
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "88",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "152",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "262",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "275",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "401",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "436",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "445",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "460",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "461",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "463",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "468",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "476",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "503",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "525",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "536",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "542",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "600",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "675",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "749",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "755",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "766",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "913",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "915",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "922",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "929",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "939",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "966",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "968",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "970",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "989",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "991",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1083",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1106",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1193",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1200",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1204",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1208",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1211",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1213",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1228",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1232",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1236",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1246",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1283",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1292",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1319",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1321",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1328",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1329",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1356",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1386",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1606",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1615",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1640",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1772",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1774",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1786",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1829",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1854",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1917",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1919",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1924",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1928",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1941",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1962",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "1965",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "2113",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "3825",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "4475",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "5069",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "5201",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "5831",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "6278",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "7150",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "9133",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "9919",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "10407",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "10748",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11167",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11214",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11365",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11780",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11861",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11863",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11865",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "11867",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "12023",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "12025",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "12733",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "13369",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "13550",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "14234",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "Error al guardar: \nInvalid `prisma.image.create()` invocation:\n\n\nThe provided value for the column is too long for the column's type. Column: title",
+    "row": {
+      "Beitrags-ID": "14413",
+      "url": "public://img/beitragsfotos/graphic_novel19.jpg",
+      "titelAlt": "Ausschnitte aus einer Graphic Novel, die das Leben der Garífuna-Aktivistin Melissa Martínez aus Punta Gorda erzählt. Sie ist Überlebende von häuslicher Gewalt und als alleinerziehende Mutter zur Arbeitsmigration gezwungen. Aus diesen von Gewalt geprägten Kontexten schafft sie sich zu befreien. Und zieht aus den Erfahrungen die Kraft, die sie schließlich zu einer der bekanntesten Aktivist*innen der afro-indigenen Garífuna werden lässt. Die Szenen zeigen Melissa und ihre Mitstreiter*innen bei der Landrückgewinnung Wagaire Le\n\n\n"
+    }
+  },
+  {
+    "reason": "Error al guardar: \nInvalid `prisma.image.create()` invocation:\n\n\nThe provided value for the column is too long for the column's type. Column: title",
+    "row": {
+      "Beitrags-ID": "14413",
+      "url": "public://img/beitragsfotos/graphic_novel20.jpg",
+      "titelAlt": "Ausschnitte aus einer Graphic Novel, die das Leben der Garífuna-Aktivistin Melissa Martínez aus Punta Gorda erzählt. Sie ist Überlebende von häuslicher Gewalt und als alleinerziehende Mutter zur Arbeitsmigration gezwungen. Aus diesen von Gewalt geprägten Kontexten schafft sie sich zu befreien. Und zieht aus den Erfahrungen die Kraft, die sie schließlich zu einer der bekanntesten Aktivist*innen der afro-indigenen Garífuna werden lässt. Die Szenen zeigen Melissa und ihre Mitstreiter*innen bei der Landrückgewinnung Wagaire Le\n\n\n"
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "14445",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "14470",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "14560",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "14802",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "14821",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "15022",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "Error al guardar: \nInvalid `prisma.image.create()` invocation:\n\n\nThe provided value for the column is too long for the column's type. Column: title",
+    "row": {
+      "Beitrags-ID": "15035",
+      "url": "public://img/beitragsfotos/Jorge Santiago.jpg",
+      "titelAlt": "Der Theologe Jorge Santiago kommt aus Chiapas. Dort gründete und leitete er lange Jahre DESMI, die erste NRO in Chiapas für ländliche Entwicklung und solidarische Ökonomie. Seit dem Indigenenkongress 1974 arbeitete er eng mit der Diözese von San Cristóbal und dem charismatischen Bischof Samuel Ruiz zusammen. Er war Mitglied der Nationalen Verhandlungskommission CONAI, die die Friedensverhandlungen zwischen Zapatistas und der mexikanischen Regierung moderierte, und berät weiterhin als Mitglied des Aufsichtsrats die chiapanekische Menschenrechtskommission Fray Bartolomé de las Casas und das Gemeindezentrum El Caminante.\nFoto: Pablo Santiago\n\n"
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "15047",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "15141",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "15206",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "15574",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "15696",
+      "url": "",
+      "titelAlt": ""
+    }
+  },
+  {
+    "reason": "URL vacía",
+    "row": {
+      "Beitrags-ID": "15732",
+      "url": "",
+      "titelAlt": ""
+    }
+  }
+]

@@ -179,4 +179,17 @@ model Category {
   articles           Article[]         @relation("ArticleCategories")
 }
 
+model Image {
+  id            Int      @id @default(autoincrement())
+  contentType   String
+  contentId     Int
+  url           String
+  title         String?  @db.VarChar(750)
+  alt           String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Índice opcional para filtrar rápidamente por contentType y contentId
+  @@index([contentType, contentId])
+}
 
