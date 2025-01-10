@@ -1,0 +1,49 @@
+/* Estilos para el título */
+.title {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Estilos para el Grid */
+.articlesList {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  padding: 20px;
+}
+
+/* Paginación */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.paginationButton {
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #0070f3;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.paginationButton:hover {
+  background-color: #005bb5;
+}
+
+.paginationButton.disabled {
+  background-color: #f0f0f0;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.paginationInfo {
+  font-size: 1rem;
+  color: #333;
+}
