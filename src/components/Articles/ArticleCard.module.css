@@ -22,7 +22,7 @@
 }
 
 .articleTitle {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   margin: 0;
   color: #333;
 }
@@ -30,11 +30,11 @@
 .articleSubtitle {
   font-size: 1rem;
   color: #666;
-  margin: 10px 0 0;
+  margin-top: 5px;
 }
 
 .articleCategories {
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .categoryBadge {
@@ -64,21 +64,26 @@
   color: #005bb5;
 }
 
+.badgesContainer {
+  margin-top: 10px;
+}
+
 .regionBadge,
 .topicBadge {
-  display: inline-block; /* Ajusta el ancho al contenido */
-  font-size: 0.875rem; /* Tamaño de texto */
-  font-weight: 500; /* Texto seminegrita */
-  color: white; /* Color del texto */
-  padding: 5px 10px; /* Espaciado interno */
-  border-radius: 12px; /* Bordes redondeados */
-  margin: 5px; /* Separación entre badges */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra */
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 12px;
+  margin: 5px 5px 0 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 .regionBadge {
-  background-color: #d32f2f; /* Fondo rojo para regiones */
+  background-color: #d32f2f; /* Rojo para regiones */
 }
 
 .topicBadge {
-  background-color: #388e3c; /* Fondo verde para topics */
+  background-color: #388e3c; /* Verde para topics */
 }
