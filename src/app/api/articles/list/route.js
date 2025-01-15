@@ -19,6 +19,13 @@ export async function GET(req) {
       include: {
         regions: true, // Incluir regiones relacionadas
         topics: true, // Incluir temas relacionados
+        authors: {
+          // Incluir autores relacionados
+          select: {
+            id: true,
+            name: true, // Asegúrate de seleccionar los campos necesarios
+          },
+        },
       },
     });
 

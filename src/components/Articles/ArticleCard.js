@@ -32,7 +32,12 @@ export default function ArticleCard({ article }) {
             </span>
           ))}
         </div>
-
+        {/* Autores */}
+        {article.authors?.length > 0 && (
+          <p className={styles.articleAuthors}>
+            {`Por: ${article.authors.map((author) => author.name).join(", ")}`}
+          </p>
+        )}
         {/* Temas */}
         <div className={styles.badgesContainer}>
           {article.topics?.map((topic) => (
