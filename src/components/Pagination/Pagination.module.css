@@ -4,6 +4,7 @@
   align-items: center;
   gap: 8px;
   margin-top: 20px;
+  flex-wrap: wrap; /* Para que no se desborde en pantallas pequeñas */
 }
 
 .paginationButton {
@@ -35,4 +36,16 @@
 .paginationEllipsis {
   padding: 8px 12px;
   color: #999;
+}
+
+/* Diseño responsivo */
+@media (max-width: 600px) {
+  .pagination {
+    gap: 4px; /* Reduce el espacio entre botones */
+  }
+
+  .paginationButton {
+    padding: 6px 8px; /* Botones más compactos */
+    font-size: 0.8rem; /* Texto más pequeño */
+  }
 }
