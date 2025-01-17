@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import ArticleCard from "./ArticleCard";
 import styles from "./ArticleList.module.css"; // Importamos los estilos
+import Pagination from "../Pagination/Pagination";
 
 export default function ArticleList() {
   const [articles, setArticles] = useState([]);
@@ -30,18 +31,6 @@ export default function ArticleList() {
     fetchArticles();
   }, [currentPage]);
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
   if (error) {
     return <p className="text-red-500">{error}</p>;
   }
@@ -62,29 +51,11 @@ export default function ArticleList() {
       </div>
 
       {/* Controles de Paginación */}
-      <div className={styles.pagination}>
-        <button
-          onClick={handlePrevPage}
-          disabled={currentPage === 1}
-          className={`${styles.paginationButton} ${
-            currentPage === 1 ? styles.disabled : ""
-          }`}
-        >
-          Anterior
-        </button>
-        <span className={styles.paginationInfo}>
-          Página {currentPage} de {totalPages}
-        </span>
-        <button
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className={`${styles.paginationButton} ${
-            currentPage === totalPages ? styles.disabled : ""
-          }`}
-        >
-          Siguiente
-        </button>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
