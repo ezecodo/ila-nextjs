@@ -1,5 +1,7 @@
 import Image from "next/image";
 import styles from "./ArticleCard.module.css";
+import ImageModal from "../ImageModal/ImageModal";
+import { useState } from "react";
 
 export default function ArticleCard({ article }) {
   const firstImage = article.images?.[0];
@@ -9,18 +11,35 @@ export default function ArticleCard({ article }) {
         month: "long",
       })
     : null;
+  const [isOpen, setIsOpen] = useState(false); // Controla si el modal está abierto
+  const [popupImage, setPopupImage] = useState(null); // Guarda la URL de la imagen seleccionada
+
+  const openPopup = (imageUrl) => {
+    setPopupImage(imageUrl);
+    setIsOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsOpen(false);
+    setPopupImage(null);
+  };
 
   return (
     <div className={styles.articleCard}>
       {/* Imagen */}
       {firstImage && (
-        <Image
-          src={firstImage.url}
-          alt={firstImage.alt || "Imagen del artículo"}
-          width={300}
-          height={200}
-          className={styles.articleImage}
-        />
+        <div
+          className={styles.imageContainer}
+          onClick={() => openPopup(firstImage.url)}
+        >
+          <Image
+            src={firstImage.url}
+            alt={firstImage.alt || "Imagen del artículo"}
+            width={300}
+            height={200}
+            className={styles.articleImage}
+          />
+        </div>
       )}
       {/* Beitragstyp y Fecha */}
       {article.beitragstyp?.name && formattedDate && (
@@ -62,6 +81,14 @@ export default function ArticleCard({ article }) {
           </p>
         )}
       </div>
+      {/* Modal de Imagen */}
+      <ImageModal
+        isOpen={isOpen}
+        imageUrl={popupImage}
+        onClose={closePopup}
+        alt={firstImage?.alt}
+        title={firstImage?.title}
+      />
     </div>
   );
 }

@@ -1,8 +1,14 @@
-import { Dialog } from "@headlessui/react"; // Modal de Headless UI
+import { Dialog } from "@headlessui/react";
 import Image from "next/image";
 import styles from "./ImageModal.module.css";
 
-export default function ImageModal({ isOpen, imageUrl, onClose }) {
+export default function ImageModal({
+  isOpen,
+  imageUrl,
+  onClose,
+  title = "",
+  alt = "",
+}) {
   return (
     <Dialog
       open={isOpen}
@@ -11,14 +17,24 @@ export default function ImageModal({ isOpen, imageUrl, onClose }) {
     >
       <Dialog.Panel className={styles.modalPanel}>
         {imageUrl && (
-          <Image
-            src={imageUrl}
-            alt="Imagen ampliada"
-            width={500} // Tamaño ajustado
-            height={700}
-            objectFit="contain"
-          />
+          <>
+            {/* Imagen */}
+            <Image
+              src={imageUrl}
+              alt={alt}
+              width={500}
+              height={700}
+              objectFit="contain"
+              className={styles.modalImage}
+            />
+            {/* Título y Alt */}
+            <div className={styles.imageCaption}>
+              {title && <h3 className={styles.imageTitle}>{title}</h3>}
+              {alt && <p className={styles.imageAlt}>{alt}</p>}
+            </div>
+          </>
         )}
+        {/* Botón de cierre */}
         <button className={styles.closeButton} onClick={onClose}>
           ✕
         </button>
