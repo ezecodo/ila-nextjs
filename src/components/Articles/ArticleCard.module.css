@@ -10,7 +10,13 @@
 .articleCard:hover {
   transform: translateY(-5px);
 }
-
+.articleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Espaciado opcional */
+  margin-bottom: 0.5rem;
+}
 .articleImage {
   width: 100%;
   height: 200px;
@@ -18,10 +24,12 @@
 }
 
 .articleContent {
-  padding: 15px;
+  padding: 9px;
+  margin-bottom: 2px;
 }
 
 .articleTitle {
+  margin-bottom: 0.25rem;
   font-size: 1.2rem;
   margin: 0;
   color: #333;
@@ -30,7 +38,8 @@
 .articleSubtitle {
   font-size: 1rem;
   color: #666;
-  margin-bottom: 10px;
+  margin-top: 1px;
+  margin-bottom: 5px;
   line-height: 1.3;
   text-align: left;
 }
@@ -95,7 +104,7 @@
   display: inline-block;
   background-color: #f0ad4e; /* Color de fondo para regiones */
   color: #fff; /* Color del texto */
-  font-size: 0.8rem; /* Tamaño de fuente */
+  font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */
   border-radius: 0; /* Sin esquinas redondeadas */
   margin-right: 5px; /* Espaciado entre badges */
@@ -108,7 +117,7 @@
   display: inline-block;
   background-color: #5bc0de; /* Color de fondo para topics */
   color: #fff; /* Color del texto */
-  font-size: 0.8rem; /* Tamaño de fuente */
+  font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */
   border-radius: 0; /* Sin esquinas redondeadas */
   margin-right: 5px; /* Espaciado entre badges */
@@ -127,4 +136,29 @@
   color: #888;
   margin-top: 5px;
   font-style: italic;
+}
+.articleCategory {
+  font-size: 0.9rem;
+  color: #777;
+  font-style: italic;
+}
+
+.articleTypeContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem; /* Ajusta el espacio entre elementos */
+}
+
+.articleMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Espaciado entre elementos */
+  font-size: 0.9rem; /* Tamaño uniforme */
+  color: #555; /* Color uniforme */
+  font-weight: 400; /* Consistencia en el grosor del texto */
+}
+
+.separator {
+  color: #ccc; /* Color neutro para el separador */
+  margin: 0 0.3rem; /* Espaciado alrededor del separador */
 }

@@ -26,6 +26,7 @@ export async function GET(req) {
             name: true, // Asegúrate de seleccionar los campos necesarios
           },
         },
+        categories: true, // Incluir las categorías relacionadas
         beitragstyp: {
           // Incluir el nombre del beitragstyp
           select: {

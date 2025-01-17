@@ -41,8 +41,6 @@ export default function ArticleList() {
 
   return (
     <div>
-      <h1 className={styles.title}>Listado de Artículos</h1>
-
       {/* Listado de Artículos en Grid */}
       <div className={styles.articlesList}>
         {articles.map((article) => (
