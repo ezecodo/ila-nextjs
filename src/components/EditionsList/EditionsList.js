@@ -146,7 +146,7 @@ export default function EditionsList() {
         onClose={closePopup}
         className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
       >
-        <Dialog.Panel className="relative bg-white rounded-lg shadow-lg p-4 max-w-[600px]">
+        <Dialog.Panel className="relative bg-white rounded-lg shadow-lg p-4 max-w-[500px] pt-[-10px]">
           {/* Imagen ampliada */}
           {popupImage && (
             <Image
