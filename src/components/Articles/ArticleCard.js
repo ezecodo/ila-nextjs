@@ -3,6 +3,12 @@ import styles from "./ArticleCard.module.css";
 
 export default function ArticleCard({ article }) {
   const firstImage = article.images?.[0];
+  const formattedDate = article.publicationDate
+    ? new Date(article.publicationDate).toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "long",
+      })
+    : null;
 
   return (
     <div className={styles.articleCard}>
@@ -15,6 +21,14 @@ export default function ArticleCard({ article }) {
           height={200}
           className={styles.articleImage}
         />
+      )}
+      {/* Beitragstyp y Fecha */}
+      {article.beitragstyp?.name && formattedDate && (
+        <div className={styles.articleTypeContainer}>
+          <span className={styles.articleType}>{article.beitragstyp.name}</span>
+          <span className={styles.separator}>|</span>
+          <span className={styles.articleDate}>{formattedDate}</span>
+        </div>
       )}
 
       {/* Contenido */}
@@ -32,12 +46,7 @@ export default function ArticleCard({ article }) {
             </span>
           ))}
         </div>
-        {/* Autores */}
-        {article.authors?.length > 0 && (
-          <p className={styles.articleAuthors}>
-            {`Por: ${article.authors.map((author) => author.name).join(", ")}`}
-          </p>
-        )}
+
         {/* Temas */}
         <div className={styles.badgesContainer}>
           {article.topics?.map((topic) => (
@@ -46,6 +55,12 @@ export default function ArticleCard({ article }) {
             </span>
           ))}
         </div>
+        {/* Autores */}
+        {article.authors?.length > 0 && (
+          <p className={styles.articleAuthors}>
+            {`Por: ${article.authors.map((author) => author.name).join(", ")}`}
+          </p>
+        )}
       </div>
     </div>
   );

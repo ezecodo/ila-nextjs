@@ -26,6 +26,13 @@ export async function GET(req) {
             name: true, // Asegúrate de seleccionar los campos necesarios
           },
         },
+        beitragstyp: {
+          // Incluir el nombre del beitragstyp
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
