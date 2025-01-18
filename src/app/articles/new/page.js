@@ -11,7 +11,13 @@ import Modal from "../../components/Modal";
 import styles from "../../styles/global.module.css";
 import CheckboxField from "../../components/CheckboxField";
 import AsyncSelect from "react-select/async";
-import QuillEditor from "@/components/QuillEditor/QuillEditor";
+import dynamic from "next/dynamic";
+const QuillEditor = dynamic(
+  () => import("@/components/QuillEditor/QuillEditor"),
+  {
+    ssr: false,
+  }
+);
 
 export default function NewArticlePage() {
   const [title, setTitle] = useState("");

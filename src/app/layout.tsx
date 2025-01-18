@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css"; // Estilos de Font Awesome
-import Header from "@/components/Header"; // Encabezado
-import Footer from "@/components/Footer"; // Pie de página
-import SearchBar from "@/components/SearchBar"; // Barra de búsqueda
+
+// Importa los componentes que no requieran "use client"
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import SearchBar from "@/components/SearchBar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -24,14 +26,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Estructura que tenías en ClientLayout, 
+            sin la lógica de animación ni LoadingScreen */}
         <Header />
         <SearchBar />
         <main>{children}</main>
