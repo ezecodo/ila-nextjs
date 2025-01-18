@@ -1,12 +1,12 @@
 /* Header.module.css */
 
 /* General styles for the header */
-
 .header {
   display: flex;
   flex-direction: column; /* Apilamos logo/tagline, menú y botones */
   align-items: center;
-  padding: 1rem;
+  /* Reducir padding vertical para acortar la altura */
+  padding: 0.5rem 1rem;
   background-color: #f8f8f8;
   border-bottom: 1px solid #ddd;
   position: sticky;
@@ -55,7 +55,8 @@
 
 /* Navigation styles */
 .nav {
-  margin-top: 1rem; /* Añade espacio entre el logo y el menú */
+  /* Reducir margen superior para compactar el header */
+  margin-top: 0.1rem;
   display: flex;
   align-items: center; /* Centra verticalmente */
   justify-content: space-between;
@@ -114,6 +115,8 @@
   .header {
     flex-direction: column;
     align-items: center;
+    /* Reducir padding en móvil también */
+    padding: 0.5rem 1rem;
   }
   .headerTop {
     flex-direction: row;
@@ -150,6 +153,8 @@
     align-items: center;
     gap: 1rem;
     width: 100%;
+    /* Reducir margen superior en móvil */
+    margin-top: 0.5rem;
   }
 
   .nav.active {

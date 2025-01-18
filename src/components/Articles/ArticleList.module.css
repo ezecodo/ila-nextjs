@@ -10,8 +10,18 @@
 .articlesList {
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* Por defecto, una sola columna en móviles */
+  grid-template-columns: 1fr;
+  /* Padding para separar contenido de los bordes */
   padding: 20px;
+}
+
+/* A partir de 640px, aplicamos múltiples columnas */
+@media (min-width: 640px) {
+  .articlesList {
+    /* Usar 300px como mínimo para cada columna en pantallas más anchas */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
 }
 
 /* Paginación */

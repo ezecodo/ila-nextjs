@@ -4,27 +4,26 @@ import ArticleList from "../components/Articles/ArticleList";
 
 export default function Home() {
   return (
-    <div className="flex flex-col md:flex-row max-w-full mx-0 px-0 gap-0">
-      {/* Bloque de la izquierda */}
-      <aside className="hidden md:block bg-gray-100 p-4 rounded-lg shadow w-1/6">
-        <h2 className="text-lg font-bold">Bloque Izquierdo</h2>
-        <p>Contenido pendiente por definir.</p>
-      </aside>
+    // Contenedor centrado con Tailwind
+    <div className="container mx-auto px-4 py-6">
+      {/* 
+        grid-cols-1 --> 1 columna en pantallas pequeñas (< md)
+        md:grid-cols-12 --> a partir de md (768px), 12 columnas
+        gap-4 --> espacio entre columnas
+      */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        {/* Columna principal */}
+        <main className="col-span-1 md:col-span-9 bg-white p-4 rounded shadow">
+          <ArticleList />
+          <EditionsList />
+        </main>
 
-      {/* Bloque central */}
-      <main className="w-full md:w-4/6 flex-grow">
-        {/* Componente EditionsList */}
-        <ArticleList />
-        <EditionsList />
-
-        {/* Componente ArticleList */}
-      </main>
-
-      {/* Bloque de la derecha */}
-      <aside className="hidden md:block bg-gray-100 p-4 rounded-lg shadow w-1/6">
-        <h2 className="text-lg font-bold">Bloque Derecho</h2>
-        <p>Contenido pendiente por definir.</p>
-      </aside>
+        {/* Sidebar derecha, oculta en móvil */}
+        <aside className="hidden md:block col-span-3 bg-gray-50 p-4 rounded shadow">
+          <h2 className="text-lg font-bold mb-2">Sidebar Derecha</h2>
+          <p className="text-sm">Contenido de prueba en la barra lateral.</p>
+        </aside>
+      </div>
     </div>
   );
 }

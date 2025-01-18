@@ -144,7 +144,7 @@ export default function EditionsList() {
       <Dialog
         open={isOpen}
         onClose={closePopup}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+        className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-70"
       >
         <Dialog.Panel className="relative bg-white rounded-lg shadow-lg p-4 max-w-[500px] pt-[-2px]">
           {/* Imagen ampliada */}
