@@ -12,6 +12,9 @@
   width: 100%;
   height: auto;
   border-radius: 8px;
+  max-width: 100%; /* No permite que la imagen se expanda más allá del ancho del contenedor */
+  max-height: 80vh; /* La altura máxima será el 80% de la altura de la ventana */
+  object-fit: contain; /* Asegura que la imagen se ajuste dentro del espacio sin distorsionarse */
 }
 
 .imageCaption {

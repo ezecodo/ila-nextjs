@@ -13,7 +13,7 @@ export default function ImageModal({
     <Dialog
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70"
+      className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-70"
     >
       <Dialog.Panel className={styles.modalPanel}>
         {imageUrl && (
