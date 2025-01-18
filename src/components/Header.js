@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FaUser, FaUserPlus } from "react-icons/fa"; // Íconos
 import styles from "./Header.module.css";
+import SearchBar from "@/components/SearchBar";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -73,6 +74,7 @@ const Header = () => {
             <Link href="/contact">Contacto</Link>
           </li>
         </ul>
+        <SearchBar />
       </nav>
     </header>
   );

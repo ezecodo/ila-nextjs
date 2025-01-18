@@ -57,8 +57,9 @@
 .nav {
   margin-top: 1rem; /* Añade espacio entre el logo y el menú */
   display: flex;
-  justify-content: center;
-  width: 100%;
+  align-items: center; /* Centra verticalmente */
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .nav.active {

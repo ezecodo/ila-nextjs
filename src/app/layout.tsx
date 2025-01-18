@@ -6,7 +6,6 @@ import "@fortawesome/fontawesome-free/css/all.min.css"; // Estilos de Font Aweso
 // Importa los componentes que no requieran "use client"
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import SearchBar from "@/components/SearchBar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -37,7 +36,7 @@ export default function RootLayout({
         {/* Estructura que tenías en ClientLayout, 
             sin la lógica de animación ni LoadingScreen */}
         <Header />
-        <SearchBar />
+
         <main>{children}</main>
         <Footer />
       </body>
