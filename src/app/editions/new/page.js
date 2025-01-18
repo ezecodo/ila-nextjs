@@ -10,7 +10,11 @@ import FormMessage from "../../components/FormMessage";
 import AsyncSelect from "react-select/async"; // Importamos AsyncSelect
 import "react-datepicker/dist/react-datepicker.css"; // Estilos de react-datepicker
 import styles from "../../styles/global.module.css";
-import QuillEditor from "../../../components/QuillEditor/QuillEditor";
+
+const QuillEditor = dynamic(
+  () => import("../../../components/QuillEditor/QuillEditor"),
+  { ssr: false }
+);
 
 // Importación dinámica del DatePicker
 const DatePicker = dynamic(
