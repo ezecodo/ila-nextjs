@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image"; // Para manejar imágenes de Next.js
 
 export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"
@@ -32,18 +33,18 @@ export default function ArticlePage() {
     return content.split("\n").map((line, index) => {
       const trimmedLine = line.trim();
 
-      // Detectar encabezados de sección dinámicamente (ejemplo: líneas en mayúsculas)
+      // Detectar encabezados de sección dinámicamente
       if (/^[A-ZÄÖÜß]+[A-ZÄÖÜß\s\-]*$/.test(trimmedLine)) {
         return (
           <h3
             key={index}
             style={{
-              fontSize: "2rem", // Tamaño grande
+              fontSize: "2rem",
               fontWeight: "bold",
-              color: "#D32F2F", // Color predominante
+              color: "#D32F2F",
               textTransform: "uppercase",
-              margin: "2rem 0 1rem", // Espaciado amplio antes y después
-              borderBottom: "2px solid #D32F2F", // Subrayado con línea roja
+              margin: "2rem 0 1rem",
+              borderBottom: "2px solid #D32F2F",
               paddingBottom: "0.5rem",
             }}
           >
@@ -52,15 +53,15 @@ export default function ArticlePage() {
         );
       }
 
-      // Renderizar párrafos normales con mayor espacio entre ellos
+      // Renderizar párrafos normales
       return (
         <p
           key={index}
           style={{
             fontSize: "1rem",
             color: "#555",
-            margin: "1rem 0", // Mayor espacio entre párrafos
-            lineHeight: "1.8", // Mejora la separación entre líneas
+            margin: "1rem 0",
+            lineHeight: "1.8",
           }}
         >
           {trimmedLine}
@@ -89,6 +90,23 @@ export default function ArticlePage() {
         <h2 className="text-xl text-gray-600 italic mb-6 text-center">
           {article.subtitle}
         </h2>
+      )}
+
+      {/* Imágenes del Artículo */}
+      {article.images?.length > 0 && (
+        <div className="flex justify-center mb-6">
+          {article.images.map((image) => (
+            <div key={image.id} className="relative w-full max-w-md h-64">
+              <Image
+                src={image.url}
+                alt={image.alt || "Imagen del artículo"}
+                layout="fill"
+                objectFit="contain"
+                className="rounded-lg shadow-md"
+              />
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Autor(es) */}

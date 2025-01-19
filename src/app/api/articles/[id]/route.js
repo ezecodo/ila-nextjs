@@ -13,6 +13,7 @@ export async function GET(req, { params }) {
       });
     }
 
+    // Obtener el artículo con todos los campos necesarios
     const article = await prisma.article.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -48,10 +49,25 @@ export async function GET(req, { params }) {
       });
     }
 
-    return new Response(JSON.stringify(article), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    // Obtener imágenes relacionadas del artículo
+    const images = await prisma.image.findMany({
+      where: {
+        contentType: "ARTICLE", // Verifica que sea del tipo artículo
+        contentId: article.beitragsId, // Relación con el campo beitragsId
+      },
     });
+
+    // Incluir imágenes en la respuesta
+    return new Response(
+      JSON.stringify({
+        ...article,
+        images, // Añadir imágenes al objeto del artículo
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Error en GET /api/articles/[id]:", error);
     return new Response(
