@@ -2,6 +2,7 @@ import Image from "next/image";
 import styles from "./ArticleCard.module.css";
 import ImageModal from "../ImageModal/ImageModal";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function ArticleCard({ article }) {
   const firstImage = article.images?.[0];
@@ -44,18 +45,20 @@ export default function ArticleCard({ article }) {
 
       {/* Contenido */}
       <div className={styles.articleContent}>
-        <div className={styles.titleGroup}>
-          {/* Contenedor para título y fecha en la misma línea */}
-          <div className={styles.articleHeader}>
-            <h2 className={styles.articleTitle}>{article.title}</h2>
-            {formattedDate && (
-              <span className={styles.articleDate}>{formattedDate}</span>
+        <Link href={`/articles/${article.id}`} className={styles.titleGroup}>
+          <div>
+            {/* Contenedor para título y fecha en la misma línea */}
+            <div className={styles.articleHeader}>
+              <h2 className={styles.articleTitle}>{article.title}</h2>
+              {formattedDate && (
+                <span className={styles.articleDate}>{formattedDate}</span>
+              )}
+            </div>
+            {article.subtitle && (
+              <h3 className={styles.articleSubtitle}>{article.subtitle}</h3>
             )}
           </div>
-          {article.subtitle && (
-            <h3 className={styles.articleSubtitle}>{article.subtitle}</h3>
-          )}
-        </div>
+        </Link>
 
         {/* Regiones */}
         <div className={styles.badgesContainer}>
