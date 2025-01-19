@@ -44,16 +44,18 @@ export default function ArticleCard({ article }) {
 
       {/* Contenido */}
       <div className={styles.articleContent}>
-        {/* Contenedor para título y fecha en la misma línea */}
-        <div className={styles.articleHeader}>
-          <h2 className={styles.articleTitle}>{article.title}</h2>
-          {formattedDate && (
-            <span className={styles.articleDate}>{formattedDate}</span>
+        <div className={styles.titleGroup}>
+          {/* Contenedor para título y fecha en la misma línea */}
+          <div className={styles.articleHeader}>
+            <h2 className={styles.articleTitle}>{article.title}</h2>
+            {formattedDate && (
+              <span className={styles.articleDate}>{formattedDate}</span>
+            )}
+          </div>
+          {article.subtitle && (
+            <h3 className={styles.articleSubtitle}>{article.subtitle}</h3>
           )}
         </div>
-        {article.subtitle && (
-          <h3 className={styles.articleSubtitle}>{article.subtitle}</h3>
-        )}
 
         {/* Regiones */}
         <div className={styles.badgesContainer}>
