@@ -83,6 +83,31 @@
 .badgesContainer {
   margin-bottom: 1px; /* Reduce el margen entre secciones */
 }
+.regionBadge {
+  display: inline-block;
+  background-color: #f0ad4e; /* Color de fondo para regiones */
+  color: #fff; /* Color del texto */
+  font-size: 0.7rem; /* Tamaño de fuente */
+  padding: 4px 8px; /* Espaciado interno */
+  border-radius: 0; /* Sin esquinas redondeadas */
+  margin-right: 5px; /* Espaciado entre badges */
+  margin-bottom: 5px; /* Espaciado inferior */
+  text-transform: uppercase; /* Opcional: texto en mayúsculas */
+  font-weight: bold; /* Opcional: texto en negrita */
+}
+
+.topicBadge {
+  display: inline-block;
+  background-color: #5bc0de; /* Color de fondo para topics */
+  color: #fff; /* Color del texto */
+  font-size: 0.7rem; /* Tamaño de fuente */
+  padding: 4px 8px; /* Espaciado interno */
+  border-radius: 0; /* Sin esquinas redondeadas */
+  margin-right: 5px; /* Espaciado entre badges */
+  margin-bottom: 5px; /* Espaciado inferior */
+  text-transform: uppercase; /* Opcional: texto en mayúsculas */
+  font-weight: bold; /* Opcional: texto en negrita */
+}
 .articleType {
   margin-left: 5px;
   font-weight: bold;

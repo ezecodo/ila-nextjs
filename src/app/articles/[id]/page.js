@@ -130,14 +130,13 @@ export default function ArticlePage() {
       {article.regions?.length > 0 && (
         <div className="mt-6">
           <h3 className="text-lg font-bold text-gray-800 mb-2">Regiones:</h3>
-          {article.regions.map((region) => (
-            <span
-              key={region.id}
-              className="bg-red-500 text-white px-2 py-1 rounded-full text-sm mr-2"
-            >
-              {region.name}
-            </span>
-          ))}
+          <div className="badgesContainer">
+            {article.regions.map((region) => (
+              <span key={region.id} className="regionBadge">
+                {region.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
@@ -145,14 +144,13 @@ export default function ArticlePage() {
       {article.topics?.length > 0 && (
         <div className="mt-6">
           <h3 className="text-lg font-bold text-gray-800 mb-2">Temas:</h3>
-          {article.topics.map((topic) => (
-            <span
-              key={topic.id}
-              className="bg-green-500 text-white px-2 py-1 rounded-full text-sm mr-2"
-            >
-              {topic.name}
-            </span>
-          ))}
+          <div className="badgesContainer">
+            {article.topics.map((topic) => (
+              <span key={topic.id} className="topicBadge">
+                {topic.name}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
