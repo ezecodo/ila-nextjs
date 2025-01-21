@@ -105,24 +105,30 @@ export default function EditionsList() {
             </p>
 
             {/* Mostrar las regiones */}
-            <p
-              className="text-left text-sm font-medium text-white bg-red-500 px-4 py-2 rounded-none shadow-md max-w-xs"
-              style={{ backgroundColor: "#D32F2F" }}
-            >
-              {edition.regions.length > 0
-                ? `${edition.regions.map((region) => region.name).join(", ")}`
-                : "Sin regiones asociadas"}
-            </p>
+            <div className="badgesContainer">
+              {edition.regions.length > 0 ? (
+                edition.regions.map((region) => (
+                  <span key={region.id} className="regionBadge">
+                    {region.name}
+                  </span>
+                ))
+              ) : (
+                <span className="regionBadge">Sin regiones asociadas</span>
+              )}
+            </div>
 
             {/* Mostrar los temas */}
-            {edition.topics.length > 0 && (
-              <p
-                className="text-left text-sm font-medium text-white bg-green-500 px-4 py-2 rounded-none shadow-md max-w-xs"
-                style={{ backgroundColor: "#388E3C" }}
-              >
-                {edition.topics.map((topic) => topic.name).join(", ")}
-              </p>
-            )}
+            <div className="badgesContainer">
+              {edition.topics.length > 0 ? (
+                edition.topics.map((topic) => (
+                  <span key={topic.id} className="topicBadge">
+                    {topic.name}
+                  </span>
+                ))
+              ) : (
+                <span className="topicBadge">Sin temas asociados</span>
+              )}
+            </div>
 
             {/* Mostrar texto truncado */}
             <p className="text-gray-700">

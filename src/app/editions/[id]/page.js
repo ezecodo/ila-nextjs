@@ -61,26 +61,29 @@ export default function EditionDetails() {
             className=""
           />
 
-          {/* Regiones y Temas */}
-          <div className="flex flex-col items-start mt-2">
-            {/* Regiones */}
-            {edition.regions.length > 0 && (
-              <p
-                className="text-sm font-medium text-white bg-red-500 px-2 py-1 shadow-md"
-                style={{ backgroundColor: "#D32F2F" }}
-              >
-                {edition.regions.map((region) => region.name).join(", ")}
-              </p>
+          {/* Mostrar las regiones */}
+          <div className="badgesContainer">
+            {edition.regions.length > 0 ? (
+              edition.regions.map((region) => (
+                <span key={region.id} className="regionBadge">
+                  {region.name}
+                </span>
+              ))
+            ) : (
+              <span className="regionBadge">Sin regiones asociadas</span>
             )}
+          </div>
 
-            {/* Temas */}
-            {edition.topics.length > 0 && (
-              <p
-                className="text-sm font-medium text-white bg-green-500 px-2 py-1 shadow-md"
-                style={{ backgroundColor: "#388E3C" }}
-              >
-                {edition.topics.map((topic) => topic.name).join(", ")}
-              </p>
+          {/* Mostrar los temas */}
+          <div className="badgesContainer">
+            {edition.topics.length > 0 ? (
+              edition.topics.map((topic) => (
+                <span key={topic.id} className="topicBadge">
+                  {topic.name}
+                </span>
+              ))
+            ) : (
+              <span className="topicBadge">Sin temas asociados</span>
             )}
           </div>
           {/* Botón del carrito solo si la edición es bestellbar */}
