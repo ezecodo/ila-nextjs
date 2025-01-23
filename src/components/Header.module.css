@@ -30,7 +30,6 @@
 }
 
 .logo {
-  border-radius: 50%; /* Hace el logo perfectamente redondo */
   overflow: hidden; /* Recorta cualquier contenido fuera del contenedor circular */
   width: 50px; /* Tamaño fijo para el ancho */
   height: 50px; /* Tamaño fijo para el alto */

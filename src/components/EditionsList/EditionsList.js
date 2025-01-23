@@ -88,7 +88,7 @@ export default function EditionsList() {
                 {/* Ícono del carrito */}
                 {edition.isAvailableToOrder && (
                   <div className="absolute top-2 right-2 z-10">
-                    <i className="fa fa-shopping-cart text-white text-xl bg-red-600 p-1 rounded-full shadow-lg transition-all duration-200 ease-in-out hover:bg-red-800 hover:scale-110"></i>
+                    <i className="fa fa-shopping-cart text-white text-xl bg-red-600 p-1  shadow-lg transition-all duration-200 ease-in-out hover:bg-red-800 hover:scale-110"></i>
                   </div>
                 )}
               </div>
@@ -166,7 +166,7 @@ export default function EditionsList() {
           )}
           {/* Botón de cierre */}
           <button
-            className="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-800 text-xl font-bold rounded-full w-8 h-8 flex items-center justify-center shadow-lg"
+            className="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-800 text-xl font-bold  w-8 h-8 flex items-center justify-center shadow-lg"
             onClick={closePopup}
           >
             ✕

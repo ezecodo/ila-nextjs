@@ -49,7 +49,7 @@ export default function ArticleCard({ article }) {
           <div>
             {/* Contenedor para título y fecha en la misma línea */}
             <div className={styles.articleHeader}>
-              <h2 className={styles.articleTitle}>{article.title}</h2>
+              <h2 className="text-lg font-bold mt-4 mb-2">{article.title}</h2>
               {formattedDate && (
                 <span className={styles.articleDate}>{formattedDate}</span>
               )}

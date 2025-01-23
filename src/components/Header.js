@@ -31,7 +31,10 @@ const Header = () => {
               className={styles.logo}
             />
           </a>
-          <span className={styles.tagline}>Das Lateinamerika-Magazin</span>
+
+          <span className="text-lg font-bold mt-4 mb-2">
+            Das Lateinamerika-Magazin
+          </span>
         </div>
 
         {/* Botones de autenticación */}
