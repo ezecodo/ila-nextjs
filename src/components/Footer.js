@@ -16,7 +16,7 @@ const Footer = () => (
           className={styles.logo}
         />
       </div>
-      <p className={styles.text}>© 2024 ILA - Das Lateinamerika-Magazin</p>
+      <p className={styles.text}>© 2025 ILA - Das Lateinamerika-Magazin</p>
       <ul className={styles.socials}>
         <li>
           <Link
