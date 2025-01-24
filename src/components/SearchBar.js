@@ -1,3 +1,6 @@
+// SearchBar.jsx
+
+import { FaSearch } from "react-icons/fa"; // Importa el ícono de búsqueda
 import styles from "./SearchBar.module.css";
 
 const SearchBar = () => (
@@ -6,8 +9,11 @@ const SearchBar = () => (
       type="text"
       placeholder="Buscar en ILA..."
       className={styles.searchInput}
+      aria-label="Buscar en ILA" // Mejora la accesibilidad
     />
-    <button className={styles.searchButton}>Buscar</button>
+    <button className={styles.searchButton} aria-label="Buscar">
+      <FaSearch /> {/* Inserta el ícono de búsqueda */}
+    </button>
   </div>
 );
 

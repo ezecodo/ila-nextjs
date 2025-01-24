@@ -1,3 +1,5 @@
+/* SearchBar.module.css */
+
 .searchContainer {
   display: flex;
   justify-content: center;
@@ -20,15 +22,24 @@
 
 .searchButton {
   padding: 0.5rem 1rem;
-  font-size: 1rem;
-  background-color: #333;
+  font-size: 1rem; /* Puedes ajustar este valor si el ícono se ve muy grande o pequeño */
+  background-color: #910e0e;
   color: #fff;
   border: none;
   cursor: pointer;
   border-radius: 5px;
   margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .searchButton:hover {
-  background-color: #555;
+  background-color: #b71c1c;
+}
+
+/* Opcional: Ajusta el tamaño del ícono */
+.searchButton svg {
+  width: 1em;
+  height: 1em;
 }
