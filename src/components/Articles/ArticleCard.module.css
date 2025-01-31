@@ -1,4 +1,7 @@
+/* Estilos generales para la tarjeta */
 .articleCard {
+  display: flex;
+  flex-direction: column; /* En móviles, imagen arriba y contenido abajo */
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #fff;
@@ -7,32 +10,82 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.articleCard:hover {
-  transform: translateY(-5px);
+/* En pantallas grandes (PC), poner imagen a la izquierda y contenido a la derecha */
+@media (min-width: 1024px) {
+  .articleCard {
+    flex-direction: row; /* Imagen a la izquierda en PC */
+    align-items: stretch; /* Asegurar que ambos lados ocupen todo el alto */
+  }
 }
+.metadataContainer {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los elementos se ajusten si hay muchos */
+  gap: 8px; /* Espacio entre regiones y temas */
+  margin-bottom: 5px; /* Espacio antes del título */
+  align-items: center;
+  margin-bottom: 1px;
+}
+/* Contenedor de la imagen */
+.imageContainer {
+  width: 100%;
+  height: 150px;
+  cursor: pointer;
+  margin-top: 18px;
+}
+
+@media (min-width: 1024px) {
+  .imageContainer {
+    width: 30%; /* En PC, la imagen ocupa el 40% del ancho */
+    height: 100%; /* Permite que la imagen se ajuste */
+  }
+}
+
+/* Imagen normal (horizontal) */
+.articleImage {
+  width: 100%;
+  height: 100%;
+  max-height: 200px; /* Limita la altura máxima de imágenes normales */
+  object-fit: cover;
+}
+
+/* Imagen especial para portadas de libros */
+.bookCover {
+  width: 100%;
+  height: 100%;
+  max-height: 150px; /* Limita más las imágenes verticales */
+  object-fit: contain; /* Asegura que no se corte y se vea completa */
+}
+
+/* Contenedor del contenido del artículo */
+.articleContent {
+  padding: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .articleContent {
+    width: 70%; /* En PC, el contenido ocupa el 70% del ancho */
+    height: 100%; /* Asegura que tenga la misma altura que la imagen */
+  }
+}
+
+/* Estilos para el título y la fecha */
 .articleHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* Espaciado opcional */
-  margin-bottom: 0.5rem;
-}
-.articleImage {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-}
-
-.articleContent {
-  padding: 9px;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .articleTitle {
-  margin-bottom: 0.25rem;
+  margin-top: 0; /* Quitamos espacio superior */
+  margin-bottom: 4px; /* Reducimos espacio debajo del título */
   font-size: 1.2rem;
-  margin: 0;
   color: #333;
+  margin: 0;
 }
 
 .articleSubtitle {
@@ -43,12 +96,14 @@
   line-height: 1.3;
   text-align: left;
 }
+
 .titleGroup:hover .articleTitle,
 .titleGroup:hover .articleSubtitle {
   text-decoration: underline;
   cursor: pointer;
 }
 
+/* Categorías */
 .articleCategories {
   margin-top: 6px;
 }
@@ -62,12 +117,15 @@
   font-size: 0.9rem;
   margin-right: 5px;
 }
+
+/* Texto de vista previa */
 .previewText {
   font-size: 1rem;
   color: #555;
   margin-top: 10px;
 }
 
+/* Leer más */
 .readMore {
   color: #0070f3;
   text-decoration: underline;
@@ -80,115 +138,75 @@
   color: #005bb5;
 }
 
+/* Regiones y temas */
 .badgesContainer {
-  margin-bottom: 1px; /* Reduce el margen entre secciones */
+  margin-bottom: 1px;
 }
+
 .regionBadge {
   display: inline-block;
-  background-color: #f0ad4e; /* Color de fondo para regiones */
-  color: #fff; /* Color del texto */
-  font-size: 0.7rem; /* Tamaño de fuente */
-  padding: 4px 8px; /* Espaciado interno */
-  border-radius: 0; /* Sin esquinas redondeadas */
-  margin-right: 5px; /* Espaciado entre badges */
-  margin-bottom: 5px; /* Espaciado inferior */
-  text-transform: uppercase; /* Opcional: texto en mayúsculas */
-  font-weight: bold; /* Opcional: texto en negrita */
+  background-color: #f0ad4e;
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 3px 6px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
 }
 
 .topicBadge {
   display: inline-block;
-  background-color: #5bc0de; /* Color de fondo para topics */
-  color: #fff; /* Color del texto */
-  font-size: 0.7rem; /* Tamaño de fuente */
-  padding: 4px 8px; /* Espaciado interno */
-  border-radius: 0; /* Sin esquinas redondeadas */
-  margin-right: 5px; /* Espaciado entre badges */
-  margin-bottom: 5px; /* Espaciado inferior */
-  text-transform: uppercase; /* Opcional: texto en mayúsculas */
-  font-weight: bold; /* Opcional: texto en negrita */
+  background-color: #5bc0de;
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 3px 6px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
 }
+
+/* Metadatos (tipo, fecha, categorías) */
 .articleType {
   margin-left: 5px;
   font-weight: bold;
   color: #222;
 }
+
 .articleTypeContainer {
   display: flex;
   align-items: center;
-  gap: 8px; /* Espaciado entre tipo y fecha */
+  gap: 8px;
   font-size: 0.9rem;
   color: #555;
   margin-bottom: 10px;
 }
+
 .articleDate {
   font-size: 0.9rem;
   color: #888;
   font-style: italic;
-}
-.separator {
-  color: #ddd;
-  margin: 0 5px;
-}
-.regionBadge {
-  display: inline-block;
-  background-color: #f0ad4e; /* Color de fondo para regiones */
-  color: #fff; /* Color del texto */
-  font-size: 0.7rem; /* Tamaño de fuente */
-  padding: 4px 8px; /* Espaciado interno */
-  border-radius: 0; /* Sin esquinas redondeadas */
-  margin-right: 5px; /* Espaciado entre badges */
-  margin-bottom: 5px; /* Espaciado inferior */
-  text-transform: uppercase; /* Opcional: texto en mayúsculas */
-  font-weight: bold; /* Opcional: texto en negrita */
-}
-
-.topicBadge {
-  display: inline-block;
-  background-color: #5bc0de; /* Color de fondo para topics */
-  color: #fff; /* Color del texto */
-  font-size: 0.7rem; /* Tamaño de fuente */
-  padding: 4px 8px; /* Espaciado interno */
-  border-radius: 0; /* Sin esquinas redondeadas */
-  margin-right: 5px; /* Espaciado entre badges */
-  margin-bottom: 5px; /* Espaciado inferior */
-  text-transform: uppercase; /* Opcional: texto en mayúsculas */
-  font-weight: bold; /* Opcional: texto en negrita */
-}
-.articleAuthors {
-  font-size: 0.9rem;
-  color: #555;
-  font-style: italic;
-  margin-top: 10px;
-}
-.articleDate {
-  font-size: 0.9rem;
-  color: #888;
-  margin-top: 5px;
-  font-style: italic;
-}
-.articleCategory {
-  font-size: 0.9rem;
-  color: #777;
-  font-style: italic;
-}
-
-.articleTypeContainer {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem; /* Ajusta el espacio entre elementos */
 }
 
 .articleMeta {
   display: flex;
   align-items: center;
-  gap: 0.5rem; /* Espaciado entre elementos */
-  font-size: 0.9rem; /* Tamaño uniforme */
-  color: #555; /* Color uniforme */
-  font-weight: 400; /* Consistencia en el grosor del texto */
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 400;
 }
 
 .separator {
-  color: #ccc; /* Color neutro para el separador */
-  margin: 0 0.3rem; /* Espaciado alrededor del separador */
+  color: #ccc;
+  margin: 0 0.3rem;
+}
+
+/* Autores */
+.articleAuthors {
+  font-size: 0.9rem;
+  color: #555;
+  font-style: italic;
+  margin-top: 10px;
 }

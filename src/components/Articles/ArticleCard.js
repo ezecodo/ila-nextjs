@@ -6,6 +6,7 @@ import Link from "next/link";
 
 export default function ArticleCard({ article }) {
   const firstImage = article.images?.[0];
+  const isBookCover = firstImage && firstImage.height > firstImage.width;
   const formattedDate = article.publicationDate
     ? new Date(article.publicationDate).toLocaleDateString("es-ES", {
         year: "numeric",
@@ -38,7 +39,7 @@ export default function ArticleCard({ article }) {
             alt={firstImage.alt || "Imagen del artículo"}
             width={300}
             height={200}
-            className={styles.articleImage}
+            className={isBookCover ? styles.bookCover : styles.articleImage} // Aplica estilo según la proporción
           />
         </div>
       )}
@@ -47,36 +48,30 @@ export default function ArticleCard({ article }) {
       <div className={styles.articleContent}>
         <Link href={`/articles/${article.id}`} className={styles.titleGroup}>
           <div>
-            {/* Contenedor para título y fecha en la misma línea */}
-            <div className={styles.articleHeader}>
-              <h2 className="text-lg font-bold mt-4 mb-2">{article.title}</h2>
+            <div className={styles.metadataContainer}>
+              {article.regions?.map((region) => (
+                <span key={region.id} className={styles.regionBadge}>
+                  {region.name}
+                </span>
+              ))}
+              {article.topics?.map((topic) => (
+                <span key={topic.id} className={styles.topicBadge}>
+                  {topic.name}
+                </span>
+              ))}
               {formattedDate && (
                 <span className={styles.articleDate}>{formattedDate}</span>
               )}
+            </div>
+            {/* Contenedor para título y fecha en la misma línea */}
+            <div className={styles.articleHeader}>
+              <h2 className="text-lg font-bold mt-2 mb-2">{article.title}</h2>
             </div>
             {article.subtitle && (
               <h3 className={styles.articleSubtitle}>{article.subtitle}</h3>
             )}
           </div>
         </Link>
-
-        {/* Regiones */}
-        <div className={styles.badgesContainer}>
-          {article.regions?.map((region) => (
-            <span key={region.id} className={styles.regionBadge}>
-              {region.name}
-            </span>
-          ))}
-        </div>
-
-        {/* Temas */}
-        <div className={styles.badgesContainer}>
-          {article.topics?.map((topic) => (
-            <span key={topic.id} className={styles.topicBadge}>
-              {topic.name}
-            </span>
-          ))}
-        </div>
 
         {/* Beitragstyp, Categorías */}
         {article.beitragstyp?.name && (

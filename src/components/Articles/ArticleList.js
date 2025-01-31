@@ -15,7 +15,7 @@ export default function ArticleList() {
     async function fetchArticles() {
       try {
         const response = await fetch(
-          `/api/articles/list?page=${currentPage}&limit=10`
+          `/api/articles/list?page=${currentPage}&limit=3`
         );
         if (!response.ok) {
           throw new Error("Error al cargar los artículos");
