@@ -12,16 +12,28 @@ export default function ArticlePage() {
 
   // Estado y funciones para el modal de imagen
   const [isOpen, setIsOpen] = useState(false);
-  const [popupImage, setPopupImage] = useState(null);
+  const [popupImage, setPopupImage] = useState({
+    url: null,
+    alt: "",
+    title: "",
+  });
 
-  const openPopup = (imageUrl) => {
-    setPopupImage(imageUrl);
+  const openPopup = (image) => {
+    setPopupImage({
+      url: image.url,
+      alt: image.alt || "Imagen del artículo",
+      title: image.title || "Vista previa de la imagen",
+    });
     setIsOpen(true);
   };
 
   const closePopup = () => {
     setIsOpen(false);
-    setPopupImage(null);
+    setPopupImage({
+      url: null,
+      alt: "",
+      title: "",
+    });
   };
 
   useEffect(() => {
@@ -114,7 +126,7 @@ export default function ArticlePage() {
             <div
               key={image.id}
               className="relative w-full max-w-md h-64 cursor-pointer"
-              onClick={() => openPopup(image.url)}
+              onClick={() => openPopup(image)}
             >
               <Image
                 src={image.url}
@@ -130,6 +142,13 @@ export default function ArticlePage() {
 
       {/* Contenedor general para todas las etiquetas */}
       <div className="flex flex-wrap items-center gap-2 mt-4 mb-6">
+        {/* Categorías */}
+        {article.categories?.length > 0 &&
+          article.categories.map((category) => (
+            <span key={category.id} className="categoryBadge">
+              {category.name}
+            </span>
+          ))}
         {/* Regiones */}
         {article.regions?.length > 0 &&
           article.regions.map((region) => (
@@ -143,14 +162,6 @@ export default function ArticlePage() {
           article.topics.map((topic) => (
             <span key={topic.id} className="topicBadge">
               {topic.name}
-            </span>
-          ))}
-
-        {/* Categorías */}
-        {article.categories?.length > 0 &&
-          article.categories.map((category) => (
-            <span key={category.id} className="categoryBadge">
-              {category.name}
             </span>
           ))}
       </div>
@@ -171,13 +182,13 @@ export default function ArticlePage() {
       {/* Contenido */}
       <div className="text-gray-700">{renderContent(article.content)}</div>
 
-      {/* Modal de Imagen */}
+      {/* Modal de Imagen con alt y title correctos */}
       <ImageModal
         isOpen={isOpen}
-        imageUrl={popupImage}
+        imageUrl={popupImage.url}
         onClose={closePopup}
-        alt={popupImage ? "Imagen ampliada" : ""}
-        title={popupImage ? "Vista previa de la imagen" : ""}
+        alt={popupImage.alt}
+        title={popupImage.title}
       />
     </div>
   );
