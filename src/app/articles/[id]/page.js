@@ -2,12 +2,27 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image"; // Para manejar imágenes de Next.js
+import Image from "next/image";
+import ImageModal from "@/components/ImageModal/ImageModal";
 
 export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
+
+  // Estado y funciones para el modal de imagen
+  const [isOpen, setIsOpen] = useState(false);
+  const [popupImage, setPopupImage] = useState(null);
+
+  const openPopup = (imageUrl) => {
+    setPopupImage(imageUrl);
+    setIsOpen(true);
+  };
+
+  const closePopup = () => {
+    setIsOpen(false);
+    setPopupImage(null);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -92,22 +107,27 @@ export default function ArticlePage() {
         </h2>
       )}
 
-      {/* Imágenes del Artículo */}
+      {/* Imágenes del Artículo con Modal */}
       {article.images?.length > 0 && (
         <div className="flex justify-center mb-6">
           {article.images.map((image) => (
-            <div key={image.id} className="relative w-full max-w-md h-64">
+            <div
+              key={image.id}
+              className="relative w-full max-w-md h-64 cursor-pointer"
+              onClick={() => openPopup(image.url)}
+            >
               <Image
                 src={image.url}
                 alt={image.alt || "Imagen del artículo"}
                 layout="fill"
                 objectFit="contain"
-                className="rounded-lg "
+                className="rounded-lg"
               />
             </div>
           ))}
         </div>
       )}
+
       {/* Contenedor general para todas las etiquetas */}
       <div className="flex flex-wrap items-center gap-2 mt-4 mb-6">
         {/* Regiones */}
@@ -141,9 +161,24 @@ export default function ArticlePage() {
           Publicado en la edición: <strong>{article.edition.title}</strong>
         </p>
       )}
+      {/* Autor(es) */}
+      {article.authors?.length > 0 && (
+        <span className="text-gray-700">
+          Por: {article.authors.map((author) => author.name).join(", ")}
+        </span>
+      )}
 
       {/* Contenido */}
       <div className="text-gray-700">{renderContent(article.content)}</div>
+
+      {/* Modal de Imagen */}
+      <ImageModal
+        isOpen={isOpen}
+        imageUrl={popupImage}
+        onClose={closePopup}
+        alt={popupImage ? "Imagen ampliada" : ""}
+        title={popupImage ? "Vista previa de la imagen" : ""}
+      />
     </div>
   );
 }
