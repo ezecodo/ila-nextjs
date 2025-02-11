@@ -102,19 +102,38 @@ export default function ArticlePage() {
                 alt={image.alt || "Imagen del artículo"}
                 layout="fill"
                 objectFit="contain"
-                className="rounded-lg shadow-md"
+                className="rounded-lg "
               />
             </div>
           ))}
         </div>
       )}
+      {/* Contenedor general para todas las etiquetas */}
+      <div className="flex flex-wrap items-center gap-2 mt-4 mb-6">
+        {/* Regiones */}
+        {article.regions?.length > 0 &&
+          article.regions.map((region) => (
+            <span key={region.id} className="regionBadge">
+              {region.name}
+            </span>
+          ))}
 
-      {/* Autor(es) */}
-      {article.authors?.length > 0 && (
-        <p className="text-gray-700 mb-4">
-          Por: {article.authors.map((author) => author.name).join(", ")}
-        </p>
-      )}
+        {/* Temas */}
+        {article.topics?.length > 0 &&
+          article.topics.map((topic) => (
+            <span key={topic.id} className="topicBadge">
+              {topic.name}
+            </span>
+          ))}
+
+        {/* Categorías */}
+        {article.categories?.length > 0 &&
+          article.categories.map((category) => (
+            <span key={category.id} className="categoryBadge">
+              {category.name}
+            </span>
+          ))}
+      </div>
 
       {/* Edición */}
       {article.edition && (
@@ -125,49 +144,6 @@ export default function ArticlePage() {
 
       {/* Contenido */}
       <div className="text-gray-700">{renderContent(article.content)}</div>
-
-      {/* Regiones */}
-      {article.regions?.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Regiones:</h3>
-          <div className="badgesContainer">
-            {article.regions.map((region) => (
-              <span key={region.id} className="regionBadge">
-                {region.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Temas */}
-      {article.topics?.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Temas:</h3>
-          <div className="badgesContainer">
-            {article.topics.map((topic) => (
-              <span key={topic.id} className="topicBadge">
-                {topic.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Categorías */}
-      {article.categories?.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-2">Categorías:</h3>
-          {article.categories.map((category) => (
-            <span
-              key={category.id}
-              className="bg-blue-500 text-white px-2 py-1 rounded-full text-sm mr-2"
-            >
-              {category.name}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
