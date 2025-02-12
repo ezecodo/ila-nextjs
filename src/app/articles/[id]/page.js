@@ -173,8 +173,9 @@ export default function ArticlePage() {
           <Link
             href={`/editions/${article.edition.id}`}
             className="text-blue-600 hover:underline font-bold"
+            style={{ fontFamily: "Futura, sans-serif" }}
           >
-            ILA {article.edition.number} - {article.edition.title}
+            ila {article.edition.number} - {article.edition.title}
           </Link>
         </p>
       ) : (
