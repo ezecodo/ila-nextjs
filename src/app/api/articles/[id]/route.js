@@ -32,6 +32,7 @@ export async function GET(req, context) {
             id: true, // ✅ Aseguramos que el ID de edición está incluido
             number: true,
             title: true,
+            coverImage: true,
           },
         },
         authors: {

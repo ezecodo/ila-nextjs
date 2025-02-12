@@ -10,6 +10,9 @@ export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
+  // Estado para la imagen de la edición en hover
+  const [hoveredEdition, setHoveredEdition] = useState(null);
+  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   // Estado y funciones para el modal de imagen
   const [isOpen, setIsOpen] = useState(false);
@@ -169,11 +172,18 @@ export default function ArticlePage() {
 
       {/* Edición con LINK a la página de la edición */}
       {article.edition && article.edition.id ? (
-        <p className="text-gray-500 mb-4">
+        <p className="text-gray-500 mb-4 relative">
           <Link
             href={`/editions/${article.edition.id}`}
-            className="text-blue-600 hover:underline font-bold"
-            style={{ fontFamily: "Futura, sans-serif" }}
+            className="text-blue-600 hover:underline font-bold futura-text"
+            onMouseEnter={(e) => {
+              setHoveredEdition(article.edition.coverImage);
+              setHoverPosition({ x: e.clientX, y: e.clientY });
+            }}
+            onMouseMove={(e) => {
+              setHoverPosition({ x: e.clientX, y: e.clientY });
+            }}
+            onMouseLeave={() => setHoveredEdition(null)}
           >
             ila {article.edition.number} - {article.edition.title}
           </Link>
@@ -181,6 +191,7 @@ export default function ArticlePage() {
       ) : (
         <p className="text-gray-500 mb-4">Edición no disponible</p>
       )}
+
       {/* Autor(es) */}
       {article.authors?.length > 0 && (
         <span className="text-gray-700">
@@ -199,6 +210,26 @@ export default function ArticlePage() {
         alt={popupImage.alt}
         title={popupImage.title}
       />
+      {/* Imagen flotante al hacer hover sobre la edición */}
+      {hoveredEdition && (
+        <div
+          className="fixed p-2 bg-white shadow-lg border rounded-lg z-50"
+          style={{
+            left: `${hoverPosition.x + 10}px`,
+            top: `${hoverPosition.y + 10}px`,
+            width: "300px", // Aumentamos el tamaño de la caja
+            height: "auto",
+          }}
+        >
+          <Image
+            src={hoveredEdition}
+            alt="Portada de la edición"
+            width={300} // Aumentamos la imagen
+            height={350} // Ajustamos la altura proporcionalmente
+            className="rounded-lg"
+          />
+        </div>
+      )}
     </div>
   );
 }
