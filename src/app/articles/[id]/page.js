@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import ImageModal from "@/components/ImageModal/ImageModal";
+import Link from "next/link";
 
 export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"
@@ -166,11 +167,18 @@ export default function ArticlePage() {
           ))}
       </div>
 
-      {/* Edición */}
-      {article.edition && (
+      {/* Edición con LINK a la página de la edición */}
+      {article.edition && article.edition.id ? (
         <p className="text-gray-500 mb-4">
-          Publicado en la edición: <strong>{article.edition.title}</strong>
+          <Link
+            href={`/editions/${article.edition.id}`}
+            className="text-blue-600 hover:underline font-bold"
+          >
+            ILA {article.edition.number} - {article.edition.title}
+          </Link>
         </p>
+      ) : (
+        <p className="text-gray-500 mb-4">Edición no disponible</p>
       )}
       {/* Autor(es) */}
       {article.authors?.length > 0 && (

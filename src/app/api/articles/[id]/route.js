@@ -2,8 +2,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(req, { params }) {
-  const { id } = params;
+export async function GET(req, context) {
+  const params = await context.params; // ✅ Usa await aquí
+  const id = params?.id; // ✅ Acceder de forma segura al ID
+
+  if (!id) {
+    return new Response(JSON.stringify({ error: "ID no proporcionado" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   try {
     if (isNaN(parseInt(id))) {
@@ -21,6 +29,7 @@ export async function GET(req, { params }) {
         beitragssubtyp: true,
         edition: {
           select: {
+            id: true, // ✅ Aseguramos que el ID de edición está incluido
             number: true,
             title: true,
           },
@@ -52,8 +61,8 @@ export async function GET(req, { params }) {
     // Obtener imágenes relacionadas del artículo
     const images = await prisma.image.findMany({
       where: {
-        contentType: "ARTICLE", // Verifica que sea del tipo artículo
-        contentId: article.beitragsId, // Relación con el campo beitragsId
+        contentType: "ARTICLE",
+        contentId: article.beitragsId,
       },
     });
 
@@ -61,7 +70,7 @@ export async function GET(req, { params }) {
     return new Response(
       JSON.stringify({
         ...article,
-        images, // Añadir imágenes al objeto del artículo
+        images,
       }),
       {
         status: 200,

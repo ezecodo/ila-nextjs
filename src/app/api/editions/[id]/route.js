@@ -4,19 +4,18 @@ const prisma = new PrismaClient();
 
 export async function GET(req, context) {
   try {
-    // Extraer params de forma segura
-    const { params } = context;
-
-    // Validar la existencia del parámetro id
+    // ✅ Usa `await` para obtener `params` correctamente
+    const params = await context.params;
     const editionId = params?.id ? parseInt(params.id, 10) : null;
 
     if (!editionId || isNaN(editionId)) {
       return new Response(JSON.stringify({ error: "ID inválido o faltante" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Buscar la edición en la base de datos
+    // ✅ Buscar la edición en la base de datos
     const edition = await prisma.edition.findUnique({
       where: { id: editionId },
       include: {
@@ -25,23 +24,22 @@ export async function GET(req, context) {
       },
     });
 
-    // Si no se encuentra la edición
     if (!edition) {
       return new Response(JSON.stringify({ error: "Edición no encontrada" }), {
         status: 404,
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Respuesta exitosa
     return new Response(JSON.stringify(edition), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error en la ruta dinámica:", error);
+    console.error("Error en GET /api/editions/[id]:", error);
     return new Response(
       JSON.stringify({ error: "Error interno del servidor" }),
-      { status: 500 }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
