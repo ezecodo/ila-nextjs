@@ -194,11 +194,21 @@ export default function ArticlePage() {
 
       {/* Autor(es) */}
       {article.authors?.length > 0 && (
-        <span className="text-gray-700">
-          Por: {article.authors.map((author) => author.name).join(", ")}
-        </span>
+        <p className="text-gray-700">
+          Por:{" "}
+          {article.authors.map((author, index) => (
+            <span key={author.id}>
+              <Link
+                href={`/authors/${author.id}`}
+                className="text-blue-600 hover:underline"
+              >
+                {author.name}
+              </Link>
+              {index < article.authors.length - 1 && ", "}
+            </span>
+          ))}
+        </p>
       )}
-
       {/* Contenido */}
       <div className="text-gray-700">{renderContent(article.content)}</div>
 
@@ -216,7 +226,7 @@ export default function ArticlePage() {
           className="fixed p-2 bg-white shadow-lg border rounded-lg z-50"
           style={{
             left: `${hoverPosition.x + 10}px`,
-            top: `${hoverPosition.y + 10}px`,
+            top: `${hoverPosition.y - 260}px`,
             width: "300px", // Aumentamos el tamaño de la caja
             height: "auto",
           }}
