@@ -9,6 +9,7 @@ export default function AuthorPage() {
   const [author, setAuthor] = useState(null);
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // 🔥 Nuevo estado
 
   useEffect(() => {
     if (!id) return;
@@ -23,6 +24,8 @@ export default function AuthorPage() {
         setArticles(data.articles);
       } catch (err) {
         setError(err.message);
+      } finally {
+        setIsLoading(false); // 🔥 Importante: cuando termina la carga, actualizamos
       }
     }
 
@@ -37,8 +40,10 @@ export default function AuthorPage() {
       {/* Nombre del autor */}
       <h1 className="text-3xl font-bold text-gray-800 mb-4">{author.name}</h1>
 
-      {/* Lista de artículos */}
-      {articles.length > 0 ? (
+      {/* Mostrar "Cargando..." mientras se trae la data */}
+      {isLoading ? (
+        <p className="text-gray-500">Cargando artículos...</p>
+      ) : articles.length > 0 ? (
         <div className="grid gap-6">
           {articles.map((article) => (
             <ArticleCard key={article.id} article={article} />

@@ -2,11 +2,10 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(request, context) {
+export async function GET(request, { params }) {
   try {
-    // ✅ Acceder a los parámetros de forma correcta (sin `await`)
-    const { params } = context ?? {}; // ✅ Aseguramos que `context` existe
-    if (!params || !params.id) {
+    // Verifica si `params` está definido y si tiene un `id`
+    if (!params?.id) {
       console.error("❌ Error: ID del autor no recibido");
       return new Response(
         JSON.stringify({ error: "Se requiere el ID del autor" }),
@@ -14,7 +13,7 @@ export async function GET(request, context) {
       );
     }
 
-    // Convertimos ID a número
+    // Convierte el ID a número
     const authorId = parseInt(params.id, 10);
     if (isNaN(authorId)) {
       console.error("❌ Error: ID inválido", params.id);
@@ -26,25 +25,28 @@ export async function GET(request, context) {
 
     console.log(`✅ Buscando autor con ID: ${authorId}`);
 
-    // Buscar al autor y sus artículos
+    // Busca el autor en la base de datos
     const author = await prisma.author.findUnique({
       where: { id: authorId },
       include: {
         articles: {
           orderBy: { publicationDate: "desc" },
           select: {
-            // ✅ Usamos `select`, no `include`
             id: true,
             title: true,
             subtitle: true,
             publicationDate: true,
-            articleImage: true, // ✅ Campo normal, no relación
+            articleImage: true,
             edition: { select: { id: true, number: true, title: true } },
+            topics: { select: { id: true, name: true } },
+            regions: { select: { id: true, name: true } },
+            categories: { select: { id: true, name: true } },
           },
         },
       },
     });
 
+    // Si no se encuentra el autor, devuelve un error 404
     if (!author) {
       console.warn(`⚠️ Autor con ID ${authorId} no encontrado`);
       return new Response(JSON.stringify({ error: "Autor no encontrado" }), {
@@ -55,7 +57,7 @@ export async function GET(request, context) {
 
     console.log(`✅ Autor encontrado: ${author.name}`);
 
-    // Estructurar la respuesta segura
+    // Prepara la respuesta
     const responseData = {
       author: {
         id: author.id,
@@ -74,16 +76,19 @@ export async function GET(request, context) {
               title: article.edition.title || "Edición sin título",
             }
           : null,
+        topics: article.topics,
+        regions: article.regions,
+        categories: article.categories,
       })),
     };
 
+    // Devuelve la respuesta exitosa
     return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("❌ Error en la API de autores:", error.message);
-
     return new Response(
       JSON.stringify({
         error: "Error interno del servidor",

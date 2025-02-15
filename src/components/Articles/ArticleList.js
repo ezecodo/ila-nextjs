@@ -2,24 +2,27 @@
 
 import { useState, useEffect } from "react";
 import ArticleCard from "./ArticleCard";
-import styles from "./ArticleList.module.css"; // Importamos los estilos
+import styles from "./ArticleList.module.css";
 import Pagination from "../Pagination/Pagination";
 
-export default function ArticleList() {
-  const [articles, setArticles] = useState([]);
+export default function ArticleList({ articlesProp = null, authorId = null }) {
+  const [articles, setArticles] = useState(articlesProp || []);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (articlesProp) return; // Si recibe artículos como prop, no hace fetch
+
     async function fetchArticles() {
       try {
-        const response = await fetch(
-          `/api/articles/list?page=${currentPage}&limit=3`
-        );
-        if (!response.ok) {
-          throw new Error("Error al cargar los artículos");
-        }
+        const url = authorId
+          ? `/api/authors/${authorId}?page=${currentPage}&limit=3`
+          : `/api/articles/list?page=${currentPage}&limit=3`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Error al cargar los artículos");
+
         const data = await response.json();
         setArticles(data.articles);
         setTotalPages(data.totalPages);
@@ -29,7 +32,7 @@ export default function ArticleList() {
     }
 
     fetchArticles();
-  }, [currentPage]);
+  }, [currentPage, authorId, articlesProp]);
 
   if (error) {
     return <p className="text-red-500">{error}</p>;
@@ -41,14 +44,12 @@ export default function ArticleList() {
 
   return (
     <div>
-      {/* Listado de Artículos en Grid */}
       <div className={styles.articlesList}>
         {articles.map((article) => (
           <ArticleCard key={article.id} article={article} />
         ))}
       </div>
 
-      {/* Controles de Paginación */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
