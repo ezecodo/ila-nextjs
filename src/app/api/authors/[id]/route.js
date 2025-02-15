@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 export async function GET(request, { params }) {
   try {
-    // Verifica si `params` está definido y si tiene un `id`
+    // ✅ Acceder correctamente al ID del autor
     if (!params?.id) {
       console.error("❌ Error: ID del autor no recibido");
       return new Response(
@@ -13,7 +13,6 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Convierte el ID a número
     const authorId = parseInt(params.id, 10);
     if (isNaN(authorId)) {
       console.error("❌ Error: ID inválido", params.id);
@@ -25,7 +24,7 @@ export async function GET(request, { params }) {
 
     console.log(`✅ Buscando autor con ID: ${authorId}`);
 
-    // Busca el autor en la base de datos
+    // 🔥 Obtener autor con artículos SIN imágenes todavía
     const author = await prisma.author.findUnique({
       where: { id: authorId },
       include: {
@@ -36,7 +35,7 @@ export async function GET(request, { params }) {
             title: true,
             subtitle: true,
             publicationDate: true,
-            articleImage: true,
+            beitragsId: true, // Clave para buscar imágenes
             edition: { select: { id: true, number: true, title: true } },
             topics: { select: { id: true, name: true } },
             regions: { select: { id: true, name: true } },
@@ -46,7 +45,6 @@ export async function GET(request, { params }) {
       },
     });
 
-    // Si no se encuentra el autor, devuelve un error 404
     if (!author) {
       console.warn(`⚠️ Autor con ID ${authorId} no encontrado`);
       return new Response(JSON.stringify({ error: "Autor no encontrado" }), {
@@ -57,32 +55,34 @@ export async function GET(request, { params }) {
 
     console.log(`✅ Autor encontrado: ${author.name}`);
 
-    // Prepara la respuesta
+    // 🔥 Obtener imágenes de cada artículo basado en `beitragsId`
+    const articlesWithImages = await Promise.all(
+      author.articles.map(async (article) => {
+        const images = await prisma.image.findMany({
+          where: {
+            contentType: "ARTICLE", // Filtra imágenes que pertenecen a artículos
+            contentId: article.beitragsId, // Filtra por el ID del artículo en la tabla `image`
+          },
+          select: { url: true }, // Solo obtenemos la URL de la imagen
+          take: 1, // Solo la primera imagen
+        });
+
+        return {
+          ...article,
+          images, // Agregamos el array de imágenes
+        };
+      })
+    );
+
+    // 🔥 Construcción de la respuesta con imágenes
     const responseData = {
       author: {
         id: author.id,
         name: author.name || "Autor desconocido",
       },
-      articles: author.articles.map((article) => ({
-        id: article.id,
-        title: article.title || "Artículo sin título",
-        subtitle: article.subtitle || null,
-        publicationDate: article.publicationDate || null,
-        coverImage: article.articleImage?.url || null,
-        edition: article.edition
-          ? {
-              id: article.edition.id,
-              number: article.edition.number,
-              title: article.edition.title || "Edición sin título",
-            }
-          : null,
-        topics: article.topics,
-        regions: article.regions,
-        categories: article.categories,
-      })),
+      articles: articlesWithImages,
     };
 
-    // Devuelve la respuesta exitosa
     return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { "Content-Type": "application/json" },
