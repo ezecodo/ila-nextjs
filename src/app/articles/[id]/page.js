@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import ImageModal from "@/components/ImageModal/ImageModal";
 import Link from "next/link";
+import HoverInfo from "@/components/HoverInfo/HoverInfo";
 
 export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"
@@ -12,7 +13,7 @@ export default function ArticlePage() {
   const [error, setError] = useState(null);
   // Estado para la imagen de la edición en hover
   const [hoveredEdition, setHoveredEdition] = useState(null);
-  const [hoveredAuthor, setHoveredAuthor] = useState(null);
+
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   // Estado y funciones para el modal de imagen
@@ -147,27 +148,36 @@ export default function ArticlePage() {
 
       {/* Contenedor general para todas las etiquetas */}
       <div className="flex flex-wrap items-center gap-2 mt-4 mb-6">
-        {/* Categorías */}
         {article.categories?.length > 0 &&
           article.categories.map((category) => (
-            <span key={category.id} className="categoryBadge">
-              {category.name}
-            </span>
+            <HoverInfo
+              key={category.id}
+              id={category.id}
+              name={category.name}
+              entityType="categories"
+              className="categoryBadge"
+            />
           ))}
-        {/* Regiones */}
         {article.regions?.length > 0 &&
           article.regions.map((region) => (
-            <span key={region.id} className="regionBadge">
-              {region.name}
-            </span>
+            <HoverInfo
+              key={region.id}
+              id={region.id}
+              name={region.name}
+              entityType="regions"
+              className="regionBadge"
+            />
           ))}
 
-        {/* Temas */}
         {article.topics?.length > 0 &&
           article.topics.map((topic) => (
-            <span key={topic.id} className="topicBadge">
-              {topic.name}
-            </span>
+            <HoverInfo
+              key={topic.id}
+              id={topic.id}
+              name={topic.name}
+              entityType="topics"
+              className="topicBadge"
+            />
           ))}
       </div>
 
@@ -193,54 +203,26 @@ export default function ArticlePage() {
         <p className="text-gray-500 mb-4">Edición no disponible</p>
       )}
 
-      {/* Autor(es) con Hover para mostrar cantidad de artículos */}
+      {/* Autor(es) con HoverInfo reutilizable */}
       {article.authors?.length > 0 && (
-        <p className="text-gray-700">
-          Por:{" "}
-          {article.authors.map((author, index) => (
-            <span
+        <div className="text-gray-700 flex items-center gap-1">
+          <span>Por:</span>
+          {article.authors.map((author) => (
+            <HoverInfo
               key={author.id}
-              className="relative inline-block"
-              onMouseEnter={(e) =>
-                setHoveredAuthor({
-                  id: author.id,
-                  name: author.name,
-                  articleCount: author._count?.articles || 0,
-                  x: e.clientX,
-                  y: e.clientY,
-                })
+              id={author.id}
+              name={
+                <Link
+                  href={`/authors/${author.id}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  {author.name}
+                </Link>
               }
-              onMouseMove={(e) =>
-                setHoveredAuthor((prev) => ({
-                  ...prev,
-                  x: e.clientX,
-                  y: e.clientY,
-                }))
-              }
-              onMouseLeave={() => setHoveredAuthor(null)}
-            >
-              <Link
-                href={`/authors/${author.id}`}
-                className="text-blue-600 hover:underline"
-              >
-                {author.name}
-              </Link>
-              {index < article.authors.length - 1 && ", "}
-            </span>
+              entityType="authors"
+              className="text-blue-600 hover:underline"
+            />
           ))}
-        </p>
-      )}
-      {/* Tooltip para mostrar cantidad de artículos en hover */}
-      {hoveredAuthor && (
-        <div
-          className="fixed bg-black text-white text-xs rounded px-2 py-1"
-          style={{
-            left: `${hoveredAuthor.x + 10}px`,
-            top: `${hoveredAuthor.y - 30}px`,
-            zIndex: 50,
-          }}
-        >
-          {hoveredAuthor.articleCount} artículos escritos
         </div>
       )}
       {/* Contenido */}

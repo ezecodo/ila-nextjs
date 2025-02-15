@@ -191,3 +191,20 @@ body {
   text-transform: uppercase; /* Opcional: texto en mayúsculas */
   font-weight: bold; /* Opcional: texto en negrita */
 }
+
+.articleCountBadge {
+  position: absolute;
+  display: inline-block;
+  background-color: #d13120; /* Color de fondo */
+  color: #fff; /* Color del texto */
+  font-size: 0.7rem; /* Tamaño de fuente */
+  padding: 4px 8px; /* Espaciado interno */
+  border-radius: 0; /* Sin esquinas redondeadas */
+  margin-right: 5px; /* Espaciado entre badges */
+  margin-bottom: 5px; /* Espaciado inferior */
+  text-transform: uppercase; /* Texto en mayúsculas */
+  font-weight: bold; /* Texto en negrita */
+  white-space: nowrap; /* Para que el texto no se divida en varias líneas */
+  z-index: 50;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+}
