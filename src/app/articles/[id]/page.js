@@ -181,24 +181,44 @@ export default function ArticlePage() {
           ))}
       </div>
 
-      {/* Edición con LINK a la página de la edición */}
+      {/* Edición con HoverInfo y LINK a la página de la edición */}
       {article.edition && article.edition.id ? (
-        <p className="text-gray-500 mb-4 relative">
-          <Link
-            href={`/editions/${article.edition.id}`}
-            className="text-blue-600 hover:underline font-bold futura-text"
-            onMouseEnter={(e) => {
-              setHoveredEdition(article.edition.coverImage);
-              setHoverPosition({ x: e.clientX, y: e.clientY });
-            }}
-            onMouseMove={(e) => {
-              setHoverPosition({ x: e.clientX, y: e.clientY });
-            }}
-            onMouseLeave={() => setHoveredEdition(null)}
-          >
-            ila {article.edition.number} - {article.edition.title}
-          </Link>
-        </p>
+        <div className="text-gray-500 mb-4 relative flex items-center gap-2">
+          <HoverInfo
+            id={article.edition.id}
+            name={
+              <Link
+                href={`/editions/${article.edition.id}`}
+                className="flex items-center gap-2 no-underline hover:no-underline"
+                style={{ color: "#000" }} // 🔥 Color negro para el título
+                onMouseEnter={(e) => {
+                  setHoveredEdition(article.edition.coverImage);
+                  setHoverPosition({ x: e.clientX, y: e.clientY });
+                }}
+                onMouseMove={(e) => {
+                  setHoverPosition({ x: e.clientX, y: e.clientY });
+                }}
+                onMouseLeave={() => setHoveredEdition(null)}
+              >
+                <span
+                  style={{
+                    fontFamily: "Futura, sans-serif",
+                    textTransform: "lowercase",
+                    fontSize: "1.2em",
+                    color: "#d13120", // 🔥 Color rojo para "ila 478"
+                  }}
+                >
+                  ila {article.edition.number}
+                </span>
+                <span style={{ fontWeight: "bold", color: "#000" }}>
+                  {article.edition.title}
+                </span>
+              </Link>
+            }
+            entityType="editions"
+            className="text-lg font-bold"
+          />
+        </div>
       ) : (
         <p className="text-gray-500 mb-4">Edición no disponible</p>
       )}
