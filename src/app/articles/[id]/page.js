@@ -12,6 +12,7 @@ export default function ArticlePage() {
   const [error, setError] = useState(null);
   // Estado para la imagen de la edición en hover
   const [hoveredEdition, setHoveredEdition] = useState(null);
+  const [hoveredAuthor, setHoveredAuthor] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   // Estado y funciones para el modal de imagen
@@ -192,12 +193,32 @@ export default function ArticlePage() {
         <p className="text-gray-500 mb-4">Edición no disponible</p>
       )}
 
-      {/* Autor(es) */}
+      {/* Autor(es) con Hover para mostrar cantidad de artículos */}
       {article.authors?.length > 0 && (
         <p className="text-gray-700">
           Por:{" "}
           {article.authors.map((author, index) => (
-            <span key={author.id}>
+            <span
+              key={author.id}
+              className="relative inline-block"
+              onMouseEnter={(e) =>
+                setHoveredAuthor({
+                  id: author.id,
+                  name: author.name,
+                  articleCount: author._count?.articles || 0,
+                  x: e.clientX,
+                  y: e.clientY,
+                })
+              }
+              onMouseMove={(e) =>
+                setHoveredAuthor((prev) => ({
+                  ...prev,
+                  x: e.clientX,
+                  y: e.clientY,
+                }))
+              }
+              onMouseLeave={() => setHoveredAuthor(null)}
+            >
               <Link
                 href={`/authors/${author.id}`}
                 className="text-blue-600 hover:underline"
@@ -208,6 +229,19 @@ export default function ArticlePage() {
             </span>
           ))}
         </p>
+      )}
+      {/* Tooltip para mostrar cantidad de artículos en hover */}
+      {hoveredAuthor && (
+        <div
+          className="fixed bg-black text-white text-xs rounded px-2 py-1"
+          style={{
+            left: `${hoveredAuthor.x + 10}px`,
+            top: `${hoveredAuthor.y - 30}px`,
+            zIndex: 50,
+          }}
+        >
+          {hoveredAuthor.articleCount} artículos escritos
+        </div>
       )}
       {/* Contenido */}
       <div className="text-gray-700">{renderContent(article.content)}</div>

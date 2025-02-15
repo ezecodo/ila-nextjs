@@ -39,6 +39,7 @@ export async function GET(req, context) {
           select: {
             id: true,
             name: true,
+            _count: { select: { articles: true } },
           },
         },
         categories: {
