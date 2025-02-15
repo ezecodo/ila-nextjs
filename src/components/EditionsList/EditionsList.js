@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react"; // Para el modal
 import Image from "next/image";
 import Link from "next/link";
+import HoverInfo from "../HoverInfo/HoverInfo";
 
 export default function EditionsList() {
   const [editions, setEditions] = useState([]);
@@ -93,16 +94,27 @@ export default function EditionsList() {
                 )}
               </div>
             </div>
-
-            {/* Título y datos adicionales */}
-            <p className="ila-edition">{`ila ${edition.number}`}</p>
-            <h2 className="text-lg font-bold mt-4 mb-2">{edition.title}</h2>
-            <p className="text-sm text-gray-500 mb-1">
-              {new Date(edition.datePublished).toLocaleDateString("es-ES", {
-                year: "numeric",
-                month: "long",
-              })}
-            </p>
+            {/* Número de edición + Título con HoverInfo */}
+            <HoverInfo
+              id={edition.id}
+              name={
+                <h2 className="text-lg font-bold mt-4 mb-2 flex items-center gap-2">
+                  <span
+                    style={{
+                      fontFamily: "Futura, sans-serif",
+                      textTransform: "lowercase",
+                      fontSize: "1.2em",
+                      color: "#d13120", // 🔥 Color rojo
+                    }}
+                  >
+                    ila {edition.number}
+                  </span>
+                  {edition.title}
+                </h2>
+              }
+              entityType="editions"
+              className="text-lg font-bold mt-4 mb-2"
+            />
 
             {/* Mostrar las regiones */}
             <div className="badgesContainer">

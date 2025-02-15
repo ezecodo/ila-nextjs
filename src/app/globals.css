@@ -58,6 +58,10 @@
   font-style: normal;
 }
 
+.cursor-glasses {
+  cursor: url("/icons/glasses.cur"), auto;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

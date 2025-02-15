@@ -36,6 +36,7 @@ export default function HoverInfo({ id, name, entityType, className }) {
       regions: "#f0ad4e", // Amarillo para regiones
       topics: "#5bc0de", // Azul para topics
       categories: "#d13120", // Rojo para categorías
+      editions: "#d13120", // 🔥 Rojo para ediciones (NUEVO)
     }[entityType] || "#333";
 
   return (
@@ -65,22 +66,36 @@ export default function HoverInfo({ id, name, entityType, className }) {
         >
           {count !== null ? (
             entityType === "authors" ? (
-              <span
-                style={{ display: "flex", alignItems: "center", gap: "4px" }}
-              >
-                {count} Artículos en
+              <>
+                {count} artículos en{" "}
                 <span
                   style={{
                     fontFamily: "Futura, sans-serif",
                     textTransform: "lowercase",
-                    fontSize: "1.2rem", // 🔥 Aumentamos un poco sin desbalancear
-                    fontWeight: "bold",
-                    lineHeight: "1", // 🔥 Evita que se vea desalineado
+                    fontSize: "1.2em",
                   }}
                 >
                   ila
                 </span>
-              </span>
+              </>
+            ) : entityType === "editions" ? (
+              <>
+                {count} Artículos Online{" "}
+                <span
+                  style={{
+                    fontFamily: "Futura, sans-serif",
+                    textTransform: "lowercase",
+                    fontSize: "1.2em",
+                    fontWeight: "bold",
+                  }}
+                ></span>{" "}
+                <span
+                  style={{
+                    fontSize: "1.4em", // 🔥 El número de edición es más grande
+                    fontWeight: "bold",
+                  }}
+                ></span>
+              </>
             ) : (
               `${count} artículos`
             )

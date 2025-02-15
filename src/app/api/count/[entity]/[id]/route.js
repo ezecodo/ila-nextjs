@@ -39,6 +39,13 @@ export async function GET(req, { params }) {
           },
         });
         break;
+      case "editions":
+        count = await prisma.article.count({
+          where: {
+            editionId: parsedId,
+          },
+        });
+        break;
 
       case "regions":
         count = await prisma.article.count({
