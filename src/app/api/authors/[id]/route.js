@@ -2,10 +2,11 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(request, { params }) {
+export async function GET(request, context) {
   try {
-    // ✅ Acceder correctamente al ID del autor
-    if (!params?.id) {
+    // ✅ Extraer `params` de `context` y asegurar que existen
+    const params = await context?.params;
+    if (!params || !params.id) {
       console.error("❌ Error: ID del autor no recibido");
       return new Response(
         JSON.stringify({ error: "Se requiere el ID del autor" }),
@@ -60,16 +61,16 @@ export async function GET(request, { params }) {
       author.articles.map(async (article) => {
         const images = await prisma.image.findMany({
           where: {
-            contentType: "ARTICLE", // Filtra imágenes que pertenecen a artículos
-            contentId: article.beitragsId, // Filtra por el ID del artículo en la tabla `image`
+            contentType: "ARTICLE",
+            contentId: article.beitragsId,
           },
-          select: { url: true }, // Solo obtenemos la URL de la imagen
-          take: 1, // Solo la primera imagen
+          select: { url: true },
+          take: 1,
         });
 
         return {
           ...article,
-          images, // Agregamos el array de imágenes
+          images, // Agregamos las imágenes al artículo
         };
       })
     );
