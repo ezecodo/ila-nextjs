@@ -67,12 +67,13 @@ export default function HoverInfo({ id, name, entityType, className }) {
           {count !== null ? (
             entityType === "authors" ? (
               <>
-                {count} artículos en{" "}
+                {count} {count === 1 ? "artículo" : "artículos"} en{" "}
                 <span
                   style={{
                     fontFamily: "Futura, sans-serif",
                     textTransform: "lowercase",
                     fontSize: "1.2em",
+                    marginLeft: "4px", // 🔥 Agrega espacio entre "en" e "ila"
                   }}
                 >
                   ila
