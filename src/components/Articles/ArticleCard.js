@@ -3,6 +3,7 @@ import ImageModal from "../ImageModal/ImageModal";
 import { useState } from "react";
 import Link from "next/link";
 import HoverInfo from "@/components/HoverInfo/HoverInfo";
+import EntityBadges from "../../components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
 
 export default function ArticleCard({ article }) {
   const firstImage = article.images?.[0];
@@ -30,8 +31,6 @@ export default function ArticleCard({ article }) {
       {/* 🔥 COLUMNA IZQUIERDA: Imagen */}
       <div className="leftColumn w-full lg:w-1/3 p-3 flex flex-col items-center">
         {/* 🔥 Imagen */}
-        {/* 🔥 Imagen */}
-        {/* 🔥 Imagen */}
         {firstImage && (
           <div
             className="imageContainer"
@@ -52,53 +51,21 @@ export default function ArticleCard({ article }) {
 
       {/* 🔥 COLUMNA DERECHA: Badges + Contenido */}
       <div className="rightColumn w-full lg:w-2/3 p-4 flex flex-col justify-start">
-        {/* 🔥 Badges alineados con la parte superior de la imagen */}
-        <div className="badgeContainer flex flex-wrap gap-1 self-start mt-[2px]">
-          {article.categories?.map((category) => (
-            <Link
-              key={category.id}
-              href={`/entities/categories/${category.id}`}
-              className="categoryBadge"
-            >
-              <HoverInfo
-                id={category.id}
-                name={category.name}
-                entityType="categories"
-              />
-            </Link>
-          ))}
-          {article.regions?.map((region) => (
-            <Link
-              key={region.id}
-              href={`/entities/regions/${region.id}`}
-              className="regionBadge"
-            >
-              <HoverInfo
-                id={region.id}
-                name={region.name}
-                entityType="regions"
-              />
-            </Link>
-          ))}
-          {article.topics?.map((topic) => (
-            <Link
-              key={topic.id}
-              href={`/entities/topics/${topic.id}`}
-              className="topicBadge"
-            >
-              <HoverInfo id={topic.id} name={topic.name} entityType="topics" />
-            </Link>
-          ))}
-        </div>
+        {/* 🔥 Usamos el componente `ArticleBadges` en lugar de badges manuales */}
+        <EntityBadges
+          categories={article.categories}
+          regions={article.regions}
+          topics={article.topics}
+        />
 
         {/* 🔹 Título */}
-        <h2 className="text-sm font-bold leading-tight mt-1">
+        <h2 className="text-lg font-bold leading-tight mt-1">
           <Link href={`/articles/${article.id}`} className="hover:underline">
             {article.title}
           </Link>
         </h2>
         {article.subtitle && (
-          <h3 className="text-xs text-gray-600 leading-tight">
+          <h3 className="text-sm text-gray-600 leading-tight">
             {article.subtitle}
           </h3>
         )}

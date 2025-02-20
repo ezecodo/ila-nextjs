@@ -6,14 +6,13 @@ import Image from "next/image";
 import ImageModal from "@/components/ImageModal/ImageModal";
 import Link from "next/link";
 import HoverInfo from "@/components/HoverInfo/HoverInfo";
+import EntityBadges from "@/components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
 
 export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
-  // Estado para la imagen de la edición en hover
   const [hoveredEdition, setHoveredEdition] = useState(null);
-
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   // Estado y funciones para el modal de imagen
@@ -61,48 +60,6 @@ export default function ArticlePage() {
     fetchArticle();
   }, [id]);
 
-  // Función para renderizar el contenido con estilos dinámicos
-  function renderContent(content) {
-    return content.split("\n").map((line, index) => {
-      const trimmedLine = line.trim();
-
-      // Detectar encabezados de sección dinámicamente
-      if (/^[A-ZÄÖÜß]+[A-ZÄÖÜß\s\-]*$/.test(trimmedLine)) {
-        return (
-          <h3
-            key={index}
-            style={{
-              fontSize: "2rem",
-              fontWeight: "bold",
-              color: "#D32F2F",
-              textTransform: "uppercase",
-              margin: "2rem 0 1rem",
-              borderBottom: "2px solid #D32F2F",
-              paddingBottom: "0.5rem",
-            }}
-          >
-            {trimmedLine}
-          </h3>
-        );
-      }
-
-      // Renderizar párrafos normales
-      return (
-        <p
-          key={index}
-          style={{
-            fontSize: "1rem",
-            color: "#555",
-            margin: "1rem 0",
-            lineHeight: "1.8",
-          }}
-        >
-          {trimmedLine}
-        </p>
-      );
-    });
-  }
-
   if (error) {
     return <p className="text-red-500">{error}</p>;
   }
@@ -146,44 +103,12 @@ export default function ArticlePage() {
         </div>
       )}
 
-      {/* Contenedor general para todas las etiquetas */}
-      <div className="flex flex-wrap items-center gap-2 mt-4 mb-6">
-        {article.categories?.length > 0 &&
-          article.categories.map((category) => (
-            <Link
-              key={category.id}
-              href={`/entities/categories/${category.id}`}
-            >
-              <HoverInfo
-                id={category.id}
-                name={category.name}
-                entityType="categories"
-                className="categoryBadge cursor-pointer"
-              />
-            </Link>
-          ))}
-        {article.regions?.length > 0 &&
-          article.regions.map((region) => (
-            <HoverInfo
-              key={region.id}
-              id={region.id}
-              name={region.name}
-              entityType="regions"
-              className="regionBadge"
-            />
-          ))}
-
-        {article.topics?.length > 0 &&
-          article.topics.map((topic) => (
-            <HoverInfo
-              key={topic.id}
-              id={topic.id}
-              name={topic.name}
-              entityType="topics"
-              className="topicBadge"
-            />
-          ))}
-      </div>
+      {/* 🔥 EntityBadges en lugar de los badges manuales */}
+      <EntityBadges
+        categories={article.categories}
+        regions={article.regions}
+        topics={article.topics}
+      />
 
       {/* Edición con HoverInfo y LINK a la página de la edición */}
       {article.edition && article.edition.id ? (
@@ -194,7 +119,7 @@ export default function ArticlePage() {
               <Link
                 href={`/editions/${article.edition.id}`}
                 className="flex items-center gap-2 no-underline hover:no-underline"
-                style={{ color: "#000" }} // 🔥 Color negro para el título
+                style={{ color: "#000" }}
                 onMouseEnter={(e) => {
                   setHoveredEdition(article.edition.coverImage);
                   setHoverPosition({ x: e.clientX, y: e.clientY });
@@ -209,7 +134,7 @@ export default function ArticlePage() {
                     fontFamily: "Futura, sans-serif",
                     textTransform: "lowercase",
                     fontSize: "1.2em",
-                    color: "#d13120", // 🔥 Color rojo para "ila 478"
+                    color: "#d13120",
                   }}
                 >
                   ila {article.edition.number}
@@ -249,10 +174,11 @@ export default function ArticlePage() {
           ))}
         </div>
       )}
-      {/* Contenido */}
-      <div className="text-gray-700">{renderContent(article.content)}</div>
 
-      {/* Modal de Imagen con alt y title correctos */}
+      {/* Contenido */}
+      <div className="text-gray-700">{article.content}</div>
+
+      {/* Modal de Imagen */}
       <ImageModal
         isOpen={isOpen}
         imageUrl={popupImage.url}
@@ -260,6 +186,7 @@ export default function ArticlePage() {
         alt={popupImage.alt}
         title={popupImage.title}
       />
+
       {/* Imagen flotante al hacer hover sobre la edición */}
       {hoveredEdition && (
         <div
@@ -267,15 +194,15 @@ export default function ArticlePage() {
           style={{
             left: `${hoverPosition.x + 10}px`,
             top: `${hoverPosition.y - 260}px`,
-            width: "300px", // Aumentamos el tamaño de la caja
+            width: "300px",
             height: "auto",
           }}
         >
           <Image
             src={hoveredEdition}
             alt="Portada de la edición"
-            width={300} // Aumentamos la imagen
-            height={350} // Ajustamos la altura proporcionalmente
+            width={300}
+            height={350}
             className="rounded-lg"
           />
         </div>
