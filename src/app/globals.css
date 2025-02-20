@@ -156,7 +156,33 @@ body {
   color: #333;
   margin-bottom: 0.5rem;
 }
+.imageContainer {
+  width: 100%;
+  height: 140px; /* 🔥 Altura fija para TODAS */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* 🔥 Asegura que las imágenes verticales NO desborden */
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  position: relative;
+}
 
+.articleImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 RECORTA imágenes grandes */
+  aspect-ratio: 16 / 9; /* 🔥 Mantiene la relación de aspecto */
+}
+
+/* 🔥 🔥 🔥 🔥 🔥 🔥  */
+/* SOLUCIÓN PARA IMÁGENES VERTICALES */
+.verticalImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 RECORTA */
+  object-position: center center; /* 🔥 Centra la imagen */
+}
 .regionBadge {
   display: inline-block;
   background-color: #f0ad4e; /* Color de fondo para regiones */

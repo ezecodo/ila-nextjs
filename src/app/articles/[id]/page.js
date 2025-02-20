@@ -150,13 +150,17 @@ export default function ArticlePage() {
       <div className="flex flex-wrap items-center gap-2 mt-4 mb-6">
         {article.categories?.length > 0 &&
           article.categories.map((category) => (
-            <HoverInfo
+            <Link
               key={category.id}
-              id={category.id}
-              name={category.name}
-              entityType="categories"
-              className="categoryBadge"
-            />
+              href={`/entities/categories/${category.id}`}
+            >
+              <HoverInfo
+                id={category.id}
+                name={category.name}
+                entityType="categories"
+                className="categoryBadge cursor-pointer"
+              />
+            </Link>
           ))}
         {article.regions?.length > 0 &&
           article.regions.map((region) => (
