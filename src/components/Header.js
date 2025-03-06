@@ -1,13 +1,20 @@
 "use client";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FaUser, FaUserPlus } from "react-icons/fa"; // Íconos
+import {
+  FaUser,
+  FaUserPlus,
+  FaSignOutAlt,
+  FaTachometerAlt,
+} from "react-icons/fa"; // Íconos
 import styles from "./Header.module.css";
 import SearchBar from "@/components/SearchBar";
 
 const Header = () => {
+  const { data: session } = useSession(); // 🔥 Obtener la sesión del usuario
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -38,17 +45,42 @@ const Header = () => {
           </span>
         </div>
 
-        {/* Botones de autenticación */}
+        {/* 🔥 Botones de autenticación + Nombre del usuario */}
         <div className={styles.authButtons}>
-          <button className={styles.iconButton} onClick={() => signIn()}>
-            <FaUser size={16} />
-          </button>
+          {session ? (
+            <>
+              {/* 🔹 Mensaje de bienvenida con el nombre */}
+              <span className={styles.welcomeText}>
+                Hola, {session.user?.name || "Usuario"} 👋
+              </span>
 
-          <Link href="/auth/signup">
-            <button className={styles.iconButton}>
-              <FaUserPlus size={16} />
-            </button>
-          </Link>
+              {/* 🔹 Dashboard */}
+              <Link href="/dashboard">
+                <button className={styles.iconButton}>
+                  <FaTachometerAlt size={16} />
+                </button>
+              </Link>
+
+              {/* 🔹 Logout */}
+              <button className={styles.iconButton} onClick={() => signOut()}>
+                <FaSignOutAlt size={16} />
+              </button>
+            </>
+          ) : (
+            <>
+              {/* 🔹 Login */}
+              <button className={styles.iconButton} onClick={() => signIn()}>
+                <FaUser size={16} />
+              </button>
+
+              {/* 🔹 Signup */}
+              <Link href="/auth/signup">
+                <button className={styles.iconButton}>
+                  <FaUserPlus size={16} />
+                </button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

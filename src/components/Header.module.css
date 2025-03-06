@@ -41,6 +41,12 @@
   font-size: 1.2rem;
   color: #555;
 }
+.welcomeText {
+  font-size: 14px;
+  font-weight: bold;
+  margin-right: 10px;
+  color: #333; /* Ajusta el color según tu diseño */
+}
 
 /* Menu button for mobile */
 .menuButton {
