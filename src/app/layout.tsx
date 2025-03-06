@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { SessionProvider } from "next-auth/react"; // 🔥 Importa SessionProvider
 import localFont from "next/font/local";
 import "./globals.css";
-import "@fortawesome/fontawesome-free/css/all.min.css"; // Estilos de Font Awesome
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 // Importa los componentes que no requieran "use client"
 import Header from "@/components/Header";
@@ -33,12 +34,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Estructura que tenías en ClientLayout, 
-            sin la lógica de animación ni LoadingScreen */}
-        <Header />
-
-        <main>{children}</main>
-        <Footer />
+        {/* 🔥 Envuelve todo en SessionProvider */}
+        <SessionProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </SessionProvider>
       </body>
     </html>
   );
