@@ -1,4 +1,5 @@
 "use client";
+import { signIn } from "next-auth/react";
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -39,12 +40,11 @@ const Header = () => {
 
         {/* Botones de autenticación */}
         <div className={styles.authButtons}>
-          <Link href="/login">
-            <button className={styles.iconButton}>
-              <FaUser size={16} />
-            </button>
-          </Link>
-          <Link href="/register">
+          <button className={styles.iconButton} onClick={() => signIn()}>
+            <FaUser size={16} />
+          </button>
+
+          <Link href="/auth/signup">
             <button className={styles.iconButton}>
               <FaUserPlus size={16} />
             </button>
