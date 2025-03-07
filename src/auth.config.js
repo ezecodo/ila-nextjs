@@ -1,14 +1,17 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 
-export default {
+/**
+ * Configuración de autenticación para NextAuth
+ */
+const authConfig = {
   providers: [
     CredentialsProvider({
       credentials: {
         email: { label: "Correo Electrónico", type: "email" },
         password: { label: "Contraseña", type: "password" },
       },
-      async authorize(credentials) {
-        // ⚠️ Aquí no usamos Prisma ni Zod porque este archivo se usa en el middleware
+      async authorize() {
+        // ⚠️ Evitamos definir `credentials` sin usarlo
         throw new Error("El middleware no debe manejar autenticación.");
       },
     }),
@@ -21,3 +24,6 @@ export default {
   },
   secret: process.env.AUTH_SECRET,
 };
+
+// ✅ Exportamos la configuración asignándola a una variable
+export default authConfig;
