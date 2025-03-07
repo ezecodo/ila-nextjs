@@ -1,6 +1,7 @@
 "use client";
 import { signIn, signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"; // 🔥 Importamos el router
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,14 +16,16 @@ import SearchBar from "@/components/SearchBar";
 
 const Header = () => {
   const { data: session } = useSession(); // 🔥 Obtener la sesión del usuario
+  const router = useRouter(); // ✅ Instanciamos el router
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen); // Cambiar estado del menú
   };
 
-  const reloadPage = () => {
-    window.location.href = "/"; // Forzar recarga completa
+  const handleSignOut = async () => {
+    await signOut({ redirect: false }); // 🔥 Evita la redirección automática de NextAuth
+    router.push("/"); // ✅ Redirige manualmente a la página de inicio
   };
 
   return (
@@ -30,7 +33,7 @@ const Header = () => {
       <div className={styles.headerTop}>
         {/* Logo y tagline */}
         <div className={styles.logoContainer}>
-          <a onClick={reloadPage} style={{ cursor: "pointer" }}>
+          <Link href="/">
             <Image
               src="/ila-logo.png"
               alt="ILA Logo"
@@ -38,8 +41,7 @@ const Header = () => {
               height={50}
               className={styles.logo}
             />
-          </a>
-
+          </Link>
           <span className="text-lg font-bold mt-4 mb-2">
             Das Lateinamerika-Magazin
           </span>
@@ -62,7 +64,7 @@ const Header = () => {
               </Link>
 
               {/* 🔹 Logout */}
-              <button className={styles.iconButton} onClick={() => signOut()}>
+              <button className={styles.iconButton} onClick={handleSignOut}>
                 <FaSignOutAlt size={16} />
               </button>
             </>

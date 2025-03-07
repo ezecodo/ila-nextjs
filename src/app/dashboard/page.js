@@ -11,7 +11,7 @@ export default function Dashboard() {
       {/* Contenedor de las tarjetas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl px-4">
         {/* Tarjeta para ingresar artículos */}
-        <Link href="/articles/new">
+        <Link href="dashboard/articles/new">
           <div className="bg-white shadow-md rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:shadow-xl transition duration-200 ease-in-out">
             <i className="fas fa-file-alt text-4xl text-red-600 mb-4"></i>
             <h2 className="text-xl font-semibold text-gray-700">
@@ -24,7 +24,7 @@ export default function Dashboard() {
         </Link>
 
         {/* Tarjeta para ingresar ediciones */}
-        <Link href="/editions/new">
+        <Link href="dashboard/editions/new">
           <div className="bg-white shadow-md rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:shadow-xl transition duration-200 ease-in-out">
             <i className="fas fa-book text-4xl text-red-600 mb-4"></i>
             <h2 className="text-xl font-semibold text-gray-700">
