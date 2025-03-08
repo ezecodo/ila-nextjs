@@ -1,8 +1,10 @@
 "use client";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,7 +22,7 @@ export default function SignInPage() {
     if (result?.error) {
       setError("Credenciales incorrectas. Inténtalo de nuevo.");
     } else {
-      window.location.href = "/"; // Redirigir al home después del login
+      router.push("/"); // 🔥 Redirigir al home después del login
     }
   };
 
@@ -56,6 +58,16 @@ export default function SignInPage() {
           Iniciar sesión
         </button>
       </form>
+
+      {/* 🔥 Agregamos el enlace para recuperar la contraseña */}
+      <p className="mt-4 text-center">
+        <a
+          href="/auth/forgot-password"
+          className="text-blue-500 hover:underline"
+        >
+          ¿Olvidaste tu contraseña?
+        </a>
+      </p>
     </div>
   );
 }
