@@ -58,3 +58,30 @@ export async function sendPasswordResetEmail(email, token) {
     throw new Error("No se pudo enviar el correo de recuperación.");
   }
 }
+
+/**
+ * 📩 Enviar email de invitación de admin
+ */
+export async function sendAdminInvitationEmail(email, token) {
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?token=${token}`;
+
+  try {
+    const response = await resend.emails.send({
+      from: "no-reply@ila-web.de",
+      to: email,
+      subject: "Invitación para ser Administrador en ILA",
+      html: `
+          <h2>Has sido invitado como Administrador</h2>
+          <p>Haz clic en el siguiente enlace para completar tu registro:</p>
+          <a href="${inviteUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #ff4500; color: #fff; text-decoration: none; border-radius: 5px;">Aceptar invitación</a>
+          <p>Este enlace expirará en 24 horas.</p>
+        `,
+    });
+
+    console.log("✅ Invitación de admin enviada:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ Error al enviar invitación de admin:", error);
+    throw new Error("No se pudo enviar la invitación.");
+  }
+}

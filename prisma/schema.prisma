@@ -125,6 +125,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  role          String   @default("user") // 🎯 Puede ser "user" o "admin"
 
  
   createdAt DateTime @default(now())
