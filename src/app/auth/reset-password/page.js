@@ -1,12 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 // 🚀 Evita que Next.js intente prerenderizar
-export const dynamic = "force-dynamic";
+export default function ResetPasswordPageWrapper() {
+  return (
+    <Suspense fallback={<p className="text-center">Cargando...</p>}>
+      <ResetPasswordPage />
+    </Suspense>
+  );
+}
 
-export default function ResetPasswordPage() {
+function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -15,7 +21,6 @@ export default function ResetPasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // ✅ Extraer el token en el cliente
     setToken(searchParams.get("token"));
   }, [searchParams]);
 
