@@ -1,101 +1,72 @@
 "use client";
+
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function SignUpPage() {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+
+    if (password !== confirmPassword) {
+      setMessage("Las contraseñas no coinciden.");
+      return;
+    }
 
     const res = await fetch("/api/auth/signup", {
       method: "POST",
-      body: JSON.stringify({ name, email, password, confirmPassword }),
       headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, name, password, confirmPassword }),
     });
 
     const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.error || "Error en el registro");
+    if (res.ok) {
+      setMessage("Registro exitoso. Verifica tu correo.");
     } else {
-      router.push("/auth/signin");
+      setMessage(data.error || "Error en el registro.");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      <h2 className="text-2xl font-bold mb-4">Registrarse</h2>
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm flex flex-col gap-4"
-      >
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold mb-4">Registro</h2>
+      {message && <p className="mb-4 text-red-600">{message}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          placeholder="Nombre (mínimo 2 caracteres)"
+          placeholder="Nombre"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded"
-          required
         />
         <input
           type="email"
-          placeholder="Correo Electrónico"
+          placeholder="Correo electrónico"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded"
-          required
         />
-        <div className="relative w-full">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Contraseña (mínimo 8 caracteres)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded pr-10"
-            required
-          />
-          <button
-            type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute right-2 top-2 text-gray-600"
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
-        </div>
-        <div className="relative w-full">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Confirmar Contraseña"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded pr-10"
-            required
-          />
-          <button
-            type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute right-2 top-2 text-gray-600"
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
-        </div>
-        {error && <p className="text-red-500">{error}</p>}
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="password"
+          placeholder="Confirmar Contraseña"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
+        />
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          className="w-full bg-blue-500 text-white p-2 rounded"
         >
           Registrarse
         </button>

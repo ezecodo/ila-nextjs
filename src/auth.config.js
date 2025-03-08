@@ -11,7 +11,6 @@ const authConfig = {
         password: { label: "Contraseña", type: "password" },
       },
       async authorize() {
-        // ⚠️ Evitamos definir `credentials` sin usarlo
         throw new Error("El middleware no debe manejar autenticación.");
       },
     }),
@@ -25,5 +24,5 @@ const authConfig = {
   secret: process.env.AUTH_SECRET,
 };
 
-// ✅ Exportamos la configuración asignándola a una variable
+// ✅ Exportamos la configuración sin EmailProvider
 export default authConfig;

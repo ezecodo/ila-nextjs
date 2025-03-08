@@ -7,8 +7,8 @@ import { signInSchema } from "@/lib/zod";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma), // 🔥 Ahora Prisma solo se usa en el backend
-  ...authConfig, // 🔥 Reutilizamos la configuración de `auth.config.js`
+  adapter: PrismaAdapter(prisma), // Prisma solo en el backend
+  ...authConfig, // Reutilizamos la configuración global
   providers: [
     CredentialsProvider({
       credentials: {
@@ -24,11 +24,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const user = await prisma.user.findUnique({ where: { email } });
           if (!user) throw new Error("Credenciales inválidas.");
 
+          // ✅ Si el usuario no ha verificado su email, bloqueamos el login
+          if (!user.emailVerified) {
+            throw new Error(
+              "Debes verificar tu email antes de iniciar sesión."
+            );
+          }
+
           // ✅ Verificamos la contraseña
           const isValidPassword = await verifyPassword(password, user.password);
           if (!isValidPassword) throw new Error("Credenciales inválidas.");
 
-          // ✅ Eliminamos la contraseña antes de devolver los datos
+          // ✅ Retornamos el usuario sin la contraseña
           return { id: user.id, email: user.email, name: user.name };
         } catch (error) {
           if (error.name === "ZodError") {
