@@ -1,23 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [token, setToken] = useState(null);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
+
+  useEffect(() => {
+    // ✅ Extraer el token en el cliente
+    setToken(searchParams.get("token"));
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
 
+    if (!token) {
+      setMessage("❌ Token no válido.");
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setMessage("Las contraseñas no coinciden.");
+      setMessage("❌ Las contraseñas no coinciden.");
       return;
     }
 
