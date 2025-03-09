@@ -1,17 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function SignUpPage() {
-  const searchParams = useSearchParams();
-  const inviteToken = searchParams.get("token"); // 📌 Capturar token de invitación desde la URL
-
+function SignUpForm() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+
+  const searchParams = useSearchParams(); // ⚠️ Esto causaba el error en el build
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,13 +23,7 @@ export default function SignUpPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        name,
-        password,
-        confirmPassword,
-        inviteToken,
-      }),
+      body: JSON.stringify({ email, name, password, confirmPassword }),
     });
 
     const data = await res.json();
@@ -59,7 +52,6 @@ export default function SignUpPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded"
-          required={!inviteToken} // Solo requerido si no hay token
         />
         <input
           type="password"
@@ -83,5 +75,13 @@ export default function SignUpPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<p>Cargando...</p>}>
+      <SignUpForm />
+    </Suspense>
   );
 }
