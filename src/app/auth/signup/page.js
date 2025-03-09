@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 
 function SignUpForm() {
   const [email, setEmail] = useState("");
