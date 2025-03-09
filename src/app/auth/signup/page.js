@@ -10,8 +10,6 @@ function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  const searchParams = useSearchParams(); // ⚠️ Esto causaba el error en el build
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
