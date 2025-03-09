@@ -28,6 +28,10 @@ const Header = () => {
     router.push("/"); // ✅ Redirige manualmente a la página de inicio
   };
 
+  // 🔥 Definir la ruta del Dashboard según el rol del usuario
+  const dashboardRoute =
+    session?.user?.role === "admin" ? "/dashboard" : "/dashboard-users";
+
   return (
     <header className={styles.header}>
       <div className={styles.headerTop}>
@@ -56,8 +60,8 @@ const Header = () => {
                 Hola, {session.user?.name || "Usuario"} 👋
               </span>
 
-              {/* 🔹 Dashboard */}
-              <Link href="/dashboard">
+              {/* 🔹 Dashboard (Redirige según el rol) */}
+              <Link href={dashboardRoute}>
                 <button className={styles.iconButton}>
                   <FaTachometerAlt size={16} />
                 </button>
