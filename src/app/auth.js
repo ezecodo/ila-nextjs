@@ -35,6 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: user.role,
           }; // ✅ Agregamos `role`
         } catch (error) {
+          console.error("❌ Error en la autenticación:", error);
           throw new Error("Error de autenticación.");
         }
       },
