@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("token"); // 📌 Capturar token de invitación desde la URL
+
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +24,13 @@ export default function SignUpPage() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name, password, confirmPassword }),
+      body: JSON.stringify({
+        email,
+        name,
+        password,
+        confirmPassword,
+        inviteToken,
+      }),
     });
 
     const data = await res.json();
@@ -49,6 +59,7 @@ export default function SignUpPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded"
+          required={!inviteToken} // Solo requerido si no hay token
         />
         <input
           type="password"

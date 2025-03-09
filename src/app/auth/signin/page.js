@@ -1,4 +1,5 @@
 "use client";
+
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,7 +23,15 @@ export default function SignInPage() {
     if (result?.error) {
       setError("Credenciales incorrectas. Inténtalo de nuevo.");
     } else {
-      router.push("/"); // 🔥 Redirigir al home después del login
+      // 🚀 Hacer fetch a la sesión para obtener el rol del usuario
+      const res = await fetch("/api/auth/session");
+      const session = await res.json();
+
+      if (session?.user?.role === "admin") {
+        router.push("/dashboard"); // 🔥 Si es admin, va al dashboard
+      } else {
+        router.push("/"); // 🔥 Si es usuario normal, va a home
+      }
     }
   };
 
@@ -59,7 +68,6 @@ export default function SignInPage() {
         </button>
       </form>
 
-      {/* 🔥 Agregamos el enlace para recuperar la contraseña */}
       <p className="mt-4 text-center">
         <a
           href="/auth/forgot-password"

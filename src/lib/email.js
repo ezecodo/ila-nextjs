@@ -63,7 +63,7 @@ export async function sendPasswordResetEmail(email, token) {
  * 📩 Enviar email de invitación de admin
  */
 export async function sendAdminInvitationEmail(email, token) {
-  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?token=${token}`;
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?inviteToken=${token}`;
 
   try {
     const response = await resend.emails.send({
@@ -71,17 +71,21 @@ export async function sendAdminInvitationEmail(email, token) {
       to: email,
       subject: "Invitación para ser Administrador en ILA",
       html: `
-          <h2>Has sido invitado como Administrador</h2>
-          <p>Haz clic en el siguiente enlace para completar tu registro:</p>
-          <a href="${inviteUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #ff4500; color: #fff; text-decoration: none; border-radius: 5px;">Aceptar invitación</a>
-          <p>Este enlace expirará en 24 horas.</p>
-        `,
+            <h2>Te han invitado como Administrador en ILA</h2>
+            <p>Haz clic en el siguiente enlace para registrarte como Administrador:</p>
+            <a href="${inviteUrl}" target="_blank" 
+               style="display: inline-block; padding: 10px 20px; background-color: #007bff; 
+               color: #fff; text-decoration: none; border-radius: 5px;">
+               Aceptar invitación
+            </a>
+            <p>Este enlace expirará en 24 horas.</p>
+          `,
     });
 
-    console.log("✅ Invitación de admin enviada:", response);
+    console.log("✅ Correo de invitación enviado:", response);
     return response;
   } catch (error) {
-    console.error("❌ Error al enviar invitación de admin:", error);
+    console.error("❌ Error al enviar la invitación:", error);
     throw new Error("No se pudo enviar la invitación.");
   }
 }

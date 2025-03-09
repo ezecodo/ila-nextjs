@@ -1,49 +1,48 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { sendAdminInvitationEmail } from "@/lib/email";
 import { getServerSession } from "next-auth";
 import authConfig from "@/auth.config";
+import { sendAdminInvitationEmail } from "@/lib/email";
 
 export async function POST(req) {
   try {
     const session = await getServerSession(authConfig);
     if (!session || session.user.role !== "admin") {
-      return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
     const { email } = await req.json();
-
     if (!email) {
       return NextResponse.json(
-        { error: "Correo electrónico requerido." },
+        { error: "El email es obligatorio." },
         { status: 400 }
       );
     }
 
-    // Verificar si el usuario ya existe
+    // 🔎 Verificar si el usuario ya existe
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json(
-        { error: "El usuario ya está registrado." },
+        { error: "Este usuario ya está registrado." },
         { status: 400 }
       );
     }
 
-    // Generar token único de invitación
+    // 🛠️ Generar un token único
     const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // Expira en 24h
 
-    // Guardar el token en la base de datos
-    await prisma.verificationToken.create({
+    // ✅ Guardar el token en la base de datos
+    await prisma.invitationToken.create({
       data: {
-        identifier: email,
+        email,
         token,
         expires: expiresAt,
       },
     });
 
-    // Enviar correo con el enlace de invitación
+    // 📩 Enviar el correo con la invitación
     await sendAdminInvitationEmail(email, token);
 
     return NextResponse.json(
