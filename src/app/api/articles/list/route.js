@@ -34,6 +34,13 @@ export async function GET(req) {
             name: true,
           },
         },
+        edition: {
+          // ✅ Incluir título y número de la edición
+          select: {
+            title: true,
+            number: true,
+          },
+        },
       },
     });
 

@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   return (
     <div className="h-screen flex bg-gray-100">
       {/* 📌 Sidebar - Menú de navegación */}
-      <div className="w-1/4 bg-white shadow-md p-6">
+      <div className="w-1/10 bg-white shadow-md p-6">
         <h2 className="text-2xl font-bold mb-6">Dashboard Admin</h2>
         <ul>
           {menuItems.map((item) => (

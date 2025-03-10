@@ -35,6 +35,8 @@ const ArticlesList = () => {
             <th className="p-2 border">Título</th>
             <th className="p-2 border">Autor</th>
             <th className="p-2 border">Categoría</th>
+            <th className="p-2 border">📅 Publicación</th>
+            <th className="p-2 border">📚 Edición</th>
             <th className="p-2 border">📷 Imagen</th>
           </tr>
         </thead>
@@ -48,6 +50,20 @@ const ArticlesList = () => {
               </td>
               <td className="p-2 border">
                 {article.categories.map((c) => c.name).join(", ")}
+              </td>
+              {/* ✅ Nueva columna: Fecha de publicación */}
+              <td className="p-2 border">
+                {article.publicationDate
+                  ? new Date(article.publicationDate).toLocaleDateString(
+                      "es-ES"
+                    )
+                  : "Sin fecha"}
+              </td>
+              {/* ✅ Nueva columna: Edición */}
+              <td className="p-2 border">
+                {article.edition
+                  ? `${article.edition.title} (N° ${article.edition.number})`
+                  : "Sin edición"}
               </td>
               <td className="p-2 border">
                 {article.images.length > 0 ? "✔️" : "❌"}
