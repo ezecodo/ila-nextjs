@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-const Dashboard = () => {
+const DashboardStats = ({ onShowArticles }) => {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +15,7 @@ const Dashboard = () => {
           throw new Error(`Error HTTP: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Datos obtenidos:", data); // ✅ Verifica los datos en consola
+        console.log("Datos obtenidos:", data);
         setStats(data);
       } catch (err) {
         console.error("Error al obtener estadísticas:", err?.message || err);
@@ -43,7 +43,12 @@ const Dashboard = () => {
           {/* 🔥 Cantidad de artículos */}
           <div className="p-4 bg-blue-100 rounded-lg text-center shadow-md">
             <h3 className="text-lg font-semibold">📄 Artículos</h3>
-            <p className="text-3xl font-bold">{stats.totalArticles}</p>
+            <p
+              className="text-3xl font-bold cursor-pointer text-blue-600 hover:underline"
+              onClick={onShowArticles} // 🔥 Click para mostrar la lista
+            >
+              {stats.totalArticles}
+            </p>
           </div>
 
           {/* 🔥 Cantidad de ediciones */}
@@ -67,4 +72,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardStats;

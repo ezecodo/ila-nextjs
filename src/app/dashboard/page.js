@@ -1,13 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import DashboardStats from "../../components/DashboardStats/DashboardStats.js"; // 📊 Nueva página de estadísticas
+import DashboardStats from "../../components/DashboardStats/DashboardStats.js";
 import AccountSettings from "@/components/AccountSettings/AccountSettings";
 import CreateArticle from "@/app/dashboard/articles/new/page";
 import CreateEdition from "@/app/dashboard/editions/new/page";
+import ArticlesList from "../../app/dashboard/components/ArticlesList/ArticlesList.js";
 
 export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("inicio");
+  const [showArticlesList, setShowArticlesList] = useState(false);
+
+  const handleShowArticles = () => {
+    setShowArticlesList(!showArticlesList); // Toggle de la lista de artículos
+  };
 
   // Opciones del menú
   const menuItems = [
@@ -42,7 +48,12 @@ export default function AdminDashboard() {
 
       {/* 📌 Área de contenido dinámico con scroll interno */}
       <div className="flex-1 p-6 overflow-y-auto max-h-screen">
-        {selectedTab === "inicio" && <DashboardStats />}
+        {selectedTab === "inicio" && (
+          <>
+            <DashboardStats onShowArticles={handleShowArticles} />
+            {showArticlesList && <ArticlesList />}
+          </>
+        )}
         {selectedTab === "articles" && <CreateArticle />}
         {selectedTab === "editions" && <CreateEdition />}
         {selectedTab === "account" && <AccountSettings />}
