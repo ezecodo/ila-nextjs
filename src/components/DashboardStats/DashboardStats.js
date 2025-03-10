@@ -1,26 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function DashboardStats() {
-  const [stats, setStats] = useState({
-    articles: 0,
-    editions: 0,
-    users: 0,
-  });
+const Dashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch("/api/admin/stats"); // 🔥 Nueva API para obtener los datos
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || "Error al obtener datos");
-
+        const response = await fetch("/api/dashboard/stats");
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Datos obtenidos:", data); // ✅ Verifica los datos en consola
         setStats(data);
       } catch (err) {
+        console.error("Error al obtener estadísticas:", err?.message || err);
         setError("Error al cargar estadísticas.");
       } finally {
         setLoading(false);
@@ -30,34 +28,43 @@ export default function DashboardStats() {
     fetchStats();
   }, []);
 
+  if (loading)
+    return (
+      <p className="text-center text-gray-500">Cargando estadísticas...</p>
+    );
+  if (error) return <p className="text-center text-red-500">{error}</p>;
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">📊 Estadísticas Generales</h2>
-      {loading ? (
-        <p>Cargando...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : (
+    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+      <h1 className="text-2xl font-bold text-center mb-6">📊 Dashboard</h1>
+
+      {stats ? (
         <div className="grid grid-cols-3 gap-4">
           {/* 🔥 Cantidad de artículos */}
-          <div className="p-4 bg-blue-100 rounded-lg text-center">
+          <div className="p-4 bg-blue-100 rounded-lg text-center shadow-md">
             <h3 className="text-lg font-semibold">📄 Artículos</h3>
-            <p className="text-3xl font-bold">{stats.articles}</p>
+            <p className="text-3xl font-bold">{stats.totalArticles}</p>
           </div>
 
           {/* 🔥 Cantidad de ediciones */}
-          <div className="p-4 bg-green-100 rounded-lg text-center">
+          <div className="p-4 bg-green-100 rounded-lg text-center shadow-md">
             <h3 className="text-lg font-semibold">📚 Ediciones</h3>
-            <p className="text-3xl font-bold">{stats.editions}</p>
+            <p className="text-3xl font-bold">{stats.totalEditions}</p>
           </div>
 
           {/* 🔥 Cantidad de usuarios */}
-          <div className="p-4 bg-yellow-100 rounded-lg text-center">
+          <div className="p-4 bg-yellow-100 rounded-lg text-center shadow-md">
             <h3 className="text-lg font-semibold">👤 Usuarios</h3>
-            <p className="text-3xl font-bold">{stats.users}</p>
+            <p className="text-3xl font-bold">{stats.totalUsers}</p>
           </div>
         </div>
+      ) : (
+        <p className="text-center text-gray-500">
+          No se encontraron estadísticas.
+        </p>
       )}
     </div>
   );
-}
+};
+
+export default Dashboard;
