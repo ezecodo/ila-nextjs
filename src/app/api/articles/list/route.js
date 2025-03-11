@@ -10,31 +10,31 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
 
-    // Obtener los artículos paginados
+    // Obtener los artículos paginados, ordenados por fecha de publicación (desc)
     const articles = await prisma.article.findMany({
       where: { isPublished: true },
+      orderBy: {
+        publicationDate: "desc", // 🔥 Ordenar por fecha de publicación (más recientes primero)
+      },
       skip: offset,
       take: limit,
       include: {
-        regions: true, // Incluir regiones relacionadas
-        topics: true, // Incluir temas relacionados
+        regions: true,
+        topics: true,
         authors: {
-          // Incluir autores relacionados
           select: {
             id: true,
-            name: true, // Asegúrate de seleccionar los campos necesarios
+            name: true,
           },
         },
-        categories: true, // Incluir las categorías relacionadas
+        categories: true,
         beitragstyp: {
-          // Incluir el nombre del beitragstyp
           select: {
             id: true,
             name: true,
           },
         },
         edition: {
-          // ✅ Incluir título y número de la edición
           select: {
             title: true,
             number: true,
@@ -67,7 +67,7 @@ export async function GET(req) {
 
     return new Response(
       JSON.stringify({
-        articles: articlesWithImages, // Usar artículos con imágenes, regiones y temas
+        articles: articlesWithImages,
         totalArticles,
         currentPage: page,
         totalPages: Math.ceil(totalArticles / limit),
