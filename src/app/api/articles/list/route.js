@@ -9,6 +9,21 @@ export async function GET(req) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
+    // ✅ Obtener los parámetros de ordenación
+    const sortField = searchParams.get("sortField") || "id"; // Por defecto ordena por ID
+    const sortOrder = searchParams.get("sortOrder") === "desc" ? "desc" : "asc";
+
+    // Mapeo de campos permitidos para ordenar
+    const allowedSortFields = {
+      id: "id",
+      title: "title",
+      publicationDate: "publicationDate",
+      edition: "edition.number", // Ordenar por número de edición
+    };
+
+    const orderBy = allowedSortFields[sortField]
+      ? { [allowedSortFields[sortField]]: sortOrder }
+      : { id: "desc" }; // Fallback si el campo no es válido
 
     // Obtener los artículos paginados
     const articles = await prisma.article.findMany({
