@@ -21,14 +21,10 @@ export async function GET(req) {
       edition: "edition.number", // Ordenar por número de edición
     };
 
-    const orderBy = allowedSortFields[sortField]
-      ? { [allowedSortFields[sortField]]: sortOrder }
-      : { id: "desc" }; // Fallback si el campo no es válido
-
     // Obtener los artículos paginados
     const articles = await prisma.article.findMany({
       where: { isPublished: true },
-      orderBy: { id: "desc" },
+
       skip: offset,
       take: limit,
       include: {
