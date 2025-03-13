@@ -7,23 +7,33 @@ const FavoriteButton = ({ articleId }) => {
   const [favorites, setFavorites] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
 
+  // 🔄 Obtener datos de favoritos al cargar el componente
   useEffect(() => {
     const fetchFavorites = async () => {
       try {
         const response = await fetch(
-          `/api/articles/favorites?articleId=${articleId}&checkUser=true`
+          `/api/articles/favorites?articleId=${articleId}&checkUser=${
+            session ? "true" : "false"
+          }`
         );
+
+        if (!response.ok) {
+          console.error("❌ Error en la API de favoritos:", response.status);
+          return;
+        }
+
         const data = await response.json();
-        setFavorites(data.count || 0); // ✅ Asegura que el número de likes siempre sea correcto
-        setIsFavorited(data.isFavorited || false); // ✅ Asegura que el estado de like es correcto
+        setFavorites(data.count || 0);
+        setIsFavorited(data.isFavorited || false);
       } catch (error) {
-        console.error("Error al obtener datos de favoritos:", error);
+        console.error("❌ Error al obtener datos de favoritos:", error);
       }
     };
 
     fetchFavorites();
-  }, [articleId, session]); // ✅ Se actualiza cuando cambia el usuario o el artículo
+  }, [articleId, session]);
 
+  // 🔄 Alternar favorito
   const toggleFavorite = async () => {
     if (!session) {
       alert("Debes iniciar sesión para marcar favoritos.");
@@ -32,23 +42,18 @@ const FavoriteButton = ({ articleId }) => {
 
     const method = isFavorited ? "DELETE" : "POST";
 
-    try {
-      const response = await fetch(`/api/articles/favorites`, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ articleId }),
-      });
+    const response = await fetch(`/api/articles/favorites`, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ articleId }),
+    });
 
-      if (response.ok) {
-        // ✅ Una vez que se hace POST o DELETE, volvemos a hacer fetch para obtener datos actualizados
-        const updatedData = await response.json();
-        setFavorites(updatedData.count || 0); // ✅ Se actualiza el contador
-        setIsFavorited(!isFavorited);
-      } else {
-        console.error("Error en la API de favoritos:", await response.json());
-      }
-    } catch (error) {
-      console.error("❌ Error al actualizar favoritos:", error);
+    if (response.ok) {
+      setFavorites((prev) => (isFavorited ? prev - 1 : prev + 1));
+      setIsFavorited(!isFavorited);
+    } else {
+      const errorData = await response.json();
+      console.error("❌ Error en la API de favoritos:", errorData);
     }
   };
 
@@ -59,10 +64,8 @@ const FavoriteButton = ({ articleId }) => {
     >
       <Heart
         size={22}
-        className={`transition-all ${
-          isFavorited
-            ? "text-red-500 fill-red-500"
-            : "text-gray-400 hover:text-red-500 hover:fill-red-500"
+        className={`text-red-500 fill-red-500 transition-all ${
+          isFavorited ? "stroke-black stroke-[1.5]" : "stroke-none"
         }`}
       />
       <span className="text-xs">{favorites}</span>

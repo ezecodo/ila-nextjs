@@ -4,53 +4,46 @@ import { auth } from "@/app/auth"; // Asegurar importación correcta
 const prisma = new PrismaClient();
 
 export async function GET(req) {
+  console.log("➡️ Iniciando GET /api/articles/favorites");
   try {
-    console.log("➡️ Iniciando GET /api/articles/favorites");
-
     const { searchParams } = new URL(req.url);
     const articleId = parseInt(searchParams.get("articleId"));
+    const checkUser = searchParams.get("checkUser") === "true";
 
     if (!articleId) {
-      console.error("⚠️ articleId es requerido.");
+      console.error("❌ ERROR: Falta `articleId` en la solicitud GET.");
       return new Response(JSON.stringify({ error: "articleId requerido" }), {
         status: 400,
       });
     }
 
-    if (searchParams.get("checkUser")) {
+    let isFavorited = false;
+    let userId = null;
+    if (checkUser) {
       const session = await auth();
-      if (!session || !session.user) {
-        console.log("🚫 Usuario no autenticado");
-        return new Response(JSON.stringify({ isFavorited: false }), {
-          status: 200,
+      console.log("🟢 Sesión obtenida en GET:", session);
+
+      if (session?.user?.id) {
+        userId = session.user.id;
+        const favorite = await prisma.favorite.findFirst({
+          where: { articleId, userId },
         });
+        isFavorited = !!favorite;
       }
-
-      const isFavorited = await prisma.favorite.findFirst({
-        where: {
-          userId: session.user.id,
-          articleId,
-        },
-      });
-
-      console.log(`🔍 Verificación de favorito: ${isFavorited ? "Sí" : "No"}`);
-
-      return new Response(JSON.stringify({ isFavorited: !!isFavorited }), {
-        status: 200,
-      });
     }
 
-    // Contar favoritos del artículo
+    // Obtener cantidad total de favoritos
     const count = await prisma.favorite.count({ where: { articleId } });
 
     console.log(
-      `📊 Cantidad de favoritos para el artículo ${articleId}:`,
-      count
+      `🔍 Artículo ${articleId} tiene ${count} likes. Favorito del usuario: ${isFavorited}`
     );
 
-    return new Response(JSON.stringify({ count }), { status: 200 });
+    return new Response(JSON.stringify({ count, isFavorited }), {
+      status: 200,
+    });
   } catch (error) {
-    console.error("❌ Error en GET /api/articles/favorites:", error.message);
+    console.error("❌ ERROR en GET /api/articles/favorites:", error);
     return new Response(
       JSON.stringify({ error: "Error interno del servidor" }),
       { status: 500 }
