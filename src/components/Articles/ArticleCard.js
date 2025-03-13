@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import HoverInfo from "@/components/HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
+import FavoriteButton from "@/components/FavoriteButton/FavoriteButton";
 
 export default function ArticleCard({ article }) {
   const firstImage = article.images?.[0];
@@ -100,6 +101,10 @@ export default function ArticleCard({ article }) {
             ))}
           </div>
         )}
+      </div>
+      {/* 🔥 Botón de favoritos en la parte inferior derecha SIN afectar estructura */}
+      <div className="flex justify-end self-end mt-auto">
+        <FavoriteButton articleId={article.id} />
       </div>
 
       {/* 🔥 Modal de Imagen */}

@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
-import authConfig from "@/auth.config";
+import authConfig from "@/auth.config.js";
+
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/utils/password";
@@ -42,17 +43,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.role = token.role; // ✅ Agregamos `role` a la sesión
-      }
-      return session;
-    },
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role; // ✅ Guardamos `role` en el JWT
+        console.log("🟢 JWT Callback - User:", user); // 🔍 Verifica si user tiene id
+        token.id = user.id || user.sub || token.id; // 🔥 Usa sub si no hay id
+        token.role = user.role || token.role;
       }
       return token;
+    },
+
+    async session({ session, token }) {
+      console.log("🟢 Sesión Callback - Token recibido:", token); // 🔍 Verifica el token
+      if (session?.user) {
+        session.user.id = token.id || token.sub || null; // 🔥 Asegura que el ID esté presente
+        session.user.role = token.role;
+      }
+      console.log("🟢 Sesión generada:", session); // 🔍 Verifica si el ID está en la sesión
+      return session;
     },
   },
 });

@@ -41,6 +41,8 @@ model Article {
   topics            Topic[]           @relation("ArticleTopics")
   categories        Category[]        @relation("ArticleCategories")
 
+   favorites        Favorite[] 
+
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
   @@index([editionId], map: "Article_editionId_fkey")
@@ -126,6 +128,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   role          String   @default("user") // 🎯 Puede ser "user" o "admin"
+  favorites     Favorite[]
 
  
   createdAt DateTime @default(now())
@@ -246,3 +249,12 @@ model Image {
   @@index([contentType, contentId])
 }
 
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId Int
+
+  @@unique([userId, articleId]) // Evita que un usuario marque un mismo artículo más de una vez
+}
