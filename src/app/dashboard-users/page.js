@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import AccountSettings from "../../components/AccountSettings/AccountSettings";
+import FavoriteArticlesList from "./FavoriteArticleList/FavoriteArticleList";
 
 export default function UserDashboard() {
-  const [selectedTab, setSelectedTab] = useState("account");
+  const [selectedTab, setSelectedTab] = useState("favorites");
 
   // Opciones del menú
   const menuItems = [
     { key: "account", label: "Configuración de cuenta" },
-    // 🔥 Aquí podemos agregar más opciones en el futuro
+    { key: "favorites", label: "Artículos Favoritos" }, // ✅ Agregamos la opción de favoritos
   ];
 
   return (
@@ -38,6 +39,8 @@ export default function UserDashboard() {
       {/* 📌 Área de contenido dinámico */}
       <div className="flex-1 p-6">
         {selectedTab === "account" && <AccountSettings />}
+        {selectedTab === "favorites" && <FavoriteArticlesList />}{" "}
+        {/* ✅ Muestra los favoritos */}
       </div>
     </div>
   );
