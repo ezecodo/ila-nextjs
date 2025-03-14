@@ -12,7 +12,11 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (articlesProp) return; // ✅ Si ya hay artículos pasados como prop, no hace fetch
+    if (articlesProp) {
+      setArticles(articlesProp);
+      setTotalPages(1); // 🔥 No paginar si ya vienen artículos de búsqueda
+      return;
+    }
 
     async function fetchArticles() {
       try {
@@ -32,7 +36,7 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
     }
 
     fetchArticles();
-  }, [currentPage, authorId, articlesProp]);
+  }, [currentPage, authorId]); // 🔥 Ya no depende de articlesProp
 
   if (error) {
     return <p className="text-red-500">{error}</p>;
@@ -50,13 +54,14 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
         ))}
       </div>
 
-      {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      )}
+      {totalPages > 1 &&
+        !articlesProp && ( // 🔥 Evita paginación en búsqueda
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
     </div>
   );
 }

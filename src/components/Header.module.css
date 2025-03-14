@@ -84,7 +84,7 @@
   background-color: #910e0e !important;
 }
 
-/* 🔥 Botón hamburguesa */
+/* 🔥 Botón hamburguesa (ahora a la izquierda) */
 .menuButton {
   display: none;
   font-size: 1.8rem;
@@ -92,6 +92,7 @@
   border: none;
   cursor: pointer;
   color: #333;
+  margin-right: auto; /* 🔥 Mueve el botón hamburguesa a la izquierda */
 }
 
 /* 🔥 Menú de navegación */
@@ -145,12 +146,8 @@
 
   /* 🔥 Botón hamburguesa (ARREGLADO) */
   .menuButton {
-    display: block;
-    font-size: 1.8rem;
-    color: #333;
-    border: none;
-    background: none;
-    margin-left: auto;
+    display: block; /* ✅ Ahora sí se muestra */
+    margin-top: 10px; /* 🔥 Se separa del logo */
   }
 
   /* 🔥 Menú hamburguesa en móvil */
