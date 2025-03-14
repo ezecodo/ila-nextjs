@@ -1,3 +1,4 @@
+"use client";
 import SearchResults from "@/components/Articles/SearchResults";
 
 export default function SearchPage() {
