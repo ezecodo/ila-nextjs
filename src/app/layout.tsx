@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { SessionProvider } from "next-auth/react"; // 🔥 Importa SessionProvider
+import { SessionProvider } from "next-auth/react";
 import localFont from "next/font/local";
 import "./globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-// Importa los componentes que no requieran "use client"
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -32,13 +31,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
-        {/* 🔥 Envuelve todo en SessionProvider */}
         <SessionProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          {/* Contenedor general para definir estructura */}
+          <div className="flex flex-col min-h-screen">
+            {/* Header fijo con control de padding en móvil */}
+            <Header />
+
+            {/* Contenedor principal con margen y padding en móviles */}
+            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
+              {children}
+            </main>
+
+            {/* Footer siempre visible en móviles */}
+            <Footer />
+          </div>
         </SessionProvider>
       </body>
     </html>
