@@ -1,65 +1,62 @@
-"use client";
+"use client"; // ✅ Forzar renderizado en el cliente
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import ArticleList from "@/components/Articles/ArticleList";
-import Pagination from "@/components/Pagination/Pagination";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation"; // ✅ Hook para manejar searchParams
+import ArticleList from "./ArticleList";
+import Pagination from "../Pagination/Pagination"; // ✅ Importar componente de paginación
 
-export default function SearchResults() {
-  const searchParams = useSearchParams();
-  const query = searchParams.get("query") || "";
-  const [articles, setArticles] = useState([]); // 🔥 Aseguramos que inicie como un array vacío
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+const SearchResults = () => {
+  const searchParams = useSearchParams(); // ✅ Obtener los parámetros de la URL
+  const query = searchParams.get("query") || ""; // ✅ Extraer la query correctamente
+
+  const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1); // ✅ Estado para la página actual
+  const [totalPages, setTotalPages] = useState(1); // ✅ Estado para el total de páginas
 
   useEffect(() => {
     if (!query) return;
 
-    const fetchSearchResults = async () => {
-      setLoading(true);
+    const fetchResults = async () => {
       try {
+        setLoading(true);
         const response = await fetch(
-          `/api/articles/search?query=${query}&page=${currentPage}&limit=5`
+          `/api/articles/search?query=${encodeURIComponent(
+            query
+          )}&page=${currentPage}&limit=10`
         );
+        if (!response.ok) throw new Error("Error en la búsqueda");
         const data = await response.json();
-
-        // ✅ Verificar que `data.articles` sea un array antes de asignarlo
-        setArticles(Array.isArray(data.articles) ? data.articles : []);
-        setTotalPages(data.totalPages || 1);
+        setArticles(data.articles);
+        setTotalPages(data.totalPages); // ✅ Guardamos el total de páginas
       } catch (error) {
-        console.error("Error al obtener resultados de búsqueda:", error);
-        setArticles([]); // 🔥 Evita que sea undefined en caso de error
+        console.error("Error cargando resultados:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSearchResults();
-  }, [query, currentPage]);
+    fetchResults();
+  }, [query, currentPage]); // ✅ Se ejecuta cuando cambia la búsqueda o la página
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">
-        Resultados de búsqueda para &quot;{query}&quot;:
-      </h2>
-
+    <div>
       {loading ? (
         <p>Cargando resultados...</p>
-      ) : articles.length > 0 ? ( // 🔥 Ahora `articles.length` siempre tendrá un valor seguro
+      ) : (
         <>
           <ArticleList articlesProp={articles} />
           {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={setCurrentPage} // ✅ Función para cambiar de página
             />
           )}
         </>
-      ) : (
-        <p>No se encontraron artículos.</p>
       )}
     </div>
   );
-}
+};
+
+export default SearchResults;
