@@ -6,6 +6,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CookieConsent from "@/components/CookieConsent/CookieConsent";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -47,6 +48,8 @@ export default function RootLayout({
             {/* Footer siempre visible en móviles */}
             <Footer />
           </div>
+          {/* 🔥 Banner de cookies */}
+          <CookieConsent />
         </SessionProvider>
       </body>
     </html>
