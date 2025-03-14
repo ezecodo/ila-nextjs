@@ -1,11 +1,10 @@
 /* Header.module.css */
 
-/* General styles for the header */
+/* 🔥 Estilos generales del header */
 .header {
   display: flex;
-  flex-direction: column; /* Apilamos logo/tagline, menú y botones */
+  flex-direction: column;
   align-items: center;
-  /* Reducir padding vertical para acortar la altura */
   padding: 0.5rem 1rem;
   background-color: #f8f8f8;
   border-bottom: 1px solid #ddd;
@@ -16,60 +15,91 @@
   width: 100%;
 }
 
+/* 🔥 Contenedor superior con logo y botones */
 .headerTop {
   display: flex;
-  justify-content: space-between; /* Logo a la izquierda, botones a la derecha */
+  justify-content: space-between;
   align-items: center;
   width: 100%;
+  max-width: 1200px;
+  padding: 0.5rem;
 }
 
+/* 🔥 Contenedor del logo */
 .logoContainer {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
+/* 🔥 Ajuste de logo para que no se recorte en móviles */
 .logo {
-  overflow: hidden; /* Recorta cualquier contenido fuera del contenedor circular */
-  width: 50px; /* Tamaño fijo para el ancho */
-  height: 50px; /* Tamaño fijo para el alto */
-  object-fit: cover; /* Ajusta la imagen para que no se deforme */
-  display: block; /* Asegura que la imagen se comporte como un bloque */
+  width: 50px;
+  height: auto;
+  max-height: 50px;
+  object-fit: contain;
 }
 
-.tagline {
-  font-size: 1.2rem;
-  color: #555;
-}
+/* 🔥 Mensaje de bienvenida */
 .welcomeText {
   font-size: 14px;
   font-weight: bold;
   margin-right: 10px;
-  color: #333; /* Ajusta el color según tu diseño */
+  color: #333;
 }
 
-/* Menu button for mobile */
+/* 🔥 Botones de autenticación */
+.authButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* 🔥 Botón de icono (Login, Logout, Dashboard) */
+.iconButton {
+  background-color: #910e0e;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease-in-out;
+}
+
+.iconButton:hover {
+  background-color: #b71c1c;
+  transform: scale(1.1);
+}
+
+/* 🔥 Ajustes específicos para el botón de Logout */
+.logoutButton {
+  background-color: #b71c1c !important;
+}
+
+.logoutButton:hover {
+  background-color: #910e0e !important;
+}
+
+/* 🔥 Botón hamburguesa */
 .menuButton {
   display: none;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   background: none;
   border: none;
   cursor: pointer;
   color: #333;
 }
 
-/* Navigation styles */
+/* 🔥 Menú de navegación */
 .nav {
-  /* Reducir margen superior para compactar el header */
-  margin-top: 0.1rem;
   display: flex;
-  align-items: center; /* Centra verticalmente */
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-}
-
-.nav.active {
-  display: flex;
 }
 
 .menu {
@@ -91,75 +121,52 @@
   font-weight: bold;
 }
 
-/* Authentication buttons */
-.authButtons {
-  display: flex;
-  gap: 10px;
-}
-
-.iconButton {
-  background-color: #910e0e; /* Rojo específico */
-  color: white;
-  border: none;
-  border-radius: 50%; /* Botones circulares */
-  padding: 10px;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.iconButton:hover {
-  background-color: #b71c1c; /* Rojo más oscuro para el hover */
-}
-
-/* Responsive styles */
+/* 🟢 🔥 RESPONSIVE PARA MÓVILES */
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    align-items: center;
-    /* Reducir padding en móvil también */
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
   }
+
   .headerTop {
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
     width: 100%;
   }
 
   .logoContainer {
-    justify-content: center; /* Centra el logo en la versión móvil */
-    align-items: center;
-    gap: 0.5rem; /* Ajusta el espacio entre logo y tagline */
+    justify-content: center;
   }
 
   .logo {
-    width: 40px; /* Tamaño más pequeño para móvil */
-    height: 40px; /* Mantén proporción circular */
-    object-fit: cover; /* Asegura que la imagen no se deforme */
+    width: 40px;
+    height: auto;
+    max-height: 40px;
   }
 
-  .tagline {
-    font-size: 1rem; /* Reduce ligeramente el tamaño de la fuente */
-    text-align: center; /* Centra el texto debajo del logo */
-  }
-
+  /* 🔥 Botón hamburguesa (ARREGLADO) */
   .menuButton {
     display: block;
+    font-size: 1.8rem;
+    color: #333;
+    border: none;
+    background: none;
     margin-left: auto;
   }
 
+  /* 🔥 Menú hamburguesa en móvil */
   .nav {
     display: none;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
     width: 100%;
-    /* Reducir margen superior en móvil */
-    margin-top: 0.5rem;
+    background-color: #fff;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 1rem 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 999;
   }
 
   .nav.active {
@@ -172,11 +179,16 @@
     text-align: center;
   }
 
-  .menu li {
-    text-align: center;
+  .authButtons {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
   }
 
-  .authButtons {
-    margin-top: 1rem;
+  /* 🔥 Corrección del tamaño del botón de Logout */
+  .iconButton {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
   }
 }

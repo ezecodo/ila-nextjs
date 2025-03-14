@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
+  FaBars,
   FaUser,
   FaUserPlus,
   FaSignOutAlt,
@@ -96,7 +97,7 @@ const Header = () => {
         onClick={toggleMenu}
         aria-label="Toggle menu"
       >
-        ☰
+        <FaBars size={24} /> {/* 🔥 Usa un ícono confiable */}
       </button>
 
       {/* Menú de navegación */}
