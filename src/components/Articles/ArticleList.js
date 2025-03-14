@@ -36,7 +36,7 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
     }
 
     fetchArticles();
-  }, [currentPage, authorId]); // 🔥 Ya no depende de articlesProp
+  }, [currentPage, authorId, articlesProp]); // 🔥 Ya no depende de articlesProp
 
   if (error) {
     return <p className="text-red-500">{error}</p>;

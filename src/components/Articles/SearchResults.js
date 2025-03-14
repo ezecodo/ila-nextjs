@@ -41,8 +41,9 @@ export default function SearchResults() {
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold mb-4">
-        Resultados de búsqueda para: "{query}"
+        Resultados de búsqueda para &quot;{query}&quot;:
       </h2>
+
       {loading ? (
         <p>Cargando resultados...</p>
       ) : articles.length > 0 ? ( // 🔥 Ahora `articles.length` siempre tendrá un valor seguro
