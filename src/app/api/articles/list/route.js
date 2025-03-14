@@ -54,7 +54,10 @@ export async function GET(req) {
         const images = await prisma.image.findMany({
           where: {
             contentType: "ARTICLE",
-            contentId: article.beitragsId,
+            OR: [
+              { contentId: article.beitragsId }, // 🔥 Para artículos antiguos
+              { contentId: article.id }, // 🔥 Para artículos nuevos
+            ],
           },
         });
 

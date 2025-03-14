@@ -626,13 +626,13 @@ export default function NewArticlePage() {
         />
         <div className={styles.formGroup}>
           <label htmlFor="articleImage" className={styles.formLabel}>
-            Imagen del Artículo:
+            Imagen del Artículo (opcional):
           </label>
           <input
             type="file"
             id="articleImage"
             ref={fileInputRef}
-            onChange={(e) => setArticleImage(e.target.files[0])} // Guardar el archivo seleccionado
+            onChange={(e) => setArticleImage(e.target.files[0])} // Guarda la imagen en el estado
             className={styles.input}
             accept="image/*"
           />

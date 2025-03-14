@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { writeFile } from "fs/promises";
-import path from "path";
+import cloudinary from "cloudinary";
 
 const prisma = new PrismaClient();
 
@@ -11,6 +10,13 @@ export const config = {
     },
   },
 };
+
+// Configurar Cloudinary
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function GET() {
   try {
@@ -73,67 +79,20 @@ export async function POST(request) {
     // Leer datos desde FormData
     const formData = await request.formData();
 
-    const title = formData.get("title"); // Titulo
-    const subtitle = formData.get("subtitle"); // Subtitulo
+    const title = formData.get("title");
+    const subtitle = formData.get("subtitle");
     const content = formData.get("content");
-
-    if (!content || typeof content !== "string" || content.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error: "El contenido del artículo no es válido o está vacío.",
-        }),
-        { status: 400 }
-      );
-    }
-    const beitragstypId = formData.get("beitragstypId"); // Tipo de Contenido
-    const beitragssubtypId = formData.get("beitragssubtypId"); // Subtipo de contenido
-    const isPrinted = formData.get("isPrinted") === "true"; // Es Impreso en revista?
-    const editionId = formData.get("editionId"); // Id de la revista
-    const startPage = formData.get("startPage");
-    const endPage = formData.get("endPage");
+    const beitragstypId = formData.get("beitragstypId");
+    const isPrinted = formData.get("isPrinted") === "true";
+    const editionId = formData.get("editionId");
     const authorId = formData.get("authorId");
-    const intervieweeId = formData.get("intervieweeId");
     const isPublished = formData.get("isPublished") === "true";
     const publicationDate = formData.get("publicationDate");
-    const isNachruf = formData.get("isNachruf") === "true";
-    const deceasedFirstName = formData.get("deceasedFirstName");
-    const deceasedLastName = formData.get("deceasedLastName");
-    const dateOfBirth = formData.get("dateOfBirth");
-    const dateOfDeath = formData.get("dateOfDeath");
-    const previewText = formData.get("previewText");
-    const additionalInfo = formData.get("additionalInfo");
     const categories = JSON.parse(formData.get("categories") || "[]");
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
-    const articleImage = formData.get("articleImage"); // Obtenemos la imagen del FormData
-    const bookImage = formData.get("bookImage"); // Imagen del libro
-    const mediaTitle = formData.get("mediaTitle"); // Título del libro
+    const articleImage = formData.get("articleImage");
 
-    console.log("Datos recibidos:", {
-      title,
-      subtitle,
-      content,
-      beitragstypId,
-      beitragssubtypId,
-      isPrinted,
-      editionId,
-      startPage,
-      authorId,
-      intervieweeId,
-      isPublished,
-      publicationDate,
-      isNachruf,
-      previewText,
-      additionalInfo,
-      articleImage,
-      regions,
-      topics,
-      categories,
-      mediaTitle,
-      bookImage,
-    });
-
-    // Validaciones básicas
     if (!title || !content || !beitragstypId) {
       return new Response(
         JSON.stringify({
@@ -142,201 +101,88 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-    // Verificar si el tipo de artículo es "Buchbesprechung"
-    const beitragstyp = await prisma.beitragstyp.findUnique({
-      where: { id: parseInt(beitragstypId, 10) },
-    });
 
-    const isBuchBesprechung = beitragstyp?.name === "Buchbesprechung";
-
-    if (isBuchBesprechung && (!mediaTitle || !bookImage)) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "Para 'Buchbesprechung', el título del libro y la imagen son obligatorios.",
-        }),
-        { status: 400 }
-      );
-    }
-    if (!isPublished && !publicationDate) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "Debe seleccionar 'Publicar ahora' o proporcionar una fecha para programar la publicación.",
-        }),
-        { status: 400 }
-      );
-    }
-
-    // Validación de datos de Nachruf
-    if (isNachruf) {
-      if (
-        !deceasedFirstName ||
-        !deceasedLastName ||
-        !dateOfBirth ||
-        !dateOfDeath ||
-        isNaN(parseInt(dateOfBirth, 10)) ||
-        isNaN(parseInt(dateOfDeath, 10))
-      ) {
-        return new Response(
-          JSON.stringify({
-            error: "Los datos del Nachruf son inválidos o están incompletos.",
-          }),
-          { status: 400 }
-        );
-      }
-
-      if (parseInt(dateOfBirth, 10) > parseInt(dateOfDeath, 10)) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "El año de nacimiento no puede ser mayor que el año de defunción.",
-          }),
-          { status: 400 }
-        );
-      }
-    }
-
-    // Crear el artículo
-    // Crear el artículo
+    // **1️⃣ Crear el artículo primero**
     const article = await prisma.article.create({
       data: {
         title,
         subtitle,
         content,
-        additionalInfo: additionalInfo || null,
         beitragstypId: parseInt(beitragstypId, 10),
-        beitragssubtypId: beitragssubtypId
-          ? parseInt(beitragssubtypId, 10)
-          : null,
-        mediaTitle: isBuchBesprechung ? mediaTitle : null,
-        bookImage: null, // Temporalmente null
         isInPrintEdition: isPrinted,
         editionId: isPrinted ? parseInt(editionId, 10) : null,
-        startPage: isPrinted ? parseInt(startPage, 10) : null,
-        endPage: isPrinted ? parseInt(endPage, 10) : null,
-        isPublished: isPublished || false,
+        isPublished: isPublished,
         publicationDate: publicationDate ? new Date(publicationDate) : null,
-        articleImage: null, // Temporalmente sin imagen
         authors: authorId
+          ? { connect: { id: parseInt(authorId, 10) } }
+          : undefined,
+        categories: categories.length
           ? {
-              connect: { id: parseInt(authorId, 10) },
+              connect: categories.map((categoryId) => ({ id: categoryId })),
             }
           : undefined,
-        interviewees: intervieweeId
-          ? {
-              connect: { id: parseInt(intervieweeId, 10) },
-            }
-          : undefined,
-        obituaryDetails: isNachruf
-          ? {
-              create: {
-                deceasedFirstName,
-                deceasedLastName,
-                dateOfBirth: parseInt(dateOfBirth, 10),
-                dateOfDeath: parseInt(dateOfDeath, 10),
-              },
-            }
-          : undefined,
-        articleCategories: categories.length
-          ? {
-              create: categories.map((categoryId) => ({
-                category: { connect: { id: categoryId } },
-              })),
-            }
-          : undefined,
-        previewText: previewText,
         regions: regions.length
-          ? {
-              connect: regions.map((region) => ({ id: parseInt(region, 10) })),
-            }
+          ? { connect: regions.map((region) => ({ id: parseInt(region, 10) })) }
           : undefined,
         topics: topics.length
-          ? {
-              connect: topics.map((topic) => ({ id: parseInt(topic, 10) })),
-            }
+          ? { connect: topics.map((topic) => ({ id: parseInt(topic, 10) })) }
           : undefined,
-      },
-      include: {
-        regions: true,
-        topics: true,
       },
     });
 
-    console.log("Artículo creado:", article);
+    console.log("✅ Artículo creado:", article.id);
 
-    // Procesar imagen del artículo
+    let imageUrl = null;
+
+    // **2️⃣ Subir la imagen del artículo a Cloudinary**
     if (articleImage) {
       try {
         const buffer = Buffer.from(await articleImage.arrayBuffer());
-        const articleImagePath = path.join(
-          process.cwd(),
-          "public",
-          "uploads",
-          "articles-pics",
-          `${article.id}.jpg`
+
+        const uploadResult = await cloudinary.v2.uploader.upload(
+          `data:image/jpeg;base64,${buffer.toString("base64")}`,
+          {
+            folder: "ila/articles",
+            public_id: `article_${article.id}`,
+            overwrite: true,
+          }
         );
 
-        await writeFile(articleImagePath, buffer);
-        console.log(`Imagen del artículo guardada en: ${articleImagePath}`);
+        imageUrl = uploadResult.secure_url;
+        console.log("✅ Imagen del artículo subida a Cloudinary:", imageUrl);
 
-        // Actualizar ruta de la imagen del artículo en la base de datos
-        await prisma.article.update({
-          where: { id: article.id },
-          data: { articleImage: `/uploads/articles-pics/${article.id}.jpg` },
+        // **3️⃣ Guardar la imagen en la tabla `Image` con la relación `articleId = article.id`**
+        await prisma.image.create({
+          data: {
+            contentType: "ARTICLE",
+            contentId: article.id, // Relación con el artículo
+            url: imageUrl,
+            title: title,
+          },
         });
+
+        console.log(
+          "✅ Imagen del artículo guardada en la BD con articleId:",
+          article.id
+        );
       } catch (error) {
         console.error(
-          "Error al guardar la imagen del artículo:",
+          "❌ Error al subir la imagen del artículo a Cloudinary:",
           error.message
         );
       }
     }
 
-    // Procesar imagen del libro si es Buchbesprechung
-    if (isBuchBesprechung && bookImage) {
-      try {
-        const buffer = Buffer.from(await bookImage.arrayBuffer());
-        const fileName = `${mediaTitle.replace(/\s+/g, "_")}-${Date.now()}.jpg`;
-        const bookImagePath = path.join(
-          process.cwd(),
-          "public",
-          "uploads",
-          "articles-pics",
-          "books",
-          fileName
-        );
-
-        await writeFile(bookImagePath, buffer);
-        console.log(`Imagen del libro guardada en: ${bookImagePath}`);
-
-        // Actualizar ruta de la imagen del libro en la base de datos
-        await prisma.article.update({
-          where: { id: article.id },
-          data: { bookImage: `/uploads/articles-pics/books/${fileName}` },
-        });
-      } catch (error) {
-        console.error("Error al guardar la imagen del libro:", error.message);
-      }
-    } else {
-      console.log("La imagen del articulo, se ha guardado con éxito! Congrats");
-    }
-
-    // Retornar el artículo con datos actualizados
-    const updatedArticle = await prisma.article.findUnique({
-      where: { id: article.id },
-      include: {
-        regions: true,
-        topics: true,
-      },
-    });
-
-    return new Response(JSON.stringify(updatedArticle), { status: 201 });
+    // **4️⃣ Retornar el artículo con la URL de la imagen**
+    return new Response(
+      JSON.stringify({
+        ...article,
+        articleImageUrl: imageUrl,
+      }),
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("Error al crear el artículo:", error.message);
-    if (error.meta) {
-      console.error("Detalles del error:", error.meta);
-    }
+    console.error("❌ Error al crear el artículo:", error.message);
     return new Response(
       JSON.stringify({
         error: "Error interno del servidor",
