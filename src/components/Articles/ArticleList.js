@@ -12,7 +12,7 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (articlesProp) return; // Si recibe artículos como prop, no hace fetch
+    if (articlesProp) return; // ✅ Si ya hay artículos pasados como prop, no hace fetch
 
     async function fetchArticles() {
       try {
@@ -50,11 +50,13 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
         ))}
       </div>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

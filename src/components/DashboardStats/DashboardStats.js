@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Heart } from "lucide-react"; // 🔥 Ícono de corazón
 
 const DashboardStats = ({ onShowArticles }) => {
   const [stats, setStats] = useState(null);
@@ -39,9 +40,9 @@ const DashboardStats = ({ onShowArticles }) => {
       <h1 className="text-2xl font-bold text-center mb-6">📊 Dashboard</h1>
 
       {stats ? (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* 🔥 Cantidad de artículos */}
-          <div className="p-4 bg-blue-100 rounded-lg text-center shadow-md">
+          <div className="p-4 bg-blue-100 rounded-lg text-center shadow-md flex flex-col justify-center">
             <h3 className="text-lg font-semibold">📄 Artículos</h3>
             <p
               className="text-3xl font-bold cursor-pointer text-blue-600 hover:underline"
@@ -52,15 +53,29 @@ const DashboardStats = ({ onShowArticles }) => {
           </div>
 
           {/* 🔥 Cantidad de ediciones */}
-          <div className="p-4 bg-green-100 rounded-lg text-center shadow-md">
+          <div className="p-4 bg-green-100 rounded-lg text-center shadow-md flex flex-col justify-center">
             <h3 className="text-lg font-semibold">📚 Ediciones</h3>
             <p className="text-3xl font-bold">{stats.totalEditions}</p>
           </div>
 
           {/* 🔥 Cantidad de usuarios */}
-          <div className="p-4 bg-yellow-100 rounded-lg text-center shadow-md">
+          <div className="p-4 bg-yellow-100 rounded-lg text-center shadow-md flex flex-col justify-center">
             <h3 className="text-lg font-semibold">👤 Usuarios</h3>
             <p className="text-3xl font-bold">{stats.totalUsers}</p>
+          </div>
+
+          {/* 🔥 Nueva métrica: Cantidad de artículos likeados con icono */}
+          <div className="p-4 bg-red-100 rounded-lg text-center shadow-md flex flex-col justify-center items-center">
+            <div className="flex items-center justify-center gap-2">
+              <Heart
+                size={26}
+                className="text-red-500 stroke-black fill-red-500"
+              />
+              <h3 className="text-lg font-semibold">Favoritos</h3>
+            </div>
+            <p className="text-3xl font-bold mt-1">
+              {stats.totalLikedArticles}
+            </p>
           </div>
         </div>
       ) : (

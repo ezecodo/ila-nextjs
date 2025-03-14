@@ -6,11 +6,13 @@ export async function GET() {
     const totalArticles = await prisma.article.count();
     const totalEditions = await prisma.edition.count();
     const totalUsers = await prisma.user.count();
+    const totalLikedArticles = await prisma.favorite.count(); // ✅ Nueva métrica
 
     return NextResponse.json({
       totalArticles,
       totalEditions,
       totalUsers,
+      totalLikedArticles, // ✅ Devolvemos la cantidad de artículos likeados
     });
   } catch (error) {
     console.error("Error al obtener estadísticas:", error);

@@ -6,7 +6,7 @@ import HoverInfo from "@/components/HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
 import FavoriteButton from "@/components/FavoriteButton/FavoriteButton";
 
-export default function ArticleCard({ article }) {
+export default function ArticleCard({ article, onRemoveFavorite }) {
   const firstImage = article.images?.[0];
   const formattedDate = article.publicationDate
     ? new Date(article.publicationDate).toLocaleDateString("es-ES", {
@@ -102,9 +102,13 @@ export default function ArticleCard({ article }) {
           </div>
         )}
       </div>
-      {/* 🔥 Botón de favoritos en la parte inferior derecha SIN afectar estructura */}
+
+      {/* 🔥 Botón de favoritos en la parte inferior derecha */}
       <div className="flex justify-end self-end mt-auto">
-        <FavoriteButton articleId={article.id} />
+        <FavoriteButton
+          articleId={article.id}
+          onRemoveFavorite={onRemoveFavorite} // ✅ Pasamos la función
+        />
       </div>
 
       {/* 🔥 Modal de Imagen */}
