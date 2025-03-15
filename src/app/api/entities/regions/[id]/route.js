@@ -72,11 +72,21 @@ export async function GET(request, context) {
     // 🔥 Obtener imágenes de cada artículo basado en `beitragsId`
     const articlesWithImages = await Promise.all(
       region.articles.map(async (article) => {
-        const images = await prisma.image.findMany({
-          where: { contentType: "ARTICLE", contentId: article.beitragsId },
-          select: { url: true },
-          take: 1,
-        });
+        const imageFilters = [];
+        if (article.beitragsId)
+          imageFilters.push({ contentId: article.beitragsId });
+        if (article.id) imageFilters.push({ contentId: article.id });
+
+        const images = imageFilters.length
+          ? await prisma.image.findMany({
+              where: {
+                contentType: "ARTICLE",
+                OR: imageFilters,
+              },
+              select: { url: true },
+              take: 1,
+            })
+          : [];
 
         return { ...article, images };
       })

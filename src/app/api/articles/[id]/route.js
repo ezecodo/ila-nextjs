@@ -60,12 +60,29 @@ export async function GET(req, context) {
       });
     }
 
+    // Construir el filtro dinámicamente
+    const imageFilter = {
+      contentType: "ARTICLE",
+    };
+
+    // Si el artículo tiene un `beitragsId`, lo agregamos al filtro
+    const imageConditions = [];
+    if (article.beitragsId) {
+      imageConditions.push({ contentId: article.beitragsId });
+    }
+
+    // Siempre agregamos el `article.id` para los artículos nuevos
+    imageConditions.push({ contentId: article.id });
+
+    if (imageConditions.length > 1) {
+      imageFilter.OR = imageConditions;
+    } else {
+      imageFilter.contentId = imageConditions[0].contentId; // Si solo hay uno, usamos `contentId` directamente
+    }
+
     // Obtener imágenes relacionadas del artículo
     const images = await prisma.image.findMany({
-      where: {
-        contentType: "ARTICLE",
-        contentId: article.beitragsId,
-      },
+      where: imageFilter,
     });
 
     // Incluir imágenes en la respuesta

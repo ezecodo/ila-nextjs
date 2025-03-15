@@ -112,7 +112,10 @@ export async function POST(request) {
         isInPrintEdition: isPrinted,
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         isPublished: isPublished,
-        publicationDate: publicationDate ? new Date(publicationDate) : null,
+        publicationDate: publicationDate
+          ? new Date(publicationDate)
+          : new Date(),
+
         authors: authorId
           ? { connect: { id: parseInt(authorId, 10) } }
           : undefined,

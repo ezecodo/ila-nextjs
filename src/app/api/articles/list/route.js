@@ -51,15 +51,26 @@ export async function GET(req) {
     // Agregar imágenes relacionadas
     const articlesWithImages = await Promise.all(
       articles.map(async (article) => {
-        const images = await prisma.image.findMany({
-          where: {
-            contentType: "ARTICLE",
-            OR: [
-              { contentId: article.beitragsId }, // 🔥 Para artículos antiguos
-              { contentId: article.id }, // 🔥 Para artículos nuevos
-            ],
-          },
-        });
+        console.log(`🔍 Buscando imágenes para artículo ID ${article.id}`);
+
+        // Filtrar contentId null para evitar el error de Prisma
+        const imageFilters = [];
+        if (article.beitragsId)
+          imageFilters.push({ contentId: article.beitragsId });
+        if (article.id) imageFilters.push({ contentId: article.id });
+
+        const images = imageFilters.length
+          ? await prisma.image.findMany({
+              where: {
+                contentType: "ARTICLE",
+                OR: imageFilters, // Solo enviamos IDs válidos
+              },
+            })
+          : []; // Si no hay IDs válidos, devolvemos un array vacío
+
+        console.log(
+          `📸 ${images.length} imágenes encontradas para artículo ${article.id}`
+        );
 
         return {
           ...article,

@@ -57,21 +57,26 @@ export async function GET(request, context) {
     console.log(`✅ Autor encontrado: ${author.name}`);
 
     // 🔥 Obtener imágenes de cada artículo basado en `beitragsId`
+
     const articlesWithImages = await Promise.all(
       author.articles.map(async (article) => {
-        const images = await prisma.image.findMany({
-          where: {
-            contentType: "ARTICLE",
-            contentId: article.beitragsId,
-          },
-          select: { url: true },
-          take: 1,
-        });
+        const imageFilters = [];
+        if (article.beitragsId)
+          imageFilters.push({ contentId: article.beitragsId });
+        if (article.id) imageFilters.push({ contentId: article.id });
 
-        return {
-          ...article,
-          images, // Agregamos las imágenes al artículo
-        };
+        const images = imageFilters.length
+          ? await prisma.image.findMany({
+              where: {
+                contentType: "ARTICLE",
+                OR: imageFilters,
+              },
+              select: { url: true },
+              take: 1,
+            })
+          : [];
+
+        return { ...article, images };
       })
     );
 
