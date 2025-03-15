@@ -4,7 +4,6 @@ const prisma = new PrismaClient();
 
 export async function GET(request, context) {
   try {
-    // ✅ Obtener `params` de `context`
     const params = await context?.params;
     if (!params || !params.id) {
       return new Response(
@@ -21,22 +20,21 @@ export async function GET(request, context) {
       });
     }
 
-    // ✅ Obtener parámetros de la URL (paginación)
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
-    const pageSize = 20; // 🔥 Número de artículos por página
+    const pageSize = 20;
     const skip = (page - 1) * pageSize;
 
     console.log(`✅ Buscando región con ID: ${regionId} - Página: ${page}`);
 
-    // 🔥 Obtener región con sus artículos paginados
+    // 🔥 Obtener la región con artículos y ediciones
     const region = await prisma.region.findUnique({
       where: { id: regionId },
       include: {
         articles: {
           orderBy: { publicationDate: "desc" },
-          skip, // 🔥 Salta los primeros `skip` resultados
-          take: pageSize, // 🔥 Toma `pageSize` artículos
+          skip,
+          take: pageSize,
           select: {
             id: true,
             title: true,
@@ -50,6 +48,19 @@ export async function GET(request, context) {
             authors: { select: { id: true, name: true } },
           },
         },
+        editions: {
+          orderBy: { number: "desc" },
+          select: {
+            id: true,
+            number: true,
+            title: true,
+            subtitle: true,
+            datePublished: true,
+            coverImage: true,
+            topics: { select: { id: true, name: true } },
+            regions: { select: { id: true, name: true } },
+          },
+        },
       },
     });
 
@@ -60,13 +71,18 @@ export async function GET(request, context) {
       });
     }
 
-    // 🔥 Contar total de artículos en la región para paginación
+    // 🔥 Contar total de artículos en la región
     const totalArticles = await prisma.article.count({
       where: { regions: { some: { id: regionId } } },
     });
 
+    // 🔥 Contar total de ediciones en la región
+    const totalEditions = await prisma.edition.count({
+      where: { regions: { some: { id: regionId } } },
+    });
+
     console.log(
-      `✅ Región encontrada: ${region.name} - Artículos: ${region.articles.length}`
+      `✅ Región encontrada: ${region.name} - Artículos: ${region.articles.length} - Ediciones: ${region.editions.length}`
     );
 
     // 🔥 Obtener imágenes de cada artículo basado en `beitragsId`
@@ -99,11 +115,13 @@ export async function GET(request, context) {
         name: region.name || "Región desconocida",
       },
       articles: articlesWithImages,
+      editions: region.editions, // ✅ Ahora también enviamos las ediciones
       pagination: {
-        total: totalArticles,
+        totalArticles,
+        totalEditions,
         page,
         pageSize,
-        hasMore: skip + pageSize < totalArticles, // 🔥 Saber si hay más páginas
+        hasMore: skip + pageSize < totalArticles,
       },
     };
 

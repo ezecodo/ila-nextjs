@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog } from "@headlessui/react"; // Para el modal
+import { Dialog } from "@headlessui/react";
 import Image from "next/image";
 import Link from "next/link";
 import HoverInfo from "../HoverInfo/HoverInfo";
+import EntityBadges from "../EntityBadges/EntityBadges"; // ✅ Importamos el nuevo EntityBadges
 
 export default function EditionsList() {
   const [editions, setEditions] = useState([]);
   const [error, setError] = useState(null);
-  const [isOpen, setIsOpen] = useState(false); // Controla el estado del modal
-  const [popupImage, setPopupImage] = useState(null); // Guarda la imagen que se mostrará en el modal
+  const [isOpen, setIsOpen] = useState(false);
+  const [popupImage, setPopupImage] = useState(null);
 
   useEffect(() => {
     async function fetchEditions() {
@@ -33,19 +34,16 @@ export default function EditionsList() {
     fetchEditions();
   }, []);
 
-  // Abre el modal y establece la imagen
   const openPopup = (imageUrl) => {
     setPopupImage(imageUrl);
     setIsOpen(true);
   };
 
-  // Cierra el modal
   const closePopup = () => {
     setIsOpen(false);
     setPopupImage(null);
   };
 
-  // Función para truncar texto
   const truncateText = (text, maxLength) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
@@ -73,7 +71,7 @@ export default function EditionsList() {
               className="relative w-full max-w-[300px] cursor-pointer"
               onClick={() =>
                 edition.coverImage && openPopup(edition.coverImage)
-              } // Solo abrir popup si hay imagen
+              }
             >
               <div className="relative overflow-hidden aspect-w-3 aspect-h-4">
                 {/* Imagen de la portada */}
@@ -83,13 +81,12 @@ export default function EditionsList() {
                   width={300}
                   height={400}
                   objectFit="contain"
-                  className="" // No redondear bordes
                 />
 
                 {/* Ícono del carrito */}
                 {edition.isAvailableToOrder && (
                   <div className="absolute top-2 right-2 z-10">
-                    <i className="fa fa-shopping-cart text-white text-xl bg-red-600 p-1  shadow-lg transition-all duration-200 ease-in-out hover:bg-red-800 hover:scale-110"></i>
+                    <i className="fa fa-shopping-cart text-white text-xl bg-red-600 p-1 shadow-lg transition-all duration-200 ease-in-out hover:bg-red-800 hover:scale-110"></i>
                   </div>
                 )}
               </div>
@@ -104,7 +101,7 @@ export default function EditionsList() {
                       fontFamily: "Futura, sans-serif",
                       textTransform: "lowercase",
                       fontSize: "1.2em",
-                      color: "#d13120", // 🔥 Color rojo
+                      color: "#d13120",
                     }}
                   >
                     ila {edition.number}
@@ -113,34 +110,15 @@ export default function EditionsList() {
                 </h2>
               }
               entityType="editions"
-              className="text-lg font-bold mt-4 mb-2"
             />
 
-            {/* Mostrar las regiones */}
-            <div className="badgesContainer">
-              {edition.regions.length > 0 ? (
-                edition.regions.map((region) => (
-                  <span key={region.id} className="regionBadge">
-                    {region.name}
-                  </span>
-                ))
-              ) : (
-                <span className="regionBadge">Sin regiones asociadas</span>
-              )}
-            </div>
-
-            {/* Mostrar los temas */}
-            <div className="badgesContainer">
-              {edition.topics.length > 0 ? (
-                edition.topics.map((topic) => (
-                  <span key={topic.id} className="topicBadge">
-                    {topic.name}
-                  </span>
-                ))
-              ) : (
-                <span className="topicBadge">Sin temas asociados</span>
-              )}
-            </div>
+            {/* 🔥 Reemplazo de badges manuales por EntityBadges */}
+            <EntityBadges
+              regions={edition.regions}
+              topics={edition.topics}
+              entityType="editions" // ✅ Indica que es para ediciones
+              context="editions" // 🔥 Asegura que HoverInfo cuente ediciones
+            />
 
             {/* Mostrar texto truncado */}
             <p className="text-gray-700">
@@ -164,21 +142,20 @@ export default function EditionsList() {
         onClose={closePopup}
         className="fixed inset-0 z-[1100] flex items-center justify-center bg-black bg-opacity-70"
       >
-        <Dialog.Panel className="relative bg-white rounded-lg shadow-lg p-4 max-w-[500px] pt-[-2px]">
+        <Dialog.Panel className="relative bg-white rounded-lg shadow-lg p-4 max-w-[500px]">
           {/* Imagen ampliada */}
           {popupImage && (
             <Image
               src={popupImage}
               alt="Imagen ampliada"
-              width={500} // Tamaño ajustado
+              width={500}
               height={700}
               objectFit="contain"
-              className=""
             />
           )}
           {/* Botón de cierre */}
           <button
-            className="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-800 text-xl font-bold  w-8 h-8 flex items-center justify-center shadow-lg"
+            className="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-800 text-xl font-bold w-8 h-8 flex items-center justify-center shadow-lg"
             onClick={closePopup}
           >
             ✕

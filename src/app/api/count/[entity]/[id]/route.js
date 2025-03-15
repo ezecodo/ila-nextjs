@@ -24,67 +24,99 @@ export async function GET(req, { params }) {
       });
     }
 
+    const { searchParams } = new URL(req.url);
+    const context = searchParams.get("context"); // 🔥 Identifica si la consulta es para ediciones o artículos
+
     let count = 0;
 
-    switch (entity) {
-      case "authors":
-        // 🔥 Asegurarnos de contar los artículos correctamente
-        count = await prisma.article.count({
-          where: {
-            authors: {
-              some: {
-                id: parsedId, // 📌 Buscar por relación
-              },
+    if (context === "editions") {
+      // 🔥 Contar EDICIONES relacionadas con la entidad
+      switch (entity) {
+        case "regions":
+          count = await prisma.edition.count({
+            where: {
+              regions: { some: { id: parsedId } },
             },
-          },
-        });
-        break;
-      case "editions":
-        count = await prisma.article.count({
-          where: {
-            editionId: parsedId,
-          },
-        });
-        break;
+          });
+          break;
 
-      case "regions":
-        count = await prisma.article.count({
-          where: {
-            regions: {
-              some: { id: parsedId },
+        case "topics":
+          count = await prisma.edition.count({
+            where: {
+              topics: { some: { id: parsedId } },
             },
-          },
-        });
-        break;
+          });
+          break;
 
-      case "topics":
-        count = await prisma.article.count({
-          where: {
-            topics: {
-              some: { id: parsedId },
+        case "categories":
+          count = await prisma.edition.count({
+            where: {
+              categories: { some: { id: parsedId } },
             },
-          },
-        });
-        break;
+          });
+          break;
 
-      case "categories":
-        count = await prisma.article.count({
-          where: {
-            categories: {
-              some: { id: parsedId },
+        default:
+          return new Response(
+            JSON.stringify({ error: "Entidad no reconocida para ediciones" }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+      }
+    } else {
+      // 🔥 Contar ARTÍCULOS relacionados con la entidad
+      switch (entity) {
+        case "authors":
+          count = await prisma.article.count({
+            where: {
+              authors: { some: { id: parsedId } },
             },
-          },
-        });
-        break;
+          });
+          break;
 
-      default:
-        return new Response(
-          JSON.stringify({ error: "Entidad no reconocida" }),
-          {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+        case "editions":
+          count = await prisma.article.count({
+            where: {
+              editionId: parsedId,
+            },
+          });
+          break;
+
+        case "regions":
+          count = await prisma.article.count({
+            where: {
+              regions: { some: { id: parsedId } },
+            },
+          });
+          break;
+
+        case "topics":
+          count = await prisma.article.count({
+            where: {
+              topics: { some: { id: parsedId } },
+            },
+          });
+          break;
+
+        case "categories":
+          count = await prisma.article.count({
+            where: {
+              categories: { some: { id: parsedId } },
+            },
+          });
+          break;
+
+        default:
+          return new Response(
+            JSON.stringify({ error: "Entidad no reconocida para artículos" }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+      }
     }
 
     return new Response(JSON.stringify({ count }), {

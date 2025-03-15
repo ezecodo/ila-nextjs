@@ -1,31 +1,22 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import cloudinary from "cloudinary";
 
 const prisma = new PrismaClient();
-const UPLOAD_DIR = path.join(process.cwd(), "public/uploads/editions");
 
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
+// Configurar Cloudinary
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function GET() {
   try {
     const editions = await prisma.edition.findMany({
       include: {
-        regions: {
-          select: {
-            id: true,
-            name: true, // Aseguramos que se incluyan los nombres de las regiones
-          },
-        },
-        topics: {
-          select: {
-            id: true,
-            name: true, // También incluimos los temas si son necesarios
-          },
-        },
+        regions: { select: { id: true, name: true } },
+        topics: { select: { id: true, name: true } },
       },
     });
 
@@ -37,17 +28,16 @@ export async function GET() {
     });
   }
 }
+
 export async function POST(req) {
   try {
     const formData = await req.formData();
 
     const number = parseInt(formData.get("number"), 10);
     const title = formData.get("title");
-    const isAvailableToOrder = formData.get("isAvailableToOrder") === "true"; // Capturar el campo del formulario
-
+    const isAvailableToOrder = formData.get("isAvailableToOrder") === "true";
     const subtitle = formData.get("subtitle") || null;
     const datePublished = formData.get("datePublished");
-
     const summary = formData.get("summary");
     const tableOfContents = formData.get("tableOfContents") || null;
     const isCurrent = formData.get("isCurrent") === "true";
@@ -83,29 +73,40 @@ export async function POST(req) {
       topics,
     });
 
-    // Función para guardar imágenes
-    const saveImage = async (file, fieldName) => {
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const fileExt = path.extname(file.name);
-      const fileName = `${fieldName}-${Date.now()}${fileExt}`;
-      const filePath = path.join(UPLOAD_DIR, fileName);
-      fs.writeFileSync(filePath, buffer);
-      return `/uploads/editions/${fileName}`;
+    // Función para subir imágenes a Cloudinary
+    const uploadImageToCloudinary = async (file, fieldName) => {
+      if (!file) return null;
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+
+      const uploadResult = await cloudinary.v2.uploader.upload(
+        `data:image/jpeg;base64,${buffer.toString("base64")}`,
+        {
+          folder: "ila/editions", // Carpeta en Cloudinary
+          public_id: `${fieldName}-${Date.now()}`,
+          overwrite: true,
+        }
+      );
+
+      return uploadResult.secure_url; // Retorna la URL de Cloudinary
     };
 
-    const coverImagePath = await saveImage(coverImageFile, "coverImage");
-    const backgroundImagePath = await saveImage(
+    // Subir imágenes a Cloudinary
+    const coverImagePath = await uploadImageToCloudinary(
+      coverImageFile,
+      "coverImage"
+    );
+    const backgroundImagePath = await uploadImageToCloudinary(
       backgroundImageFile,
       "backgroundImage"
     );
 
-    console.log("Paths de imágenes guardados:", {
+    console.log("URLs de imágenes en Cloudinary:", {
       coverImagePath,
       backgroundImagePath,
     });
 
-    // Crear nueva edición con asociación de regiones
+    // Crear nueva edición en la base de datos
     const newEdition = await prisma.edition.create({
       data: {
         number,
@@ -115,22 +116,17 @@ export async function POST(req) {
         summary,
         tableOfContents,
         isCurrent,
-        coverImage: coverImagePath,
+        coverImage: coverImagePath, // Guardar URL de Cloudinary
         isAvailableToOrder,
-        backgroundImage: backgroundImagePath,
+        backgroundImage: backgroundImagePath, // Guardar URL de Cloudinary
         regions: regions.length
-          ? {
-              connect: regions.map((id) => ({ id })), // Conectar múltiples regiones
-            }
+          ? { connect: regions.map((id) => ({ id })) }
           : undefined,
         topics: topics.length
-          ? {
-              connect: topics.map((id) => ({ id })), // Conectar múltiples regiones
-            }
+          ? { connect: topics.map((id) => ({ id })) }
           : undefined,
       },
-      include: { regions: true }, // Incluir regiones asociadas en la respuesta
-      include: { topics: true }, // Incluir los topicos asociadas en la respuesta
+      include: { regions: true, topics: true },
     });
 
     console.log("Edición creada exitosamente:", newEdition);

@@ -1,6 +1,12 @@
 import { useState } from "react";
 
-export default function HoverInfo({ id, name, entityType, className }) {
+export default function HoverInfo({
+  id,
+  name,
+  entityType,
+  className,
+  context,
+}) {
   const [hovered, setHovered] = useState(false);
   const [count, setCount] = useState(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -10,7 +16,9 @@ export default function HoverInfo({ id, name, entityType, className }) {
     setHovered(true);
 
     try {
-      const response = await fetch(`/api/count/${entityType}/${id}`);
+      const response = await fetch(
+        `/api/count/${entityType}/${id}?context=${context || "articles"}`
+      );
       if (!response.ok) throw new Error("Error al obtener la cantidad");
 
       const data = await response.json();
@@ -32,11 +40,11 @@ export default function HoverInfo({ id, name, entityType, className }) {
   // 🔹 Definir colores según la entidad
   const backgroundColor =
     {
-      authors: "#d13120", // Rojo para autores
-      regions: "#f0ad4e", // Amarillo para regiones
-      topics: "#5bc0de", // Azul para topics
-      categories: "#d13120", // Rojo para categorías
-      editions: "#d13120", // 🔥 Rojo para ediciones (NUEVO)
+      authors: "#d13120",
+      regions: "#f0ad4e",
+      topics: "#5bc0de",
+      categories: "#d13120",
+      editions: "#d13120",
     }[entityType] || "#333";
 
   return (
@@ -55,54 +63,20 @@ export default function HoverInfo({ id, name, entityType, className }) {
             top: `${position.y - 25}px`,
             backgroundColor,
             letterSpacing: "0.5px",
-            whiteSpace: "nowrap", // 🔥 Mantiene el texto en una sola línea
-            borderRadius: "4px", // 🔥 Esquinas más suaves
-            fontSize: "12px", // 🔥 Ajusta el tamaño general
-            padding: "4px 8px", // 🔥 Ajuste del padding
+            whiteSpace: "nowrap",
+            borderRadius: "4px",
+            fontSize: "12px",
+            padding: "4px 8px",
             fontWeight: "bold",
-            display: "inline-flex", // 🔥 Mantiene todo alineado en línea
-            alignItems: "center", // 🔥 Asegura alineación vertical
+            display: "inline-flex",
+            alignItems: "center",
           }}
         >
-          {count !== null ? (
-            entityType === "authors" ? (
-              <>
-                {count} {count === 1 ? "artículo" : "artículos"} en{" "}
-                <span
-                  style={{
-                    fontFamily: "Futura, sans-serif",
-                    textTransform: "lowercase",
-                    fontSize: "1.2em",
-                    marginLeft: "4px", // 🔥 Agrega espacio entre "en" e "ila"
-                  }}
-                >
-                  ila
-                </span>
-              </>
-            ) : entityType === "editions" ? (
-              <>
-                {count} Artículos Online{" "}
-                <span
-                  style={{
-                    fontFamily: "Futura, sans-serif",
-                    textTransform: "lowercase",
-                    fontSize: "1.2em",
-                    fontWeight: "bold",
-                  }}
-                ></span>{" "}
-                <span
-                  style={{
-                    fontSize: "1.4em", // 🔥 El número de edición es más grande
-                    fontWeight: "bold",
-                  }}
-                ></span>
-              </>
-            ) : (
-              `${count} artículos`
-            )
-          ) : (
-            "Cargando..."
-          )}
+          {count !== null
+            ? context === "editions"
+              ? `${count} ediciones`
+              : `${count} artículos`
+            : "Cargando..."}
         </div>
       )}
     </span>
