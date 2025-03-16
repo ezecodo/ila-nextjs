@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 /**
  * Construye un árbol de regiones a partir de datos planos

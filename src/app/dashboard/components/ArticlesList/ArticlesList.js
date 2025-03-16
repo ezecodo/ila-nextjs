@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 const ArticlesList = () => {
   const [articles, setArticles] = useState([]);
@@ -80,6 +81,7 @@ const ArticlesList = () => {
                 📚 Edición ⬍
               </th>
               <th className="p-1.5 border text-left">📷 Imagen</th>
+              <th className="p-1.5 border text-left">✏️ Editar</th>
             </tr>
           </thead>
           <tbody>
@@ -95,7 +97,7 @@ const ArticlesList = () => {
                 <td className="p-1.5 border">
                   {article.authors.map((a) => a.name).join(", ")}
                 </td>
-                <td className="p-2 border">
+                <td className="p-1.5 border">
                   {article.categories.map((c) => c.name).join(", ")}
                 </td>
                 <td className="p-1.5 border">
@@ -112,6 +114,13 @@ const ArticlesList = () => {
                 </td>
                 <td className="p-1.5 border text-center">
                   {article.images && article.images.length > 0 ? "✔️" : "❌"}
+                </td>
+                <td className="p-1.5 border text-center">
+                  <Link href={`/dashboard/articles/edit/${article.id}`}>
+                    <button className="text-blue-600 hover:underline">
+                      ✏️ Editar
+                    </button>
+                  </Link>
                 </td>
               </tr>
             ))}

@@ -150,7 +150,7 @@ export default function EditionsList() {
               alt="Imagen ampliada"
               width={500}
               height={700}
-              objectFit="contain"
+              objectFit="contain" // 🔥 Ajusta la imagen al contenedor
             />
           )}
           {/* Botón de cierre */}

@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 // Manejo del método GET
 export async function GET() {

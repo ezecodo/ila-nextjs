@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 export async function GET(req) {
   try {

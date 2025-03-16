@@ -7,6 +7,7 @@ import ImageModal from "@/components/ImageModal/ImageModal";
 import Link from "next/link";
 import HoverInfo from "@/components/HoverInfo/HoverInfo";
 import EntityBadges from "@/components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
+import DonationPopUp from "../../../components/DonationPopUp/DonationPopUp";
 
 export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"
@@ -70,6 +71,7 @@ export default function ArticlePage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <DonationPopUp articleId={article.id} />
       {/* Título */}
       <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center">
         {article.title}
@@ -176,7 +178,15 @@ export default function ArticlePage() {
       )}
 
       {/* Contenido */}
-      <div className="text-gray-700">{article.content}</div>
+      <div className="text-gray-700">
+        {article.content
+          ? article.content.split("\n").map((line, index) => (
+              <p key={index} className="mb-4">
+                {line}
+              </p>
+            ))
+          : "Sin contenido"}
+      </div>
 
       {/* Modal de Imagen */}
       <ImageModal

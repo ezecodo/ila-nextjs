@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import cloudinary from "cloudinary";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 // Configurar Cloudinary
 cloudinary.v2.config({

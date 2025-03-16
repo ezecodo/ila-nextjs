@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { auth } from "@/app/auth"; // 🔥 Asegura autenticación
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 export async function GET(req) {
   try {
@@ -10,8 +9,14 @@ export async function GET(req) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
     const showFavorites = searchParams.get("favorites") === "true";
+    const editionId = searchParams.get("editionId");
 
     let whereCondition = { isPublished: true };
+
+    // 🔥 Filtrar por edición si se proporciona
+    if (editionId) {
+      whereCondition.editionId = parseInt(editionId, 10);
+    }
 
     if (showFavorites) {
       const session = await auth(); // ✅ Obtiene la sesión del usuario
@@ -43,7 +48,7 @@ export async function GET(req) {
           select: { id: true, name: true },
         },
         edition: {
-          select: { title: true, number: true },
+          select: { id: true, title: true, number: true },
         },
       },
     });

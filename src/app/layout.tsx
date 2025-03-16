@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   description: "Das Lateinamerika-Magazin",
 };
 
+// src/app/layout.tsx
 export default function RootLayout({
   children,
 }: {
@@ -35,20 +36,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <SessionProvider>
-          {/* Contenedor general para definir estructura */}
           <div className="flex flex-col min-h-screen">
-            {/* Header fijo con control de padding en móvil */}
             <Header />
 
-            {/* Contenedor principal con margen y padding en móviles */}
-            <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Eliminamos `container` para evitar márgenes */}
+            <main className="flex-grow w-full px-4 sm:px-6 lg:px-8">
               {children}
             </main>
 
-            {/* Footer siempre visible en móviles */}
             <Footer />
           </div>
-          {/* 🔥 Banner de cookies */}
           <CookieConsent />
         </SessionProvider>
       </body>

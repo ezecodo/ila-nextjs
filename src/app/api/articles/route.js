@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import cloudinary from "cloudinary";
 
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 export const config = {
   api: {

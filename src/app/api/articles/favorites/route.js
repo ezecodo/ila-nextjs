@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { auth } from "@/app/auth"; // Asegurar importación correcta
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req) {
   console.log("➡️ Iniciando GET /api/articles/favorites");
