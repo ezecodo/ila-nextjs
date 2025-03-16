@@ -2,6 +2,7 @@
 // import EditionsList from "../components/EditionsList/EditionsList";
 import ArticleList from "../components/Articles/ArticleList";
 import LatestEdition from "../components/Editions/LatestEdition";
+import EditionsList from "@/components/EditionsList/EditionsList";
 
 export default function Home() {
   return (
@@ -13,13 +14,8 @@ export default function Home() {
         <main className="col-span-1 md:col-span-12 bg-white p-6 rounded shadow">
           <LatestEdition /> {/* 🔥 Sección más ancha */}
           <ArticleList />
+          <EditionsList />
         </main>
-
-        {/* 🔥 Si aún quieres el sidebar, lo dejamos aquí pero en otra fila en móviles */}
-        <aside className="hidden md:block md:col-span-3 bg-gray-50 p-4 rounded shadow">
-          <h2 className="text-lg font-bold mb-2">Sidebar</h2>
-          <p className="text-sm">Contenido de prueba.</p>
-        </aside>
       </div>
     </div>
   );

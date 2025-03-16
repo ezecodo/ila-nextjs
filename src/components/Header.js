@@ -113,6 +113,9 @@ const Header = () => {
             <Link href="/articles">Artículos</Link>
           </li>
           <li>
+            <Link href="/editions">Ediciones</Link> {/* ✅ Link a Ediciones */}
+          </li>
+          <li>
             <Link href="/contact">Contacto</Link>
           </li>
         </ul>
