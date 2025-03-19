@@ -116,7 +116,7 @@ const Header = () => {
             <Link href="/editions">Ediciones</Link> {/* ✅ Link a Ediciones */}
           </li>
           <li>
-            <Link href="/contact">Contacto</Link>
+            <Link href="/events">Eventos</Link>
           </li>
         </ul>
         <SearchBar />

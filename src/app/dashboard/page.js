@@ -6,6 +6,7 @@ import AccountSettings from "@/components/AccountSettings/AccountSettings";
 import CreateArticle from "@/app/dashboard/articles/new/page";
 import CreateEdition from "@/app/dashboard/editions/new/page";
 import ArticlesList from "../../app/dashboard/components/ArticlesList/ArticlesList.js";
+import CreateEventPage from "./events/page.js";
 
 export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("inicio");
@@ -22,6 +23,7 @@ export default function AdminDashboard() {
     { key: "articles", label: "Ingresar Artículo" },
     { key: "editions", label: "Ingresar Edición" },
     { key: "account", label: "Configuración de Cuenta" },
+    { key: "events", label: "Crear Eventos" },
   ];
 
   return (
@@ -73,6 +75,7 @@ export default function AdminDashboard() {
         {selectedTab === "articles" && <CreateArticle />}
         {selectedTab === "editions" && <CreateEdition />}
         {selectedTab === "account" && <AccountSettings />}
+        {selectedTab === "events" && <CreateEventPage />}
       </div>
     </div>
   );

@@ -258,3 +258,13 @@ model Favorite {
 
   @@unique([userId, articleId]) // Evita que un usuario marque un mismo artículo más de una vez
 }
+
+model Event {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  date         DateTime
+  location     String
+  image        String   // URL del flyer
+  createdAt    DateTime @default(now())
+}
