@@ -58,7 +58,19 @@ export default function EventsPage() {
                   {new Date(event.date).toLocaleDateString()}
                 </p>
                 <p className="mt-2">{event.description}</p>
-                <p className="mt-2 font-semibold">{event.location}</p>
+                <p className="mt-2 font-semibold">
+                  📍{" "}
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      event.location
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline"
+                  >
+                    {event.location}
+                  </a>
+                </p>
               </Link>
             </li>
           ))}
