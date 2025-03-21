@@ -12,13 +12,24 @@ cloudinary.v2.config({
 });
 
 // 🔹 Obtener todos los eventos (GET)
-export async function GET() {
+// 🔹 Obtener todos los eventos (GET)
+export async function GET(req) {
   try {
     const events = await prisma.event.findMany({
       orderBy: { date: "asc" },
     });
 
-    return NextResponse.json(events);
+    const { searchParams } = new URL(req.url);
+    const isAdmin = searchParams.get("admin") === "true";
+
+    if (isAdmin) {
+      return NextResponse.json({
+        items: events,
+        totalPages: 1,
+      });
+    } else {
+      return NextResponse.json(events); // el frontend necesita un array
+    }
   } catch (error) {
     console.error("Error al obtener eventos:", error);
     return NextResponse.json(

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react"; // 🔥 Ícono de corazón
 
-const DashboardStats = ({ onShowArticles }) => {
+const DashboardStats = ({ onShowArticles, onShowEvents }) => {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -62,6 +62,20 @@ const DashboardStats = ({ onShowArticles }) => {
           <div className="p-4 bg-yellow-100 rounded-lg text-center shadow-md flex flex-col justify-center">
             <h3 className="text-lg font-semibold">👤 Usuarios</h3>
             <p className="text-3xl font-bold">{stats.totalUsers}</p>
+          </div>
+          {/* 🎉 Nueva métrica: Eventos */}
+          {/* 🎉 Nueva métrica: Eventos */}
+          <div className="p-4 bg-purple-100 rounded-lg text-center shadow-md flex flex-col justify-center">
+            <h3 className="text-lg font-semibold">🎤 Eventos</h3>
+            <p
+              className="text-3xl font-bold text-purple-600 cursor-pointer hover:underline"
+              onClick={() => {
+                console.log("🔥 CLICK en eventos");
+                onShowEvents();
+              }}
+            >
+              {stats.totalEvents}
+            </p>
           </div>
 
           {/* 🔥 Nueva métrica: Cantidad de artículos likeados con icono */}

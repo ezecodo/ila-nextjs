@@ -1,20 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import DashboardStats from "../../components/DashboardStats/DashboardStats.js";
+import DashboardStats from "../dashboard/components/DashboardStats/DashboardStats";
 import AccountSettings from "@/components/AccountSettings/AccountSettings";
 import CreateArticle from "@/app/dashboard/articles/new/page";
 import CreateEdition from "@/app/dashboard/editions/new/page";
 import ArticlesList from "../../app/dashboard/components/ArticlesList/ArticlesList.js";
 import CreateEventPage from "./events/page.js";
+import AdminEventsList from "../dashboard/components/AdminEventsList/AdminEventsList.js";
 
 export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("inicio");
   const [showArticlesList, setShowArticlesList] = useState(false);
+  const [showEventsList, setShowEventsList] = useState(false);
+
   const [menuOpen, setMenuOpen] = useState(false); // 🔥 Estado para colapsar menú en móviles
 
   const handleShowArticles = () => {
-    setShowArticlesList(!showArticlesList); // Toggle de la lista de artículos
+    setShowEventsList(false); // 🔥 oculta eventos
+    setShowArticlesList(!showArticlesList); // toggle de artículos
+  };
+  const handleShowEvents = () => {
+    setShowArticlesList(false); // 🔥 oculta artículos
+    setShowEventsList(!showEventsList); // toggle de eventos
   };
 
   // Opciones del menú
@@ -68,8 +76,12 @@ export default function AdminDashboard() {
       <div className="flex-1 p-4 md:p-6 overflow-y-auto max-h-screen">
         {selectedTab === "inicio" && (
           <>
-            <DashboardStats onShowArticles={handleShowArticles} />
+            <DashboardStats
+              onShowArticles={handleShowArticles}
+              onShowEvents={handleShowEvents}
+            />
             {showArticlesList && <ArticlesList />}
+            {showEventsList && <AdminEventsList />}
           </>
         )}
         {selectedTab === "articles" && <CreateArticle />}

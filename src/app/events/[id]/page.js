@@ -46,13 +46,13 @@ export default function EventPage() {
 
       {/* Imagen del evento */}
       {event.image && (
-        <div className="relative w-full h-60 mb-6">
+        <div className="w-full max-h-[500px] overflow-hidden mb-6">
           <Image
             src={event.image}
             alt={event.title || "Imagen del evento"}
-            layout="fill"
-            objectFit="cover"
-            className="rounded-md"
+            width={800} // ✅ Ajustamos el tamaño
+            height={500} // ✅ Altura fija para evitar cortes
+            className="w-full h-auto rounded-md object-cover"
           />
         </div>
       )}

@@ -7,8 +7,10 @@ export async function GET() {
     const totalEditions = await prisma.edition.count();
     const totalUsers = await prisma.user.count();
     const totalLikedArticles = await prisma.favorite.count(); // ✅ Nueva métrica
+    const totalEvents = await prisma.event.count();
 
     return NextResponse.json({
+      totalEvents,
       totalArticles,
       totalEditions,
       totalUsers,
