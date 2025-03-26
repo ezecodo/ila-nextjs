@@ -2,7 +2,7 @@
 
 import GenericAdminList from "../GenericAdminList/GenericAdminList";
 
-export default function AdminEventsList() {
+export default function AdminEventsList({ onItemDeleted }) {
   return (
     <GenericAdminList
       title="🎛️ Administrar Eventos"
@@ -27,7 +27,10 @@ export default function AdminEventsList() {
       ]}
       imageField="image"
       editUrlPrefix="/dashboard/events"
+      editPath="/edit"
       deleteUrlPrefix="/api/events"
+      itemName="evento"
+      onItemDeleted={onItemDeleted}
     />
   );
 }

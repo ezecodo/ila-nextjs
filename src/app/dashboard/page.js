@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardStats from "../dashboard/components/DashboardStats/DashboardStats";
 import AccountSettings from "@/components/AccountSettings/AccountSettings";
 import CreateArticle from "@/app/dashboard/articles/new/page";
@@ -13,19 +13,41 @@ export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("inicio");
   const [showArticlesList, setShowArticlesList] = useState(false);
   const [showEventsList, setShowEventsList] = useState(false);
+  const [stats, setStats] = useState(null); // ✅ Estado de estadísticas
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const [menuOpen, setMenuOpen] = useState(false); // 🔥 Estado para colapsar menú en móviles
+  // ✅ Función que se ejecuta al eliminar un evento
+  const handleItemDeleted = async () => {
+    await fetchStats(); // recarga las stats actualizadas
+    setRefreshKey((prev) => prev + 1); // fuerza el re-render
+  };
+
+  // ✅ Cargar estadísticas
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/dashboard/stats");
+      const data = await res.json();
+      setStats(data);
+    } catch (err) {
+      console.error("Error al cargar estadísticas:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats(); // ✅ Al cargar
+  }, []);
 
   const handleShowArticles = () => {
-    setShowEventsList(false); // 🔥 oculta eventos
-    setShowArticlesList(!showArticlesList); // toggle de artículos
-  };
-  const handleShowEvents = () => {
-    setShowArticlesList(false); // 🔥 oculta artículos
-    setShowEventsList(!showEventsList); // toggle de eventos
+    setShowEventsList(false);
+    setShowArticlesList(!showArticlesList);
   };
 
-  // Opciones del menú
+  const handleShowEvents = () => {
+    setShowArticlesList(false);
+    setShowEventsList(!showEventsList);
+  };
+
   const menuItems = [
     { key: "inicio", label: "Inicio" },
     { key: "articles", label: "Ingresar Artículo" },
@@ -36,7 +58,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="h-screen flex flex-col md:flex-row bg-gray-100">
-      {/* 📌 Botón de menú en móviles */}
+      {/* ☰ Botón de menú en móviles */}
       <button
         onClick={() => setMenuOpen(!menuOpen)}
         className="md:hidden bg-blue-500 text-white p-3 text-center w-full"
@@ -44,7 +66,7 @@ export default function AdminDashboard() {
         {menuOpen ? "Cerrar Menú ☰" : "Abrir Menú ☰"}
       </button>
 
-      {/* 📌 Sidebar - Menú de navegación */}
+      {/* 📌 Sidebar */}
       <div
         className={`w-full md:w-1/5 bg-white shadow-md p-6 md:block ${
           menuOpen ? "block" : "hidden"
@@ -57,7 +79,7 @@ export default function AdminDashboard() {
               <button
                 onClick={() => {
                   setSelectedTab(item.key);
-                  setMenuOpen(false); // 🔥 Cierra el menú al hacer clic en móviles
+                  setMenuOpen(false);
                 }}
                 className={`w-full text-left p-3 rounded-md mb-2 ${
                   selectedTab === item.key
@@ -72,16 +94,20 @@ export default function AdminDashboard() {
         </ul>
       </div>
 
-      {/* 📌 Área de contenido dinámico con scroll interno */}
+      {/* 📌 Contenido dinámico */}
       <div className="flex-1 p-4 md:p-6 overflow-y-auto max-h-screen">
         {selectedTab === "inicio" && (
           <>
             <DashboardStats
+              key={refreshKey}
+              stats={stats}
               onShowArticles={handleShowArticles}
               onShowEvents={handleShowEvents}
             />
             {showArticlesList && <ArticlesList />}
-            {showEventsList && <AdminEventsList />}
+            {showEventsList && (
+              <AdminEventsList onItemDeleted={handleItemDeleted} />
+            )}
           </>
         )}
         {selectedTab === "articles" && <CreateArticle />}

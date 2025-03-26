@@ -151,42 +151,46 @@ export default function EventsPage() {
           <p className="text-center text-gray-500">No hay eventos este mes.</p>
         ) : (
           filteredEvents.map((event) => (
-            <Link key={event.id} href={`/events/${event.id}`} className="block">
-              <div className="rounded-lg bg-white shadow-md hover:shadow-xl transition-transform transform hover:scale-105 duration-200 border flex items-center p-3 gap-4">
-                <div className="relative flex-shrink-0 w-24 h-32">
-                  <Image
-                    src={event.image}
-                    alt={event.title || "Imagen del evento"}
-                    fill
-                    className="object-contain rounded"
-                  />
+            <div key={event.id}>
+              <Link href={`/events/${event.id}`} className="block">
+                <div className="rounded-lg bg-white shadow-md hover:shadow-xl transition-transform transform hover:scale-105 duration-200 border flex items-center p-3 gap-4">
+                  <div className="relative flex-shrink-0 w-24 h-32">
+                    <Image
+                      src={event.image}
+                      alt={event.title || "Imagen del evento"}
+                      fill
+                      className="object-contain rounded"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {event.title}
+                    </h2>
+                    <p className="text-gray-500 text-xs">
+                      {new Date(event.date).toLocaleDateString()}
+                    </p>
+                    <p className="mt-1 text-gray-700 text-sm line-clamp-2">
+                      {event.description}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {event.title}
-                  </h2>
-                  <p className="text-gray-500 text-xs">
-                    {new Date(event.date).toLocaleDateString()}
-                  </p>
-                  <p className="mt-1 text-gray-700 text-sm line-clamp-2">
-                    {event.description}
-                  </p>
-                  <p className="mt-2 text-blue-500 font-semibold text-sm">
-                    📍{" "}
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        event.location
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline"
-                    >
-                      {event.location}
-                    </a>
-                  </p>
-                </div>
-              </div>
-            </Link>
+              </Link>
+
+              {/* ✅ Enlace a Google Maps por fuera del <Link> */}
+              <p className="mt-2 text-blue-500 font-semibold text-sm pl-28">
+                📍{" "}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    event.location
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  {event.location}
+                </a>
+              </p>
+            </div>
           ))
         )}
       </div>

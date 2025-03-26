@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
+const GenericAdminList = ({
+  title,
+  endpoint,
+  columns,
+  editUrlPrefix,
+  editPath = "",
+  deleteUrlPrefix,
+  itemName = "elemento",
+  onItemDeleted, // ✅ nuevo prop para actualizar stats
+}) => {
   const [items, setItems] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
@@ -9,6 +18,9 @@ const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+
   const limit = 20;
 
   useEffect(() => {
@@ -16,7 +28,6 @@ const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
       setLoading(true);
       setError(null);
       try {
-        // 🧠 Construcción segura de la URL
         const url = new URL(endpoint, window.location.origin);
         url.searchParams.set("admin", "true");
         url.searchParams.set("page", page);
@@ -26,7 +37,6 @@ const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
 
         const res = await fetch(url.toString());
         const data = await res.json();
-        console.log("🧪 Datos recibidos:", data);
 
         if (Array.isArray(data.items)) {
           setItems(data.items);
@@ -54,11 +64,54 @@ const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
     setSortField(field);
   };
 
+  const confirmDelete = (item) => {
+    setItemToDelete(item);
+    setShowModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const res = await fetch(`${deleteUrlPrefix}/${itemToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (res.status === 204 || res.ok) {
+        setItems((prev) => prev.filter((i) => i.id !== itemToDelete.id));
+        setShowModal(false);
+        setItemToDelete(null);
+
+        if (onItemDeleted) {
+          onItemDeleted();
+        }
+
+        return;
+      }
+
+      // Si el servidor responde con error, intentamos mostrar el mensaje
+      let message = "Error al eliminar el elemento.";
+      const contentType = res.headers.get("content-type");
+
+      if (contentType && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data?.error) {
+          message = data.error;
+        }
+      }
+
+      throw new Error(message);
+    } catch (err) {
+      console.error("🔥 Error al eliminar:", err);
+      alert(err.message || "Error al eliminar el elemento.");
+    }
+  };
+
   if (loading) return <p className="text-gray-500">Cargando datos...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="mt-6 bg-white p-4 rounded-lg shadow-lg">
+    <div className="relative mt-6 bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4 text-center text-purple-600">
         {title}
       </h2>
@@ -83,6 +136,9 @@ const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
                     </th>
                   ))}
                   <th className="p-1.5 border text-left">✏️ Editar</th>
+                  {deleteUrlPrefix && (
+                    <th className="p-1.5 border text-left">🗑️ Eliminar</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -99,12 +155,22 @@ const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
                       </td>
                     ))}
                     <td className="p-1.5 border text-center">
-                      <Link href={`${editUrlPrefix}/${item.id}`}>
+                      <Link href={`${editUrlPrefix}/${item.id}${editPath}`}>
                         <button className="text-blue-600 hover:underline">
                           ✏️ Editar
                         </button>
                       </Link>
                     </td>
+                    {deleteUrlPrefix && (
+                      <td className="p-1.5 border text-center">
+                        <button
+                          onClick={() => confirmDelete(item)}
+                          className="text-red-500 hover:underline"
+                        >
+                          ❌
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -131,6 +197,38 @@ const GenericAdminList = ({ title, endpoint, columns, editUrlPrefix }) => {
             </button>
           </div>
         </>
+      )}
+
+      {/* 🔥 Modal de confirmación */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full text-center">
+            <h3 className="text-lg font-bold text-red-600 mb-3">
+              ¿Eliminar este {itemName}?
+            </h3>
+            <p className="text-sm text-gray-700 mb-4">
+              Esta acción no se puede deshacer. ¿Estás seguro que querés
+              eliminar este {itemName}?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setItemToDelete(null);
+                }}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
