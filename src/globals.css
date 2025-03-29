@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Futura Cyrillic - Light */
+@font-face {
+  font-family: "Futura Cyrillic";
+  src: url("/fonts/FuturaCyrillicLight.ttf") format("truetype");
+  font-weight: 300; /* Light */
+  font-style: normal;
+}
+
+/* Futura Cyrillic - Book */
+@font-face {
+  font-family: "Futura Cyrillic";
+  src: url("/fonts/FuturaCyrillicBook.ttf") format("truetype");
+  font-weight: 400; /* Normal */
+  font-style: normal;
+}
+
+/* Futura Cyrillic - Medium */
+@font-face {
+  font-family: "Futura Cyrillic";
+  src: url("/fonts/FuturaCyrillicMedium.ttf") format("truetype");
+  font-weight: 500; /* Medium */
+  font-style: normal;
+}
+
+/* Futura Cyrillic - Demi */
+@font-face {
+  font-family: "Futura Cyrillic";
+  src: url("/fonts/FuturaCyrillicDemi.ttf") format("truetype");
+  font-weight: 600; /* Semi-Bold */
+  font-style: normal;
+}
+
+/* Futura Cyrillic - Bold */
+@font-face {
+  font-family: "Futura Cyrillic";
+  src: url("/fonts/FuturaCyrillicBold.ttf") format("truetype");
+  font-weight: 700; /* Bold */
+  font-style: normal;
+}
+
+/* Futura Cyrillic - Heavy */
+@font-face {
+  font-family: "Futura Cyrillic";
+  src: url("/fonts/FuturaCyrillicHeavy.ttf") format("truetype");
+  font-weight: 800; /* Heavy */
+  font-style: normal;
+}
+
+/* Futura Cyrillic - Extra Bold */
+@font-face {
+  font-family: "Futura Cyrillic";
+  src: url("/fonts/FuturaCyrillicExtraBold.ttf") format("truetype");
+  font-weight: 900; /* Extra Bold */
+  font-style: normal;
+}
+
+.cursor-glasses {
+  cursor: url("/icons/glasses.cur"), auto;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.page-content {
+  opacity: 0; /* Comienza invisible */
+  transform: translateY(20px); /* Comienza ligeramente desplazada */
+  transition: opacity 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+    transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.page-content.fade-in {
+  opacity: 1; /* Totalmente visible */
+  transform: translateY(0); /* Sin desplazamiento */
+}
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff; /* Fondo blanco */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Asegura que esté encima de todo */
+}
+
+.logo-animation img {
+  border-radius: 50%; /* Hace que el logo sea redondo */
+  width: 150px; /* Ajusta el tamaño */
+  height: 150px;
+  object-fit: cover; /* Asegura que el contenido se ajuste al contenedor */
+  animation: fadeInOut 3s cubic-bezier(0.4, 0, 0.2, 1); /* Suaviza la animación */
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 1050;
+}
+
+.modal-content {
+  position: relative;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 80vw;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.ila-edition {
+  font-family: "Futura Cyrillic", Arial, sans-serif;
+  font-weight: 700; /* Bold */
+  font-size: 1.2rem;
+
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+.imageContainer {
+  width: 100%;
+  height: 140px; /* 🔥 Altura fija para TODAS */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* 🔥 Asegura que las imágenes verticales NO desborden */
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  position: relative;
+}
+
+.articleImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 RECORTA imágenes grandes */
+  aspect-ratio: 16 / 9; /* 🔥 Mantiene la relación de aspecto */
+}
+
+/* 🔥 🔥 🔥 🔥 🔥 🔥  */
+/* SOLUCIÓN PARA IMÁGENES VERTICALES */
+.verticalImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 RECORTA */
+  object-position: center center; /* 🔥 Centra la imagen */
+}
+.regionBadge {
+  display: inline-block;
+  background-color: #f0ad4e; /* Color de fondo para regiones */
+  color: #fff; /* Color del texto */
+  font-size: 0.7rem; /* Tamaño de fuente */
+  padding: 4px 8px; /* Espaciado interno */
+  border-radius: 0; /* Sin esquinas redondeadas */
+  margin-right: 5px; /* Espaciado entre badges */
+  margin-bottom: 5px; /* Espaciado inferior */
+  text-transform: uppercase; /* Opcional: texto en mayúsculas */
+  font-weight: bold; /* Opcional: texto en negrita */
+}
+
+.topicBadge {
+  display: inline-block;
+  background-color: #5bc0de; /* Color de fondo para topics */
+  color: #fff; /* Color del texto */
+  font-size: 0.7rem; /* Tamaño de fuente */
+  padding: 4px 8px; /* Espaciado interno */
+  border-radius: 0; /* Sin esquinas redondeadas */
+  margin-right: 5px; /* Espaciado entre badges */
+  margin-bottom: 5px; /* Espaciado inferior */
+  text-transform: uppercase; /* Opcional: texto en mayúsculas */
+  font-weight: bold; /* Opcional: texto en negrita */
+}
+
+.categoryBadge {
+  display: inline-block;
+  background-color: #d13120; /* Color de fondo para topics */
+  color: #fff; /* Color del texto */
+  font-size: 0.7rem; /* Tamaño de fuente */
+  padding: 4px 8px; /* Espaciado interno */
+  border-radius: 0; /* Sin esquinas redondeadas */
+  margin-right: 5px; /* Espaciado entre badges */
+  margin-bottom: 5px; /* Espaciado inferior */
+  text-transform: uppercase; /* Opcional: texto en mayúsculas */
+  font-weight: bold; /* Opcional: texto en negrita */
+}
+
+.articleCountBadge {
+  position: absolute;
+  display: inline-block;
+  background-color: #d13120; /* Color de fondo */
+  color: #fff; /* Color del texto */
+  font-size: 0.7rem; /* Tamaño de fuente */
+  padding: 4px 8px; /* Espaciado interno */
+  border-radius: 0; /* Sin esquinas redondeadas */
+  margin-right: 5px; /* Espaciado entre badges */
+  margin-bottom: 5px; /* Espaciado inferior */
+  text-transform: uppercase; /* Texto en mayúsculas */
+  font-weight: bold; /* Texto en negrita */
+  white-space: nowrap; /* Para que el texto no se divida en varias líneas */
+  z-index: 50;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+}
