@@ -1,0 +1,17 @@
+{
+  "header": {
+    "tagline": "Das Lateinamerika-Magazin",
+    "greeting": "Hola, {name} 👋",
+    "login": "Iniciar sesión",
+    "signup": "Registrarse",
+    "dashboard": "Panel",
+    "logout": "Cerrar sesión",
+    "nav": {
+      "home": "Inicio",
+      "about": "Sobre Nosotros",
+      "articles": "Artículos",
+      "editions": "Ediciones",
+      "events": "Eventos"
+    }
+  }
+}

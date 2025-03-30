@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AccountSettings from "../../components/AccountSettings/AccountSettings";
+import AccountSettings from "@/components/AccountSettings/AccountSettings";
 import FavoriteArticlesList from "./FavoriteArticleList/FavoriteArticleList";
 
 export default function UserDashboard() {

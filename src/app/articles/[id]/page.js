@@ -7,7 +7,7 @@ import ImageModal from "@/components/ImageModal/ImageModal";
 import Link from "next/link";
 import HoverInfo from "@/components/HoverInfo/HoverInfo";
 import EntityBadges from "@/components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
-import DonationPopUp from "../../../components/DonationPopUp/DonationPopUp";
+import DonationPopUp from "@/components/DonationPopUp/DonationPopUp";
 
 export default function ArticlePage() {
   const { id } = useParams(); // Obtener el parámetro dinámico "id"

@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import InputField from "../../../components/InputField";
+import InputField from "@/components/Articles/NewArticle/InputField";
 
-import SelectField from "../../../components/SelectField";
-import ToggleSwitch from "../../../components/ToggleSwitch";
-import FormMessage from "../../../components/FormMessage";
-import SubmitButton from "../../../components/SubmitButton";
-import Modal from "../../../components/Modal";
+import SelectField from "@/components/Articles/NewArticle/SelectField";
+import ToggleSwitch from "@/components/Articles/NewArticle/ToggleSwitch";
+import FormMessage from "@/components/Articles/NewArticle/FormMessage";
+import SubmitButton from "@/components/Articles/NewArticle/SubmitButton";
+import Modal from "@/components/Articles/NewArticle/Modal";
 import styles from "../../../styles/global.module.css";
-import CheckboxField from "../../../components/CheckboxField";
+import CheckboxField from "@/components/Articles/NewArticle/CheckboxField";
 import AsyncSelect from "react-select/async";
 import dynamic from "next/dynamic";
 const QuillEditor = dynamic(

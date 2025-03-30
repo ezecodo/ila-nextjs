@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import ArticlesByEntity from "../../../../components/ArticlesByEntity/ArticlesByEntity";
+import ArticlesByEntity from "@/components/ArticlesByEntity/ArticlesByEntity";
 
 export default function TopicsPage() {
   const { id } = useParams();

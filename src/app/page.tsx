@@ -1,7 +1,7 @@
 // src/app/page.tsx
 // import EditionsList from "../components/EditionsList/EditionsList";
-import ArticleList from "../components/Articles/ArticleList";
-import LatestEdition from "../components/Editions/LatestEdition";
+import ArticleList from "@/components/Articles/ArticleList";
+import LatestEdition from "@/components/Editions/LatestEdition";
 import EditionsList from "@/components/EditionsList/EditionsList";
 
 export default function Home() {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import ArticleCard from "../../../components/Articles/ArticleCard";
+import ArticleCard from "@/components/Articles/ArticleCard";
 
 export default function AuthorPage() {
   const { id } = useParams();

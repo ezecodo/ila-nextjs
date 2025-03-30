@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation"; // Usar useParams para obtener el ID
 import Link from "next/link";
 import Image from "next/image";
-import CartButton from "../../../components/CartButton/CartButton"; // Importar el componente
+import CartButton from "@/components/CartButton/CartButton"; // Importar el componente
 
 export default function EditionDetails() {
   const { id } = useParams(); // Obtener el ID de la URL

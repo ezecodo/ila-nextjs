@@ -2,17 +2,17 @@
 
 import { useState, useRef } from "react";
 import dynamic from "next/dynamic"; // Importación dinámica
-import InputField from "../../../components/InputField";
-import TextAreaField from "../../../components/TextAreaField";
-import ToggleSwitch from "../../../components/ToggleSwitch";
-import SubmitButton from "../../../components/SubmitButton";
-import FormMessage from "../../../components/FormMessage";
+import InputField from "@/components/Articles/NewArticle/InputField";
+import TextAreaField from "@/components/Articles/NewArticle/TextAreaField";
+import ToggleSwitch from "@/components/Articles/NewArticle/ToggleSwitch";
+import SubmitButton from "@/components/Articles/NewArticle/SubmitButton";
+import FormMessage from "@/components/Articles/NewArticle/FormMessage";
 import AsyncSelect from "react-select/async"; // Importamos AsyncSelect
 import "react-datepicker/dist/react-datepicker.css"; // Estilos de react-datepicker
 import styles from "../../../styles/global.module.css";
 
 const QuillEditor = dynamic(
-  () => import("../../../../components/QuillEditor/QuillEditor"),
+  () => import("@/components/QuillEditor/QuillEditor"),
   { ssr: false }
 );
 
