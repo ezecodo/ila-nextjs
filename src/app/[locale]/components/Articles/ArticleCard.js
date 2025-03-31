@@ -6,7 +6,6 @@ import HoverInfo from "../HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { Link as LocaleLink } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
 
 export default function ArticleCard({ article, onRemoveFavorite }) {
   const firstImage = article.images?.[0];
