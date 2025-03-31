@@ -30,7 +30,7 @@ type Props = {
   };
 };
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata() {
   return {
     title: "ILA | Informationstelle Lateinamerika",
     description: "Das Lateinamerika-Magazin",
@@ -49,7 +49,7 @@ export default async function LocaleLayout({
   let messages;
   try {
     messages = (await import(`../../../messages/${locale}.json`)).default;
-  } catch (error) {
+  } catch {
     notFound();
   }
 

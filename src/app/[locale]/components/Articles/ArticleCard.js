@@ -9,7 +9,6 @@ import { Link as LocaleLink } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
 export default function ArticleCard({ article, onRemoveFavorite }) {
-  const t = useTranslations("author");
   const firstImage = article.images?.[0];
   const formattedDate = article.publicationDate
     ? new Date(article.publicationDate).toLocaleDateString("es-ES", {
