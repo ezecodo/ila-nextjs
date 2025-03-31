@@ -70,7 +70,12 @@ export default function SignInPage() {
       </form>
 
       <p className="mt-4 text-center">
-        <a href="/auth/forgot-password">¿Olvidaste tu contraseña?</a>
+        <Link
+          href="/auth/forgot-password"
+          className="text-blue-500 hover:underline"
+        >
+          ¿Olvidaste tu contraseña?
+        </Link>
       </p>
     </div>
   );
