@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import EditionsList from "@/components/Editions/EditionsList"; // Usamos EditionsList para renderizar
+import EditionsList from "../EditionsList/EditionsList"; // Usamos EditionsList para renderizar
 
 export default function EditionsByEntity({ entityType, entityId }) {
   const [entity, setEntity] = useState(null);

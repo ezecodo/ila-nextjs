@@ -1,4 +1,4 @@
-import EditionsList from "@/components/EditionsList/EditionsList";
+import EditionsList from "../components/EditionsList/EditionsList";
 
 export default function EditionsPage() {
   return (
