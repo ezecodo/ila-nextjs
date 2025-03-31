@@ -1,17 +1,45 @@
 {
   "header": {
     "tagline": "Das Lateinamerika-Magazin",
-    "greeting": "Hola, {name} 👋",
-    "login": "Iniciar sesión",
-    "signup": "Registrarse",
+    "greeting": "Hallo, {name} 👋",
+    "login": "Anmelden",
+    "signup": "Registrieren",
     "dashboard": "Panel",
-    "logout": "Cerrar sesión",
+    "logout": "Abmelden",
     "nav": {
-      "home": "Inicio",
-      "about": "Sobre Nosotros",
-      "articles": "Artículos",
-      "editions": "Ediciones",
-      "events": "Eventos"
+      "home": "Home",
+      "about": "Über Uns",
+      "articles": "Artikel",
+      "editions": "Dossiers",
+      "events": "Veranstaltungen"
     }
+  },
+  "search": {
+    "placeholder": "In ILA suchen...",
+    "ariaLabel": "In ILA suchen",
+    "button": "Suchen"
+  },
+  "about": {
+    "title": "Über uns",
+    "historyTitle": "Wie es anfing",
+    "futureTitle": "Wie es weitergeht",
+    "awardTitle": "Ausgezeichnete Arbeit",
+    "paragraphs": [
+      "In zehn Ausgaben pro Jahr widmet sich unsere Zeitschrift sowohl unterschiedlichen Schwerpunktthemen als auch der aktuellen Berichterstattung zu Lateinamerika...",
+      "Unser Interesse gilt Lateinamerika, seinen Menschen, die um politische Freiheit und wirtschaftliche Autonomie kämpfen, seiner Kultur und seiner Natur...",
+      "Die ila benennt Ursachen und Folgen einer ungerechten Weltordnung und sie nennt die zugehörigen Namen.",
+      "In den siebziger Jahren des letzten Jahrhunderts herrschten fast überall in Südamerika Militärdiktaturen...",
+      "1973–75 beschäftigte sich das „Zweite Internationale Russell-Tribunal“ in Brüssel und Rom mit der Verletzung der Menschenrechte...",
+      "Wir begannen über die Aktivitäten derjenigen zu berichten, die in Lateinamerika für eine Änderung der politischen und wirtschaftlichen Verhältnisse kämpften...",
+      "Im Herbst 2015 wurde die ila als Verein 40 Jahre alt...",
+      "Mehr denn je lebt die Mehrheit der Bevölkerung Lateinamerikas unter unzumutbaren Bedingungen...",
+      "Die ila erhielt 2013 den mit 1000 Euro dotierten Oscar-Romero-Preis..."
+    ]
+  },
+  "author": {
+    "by": "Von: {name}",
+    "loadingAuthor": "Informationen über den Autor werden geladen...",
+    "loadingArticles": "Artikel werden geladen...",
+    "noArticles": "Es gibt keine Artikel von diesem Autor."
   }
 }

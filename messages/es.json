@@ -1,6 +1,6 @@
 {
   "header": {
-    "tagline": "Das Lateinamerika-Magazin",
+    "tagline": "La revista de latinoamérica",
     "greeting": "Hola, {name} 👋",
     "login": "Iniciar sesión",
     "signup": "Registrarse",
@@ -13,5 +13,33 @@
       "editions": "Ediciones",
       "events": "Eventos"
     }
+  },
+  "search": {
+    "placeholder": "Buscar en ILA...",
+    "ariaLabel": "Buscar en ILA",
+    "button": "Buscar"
+  },
+  "about": {
+    "title": "Sobre nosotros",
+    "historyTitle": "Cómo empezó",
+    "futureTitle": "Cómo continúa",
+    "awardTitle": "Trabajo reconocido",
+    "paragraphs": [
+      "En diez ediciones por año, nuestra revista se dedica a temas centrales y reportajes actuales sobre América Latina, con datos clave, entrevistas y autorxs con trayectoria.",
+      "Nos interesan las personas, su lucha por la libertad y la autonomía, su cultura y naturaleza. Cada número se enfoca en un tema que va de lo político a lo cotidiano: guerra, justicia, derechos humanos, movimientos sociales, feminismos, ecología, medios, arte y más.",
+      "La ila expone causas y consecuencias de un orden mundial injusto y señala responsables.",
+      "En los años 70, casi toda Sudamérica vivía bajo dictaduras militares. Había persecución, tortura y asesinatos políticos. Con esas dictaduras, se impuso un modelo económico que empobreció a gran parte de la población.",
+      "El Tribunal Russell II denunció en 1973-75 la violación de derechos humanos en la región. También reveló la complicidad de empresas y gobierno alemán. Así nació ila, en noviembre de 1975.",
+      "Desde entonces contamos las historias de quienes luchan por transformar América Latina: sindicatos, comunidades indígenas, movimientos de mujeres, derechos humanos, ecología...",
+      "En 2015 ila cumplió 40 años. Aunque cambiaron los tiempos, las condiciones que llevaron a su fundación siguen vigentes.",
+      "La mayoría de la población latinoamericana sigue viviendo bajo condiciones difíciles, y sigue habiendo gente comprometida por el cambio.",
+      "En 2013 ila recibió el Premio Oscar Romero, dotado con 1000 euros, entregado por el círculo de apoyo del Oscar-Romero-Haus de Bonn."
+    ]
+  },
+  "author": {
+    "by": "Por: {name}",
+    "loadingAuthor": "Cargando información del autor...",
+    "loadingArticles": "Cargando artículos...",
+    "noArticles": "No hay artículos escritos por este autor."
   }
 }

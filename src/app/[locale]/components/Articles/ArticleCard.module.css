@@ -1,0 +1,114 @@
+.articleCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+  max-width: 750px; /* 📌 Más compacta */
+  margin: auto;
+}
+
+@media (min-width: 1024px) {
+  .articleCard {
+    flex-direction: row; /* 🔥 En pantallas grandes, dos columnas */
+  }
+}
+
+.imageContainer {
+  width: 100%;
+  height: 140px; /* 🔥 Altura fija para TODAS */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* 🔥 Asegura que las imágenes verticales NO desborden */
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  position: relative;
+}
+
+.articleImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 RECORTA imágenes grandes */
+  aspect-ratio: 16 / 9; /* 🔥 Mantiene la relación de aspecto */
+}
+
+/* 🔥 🔥 🔥 🔥 🔥 🔥  */
+/* SOLUCIÓN PARA IMÁGENES VERTICALES */
+.verticalImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 RECORTA */
+  object-position: center center; /* 🔥 Centra la imagen */
+}
+
+.horizontalImage {
+  height: 120px; /* 📌 Reducida aún más */
+}
+
+.badgeContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  justify-content: center;
+}
+
+.categoryBadge,
+.regionBadge,
+.topicBadge {
+  display: inline-block;
+  font-size: 0.6rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.categoryBadge {
+  background-color: #d13120;
+  color: white;
+}
+
+.regionBadge {
+  background-color: #f0ad4e;
+  color: white;
+}
+
+.topicBadge {
+  background-color: #5bc0de;
+  color: white;
+}
+
+.categoryBadge:hover,
+.regionBadge:hover,
+.topicBadge:hover {
+  transform: scale(1.05);
+}
+
+.articleMeta {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #555;
+  font-weight: 400;
+  gap: 3px;
+}
+
+.articleAuthors {
+  font-size: 0.75rem;
+  color: #555;
+  font-style: italic;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.separator {
+  color: #ccc;
+}

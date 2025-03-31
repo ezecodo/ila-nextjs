@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 
+// 👉 Este es tu `nextConfig` actual
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
-    unoptimized: true, // Desactiva el optimizador de imágenes
+    unoptimized: true,
   },
 };
 
-export default nextConfig;
+// 👉 Acá aplicamos el plugin de next-intl por fuera
+const withNextIntl = createNextIntlPlugin({
+  // Opcional: podrías definir locales acá, pero ya los tenés en `routing.ts`
+});
+
+export default withNextIntl(nextConfig);

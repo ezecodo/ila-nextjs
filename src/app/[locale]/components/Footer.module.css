@@ -1,0 +1,51 @@
+/* src/components/Footer.module.css */
+.footer {
+  background-color: #333; /* Fondo oscuro */
+  color: #fff; /* Texto blanco */
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logoContainer {
+  margin-bottom: 1rem;
+}
+
+.logo {
+  border-radius: 50%; /* Hace que el logo sea redondo */
+}
+
+.text {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.socials {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem; /* Espacio entre los íconos */
+  justify-content: center;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.socials li {
+  display: inline-block;
+}
+
+.icon {
+  font-size: 1.8rem; /* Tamaño de los íconos */
+  color: #fff; /* Color blanco por defecto */
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.icon:hover {
+  color: #ff6347; /* Color rojo para el hover */
+  transform: scale(1.2); /* Efecto de zoom al pasar el cursor */
+}

@@ -1,20 +1,35 @@
-import NextAuth from "next-auth";
-import authConfig from "@/auth.config"; // ✅ Importación correcta con alias `@`
+import createMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing";
 import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import authConfig from "@/auth.config";
+
+const intlMiddleware = createMiddleware(routing);
 
 export const { auth: middlewareAuth } = NextAuth(authConfig);
 
 export async function middleware(req) {
-  console.log("🔥 Middleware ejecutándose en:", req.nextUrl.pathname);
+  const { pathname } = req.nextUrl;
 
-  const session = await middlewareAuth();
-  if (!session) {
-    return NextResponse.redirect(new URL("/auth/signin", req.url));
+  const isProtectedRoute =
+    pathname.startsWith("/es/dashboard") ||
+    pathname.startsWith("/de/dashboard") ||
+    pathname.startsWith("/es/dashboard-users") ||
+    pathname.startsWith("/de/dashboard-users");
+
+  if (isProtectedRoute) {
+    const session = await middlewareAuth();
+    if (!session) {
+      return NextResponse.redirect(
+        new URL(`/${req.nextUrl.locale}/auth/signin`, req.url)
+      );
+    }
   }
 
-  return NextResponse.next();
+  return intlMiddleware(req);
 }
 
+// ✅ Matcher oficial: evita /api, /_next, archivos estáticos, etc.
 export const config = {
-  matcher: ["/dashboard/:path*", "/dashboard-users/:path*"],
+  matcher: "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
 };
