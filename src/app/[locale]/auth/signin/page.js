@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -69,12 +70,7 @@ export default function SignInPage() {
       </form>
 
       <p className="mt-4 text-center">
-        <a
-          href="/auth/forgot-password"
-          className="text-blue-500 hover:underline"
-        >
-          ¿Olvidaste tu contraseña?
-        </a>
+        <a href="/auth/forgot-password">¿Olvidaste tu contraseña?</a>
       </p>
     </div>
   );

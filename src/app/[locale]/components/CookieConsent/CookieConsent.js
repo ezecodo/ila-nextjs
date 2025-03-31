@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function CookieConsent() {
   const [showPopup, setShowPopup] = useState(false);
@@ -47,9 +48,9 @@ export default function CookieConsent() {
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-3">
-          <a href="/privacy" className="underline text-blue-600">
+          <Link href="/privacy" className="underline text-blue-600">
             Más información sobre nuestras cookies
-          </a>
+          </Link>
         </p>
       </div>
     </div>
