@@ -17,7 +17,11 @@
   "search": {
     "placeholder": "Buscar en ILA...",
     "ariaLabel": "Buscar en ILA",
-    "button": "Buscar"
+    "button": "Buscar",
+    "loading": "Cargando resultados...",
+    "error": "Error cargando resultados",
+    "noResults": "No se encontraron artículos para esta búsqueda.",
+    "resultstitle": "Resultados de búsqueda:"
   },
   "about": {
     "title": "Sobre nosotros",
@@ -41,5 +45,12 @@
     "loadingAuthor": "Cargando información del autor...",
     "loadingArticles": "Cargando artículos...",
     "noArticles": "No hay artículos escritos por este autor."
+  },
+  "cookie": {
+    "title": "🍪 Uso de Cookies",
+    "message": "Usamos cookies para mejorar tu experiencia en nuestro sitio. Puedes aceptar o rechazar el uso de cookies no esenciales.",
+    "accept": "Aceptar Cookies",
+    "reject": "Rechazar",
+    "moreInfo": "Más información sobre nuestras cookies"
   }
 }

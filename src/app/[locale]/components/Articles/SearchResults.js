@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation"; // ✅ Hook para manejar searchParams
 import ArticleList from "./ArticleList";
 import Pagination from "../Pagination/Pagination"; // ✅ Importar componente de paginación
+import { useTranslations } from "next-intl";
 
 const SearchResults = () => {
+  const t = useTranslations("search");
+
   const searchParams = useSearchParams(); // ✅ Obtener los parámetros de la URL
   const query = searchParams.get("query") || ""; // ✅ Extraer la query correctamente
 
@@ -42,18 +45,20 @@ const SearchResults = () => {
   return (
     <div>
       {loading ? (
-        <p>Cargando resultados...</p>
-      ) : (
+        <p>{t("loading")}</p>
+      ) : articles.length > 0 ? (
         <>
           <ArticleList articlesProp={articles} />
           {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage} // ✅ Función para cambiar de página
+              onPageChange={setCurrentPage}
             />
           )}
         </>
+      ) : (
+        <p className="text-gray-500">{t("noResults")}</p>
       )}
     </div>
   );

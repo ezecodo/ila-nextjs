@@ -17,8 +17,13 @@
   "search": {
     "placeholder": "In ILA suchen...",
     "ariaLabel": "In ILA suchen",
-    "button": "Suchen"
+    "button": "Suchen",
+    "loading": "Lade Ergebnisse...",
+    "error": "Fehler beim Laden der Ergebnisse",
+    "noResults": "Keine Artikel zu dieser Suche gefunden.",
+    "resultstitle": "Suchergebnisse:"
   },
+
   "about": {
     "title": "Über uns",
     "historyTitle": "Wie es anfing",
@@ -41,5 +46,12 @@
     "loadingAuthor": "Informationen über den Autor werden geladen...",
     "loadingArticles": "Artikel werden geladen...",
     "noArticles": "Es gibt keine Artikel von diesem Autor."
+  },
+  "cookie": {
+    "title": "🍪 Verwendung von Cookies",
+    "message": "Wir verwenden Cookies, um Ihre Erfahrung auf unserer Website zu verbessern. Sie können die Verwendung nicht notwendiger Cookies akzeptieren oder ablehnen.",
+    "accept": "Cookies akzeptieren",
+    "reject": "Ablehnen",
+    "moreInfo": "Mehr Informationen über unsere Cookies"
   }
 }
