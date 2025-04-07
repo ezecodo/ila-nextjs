@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import ArticleCard from "../Articles/ArticleCard";
 import styles from "./ArticleList.module.css";
 import Pagination from "../Pagination/Pagination";
+import { useTranslations } from "next-intl";
 
 export default function ArticleList({ articlesProp = null, authorId = null }) {
   const [articles, setArticles] = useState(articlesProp || []);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState(null);
+  const t = useTranslations("article");
 
   useEffect(() => {
     if (articlesProp) {
@@ -25,7 +27,7 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
           : `/api/articles/list?page=${currentPage}&limit=3`;
 
         const response = await fetch(url);
-        if (!response.ok) throw new Error("Error al cargar los artículos");
+        if (!response.ok) throw new Error(t("loadArticles"));
 
         const data = await response.json();
         setArticles(data.articles);
@@ -43,7 +45,7 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
   }
 
   if (articles.length === 0) {
-    return <p>No hay artículos disponibles.</p>;
+    return <p>{t("noArticles")}</p>;
   }
 
   return (

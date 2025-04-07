@@ -7,6 +7,7 @@ import Link from "next/link";
 import HoverInfo from "../HoverInfo/HoverInfo";
 import EntityBadges from "../EntityBadges/EntityBadges";
 import ArticleCard from "../Articles/ArticleCard";
+import { useTranslations } from "next-intl";
 
 export default function LatestEditionWithArticles() {
   const [latestEdition, setLatestEdition] = useState(null);
@@ -15,6 +16,8 @@ export default function LatestEditionWithArticles() {
   const [currentPage, setCurrentPage] = useState(1);
   const [editionsCount, setEditionsCount] = useState({});
   const articlesPerPage = 3;
+  const t = useTranslations("dossiers");
+  const ta = useTranslations("article");
 
   // Estado para el popup de la imagen
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +28,7 @@ export default function LatestEditionWithArticles() {
       try {
         const response = await fetch("/api/editions?limit=1&sort=desc");
         if (!response.ok) {
-          throw new Error("Error al cargar la última edición");
+          throw new Error(t("errorLastEdition"));
         }
         const data = await response.json();
         if (data.length > 0) {
@@ -46,7 +49,7 @@ export default function LatestEditionWithArticles() {
           `/api/articles/list?editionId=${editionId}`
         );
         if (!response.ok) {
-          throw new Error("Error al cargar los artículos");
+          throw new Error(ta("loadingArticlesError"));
         }
         const data = await response.json();
         setArticles(data.articles || []);
@@ -98,7 +101,7 @@ export default function LatestEditionWithArticles() {
   }
 
   if (!latestEdition) {
-    return <p className="text-gray-500">Cargando la última edición...</p>;
+    return <p className="text-gray-500">{t("loadLastEdition")}</p>;
   }
 
   // Cálculo de paginación
@@ -184,9 +187,7 @@ export default function LatestEditionWithArticles() {
             <ArticleCard key={article.id} article={article} />
           ))
         ) : (
-          <p className="text-gray-500">
-            No hay artículos disponibles en esta edición.
-          </p>
+          <p className="text-gray-500">{t("noArticlesInEdition")}</p>
         )}
 
         {/* 🔹 Paginación */}
@@ -197,14 +198,14 @@ export default function LatestEditionWithArticles() {
               onClick={() => setCurrentPage((prev) => prev - 1)}
               className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
             >
-              ← Anterior
+              ←
             </button>
             <button
               disabled={indexOfLastArticle >= articles.length}
               onClick={() => setCurrentPage((prev) => prev + 1)}
               className="px-3 py-1 bg-gray-200 rounded-md disabled:opacity-50"
             >
-              Siguiente →
+              →
             </button>
           </div>
         )}

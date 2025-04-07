@@ -20,7 +20,7 @@ export default function AuthorPage() {
     async function fetchAuthor() {
       try {
         const response = await fetch(`/api/authors/${id}`);
-        if (!response.ok) throw new Error("Error al cargar el autor");
+        if (!response.ok) throw new Error(t("loadingAuthorError"));
 
         const data = await response.json();
         setAuthor(data.author);

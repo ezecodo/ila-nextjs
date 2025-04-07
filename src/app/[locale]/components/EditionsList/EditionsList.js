@@ -6,19 +6,21 @@ import Image from "next/image";
 import Link from "next/link";
 import HoverInfo from "../HoverInfo/HoverInfo";
 import EntityBadges from "../EntityBadges/EntityBadges"; // ✅ Importamos el nuevo EntityBadges
+import { useTranslations } from "next-intl";
 
 export default function EditionsList() {
   const [editions, setEditions] = useState([]);
   const [error, setError] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [popupImage, setPopupImage] = useState(null);
+  const t = useTranslations("dossiers");
 
   useEffect(() => {
     async function fetchEditions() {
       try {
         const response = await fetch("/api/editions");
         if (!response.ok) {
-          throw new Error("Error al cargar las ediciones");
+          throw new Error(t("editionsError"));
         }
         const data = await response.json();
 
@@ -55,7 +57,7 @@ export default function EditionsList() {
   }
 
   if (editions.length === 0) {
-    return <p>No hay ediciones disponibles.</p>;
+    return <p>{t("noEditions")}</p>;
   }
 
   return (
@@ -130,7 +132,7 @@ export default function EditionsList() {
               href={`/editions/${edition.id}`}
               className="text-blue-500 font-medium mt-2 inline-block"
             >
-              Leer más
+              {t("readMore")}
             </Link>
           </div>
         ))}

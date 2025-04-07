@@ -1,7 +1,7 @@
 "use client";
 import { signIn, signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation"; // 🔥 Importamos el router
+
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,12 +15,14 @@ import {
 import styles from "./Header.module.css";
 import SearchBar from "./SearchBar";
 import { useTranslations } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
 
 const Header = () => {
   const t = useTranslations("header");
 
   const { data: session } = useSession(); // 🔥 Obtener la sesión del usuario
   const router = useRouter(); // ✅ Instanciamos el router
+  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -87,6 +89,20 @@ const Header = () => {
                   <FaUserPlus size={16} />
                 </button>
               </Link>
+              <div className={styles.languageSwitcher}>
+                <button
+                  onClick={() => router.replace(pathname, { locale: "es" })}
+                  className={styles.langButton}
+                >
+                  ES
+                </button>
+                <button
+                  onClick={() => router.replace(pathname, { locale: "de" })}
+                  className={styles.langButton}
+                >
+                  DE
+                </button>
+              </div>
             </>
           )}
         </div>

@@ -44,7 +44,8 @@
     "by": "Por: {name}",
     "loadingAuthor": "Cargando información del autor...",
     "loadingArticles": "Cargando artículos...",
-    "noArticles": "No hay artículos escritos por este autor."
+    "noArticles": "No hay artículos escritos por este autor.",
+    "loadingAuthorError": "Error al cargar el Autor"
   },
   "cookie": {
     "title": "🍪 Uso de Cookies",
@@ -52,5 +53,28 @@
     "accept": "Aceptar Cookies",
     "reject": "Rechazar",
     "moreInfo": "Más información sobre nuestras cookies"
+  },
+  "article": {
+    "noArticles": "No hay artículos escritos por este autor.",
+    "articles": "Artículos",
+    "loadingArticles": "Error al cargar los Artículos",
+    "loadingArticlesError": "Error al cargar los artículos"
+  },
+  "dossiers": {
+    "dossiers": "Ediciones",
+    "editionsError": "Error al cargar las ediciones",
+    "noEditions": "No hay ediicones disponibles",
+    "readMore": " Leer mas",
+    "errorLastEdition": "Error al cargar la última edición",
+    "loadLastEdition": "Cargando la última edición...",
+    "noArticlesInEdition": " No hay artículos disponibles en esta edición."
+  },
+  "main": {
+    "prev": "Anterior",
+    "next": "Siguiente"
+  },
+
+  "events": {
+    "events": "Eventos"
   }
 }

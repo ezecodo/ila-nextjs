@@ -14,8 +14,10 @@ import {
   addDays,
 } from "date-fns";
 import { es } from "date-fns/locale";
+import { useTranslations } from "next-intl";
 
 export default function EventsPage() {
+  const t = useTranslations("events");
   const [events, setEvents] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -136,7 +138,7 @@ export default function EventsPage() {
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        🌟 Eventos
+        {t("events")}
       </h1>
 
       <div className="bg-gray-50 rounded-lg p-4 shadow">
