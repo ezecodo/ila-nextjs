@@ -4,12 +4,14 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const t = useTranslations("auth");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,10 +40,10 @@ export default function SignInPage() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <h2 className="text-2xl font-bold mb-4">Iniciar sesión</h2>
+      <h2 className="text-2xl font-bold mb-4">{t("title")}</h2>
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
         <div className="mb-4">
-          <label className="block text-gray-700">Correo Electrónico</label>
+          <label className="block text-gray-700">{t("email")}</label>
           <input
             type="email"
             value={email}
@@ -51,7 +53,7 @@ export default function SignInPage() {
           />
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700">Contraseña</label>
+          <label className="block text-gray-700">{t("password")}</label>
           <input
             type="password"
             value={password}
@@ -65,7 +67,7 @@ export default function SignInPage() {
           type="submit"
           className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
         >
-          Iniciar sesión
+          {t("button")}
         </button>
       </form>
 
@@ -74,9 +76,16 @@ export default function SignInPage() {
           href="/auth/forgot-password"
           className="text-blue-500 hover:underline"
         >
-          ¿Olvidaste tu contraseña?
+          {t("forgot")}
         </Link>
       </p>
+
+      <div className="mt-2 text-center text-sm text-gray-700">
+        {t("noAccount")}{" "}
+        <Link href="/auth/signup" className="text-blue-500 hover:underline">
+          {t("signupLink")}
+        </Link>
+      </div>
     </div>
   );
 }

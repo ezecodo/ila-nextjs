@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Heart } from "lucide-react"; // 🔥 Ícono de corazón
+import { useTranslations } from "next-intl";
 
 const DashboardStats = ({ onShowArticles, onShowEvents }) => {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("stats");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -30,20 +32,18 @@ const DashboardStats = ({ onShowArticles, onShowEvents }) => {
   }, []);
 
   if (loading)
-    return (
-      <p className="text-center text-gray-500">Cargando estadísticas...</p>
-    );
-  if (error) return <p className="text-center text-red-500">{error}</p>;
+    return <p className="text-center text-gray-500">{t("loading")}</p>;
+  if (error) return <p className="text-center text-red-500">{t("error")}</p>;
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h1 className="text-2xl font-bold text-center mb-6">📊 Dashboard</h1>
+      <h1 className="text-2xl font-bold text-center mb-6">{t("title")}</h1>
 
       {stats ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* 🔥 Cantidad de artículos */}
           <div className="p-4 bg-blue-100 rounded-lg text-center shadow-md flex flex-col justify-center">
-            <h3 className="text-lg font-semibold">📄 Artículos</h3>
+            <h3 className="text-lg font-semibold">{t("articles")}</h3>
             <p
               className="text-3xl font-bold cursor-pointer text-blue-600 hover:underline"
               onClick={onShowArticles} // 🔥 Click para mostrar la lista
@@ -54,19 +54,19 @@ const DashboardStats = ({ onShowArticles, onShowEvents }) => {
 
           {/* 🔥 Cantidad de ediciones */}
           <div className="p-4 bg-green-100 rounded-lg text-center shadow-md flex flex-col justify-center">
-            <h3 className="text-lg font-semibold">📚 Ediciones</h3>
+            <h3 className="text-lg font-semibold">{t("editions")}</h3>
             <p className="text-3xl font-bold">{stats.totalEditions}</p>
           </div>
 
           {/* 🔥 Cantidad de usuarios */}
           <div className="p-4 bg-yellow-100 rounded-lg text-center shadow-md flex flex-col justify-center">
-            <h3 className="text-lg font-semibold">👤 Usuarios</h3>
+            <h3 className="text-lg font-semibold">{t("users")}</h3>
             <p className="text-3xl font-bold">{stats.totalUsers}</p>
           </div>
           {/* 🎉 Nueva métrica: Eventos */}
           {/* 🎉 Nueva métrica: Eventos */}
           <div className="p-4 bg-purple-100 rounded-lg text-center shadow-md flex flex-col justify-center">
-            <h3 className="text-lg font-semibold">🎤 Eventos</h3>
+            <h3 className="text-lg font-semibold">{t("events")}</h3>
             <p
               className="text-3xl font-bold text-purple-600 cursor-pointer hover:underline"
               onClick={() => {
@@ -85,7 +85,7 @@ const DashboardStats = ({ onShowArticles, onShowEvents }) => {
                 size={26}
                 className="text-red-500 stroke-black fill-red-500"
               />
-              <h3 className="text-lg font-semibold">Favoritos</h3>
+              <h3 className="text-lg font-semibold">{t("favorites")}</h3>
             </div>
             <p className="text-3xl font-bold mt-1">
               {stats.totalLikedArticles}
@@ -93,9 +93,7 @@ const DashboardStats = ({ onShowArticles, onShowEvents }) => {
           </div>
         </div>
       ) : (
-        <p className="text-center text-gray-500">
-          No se encontraron estadísticas.
-        </p>
+        <p className="text-center text-gray-500">{t("notFound")}</p>
       )}
     </div>
   );

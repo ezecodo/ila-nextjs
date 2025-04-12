@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import InputField from "../../../components/Articles/NewArticle/InputField";
+import { useTranslations } from "next-intl";
 
 import SelectField from "../../../components/Articles/NewArticle/SelectField";
 import ToggleSwitch from "../../../components/Articles/NewArticle/ToggleSwitch";
@@ -24,6 +25,9 @@ export default function NewArticlePage() {
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
   const [resetTrigger, setResetTrigger] = useState(false);
+  const t = useTranslations("newArticle.form");
+  const tm = useTranslations("newArticle.messages");
+  const mod = useTranslations("newArticle.modals");
 
   const [articleImage, setArticleImage] = useState(null); // Manejar la imagen del artículo
 
@@ -542,26 +546,26 @@ export default function NewArticlePage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.formTitle}>Crear un nuevo artículo</h1>
+      <h1 className={styles.formTitle}>{t("title")}</h1>
       {message && <FormMessage message={message} />}
       <form onSubmit={handleSubmit} className={styles.form}>
         <InputField
           id="title"
-          label="Título"
+          label={t("title")}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ingrese el título"
+          placeholder={t("titlePlaceholder")}
         />
         <InputField
           id="subtitle"
-          label="Subtítulo"
+          label={t("subtitle")}
           value={subtitle}
           onChange={(e) => setSubtitle(e.target.value)}
-          placeholder="Ingrese el subtítulo"
+          placeholder={t("subtitlePlaceholder")}
         />
         <ToggleSwitch
           id="enablePreviewText"
-          label="¿Agregar texto de vista previa?"
+          label={t("previewToggle")} //Agregar Texto de vista previa
           checked={previewTextEnabled}
           onChange={(e) => {
             const isEnabled = e.target.checked;
@@ -581,7 +585,7 @@ export default function NewArticlePage() {
           </div>
         )}
         <div>
-          <h3>Categorías</h3>
+          <h3>{t("categoryLabel")}</h3>
           {categories.map((category) => (
             <CheckboxField
               key={category.id}
@@ -594,7 +598,7 @@ export default function NewArticlePage() {
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="region" className={styles.formLabel}>
-            Región/es:
+            {t("regionLabel")}
           </label>
           <AsyncSelect
             isMulti
@@ -608,7 +612,7 @@ export default function NewArticlePage() {
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="topic" className={styles.formLabel}>
-            Tema/s:
+            {t("topicLabel")} {/* Topics del articulo */}
           </label>
           <AsyncSelect
             isMulti
@@ -626,7 +630,7 @@ export default function NewArticlePage() {
         />
         <div className={styles.formGroup}>
           <label htmlFor="articleImage" className={styles.formLabel}>
-            Imagen del Artículo:
+            {t("imageLabel")} {/* Imagen del artículo */}
           </label>
           <input
             type="file"
@@ -639,14 +643,14 @@ export default function NewArticlePage() {
         </div>
         <ToggleSwitch
           id="additionalInfoToggle"
-          label="¿Agregar Información Adicional?"
+          label={t("additionalInfoToggle")} // Información adicional toogle
           checked={additionalInfoEnabled}
           onChange={(e) => setAdditionalInfoEnabled(e.target.checked)}
         />
         {additionalInfoEnabled && (
           <InputField
             id="additionalInfo"
-            label="Información Adicional"
+            label={t("additionalInfo")} // Información adicional
             value={additionalInfo}
             onChange={(e) => setAdditionalInfo(e.target.value)}
             placeholder="Ingrese información adicional"

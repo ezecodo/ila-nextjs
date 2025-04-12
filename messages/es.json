@@ -76,5 +76,99 @@
 
   "events": {
     "events": "Eventos"
+  },
+
+  "auth": {
+    "title": "Iniciar sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "button": "Iniciar sesión",
+    "forgot": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes una cuenta?",
+    "signupLink": "Regístrate aquí",
+    "error": "Credenciales incorrectas. Inténtalo de nuevo."
+  },
+
+  "dashboard": {
+    "title": "Dashboard Admin",
+    "menu": {
+      "inicio": "Inicio",
+      "articles": "Ingresar Artículo",
+      "editions": "Ingresar Edición",
+      "account": "Configuración de Cuenta",
+      "events": "Crear Eventos"
+    },
+    "openMenu": "Abrir Menú ☰",
+    "closeMenu": "Cerrar Menú ☰",
+    "errorStats": "Error al cargar estadísticas"
+  },
+
+  "stats": {
+    "title": "📊 Dashboard",
+    "loading": "Cargando estadísticas...",
+    "error": "Error al cargar estadísticas.",
+    "notFound": "No se encontraron estadísticas.",
+    "articles": "📄 Artículos",
+    "editions": "📚 Ediciones",
+    "users": "👤 Usuarios",
+    "events": "🎤 Eventos",
+    "favorites": "Favoritos"
+  },
+  "newArticle": {
+    "title": "Crear un nuevo artículo",
+    "form": {
+      "title": "Título",
+      "titlePlaceholder": "Ingrese el título",
+      "subtitle": "Subtítulo",
+      "subtitlePlaceholder": "Ingrese el subtítulo",
+      "previewToggle": "¿Agregar texto de vista previa?",
+      "categoryLabel": "Categorías",
+      "regionLabel": "Región/es:",
+      "topicLabel": "Tema/s:",
+      "imageLabel": "Imagen del Artículo",
+      "additionalInfoToggle": "¿Agregar Información Adicional?",
+      "additionalInfo": "Información Adicional",
+      "submit": "Crear artículo",
+      "bookTitle": "Título del libro",
+      "bookImage": "Imagen del libro",
+      "interviewToggle": "¿Es una entrevista?",
+      "interviewee": "Entrevistado",
+      "newInterviewee": "¿Es un entrevistado nuevo?",
+      "author": "Autor",
+      "newAuthor": "¿Es un autor nuevo?",
+      "printedToggle": "¿Está en la versión impresa?",
+      "edition": "Edición de la revista",
+      "startPage": "Página de inicio",
+      "endPage": "Página de fin",
+      "publishNow": "Publicar Ahora",
+      "schedule": "Programar Publicación",
+      "scheduleDate": "Fecha de Publicación",
+      "nachrufTitle": "Detalles de la necrología",
+      "firstName": "Primer Nombre",
+      "lastName": "Apellido",
+      "birthYear": "Año de Nacimiento",
+      "deathYear": "Año de Defunción"
+    },
+    "modals": {
+      "addAuthorTitle": "Agregar Nuevo Autor",
+      "authorName": "Nombre del Autor",
+      "authorEmail": "Email del Autor (opcional)",
+      "addAuthorButton": "Agregar Autor",
+      "addIntervieweeTitle": "Agregar Nuevo Entrevistado",
+      "intervieweeName": "Nombre del Entrevistado",
+      "addIntervieweeButton": "Agregar Entrevistado"
+    },
+    "messages": {
+      "createSuccess": "Artículo creado con éxito.",
+      "createError": "Error al crear el artículo:",
+      "serverError": "Error al conectar con el servidor.",
+      "topicExists": "El tema ya existe.",
+      "topicCreated": "Tema creado exitosamente.",
+      "intervieweeAdded": "Entrevistado agregado con éxito.",
+      "intervieweeError": "Error al agregar el entrevistado.",
+      "authorAdded": "Autor agregado con éxito.",
+      "authorError": "Error al agregar el autor.",
+      "unknownAuthorError": "Error inesperado: no se recibió un ID de autor."
+    }
   }
 }

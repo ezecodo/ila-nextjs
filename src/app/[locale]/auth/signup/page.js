@@ -8,6 +8,7 @@ function SignUpForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [language, setLanguage] = useState("de"); // Idioma por defecto
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +21,13 @@ function SignUpForm() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name, password, confirmPassword }),
+      body: JSON.stringify({
+        email,
+        name,
+        password,
+        confirmPassword,
+        language,
+      }),
     });
 
     const data = await res.json();
@@ -64,6 +71,15 @@ function SignUpForm() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded"
         />
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
+        >
+          <option value="es">Español</option>
+          <option value="de">Deutsch</option>
+        </select>
+
         <button
           type="submit"
           className="w-full bg-blue-500 text-white p-2 rounded"

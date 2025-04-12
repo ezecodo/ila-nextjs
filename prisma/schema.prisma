@@ -129,6 +129,7 @@ model User {
   sessions      Session[]
   role          String   @default("user") // 🎯 Puede ser "user" o "admin"
   favorites     Favorite[]
+  language  String   @default("de") // "es" o "de"
 
  
   createdAt DateTime @default(now())

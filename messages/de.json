@@ -76,5 +76,96 @@
   },
   "events": {
     "events": "Veranstaltungen"
+  },
+  "auth": {
+    "title": "Anmelden",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "button": "Anmelden",
+    "forgot": "Passwort vergessen?",
+    "noAccount": "Noch kein Konto?",
+    "signupLink": "Hier registrieren",
+    "error": "Ungültige Anmeldedaten. Bitte versuche es erneut."
+  },
+  "dashboard": {
+    "title": "Admin-Dashboard",
+    "menu": {
+      "inicio": "Startseite",
+      "articles": "Artikel eingeben",
+      "editions": "Dossier eingeben",
+      "account": "Kontoeinstellungen",
+      "events": "Veranstaltung erstellen"
+    },
+    "openMenu": "Menü öffnen ☰",
+    "closeMenu": "Menü schließen ☰",
+    "errorStats": "Fehler beim Laden der Statistiken"
+  },
+  "stats": {
+    "title": "📊 Dashboard",
+    "loading": "Lade Statistiken...",
+    "error": "Fehler beim Laden der Statistiken.",
+    "notFound": "Keine Statistiken gefunden.",
+    "articles": "📄 Artikel",
+    "editions": "📚 Ausgaben",
+    "users": "👤 Benutzer",
+    "events": "🎤 Veranstaltungen",
+    "favorites": "Favoriten"
+  },
+  "newArticle": {
+    "title": "Neuen Artikel erstellen",
+    "form": {
+      "title": "Titel",
+      "titlePlaceholder": "Geben Sie den Titel ein",
+      "subtitle": "Untertitel",
+      "subtitlePlaceholder": "Geben Sie den Untertitel ein",
+      "previewToggle": "Vorschautext hinzufügen?",
+      "categoryLabel": "Kategorien",
+      "regionLabel": "Region(en):",
+      "topicLabel": "Thema/Themen:",
+      "imageLabel": "Artikelbild",
+      "additionalInfoToggle": "Zusätzliche Informationen hinzufügen?",
+      "additionalInfo": "Zusätzliche Informationen",
+      "submit": "Artikel erstellen",
+      "bookTitle": "Buchtitel",
+      "bookImage": "Buchbild",
+      "interviewToggle": "Ist dies ein Interview?",
+      "interviewee": "Interviewpartner/in",
+      "newInterviewee": "Neuer Interviewpartner?",
+      "author": "Autor/in",
+      "newAuthor": "Neue/r Autor/in?",
+      "printedToggle": "In gedruckter Ausgabe?",
+      "edition": "Magazinausgabe",
+      "startPage": "Startseite",
+      "endPage": "Endseite",
+      "publishNow": "Jetzt veröffentlichen",
+      "schedule": "Veröffentlichung planen",
+      "scheduleDate": "Veröffentlichungsdatum",
+      "nachrufTitle": "Details zum Nachruf",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "birthYear": "Geburtsjahr",
+      "deathYear": "Todesjahr"
+    },
+    "modals": {
+      "addAuthorTitle": "Neue/r Autor/in hinzufügen",
+      "authorName": "Name der/des Autors/in",
+      "authorEmail": "E-Mail der/des Autors/in (optional)",
+      "addAuthorButton": "Autor/in hinzufügen",
+      "addIntervieweeTitle": "Neue/n Interviewpartner/in hinzufügen",
+      "intervieweeName": "Name des/der Interviewpartners/in",
+      "addIntervieweeButton": "Interviewpartner/in hinzufügen"
+    },
+    "messages": {
+      "createSuccess": "Artikel erfolgreich erstellt.",
+      "createError": "Fehler beim Erstellen des Artikels:",
+      "serverError": "Fehler beim Herstellen der Serververbindung.",
+      "topicExists": "Thema existiert bereits.",
+      "topicCreated": "Thema erfolgreich erstellt.",
+      "intervieweeAdded": "Interviewpartner/in erfolgreich hinzugefügt.",
+      "intervieweeError": "Fehler beim Hinzufügen des/der Interviewpartners/in.",
+      "authorAdded": "Autor/in erfolgreich hinzugefügt.",
+      "authorError": "Fehler beim Hinzufügen der/des Autors/in.",
+      "unknownAuthorError": "Unerwarteter Fehler: Keine Autor-ID empfangen."
+    }
   }
 }

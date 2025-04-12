@@ -9,6 +9,7 @@ import CreateEdition from "../dashboard/editions/new/page.js";
 import ArticlesList from "../dashboard/components/ArticlesList/ArticlesList.js";
 import CreateEventPage from "./events/page.js";
 import AdminEventsList from "../dashboard/components/AdminEventsList/AdminEventsList.js";
+import { useTranslations } from "next-intl";
 
 export default function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState("inicio");
@@ -17,6 +18,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null); // ✅ Estado de estadísticas
   const [menuOpen, setMenuOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const t = useTranslations("dashboard");
 
   // ✅ Función que se ejecuta al eliminar un evento
   const handleItemDeleted = async () => {
@@ -31,7 +33,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       setStats(data);
     } catch (err) {
-      console.error("Error al cargar estadísticas:", err);
+      console.error(t("errorStats"));
     }
   };
 
@@ -50,11 +52,11 @@ export default function AdminDashboard() {
   };
 
   const menuItems = [
-    { key: "inicio", label: "Inicio" },
-    { key: "articles", label: "Ingresar Artículo" },
-    { key: "editions", label: "Ingresar Edición" },
-    { key: "account", label: "Configuración de Cuenta" },
-    { key: "events", label: "Crear Eventos" },
+    { key: "inicio", label: t("menu.inicio") },
+    { key: "articles", label: t("menu.articles") },
+    { key: "editions", label: t("menu.editions") },
+    { key: "account", label: t("menu.account") },
+    { key: "events", label: t("menu.events") },
   ];
 
   return (
@@ -64,7 +66,7 @@ export default function AdminDashboard() {
         onClick={() => setMenuOpen(!menuOpen)}
         className="md:hidden bg-blue-500 text-white p-3 text-center w-full"
       >
-        {menuOpen ? "Cerrar Menú ☰" : "Abrir Menú ☰"}
+        {menuOpen ? t("closeMenu") : t("openMenu")}
       </button>
 
       {/* 📌 Sidebar */}
@@ -73,7 +75,7 @@ export default function AdminDashboard() {
           menuOpen ? "block" : "hidden"
         }`}
       >
-        <h2 className="text-2xl font-bold mb-6">Dashboard Admin</h2>
+        <h2 className="text-2xl font-bold mb-6">{t("title")}</h2>
         <ul>
           {menuItems.map((item) => (
             <li key={item.key}>
