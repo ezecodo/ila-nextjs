@@ -26,8 +26,6 @@ export default function NewArticlePage() {
   const [content, setContent] = useState("");
   const [resetTrigger, setResetTrigger] = useState(false);
   const t = useTranslations("newArticle.form");
-  const tm = useTranslations("newArticle.messages");
-  const mod = useTranslations("newArticle.modals");
 
   const [articleImage, setArticleImage] = useState(null); // Manejar la imagen del artículo
 

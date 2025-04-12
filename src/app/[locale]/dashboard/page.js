@@ -33,7 +33,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       setStats(data);
     } catch (err) {
-      console.error(t("errorStats"));
+      console.error(t("errorStats"), err);
     }
   };
 
