@@ -185,7 +185,7 @@ body {
 }
 .regionBadge {
   display: inline-block;
-  background-color: #f0ad4e; /* Color de fondo para regiones */
+  background-color: #cccccc; /* Color de fondo para regiones */
   color: #fff; /* Color del texto */
   font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */
@@ -198,7 +198,7 @@ body {
 
 .topicBadge {
   display: inline-block;
-  background-color: #5bc0de; /* Color de fondo para topics */
+  background-color: #999999; /* Color de fondo para topics */
   color: #fff; /* Color del texto */
   font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */
@@ -211,7 +211,7 @@ body {
 
 .categoryBadge {
   display: inline-block;
-  background-color: #d13120; /* Color de fondo para topics */
+  background-color: #666666; /* Color de fondo para topics */
   color: #fff; /* Color del texto */
   font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */

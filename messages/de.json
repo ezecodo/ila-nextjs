@@ -1,4 +1,7 @@
 {
+  "quilleditor": {
+    "writeHere": "Hier schreiben..."
+  },
   "header": {
     "tagline": "Das Lateinamerika-Magazin",
     "greeting": "Hallo, {name} 👋",
@@ -167,5 +170,11 @@
       "authorError": "Fehler beim Hinzufügen der/des Autors/in.",
       "unknownAuthorError": "Unerwarteter Fehler: Keine Autor-ID empfangen."
     }
+  },
+  "donationPopup": {
+    "title": "Unterstütze unsere Arbeit!",
+    "description": "Erwäge eine Spende oder ein Abo, um weiterhin hochwertige Inhalte zu lesen.",
+    "donateButton": "Spenden",
+    "subscribeButton": "Abonnieren"
   }
 }

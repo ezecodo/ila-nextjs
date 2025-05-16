@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
+import { useTranslations } from "next-intl";
 
 const QuillEditor = ({ onChange, resetTrigger }) => {
   const editorRef = useRef(null);
   const quillRef = useRef(null);
+  const t = useTranslations("quilleditor");
 
   useEffect(() => {
     // Inicialización de Quill
@@ -19,7 +21,7 @@ const QuillEditor = ({ onChange, resetTrigger }) => {
             ["link", "image"],
           ],
         },
-        placeholder: "Escribe aquí...",
+        placeholder: t("writeHere"), // Escriba Aquí!
       });
 
       // Escuchar cambios en Quill

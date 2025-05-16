@@ -1,4 +1,7 @@
 {
+  "quilleditor": {
+    "writeHere": "Escribe aquí..."
+  },
   "header": {
     "tagline": "La revista de latinoamérica",
     "greeting": "Hola, {name} 👋",
@@ -170,5 +173,11 @@
       "authorError": "Error al agregar el autor.",
       "unknownAuthorError": "Error inesperado: no se recibió un ID de autor."
     }
+  },
+  "donationPopup": {
+    "title": "¡Apoya nuestro trabajo!",
+    "description": "Considera hacer una donación o suscribirte para seguir leyendo contenido de calidad.",
+    "donateButton": "Donar",
+    "subscribeButton": "Suscribirse"
   }
 }

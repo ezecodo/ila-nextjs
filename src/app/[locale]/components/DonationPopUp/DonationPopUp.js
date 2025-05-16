@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function DonationPopup({ articleId }) {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations("donationPopup"); // 🔥 Importar traducciones
 
   useEffect(() => {
     if (!articleId) return;
 
-    // 🔥 Verifica si el usuario ya vio el pop-up para este artículo
     const seenArticles =
       JSON.parse(sessionStorage.getItem("seenArticles")) || [];
 
@@ -19,7 +20,7 @@ export default function DonationPopup({ articleId }) {
         setIsOpen(true);
         seenArticles.push(articleId);
         sessionStorage.setItem("seenArticles", JSON.stringify(seenArticles));
-      }, 3000); // ⏳ Se abre después de 3 segundos
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
@@ -38,25 +39,20 @@ export default function DonationPopup({ articleId }) {
         >
           ✕
         </button>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          ¡Apoya nuestro trabajo!
-        </h2>
-        <p className="text-gray-600 mb-4">
-          Considera hacer una donación o suscribirte para seguir leyendo
-          contenido de calidad.
-        </p>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">{t("title")}</h2>
+        <p className="text-gray-600 mb-4">{t("description")}</p>
         <div className="flex justify-center gap-4">
           <Link
             href="/donar"
             className="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-800 transition"
           >
-            Donar
+            {t("donateButton")}
           </Link>
           <Link
             href="/suscribirse"
             className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-800 transition"
           >
-            Suscribirse
+            {t("subscribeButton")}
           </Link>
         </div>
       </Dialog.Panel>

@@ -29,6 +29,7 @@ model Article {
   mediaTitle        String?           @db.Text
   articleImage      String?           @db.Text
   beitragsId        Int?
+  isTranslatedES    Boolean @default(false) // 👈 Nuevo para saber si el articulo esta traducido o no al Espanol
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
   beitragstyp       Beitragstyp       @relation(fields: [beitragstypId], references: [id])
   edition           Edition?          @relation(fields: [editionId], references: [id])

@@ -82,6 +82,7 @@ const ArticlesList = () => {
               </th>
               <th className="p-1.5 border text-left">📷 Imagen</th>
               <th className="p-1.5 border text-left">✏️ Editar</th>
+              <th className="p-1.5 border text-left">🌐 Tra</th>
             </tr>
           </thead>
           <tbody>
@@ -121,6 +122,9 @@ const ArticlesList = () => {
                       ✏️ Editar
                     </button>
                   </Link>
+                </td>
+                <td className="p-1.5 border text-center">
+                  {article.isTranslatedES ? "✅" : "❌"}
                 </td>
               </tr>
             ))}
