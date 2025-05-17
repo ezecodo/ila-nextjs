@@ -36,6 +36,7 @@ model Article {
 
 
   titleES           String?
+  subtitleES        String?
   contentES         String?           @db.LongText
   previewTextES     String?           @db.LongText
   additionalInfoES  String?           @db.Text

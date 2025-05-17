@@ -123,6 +123,7 @@ export async function PUT(req, context) {
       where: { id: parseInt(id) },
       data: {
         titleES: body.titleES,
+        subtitleES: body.subtitleES,
         contentES: body.contentES,
         previewTextES: body.previewES,
         additionalInfoES: body.additionalInfoES,

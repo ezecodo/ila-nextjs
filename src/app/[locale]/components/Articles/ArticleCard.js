@@ -61,11 +61,19 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
         />
 
         {/* 🔹 Título */}
-        <h2 className="text-lg font-bold leading-tight mt-1">
+        <h2 className="text-lg font-bold leading-tight mt-1 flex items-center gap-2">
           <Link href={`/articles/${article.id}`} className="hover:underline">
             {article.title}
           </Link>
+
+          {/* 🔥 Badge ES si está traducido */}
+          {article.isTranslatedES && (
+            <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full border border-green-300">
+              ES
+            </span>
+          )}
         </h2>
+
         {article.subtitle && (
           <h3 className="text-sm text-gray-600 leading-tight">
             {article.subtitle}
