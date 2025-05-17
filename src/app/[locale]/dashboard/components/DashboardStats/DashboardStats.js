@@ -5,7 +5,7 @@ import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
-const DashboardStats = ({ onShowEvents }) => {
+const DashboardStats = () => {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,7 +54,6 @@ const DashboardStats = ({ onShowEvents }) => {
         label={t("events")}
         value={stats.totalEvents}
         color="text-purple-600"
-        onClick={onShowEvents}
       />
       <StatCard
         label={t("favorites")}
