@@ -81,4 +81,5 @@ function StatCard({ label, value, color, icon, onClick, href }) {
 
   return href ? <Link href={href}>{content}</Link> : content;
 }
+
 export default DashboardStats;
