@@ -3,11 +3,15 @@ import ImageModal from "../ImageModal/ImageModal";
 import { useState } from "react";
 import Link from "next/link";
 import HoverInfo from "../HoverInfo/HoverInfo";
-import EntityBadges from "../../components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
+import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { Link as LocaleLink } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 
 export default function ArticleCard({ article, onRemoveFavorite }) {
+  const locale = useLocale();
+  const isES = locale === "es" && article.isTranslatedES;
+
   const firstImage = article.images?.[0];
   const formattedDate = article.publicationDate
     ? new Date(article.publicationDate).toLocaleDateString("es-ES", {
@@ -15,6 +19,7 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
         month: "numeric",
       })
     : null;
+
   const [isOpen, setIsOpen] = useState(false);
   const [popupImage, setPopupImage] = useState(null);
 
@@ -30,9 +35,8 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
 
   return (
     <div className="articleCard flex flex-col lg:flex-row overflow-hidden border border-gray-300 rounded-lg shadow bg-white transition hover:shadow-lg">
-      {/* 🔥 COLUMNA IZQUIERDA: Imagen */}
+      {/* Imagen */}
       <div className="leftColumn w-full lg:w-1/3 p-3 flex flex-col items-center">
-        {/* 🔥 Imagen */}
         {firstImage && (
           <div
             className="imageContainer"
@@ -42,7 +46,7 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
               src={firstImage.url}
               alt={firstImage.alt || "Imagen del artículo"}
               width={250}
-              height={140} // 🔥 MISMO TAMAÑO PARA TODAS
+              height={140}
               className={`articleImage ${
                 firstImage.height > firstImage.width ? "verticalImage" : ""
               }`}
@@ -51,22 +55,19 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
         )}
       </div>
 
-      {/* 🔥 COLUMNA DERECHA: Badges + Contenido */}
+      {/* Contenido */}
       <div className="rightColumn w-full lg:w-2/3 p-4 flex flex-col justify-start">
-        {/* 🔥 Usamos el componente `ArticleBadges` en lugar de badges manuales */}
         <EntityBadges
           categories={article.categories}
           regions={article.regions}
           topics={article.topics}
         />
 
-        {/* 🔹 Título */}
         <h2 className="text-lg font-bold leading-tight mt-1 flex items-center gap-2">
           <Link href={`/articles/${article.id}`} className="hover:underline">
-            {article.title}
+            {isES ? article.titleES : article.title}
           </Link>
 
-          {/* 🔥 Badge ES si está traducido */}
           {article.isTranslatedES && (
             <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full border border-green-300">
               ES
@@ -74,13 +75,16 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
           )}
         </h2>
 
-        {article.subtitle && (
+        {isES && article.subtitleES ? (
+          <h3 className="text-sm text-gray-600 leading-tight">
+            {article.subtitleES}
+          </h3>
+        ) : article.subtitle ? (
           <h3 className="text-sm text-gray-600 leading-tight">
             {article.subtitle}
           </h3>
-        )}
+        ) : null}
 
-        {/* 🔹 Fecha y Beitragstyp en la misma línea */}
         <div className="articleMeta flex items-center gap-1 text-xs text-gray-500 mt-1">
           {formattedDate && <span>{formattedDate}</span>}
           {article.beitragstyp?.name && (
@@ -91,7 +95,6 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
           )}
         </div>
 
-        {/* 🔹 Autores compactos */}
         {article.authors?.length > 0 && (
           <div className="articleAuthors text-xs text-gray-600 mt-1 flex flex-wrap gap-1">
             <span>by</span>
@@ -112,15 +115,13 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
         )}
       </div>
 
-      {/* 🔥 Botón de favoritos en la parte inferior derecha */}
       <div className="flex justify-end self-end mt-auto">
         <FavoriteButton
           articleId={article.id}
-          onRemoveFavorite={onRemoveFavorite} // ✅ Pasamos la función
+          onRemoveFavorite={onRemoveFavorite}
         />
       </div>
 
-      {/* 🔥 Modal de Imagen */}
       <ImageModal
         isOpen={isOpen}
         imageUrl={popupImage}

@@ -40,13 +40,13 @@ export async function GET() {
             category: {
               select: {
                 id: true,
-                name: true, // Incluir el nombre de las categorías
+                name: true,
               },
             },
           },
         },
-        regions: true, // Incluye las regiones asociadas
-        topics: true, // Incluye los temas asociados
+        regions: true,
+        topics: true,
       },
       orderBy: { id: "desc" },
     });
@@ -55,9 +55,16 @@ export async function GET() {
       ...article,
       categories: article.articleCategories.map((ac) => ({
         id: ac.category.id,
-        name: ac.category.name, // Mostrar el nombre de la categoría
+        name: ac.category.name,
       })),
-      articleCategories: undefined, // Eliminar el campo redundante
+      articleCategories: undefined, // limpiar campo redundante
+      // Incluimos campos traducidos
+      titleES: article.titleES,
+      subtitleES: article.subtitleES,
+      previewTextES: article.previewTextES,
+      contentES: article.contentES,
+      additionalInfoES: article.additionalInfoES,
+      isTranslatedES: article.isTranslatedES,
     }));
 
     return new Response(JSON.stringify(transformedArticles), { status: 200 });
