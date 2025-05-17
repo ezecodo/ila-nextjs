@@ -103,7 +103,8 @@
     },
     "openMenu": "Abrir Menú ☰",
     "closeMenu": "Cerrar Menú ☰",
-    "errorStats": "Error al cargar estadísticas"
+    "errorStats": "Error al cargar estadísticas",
+    "welcome": "Bienvenido al Dashboard Admin"
   },
 
   "stats": {

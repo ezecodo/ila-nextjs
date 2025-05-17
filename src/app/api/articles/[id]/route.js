@@ -105,3 +105,43 @@ export async function GET(req, context) {
     );
   }
 }
+// ✅ Guardar traducción en campos ES
+export async function PUT(req, context) {
+  const { id } = context.params;
+
+  if (!id || isNaN(parseInt(id))) {
+    return new Response(JSON.stringify({ error: "ID no válido" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const body = await req.json();
+
+    const updatedArticle = await prisma.article.update({
+      where: { id: parseInt(id) },
+      data: {
+        titleES: body.titleES,
+        contentES: body.contentES,
+        previewTextES: body.previewES,
+        additionalInfoES: body.additionalInfoES,
+        isTranslatedES: true,
+      },
+    });
+
+    return new Response(JSON.stringify(updatedArticle), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error al guardar traducción:", error);
+    return new Response(
+      JSON.stringify({
+        error: "Error interno al guardar traducción",
+        details: error.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}

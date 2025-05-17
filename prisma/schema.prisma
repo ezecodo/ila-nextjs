@@ -33,6 +33,14 @@ model Article {
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
   beitragstyp       Beitragstyp       @relation(fields: [beitragstypId], references: [id])
   edition           Edition?          @relation(fields: [editionId], references: [id])
+
+
+  titleES           String?
+  contentES         String?           @db.LongText
+  previewTextES     String?           @db.LongText
+  additionalInfoES  String?           @db.Text
+
+  
   
   
   obituaryDetails   ObituaryDetails?

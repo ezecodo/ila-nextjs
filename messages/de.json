@@ -101,7 +101,8 @@
     },
     "openMenu": "Menü öffnen ☰",
     "closeMenu": "Menü schließen ☰",
-    "errorStats": "Fehler beim Laden der Statistiken"
+    "errorStats": "Fehler beim Laden der Statistiken",
+    "welcome": "Willkommen im Admin-Dashboard"
   },
   "stats": {
     "title": "📊 Dashboard",

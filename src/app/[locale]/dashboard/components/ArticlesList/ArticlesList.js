@@ -124,7 +124,15 @@ const ArticlesList = () => {
                   </Link>
                 </td>
                 <td className="p-1.5 border text-center">
-                  {article.isTranslatedES ? "✅" : "❌"}
+                  {article.isTranslatedES ? (
+                    "✅"
+                  ) : (
+                    <Link href={`/dashboard/articles/translate/${article.id}`}>
+                      <button className="text-green-600 hover:underline">
+                        🌐 Traducir
+                      </button>
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}
