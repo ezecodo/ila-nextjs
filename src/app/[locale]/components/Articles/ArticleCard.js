@@ -7,6 +7,7 @@ import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
+import PreviewHover from "../PreviewHover/PreviewHover";
 
 export default function ArticleCard({ article, onRemoveFavorite }) {
   const locale = useLocale();
@@ -34,7 +35,7 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
   };
 
   return (
-    <div className="articleCard flex flex-col lg:flex-row overflow-hidden border border-gray-300 rounded-lg shadow bg-white transition hover:shadow-lg">
+    <div className="articleCard flex flex-col lg:flex-row overflow-visible relative border border-gray-300 rounded-lg shadow bg-white transition hover:shadow-lg">
       {/* Imagen */}
       <div className="leftColumn w-full lg:w-1/3 p-3 flex flex-col items-center">
         {firstImage && (
@@ -64,9 +65,15 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
         />
 
         <h2 className="text-lg font-bold leading-tight mt-1 flex items-center gap-2">
-          <Link href={`/articles/${article.id}`} className="hover:underline">
-            {isES ? article.titleES : article.title}
-          </Link>
+          <PreviewHover
+            preview={
+              isES ? article.previewTextES || "—" : article.previewText || "—"
+            }
+          >
+            <Link href={`/articles/${article.id}`} className="hover:underline">
+              {isES ? article.titleES : article.title}
+            </Link>
+          </PreviewHover>
 
           {article.isTranslatedES && (
             <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full border border-green-300">

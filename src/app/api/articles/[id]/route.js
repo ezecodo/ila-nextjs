@@ -27,7 +27,7 @@ export async function GET(req, context) {
         beitragssubtyp: true,
         edition: {
           select: {
-            id: true, // ✅ Aseguramos que el ID de edición está incluido
+            id: true,
             number: true,
             title: true,
             coverImage: true,

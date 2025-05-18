@@ -2,27 +2,32 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+
 import Image from "next/image";
 import ImageModal from "../../components/ImageModal/ImageModal";
 import Link from "next/link";
 import HoverInfo from "../../components/HoverInfo/HoverInfo";
-import EntityBadges from "../../components/EntityBadges/EntityBadges"; // ✅ Importamos el nuevo componente
+import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
+import { useLocale } from "next-intl";
 
 export default function ArticlePage() {
-  const { id } = useParams(); // Obtener el parámetro dinámico "id"
+  const { id } = useParams();
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
   const [hoveredEdition, setHoveredEdition] = useState(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
-  // Estado y funciones para el modal de imagen
   const [isOpen, setIsOpen] = useState(false);
   const [popupImage, setPopupImage] = useState({
     url: null,
     alt: "",
     title: "",
   });
+
+  const locale = useLocale();
+
+  const isES = locale === "es" && article?.isTranslatedES;
 
   const openPopup = (image) => {
     setPopupImage({
@@ -35,11 +40,7 @@ export default function ArticlePage() {
 
   const closePopup = () => {
     setIsOpen(false);
-    setPopupImage({
-      url: null,
-      alt: "",
-      title: "",
-    });
+    setPopupImage({ url: null, alt: "", title: "" });
   };
 
   useEffect(() => {
@@ -48,9 +49,7 @@ export default function ArticlePage() {
     async function fetchArticle() {
       try {
         const response = await fetch(`/api/articles/${id}`);
-        if (!response.ok) {
-          throw new Error("Error al cargar el artículo");
-        }
+        if (!response.ok) throw new Error("Error al cargar el artículo");
         const data = await response.json();
         setArticle(data);
       } catch (err) {
@@ -61,30 +60,26 @@ export default function ArticlePage() {
     fetchArticle();
   }, [id]);
 
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
-  }
-
-  if (!article) {
-    return <p>Cargando artículo...</p>;
-  }
+  if (error) return <p className="text-red-500">{error}</p>;
+  if (!article) return <p>Cargando artículo...</p>;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <DonationPopUp articleId={article.id} />
+
       {/* Título */}
       <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center">
-        {article.title}
+        {isES ? article.titleES : article.title}
       </h1>
 
       {/* Subtítulo */}
-      {article.subtitle && (
+      {(isES ? article.subtitleES : article.subtitle) && (
         <h2 className="text-xl text-gray-600 italic mb-6 text-center">
-          {article.subtitle}
+          {isES ? article.subtitleES : article.subtitle}
         </h2>
       )}
 
-      {/* Imágenes del Artículo con Modal */}
+      {/* Imagen */}
       {article.images?.length > 0 && (
         <div className="flex justify-center mb-6">
           {article.images.map((image) => (
@@ -105,14 +100,14 @@ export default function ArticlePage() {
         </div>
       )}
 
-      {/* 🔥 EntityBadges en lugar de los badges manuales */}
+      {/* Etiquetas */}
       <EntityBadges
         categories={article.categories}
         regions={article.regions}
         topics={article.topics}
       />
 
-      {/* Edición con HoverInfo y LINK a la página de la edición */}
+      {/* Edición */}
       {article.edition && article.edition.id ? (
         <div className="text-gray-500 mb-4 relative flex items-center gap-2">
           <HoverInfo
@@ -154,7 +149,7 @@ export default function ArticlePage() {
         <p className="text-gray-500 mb-4">Edición no disponible</p>
       )}
 
-      {/* Autor(es) con HoverInfo reutilizable */}
+      {/* Autores */}
       {article.authors?.length > 0 && (
         <div className="text-gray-700 flex items-center gap-1">
           <span>Por:</span>
@@ -178,17 +173,26 @@ export default function ArticlePage() {
       )}
 
       {/* Contenido */}
-      <div className="text-gray-700">
-        {article.content
-          ? article.content.split("\n").map((line, index) => (
-              <p key={index} className="mb-4">
-                {line}
-              </p>
-            ))
+      <div className="text-gray-700 mt-6">
+        {(isES ? article.contentES : article.content)
+          ? (isES ? article.contentES : article.content)
+              .split("\n")
+              .map((line, i) => (
+                <p key={i} className="mb-4">
+                  {line}
+                </p>
+              ))
           : "Sin contenido"}
       </div>
 
-      {/* Modal de Imagen */}
+      {/* Información adicional */}
+      {((isES && article.additionalInfoES) || article.additionalInfo) && (
+        <div className="mt-6 text-sm text-gray-600 italic">
+          {isES ? article.additionalInfoES : article.additionalInfo}
+        </div>
+      )}
+
+      {/* Modal imagen */}
       <ImageModal
         isOpen={isOpen}
         imageUrl={popupImage.url}
@@ -197,7 +201,7 @@ export default function ArticlePage() {
         title={popupImage.title}
       />
 
-      {/* Imagen flotante al hacer hover sobre la edición */}
+      {/* Hover de edición */}
       {hoveredEdition && (
         <div
           className="fixed p-2 bg-white shadow-lg border rounded-lg z-50"
@@ -205,7 +209,6 @@ export default function ArticlePage() {
             left: `${hoverPosition.x + 10}px`,
             top: `${hoverPosition.y - 260}px`,
             width: "300px",
-            height: "auto",
           }}
         >
           <Image
