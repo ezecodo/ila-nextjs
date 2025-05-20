@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 
 const ArticlesList = () => {
   const [articles, setArticles] = useState([]);
@@ -8,6 +9,7 @@ const ArticlesList = () => {
   const [sortField, setSortField] = useState("id");
   const [sortOrder, setSortOrder] = useState("desc");
   const limit = 20;
+  const locale = useLocale();
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -94,7 +96,18 @@ const ArticlesList = () => {
                 } hover:bg-red-100`}
               >
                 <td className="p-1.5 border">{article.id}</td>
-                <td className="p-1.5 border">{article.title}</td>
+                <td className="p-1.5 border">
+                  <Link
+                    href={`/${locale}/articles/${article.id}`}
+                    className="text-blue-600 hover:underline"
+                    target="_blank"
+                  >
+                    {locale === "es" && article.isTranslatedES
+                      ? article.titleES || article.title
+                      : article.title}
+                  </Link>
+                </td>
+
                 <td className="p-1.5 border">
                   {article.authors.map((a) => a.name).join(", ")}
                 </td>
