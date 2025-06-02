@@ -33,6 +33,8 @@ model Article {
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
   beitragstyp       Beitragstyp       @relation(fields: [beitragstypId], references: [id])
   edition           Edition?          @relation(fields: [editionId], references: [id])
+  activityLogs ActivityLog[]
+
 
 
   titleES           String?
@@ -140,6 +142,8 @@ model User {
   role          String   @default("user") // 🎯 Puede ser "user" o "admin"
   favorites     Favorite[]
   language  String   @default("de") // "es" o "de"
+  activityLogs ActivityLog[]
+
 
  
   createdAt DateTime @default(now())
@@ -279,3 +283,26 @@ model Event {
   image        String   // URL del flyer
   createdAt    DateTime @default(now())
 }
+
+enum ActivityAction {
+  TRANSLATE_ARTICLE
+  CREATE_ARTICLE
+  UPDATE_ARTICLE
+  DELETE_ARTICLE
+  CREATE_EDITION
+  CREATE_EVENT
+}
+
+model ActivityLog {
+  id         Int             @id @default(autoincrement())
+  userId     String
+  user       User            @relation(fields: [userId], references: [id])
+  articleId  Int?
+  article    Article?        @relation(fields: [articleId], references: [id])
+  action     ActivityAction
+  createdAt  DateTime        @default(now())
+
+  @@index([userId])
+  @@index([articleId])
+}
+

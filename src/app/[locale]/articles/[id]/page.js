@@ -10,9 +10,13 @@ import HoverInfo from "../../components/HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
 import { useLocale } from "next-intl";
+import { useSession } from "next-auth/react";
 
 export default function ArticlePage() {
   const { id } = useParams();
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
   const [hoveredEdition, setHoveredEdition] = useState(null);
@@ -71,6 +75,16 @@ export default function ArticlePage() {
       <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center">
         {isES ? article.titleES : article.title}
       </h1>
+      {/* Botón Editar traducción visible sólo para admin y artículo traducido */}
+      {isAdmin && isES && (
+        <div className="text-center mb-6">
+          <Link href={`/dashboard/articles/translate/${article.id}`}>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              Editar traducción
+            </button>
+          </Link>
+        </div>
+      )}
 
       {/* Subtítulo */}
       {(isES ? article.subtitleES : article.subtitle) && (

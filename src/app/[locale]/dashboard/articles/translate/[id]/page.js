@@ -23,6 +23,7 @@ const TranslateArticlePage = () => {
       setArticle(data);
       setTranslations({
         titleES: data.titleES || "",
+        subtitleES: data.subtitleES || "",
         previewES: data.previewTextES || "",
         contentES: data.contentES || "",
         additionalInfoES: data.additionalInfoES || "",
@@ -40,6 +41,8 @@ const TranslateArticlePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Paso 1: Guardar la traducción
     const res = await fetch(`/api/articles/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -47,16 +50,30 @@ const TranslateArticlePage = () => {
     });
 
     if (res.ok) {
+      // Paso 2: Registrar la actividad (log)
+      await fetch("/api/activity-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          articleId: id,
+          action: "TRANSLATE_ARTICLE",
+        }),
+      });
+
+      // Paso 3: Confirmar y redirigir
       alert("✅ Traducción guardada");
       router.push("/dashboard/articles");
     } else {
       alert("❌ Error al guardar");
     }
   };
-
-  if (!article) return <div className="p-4">Cargando artículo...</div>;
+  if (!article) {
+    return <div className="p-6 text-gray-600">⏳ Cargando artículo...</div>;
+  }
   const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).then(() => {
+      console.log("📋 Copiado al portapapeles:", text);
+    });
   };
 
   return (

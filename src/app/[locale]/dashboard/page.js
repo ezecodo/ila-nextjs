@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import ActivityFeed from "../dashboard/components/ActivityFeed/ActivityFeed";
 
 export default function AdminDashboard() {
   const t = useTranslations();
@@ -12,6 +13,7 @@ export default function AdminDashboard() {
           default: "Bienvenido al panel de administración",
         })}
       </h1>
+      <ActivityFeed />
     </div>
   );
 }
