@@ -2,7 +2,6 @@
 // import EditionsList from "../components/EditionsList/EditionsList";
 import ArticleList from "./components/Articles/ArticleList";
 import LatestEdition from "./components/Editions/LatestEdition";
-import EditionsList from "./components/EditionsList/EditionsList";
 
 export default function Home() {
   return (
@@ -14,7 +13,6 @@ export default function Home() {
         <main className="col-span-1 md:col-span-12 bg-white p-6 rounded shadow">
           <LatestEdition /> {/* 🔥 Sección más ancha */}
           <ArticleList />
-          <EditionsList />
         </main>
       </div>
     </div>

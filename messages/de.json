@@ -71,7 +71,8 @@
     "readMore": " Mehr lesen",
     "errorLastEdition": "Fehler beim Laden der letzten Ausgabe",
     "loadLastEdition": "Lade die letzte Ausgabe...",
-    "noArticlesInEdition": "Es gibt keine Artikel in dieser Ausgabe."
+    "noArticlesInEdition": "Es gibt keine Artikel in dieser Ausgabe.",
+    "viewEdition": "Dossier ansehen"
   },
   "main": {
     "prev": "Vorherige",

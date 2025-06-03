@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { Check } from "lucide-react";
 
 const ArticlesList = () => {
   const [articles, setArticles] = useState([]);
@@ -138,10 +139,32 @@ const ArticlesList = () => {
                 </td>
                 <td className="p-1.5 border text-center">
                   {article.isTranslatedES ? (
-                    "✅"
+                    <div className="flex flex-col items-center justify-center gap-0.5">
+                      {/* ✅ Traducido */}
+                      <Check
+                        className="w-4 h-4 text-green-600"
+                        title="Traducido"
+                      />
+
+                      {article.needsReviewES ? (
+                        // Enlace para revisar si aún no fue revisado
+                        <Link
+                          href={`/dashboard/articles/translate/${article.id}?mode=review`}
+                          className="text-yellow-500 text-[10px] hover:underline"
+                        >
+                          Revisión
+                        </Link>
+                      ) : (
+                        // ✅ en amarillo si ya fue revisado
+                        <Check
+                          className="w-4 h-4 text-yellow-500"
+                          title="Revisado"
+                        />
+                      )}
+                    </div>
                   ) : (
                     <Link href={`/dashboard/articles/translate/${article.id}`}>
-                      <button className="text-green-600 hover:underline">
+                      <button className="text-green-600 hover:underline text-sm">
                         🌐 Traducir
                       </button>
                     </Link>

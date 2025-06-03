@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req, context) {
-  const params = await context.params; // ✅ Usa await aquí
-  const id = params?.id; // ✅ Acceder de forma segura al ID
+  const params = await context.params;
+  const id = params?.id;
 
   if (!id) {
     return new Response(JSON.stringify({ error: "ID no proporcionado" }), {
@@ -58,32 +58,17 @@ export async function GET(req, context) {
       });
     }
 
-    // Construir el filtro dinámicamente
-    const imageFilter = {
-      contentType: "ARTICLE",
-    };
+    // Priorizar beitragsId para las imágenes si existe, sino usar el id del artículo
+    const contentIdToUse = article.beitragsId || article.id;
 
-    // Si el artículo tiene un `beitragsId`, lo agregamos al filtro
-    const imageConditions = [];
-    if (article.beitragsId) {
-      imageConditions.push({ contentId: article.beitragsId });
-    }
-
-    // Siempre agregamos el `article.id` para los artículos nuevos
-    imageConditions.push({ contentId: article.id });
-
-    if (imageConditions.length > 1) {
-      imageFilter.OR = imageConditions;
-    } else {
-      imageFilter.contentId = imageConditions[0].contentId; // Si solo hay uno, usamos `contentId` directamente
-    }
-
-    // Obtener imágenes relacionadas del artículo
+    // Obtener imágenes relacionadas del artículo (o del beitragsId si aplica)
     const images = await prisma.image.findMany({
-      where: imageFilter,
+      where: {
+        contentType: "ARTICLE",
+        contentId: contentIdToUse,
+      },
     });
 
-    // Incluir imágenes en la respuesta
     return new Response(
       JSON.stringify({
         ...article,
@@ -101,11 +86,15 @@ export async function GET(req, context) {
         error: "Internal Server Error",
         details: error.message,
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
-// ✅ Guardar traducción en campos ES
+
+// Guardar traducción en campos ES
 export async function PUT(req, context) {
   const { id } = context.params;
 
@@ -128,6 +117,8 @@ export async function PUT(req, context) {
         previewTextES: body.previewES,
         additionalInfoES: body.additionalInfoES,
         isTranslatedES: true,
+        needsReviewES:
+          typeof body.needsReviewES === "boolean" ? body.needsReviewES : true, // si no viene nada, lo deja en true
       },
     });
 
@@ -142,7 +133,10 @@ export async function PUT(req, context) {
         error: "Error interno al guardar traducción",
         details: error.message,
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }

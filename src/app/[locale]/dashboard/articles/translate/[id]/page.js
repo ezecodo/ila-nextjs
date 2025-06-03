@@ -15,6 +15,7 @@ const TranslateArticlePage = () => {
     contentES: "",
     additionalInfoES: "",
   });
+  const [isReviewMode, setIsReviewMode] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -31,6 +32,10 @@ const TranslateArticlePage = () => {
     };
     fetchArticle();
   }, [id]);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setIsReviewMode(params.get("mode") === "review");
+  }, []);
 
   const handleChange = (e) => {
     setTranslations({
@@ -286,12 +291,52 @@ const TranslateArticlePage = () => {
 
         {/* Botón guardar */}
         <div className="col-span-2 flex justify-end mt-4">
-          <button
-            type="submit"
-            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-          >
-            💾 Guardar traducción
-          </button>
+          {isReviewMode ? (
+            <button
+              type="button"
+              onClick={async () => {
+                const confirm = window.confirm(
+                  "¿Estás seguro de aprobar esta traducción?"
+                );
+                if (!confirm) return;
+
+                const res = await fetch(`/api/articles/${id}`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    ...translations,
+                    needsReviewES: false,
+                  }),
+                });
+
+                if (res.ok) {
+                  await fetch("/api/activity-log", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      articleId: id,
+                      action: "REVIEW_TRANSLATION",
+                    }),
+                  });
+
+                  alert("✅ Traducción revisada y aprobada");
+                  router.push("/dashboard/articles");
+                } else {
+                  alert("❌ Error al aprobar la traducción");
+                }
+              }}
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            >
+              ✅ Aprobar traducción
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+            >
+              💾 Guardar traducción
+            </button>
+          )}
         </div>
       </form>
     </div>

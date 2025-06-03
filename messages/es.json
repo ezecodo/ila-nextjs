@@ -70,7 +70,8 @@
     "readMore": " Leer mas",
     "errorLastEdition": "Error al cargar la última edición",
     "loadLastEdition": "Cargando la última edición...",
-    "noArticlesInEdition": " No hay artículos disponibles en esta edición."
+    "noArticlesInEdition": " No hay artículos disponibles en esta edición.",
+    "viewEdition": "Ver Edición"
   },
   "main": {
     "prev": "Anterior",

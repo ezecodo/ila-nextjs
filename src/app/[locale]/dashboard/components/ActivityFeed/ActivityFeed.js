@@ -36,6 +36,8 @@ export default function ActivityFeed() {
               <strong>{log.user?.name || "Usuario"}</strong>{" "}
               {log.action === "TRANSLATE_ARTICLE"
                 ? "tradujo el artículo"
+                : log.action === "REVIEW_TRANSLATION"
+                ? "revisó la traducción del artículo"
                 : "realizó una acción"}{" "}
               <Link
                 href={`/es/articles/${log.articleId}`}
@@ -44,6 +46,7 @@ export default function ActivityFeed() {
                 “{log.article?.title || "sin título"}”
               </Link>
             </p>
+
             <p className="text-xs text-gray-500">
               {new Date(log.createdAt).toLocaleString()}
             </p>

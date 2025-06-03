@@ -1,6 +1,5 @@
-import { auth } from "@/app/auth"; // 🔥 Asegura autenticación
-
-import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
+import { auth } from "@/app/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req) {
   try {
@@ -10,6 +9,7 @@ export async function GET(req) {
     const offset = (page - 1) * limit;
     const showFavorites = searchParams.get("favorites") === "true";
     const editionId = searchParams.get("editionId");
+    const locale = searchParams.get("locale");
 
     let whereCondition = { isPublished: true };
 
@@ -19,7 +19,7 @@ export async function GET(req) {
     }
 
     if (showFavorites) {
-      const session = await auth(); // ✅ Obtiene la sesión del usuario
+      const session = await auth();
       if (!session || !session.user) {
         return new Response(JSON.stringify({ message: "No autorizado" }), {
           status: 401,
@@ -27,9 +27,15 @@ export async function GET(req) {
       }
       whereCondition = {
         favorites: {
-          some: { userId: session.user.id }, // 🔥 Filtra los favoritos del usuario
+          some: { userId: session.user.id },
         },
       };
+    }
+
+    // 🔥 Si el idioma es español, mostrar solo artículos traducidos y revisados
+    if (locale === "es") {
+      whereCondition.isTranslatedES = true;
+      whereCondition.needsReviewES = false;
     }
 
     const articles = await prisma.article.findMany({
@@ -53,33 +59,22 @@ export async function GET(req) {
       },
     });
 
-    // Agregar imágenes relacionadas
     const articlesWithImages = await Promise.all(
       articles.map(async (article) => {
-        console.log(`🔍 Buscando imágenes para artículo ID ${article.id}`);
+        const contentIdToUse = article.beitragsId || article.id;
 
-        // Filtrar contentId null para evitar el error de Prisma
-        const imageFilters = [];
-        if (article.beitragsId)
-          imageFilters.push({ contentId: article.beitragsId });
-        if (article.id) imageFilters.push({ contentId: article.id });
-
-        const images = imageFilters.length
+        const images = contentIdToUse
           ? await prisma.image.findMany({
               where: {
                 contentType: "ARTICLE",
-                OR: imageFilters, // Solo enviamos IDs válidos
+                contentId: contentIdToUse,
               },
             })
-          : []; // Si no hay IDs válidos, devolvemos un array vacío
-
-        console.log(
-          `📸 ${images.length} imágenes encontradas para artículo ${article.id}`
-        );
+          : [];
 
         return {
           ...article,
-          images, // ✅ Agregar imágenes al artículo
+          images,
         };
       })
     );
