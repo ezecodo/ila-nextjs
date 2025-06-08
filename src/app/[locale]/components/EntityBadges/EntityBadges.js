@@ -2,20 +2,23 @@ import Link from "next/link";
 import HoverInfo from "../HoverInfo/HoverInfo";
 
 export default function EntityBadges({ categories, regions, topics, context }) {
+  const badgeClasses =
+    "text-[11px] px-2 py-[1px] rounded-none bg-white/80 text-gray-800 font-normal shadow-sm border border-gray-300";
+
   return (
-    <div className="badgeContainer flex flex-wrap gap-2">
+    <div className="badgeContainer flex flex-wrap gap-[4px]">
       {/* 🔥 Regiones */}
       {regions?.map((region) => (
         <Link
           key={region.id}
           href={`/entities/regions/${region.id}`}
-          className="regionBadge"
+          className={badgeClasses}
         >
           <HoverInfo
             id={region.id}
             name={region.name}
             entityType="regions"
-            context={context} // ✅ Pasa "editions" cuando viene de EditionsList
+            context={context}
           />
         </Link>
       ))}
@@ -25,29 +28,29 @@ export default function EntityBadges({ categories, regions, topics, context }) {
         <Link
           key={topic.id}
           href={`/entities/topics/${topic.id}`}
-          className="topicBadge"
+          className={badgeClasses}
         >
           <HoverInfo
             id={topic.id}
             name={topic.name}
             entityType="topics"
-            context={context} // ✅ Pasa "editions" cuando viene de EditionsList
+            context={context}
           />
         </Link>
       ))}
 
-      {/* 🔥 Categorías (solo si existen) */}
+      {/* 🔥 Categorías */}
       {categories?.map((category) => (
         <Link
           key={category.id}
           href={`/entities/categories/${category.id}`}
-          className="categoryBadge"
+          className={badgeClasses}
         >
           <HoverInfo
             id={category.id}
             name={category.name}
             entityType="categories"
-            context={context} // ✅ Pasa "editions" cuando viene de EditionsList
+            context={context}
           />
         </Link>
       ))}

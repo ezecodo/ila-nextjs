@@ -9,10 +9,8 @@ export default function HoverInfo({
 }) {
   const [hovered, setHovered] = useState(false);
   const [count, setCount] = useState(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  const handleMouseEnter = async (e) => {
-    setPosition({ x: e.clientX, y: e.clientY });
+  const handleMouseEnter = async () => {
     setHovered(true);
 
     try {
@@ -29,15 +27,10 @@ export default function HoverInfo({
     }
   };
 
-  const handleMouseMove = (e) => {
-    setPosition({ x: e.clientX, y: e.clientY });
-  };
-
   const handleMouseLeave = () => {
     setHovered(false);
   };
 
-  // 🔹 Definir colores según la entidad
   const backgroundColor =
     {
       authors: "#d13120",
@@ -49,27 +42,16 @@ export default function HoverInfo({
 
   return (
     <span
-      className={className}
+      className={`relative ${className || ""}`}
       onMouseEnter={handleMouseEnter}
-      onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       {name}
       {hovered && (
         <div
-          className="fixed text-white rounded shadow-lg z-50 px-2 py-1 flex items-center"
+          className="absolute -top-6 left-1/2 -translate-x-1/2 z-50 text-white rounded shadow-lg px-2 py-1 text-[11px] font-bold whitespace-nowrap"
           style={{
-            left: `${position.x + 10}px`,
-            top: `${position.y - 25}px`,
             backgroundColor,
-            letterSpacing: "0.5px",
-            whiteSpace: "nowrap",
-            borderRadius: "4px",
-            fontSize: "12px",
-            padding: "4px 8px",
-            fontWeight: "bold",
-            display: "inline-flex",
-            alignItems: "center",
           }}
         >
           {count !== null

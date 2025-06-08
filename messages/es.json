@@ -71,7 +71,8 @@
     "errorLastEdition": "Error al cargar la última edición",
     "loadLastEdition": "Cargando la última edición...",
     "noArticlesInEdition": " No hay artículos disponibles en esta edición.",
-    "viewEdition": "Ver Edición"
+    "viewEdition": "Ver Edición",
+    "tableOfContents": "Tabla de Contenidos"
   },
   "main": {
     "prev": "Anterior",

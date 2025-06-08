@@ -72,7 +72,8 @@
     "errorLastEdition": "Fehler beim Laden der letzten Ausgabe",
     "loadLastEdition": "Lade die letzte Ausgabe...",
     "noArticlesInEdition": "Es gibt keine Artikel in dieser Ausgabe.",
-    "viewEdition": "Dossier ansehen"
+    "viewEdition": "Dossier ansehen",
+    "tableOfContents": "Inhaltsverzeichnis"
   },
   "main": {
     "prev": "Vorherige",
