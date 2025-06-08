@@ -24,8 +24,9 @@ const FavoriteButton = ({ articleId, onRemoveFavorite }) => {
     fetchData();
   }, [articleId, session]);
 
-  const toggleFavorite = async () => {
+  const toggleFavorite = async (e) => {
     if (!session) {
+      e.preventDefault(); // ❗️Previene cambios visuales no deseados
       alert("Debes iniciar sesión para marcar favoritos.");
       return;
     }
@@ -42,7 +43,6 @@ const FavoriteButton = ({ articleId, onRemoveFavorite }) => {
       setFavorites((prev) => (isFavorited ? prev - 1 : prev + 1));
       setIsFavorited(!isFavorited);
 
-      // ✅ Si está en la lista de favoritos, lo eliminamos visualmente sin recargar
       if (isFavorited && onRemoveFavorite) {
         onRemoveFavorite(articleId);
       }
@@ -54,15 +54,15 @@ const FavoriteButton = ({ articleId, onRemoveFavorite }) => {
 
   return (
     <button
-      onClick={toggleFavorite}
+      onClick={(e) => toggleFavorite(e)}
       className="flex items-center gap-1 p-2 transition-transform hover:scale-110"
     >
       <Heart
         size={22}
         className={`transition-all ${
           isFavorited
-            ? "text-red-500 fill-red-500 stroke-black" // 🔥 Contorno negro cuando es favorito
-            : "text-red-500 hover:text-red-500 hover:fill-red-500" // 🔥 Siempre en rojo
+            ? "text-red-500 fill-red-500 stroke-black"
+            : "text-red-500 hover:text-red-500 hover:fill-red-500"
         }`}
       />
       <span className="text-xs">{favorites}</span>
