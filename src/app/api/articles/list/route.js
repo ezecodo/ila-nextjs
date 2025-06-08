@@ -51,8 +51,13 @@ export async function GET(req) {
         },
         categories: true,
         beitragstyp: {
-          select: { id: true, name: true },
+          select: {
+            id: true,
+            name: true,
+            nameES: true, // ✅ incluir la traducción
+          },
         },
+
         edition: {
           select: { id: true, title: true, number: true },
         },

@@ -94,10 +94,14 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
 
         <div className="articleMeta flex items-center gap-1 text-xs text-gray-500 mt-1">
           {formattedDate && <span>{formattedDate}</span>}
-          {article.beitragstyp?.name && (
+          {article.beitragstyp && (
             <>
               <span className="separator">|</span>
-              <span>{article.beitragstyp.name}</span>
+              <span>
+                {isES && article.beitragstyp.nameES
+                  ? article.beitragstyp.nameES
+                  : article.beitragstyp.name}
+              </span>
             </>
           )}
         </div>

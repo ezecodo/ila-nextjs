@@ -17,11 +17,22 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function GET() {
+export async function GET(request) {
   try {
+    // 📌 1. Detectar el idioma desde headers
+    const locale = request.headers.get("x-locale") || "de";
+    const where = locale === "es" ? { isTranslatedES: true } : {};
+
+    // 📌 2. Consulta a la base de datos con inclusión de `nameES`
     const articles = await prisma.article.findMany({
+      where,
       include: {
-        beitragstyp: true,
+        beitragstyp: {
+          select: {
+            name: true,
+            nameES: true,
+          },
+        },
         beitragssubtyp: true,
         edition: {
           select: {
@@ -51,14 +62,15 @@ export async function GET() {
       orderBy: { id: "desc" },
     });
 
+    // 📌 3. Transformar artículos si es necesario
     const transformedArticles = articles.map((article) => ({
       ...article,
       categories: article.articleCategories.map((ac) => ({
         id: ac.category.id,
         name: ac.category.name,
       })),
-      articleCategories: undefined, // limpiar campo redundante
-      // Incluimos campos traducidos
+      articleCategories: undefined,
+      // Campos traducidos explícitamente
       titleES: article.titleES,
       subtitleES: article.subtitleES,
       previewTextES: article.previewTextES,

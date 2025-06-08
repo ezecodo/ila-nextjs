@@ -89,6 +89,7 @@ model Edition {
 model Beitragstyp {
   id       Int              @id @default(autoincrement())
   name     String           @unique
+  nameES   String?
   articles Article[]
   subtypes Beitragssubtyp[]
 }

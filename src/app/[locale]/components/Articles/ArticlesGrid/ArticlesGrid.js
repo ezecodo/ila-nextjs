@@ -101,10 +101,14 @@ export default function ArticlesGrid() {
                 <div className="text-xs text-gray-500 flex flex-wrap gap-x-1 items-center">
                   {date && <span>{date}</span>}
 
-                  {article.beitragstyp?.name && (
+                  {article.beitragstyp && (
                     <>
                       <span className="opacity-60">|</span>
-                      <span>{article.beitragstyp.name}</span>
+                      <span>
+                        {locale === "es" && article.beitragstyp.nameES
+                          ? article.beitragstyp.nameES
+                          : article.beitragstyp.name}
+                      </span>
                     </>
                   )}
 
