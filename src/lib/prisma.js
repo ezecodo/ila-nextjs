@@ -4,7 +4,7 @@ const globalForPrisma = globalThis;
 
 if (!globalForPrisma.prisma) {
   globalForPrisma.prisma = new PrismaClient({
-    log: ["query", "info", "warn", "error"], // 🔍 Logs detallados para depuración
+    log: ["warn", "error"], // "query" e "info" solo si necesitas más debug
     datasources: {
       db: {
         url: process.env.DATABASE_URL,
@@ -15,19 +15,23 @@ if (!globalForPrisma.prisma) {
 
 const prisma = globalForPrisma.prisma;
 
-// 🔥 Función para cerrar conexiones inactivas
-async function disconnectPrisma() {
-  try {
-    await prisma.$disconnect();
-    console.log("🛑 Prisma desconectado.");
-  } catch (error) {
-    console.error("⚠️ Error al desconectar Prisma:", error);
+// ✅ Solo activa el cierre de conexiones en entornos NO serverless
+if (
+  process.env.NODE_ENV === "development" ||
+  process.env.NODE_ENV === "local"
+) {
+  async function disconnectPrisma() {
+    try {
+      await prisma.$disconnect();
+      console.log("🛑 Prisma desconectado.");
+    } catch (error) {
+      console.error("⚠️ Error al desconectar Prisma:", error);
+    }
   }
-}
 
-// 🛠 Manejo de eventos para cerrar Prisma al terminar procesos
-process.on("beforeExit", disconnectPrisma);
-process.on("SIGINT", disconnectPrisma);
-process.on("SIGTERM", disconnectPrisma);
+  process.on("beforeExit", disconnectPrisma);
+  process.on("SIGINT", disconnectPrisma);
+  process.on("SIGTERM", disconnectPrisma);
+}
 
 export { prisma };
