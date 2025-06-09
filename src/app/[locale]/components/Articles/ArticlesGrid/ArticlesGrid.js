@@ -25,25 +25,29 @@ export default function ArticlesGrid() {
       .then((data) => setArticles(data.articles || []));
   }, [locale]);
 
+  const isClient = typeof window !== "undefined";
+
   const settings = {
     infinite: true,
     speed: 500,
     slidesToShow: 3,
-    slidesToScroll: 3, // 👈 importante: avanzar de a 3 en desktop
+    slidesToScroll: 3,
     arrows: true,
     dots: true,
-    prevArrow: <PrevArrow />,
-    nextArrow: <NextArrow />,
-    swipe: true, // 👈 necesario
+    swipe: true,
     swipeToSlide: true,
+    ...(isClient && {
+      prevArrow: <PrevArrow />,
+      nextArrow: <NextArrow />,
+    }),
     responsive: [
       {
         breakpoint: 1024,
         settings: {
           slidesToShow: 1,
-          slidesToScroll: 1, // 👈 en móvil, de a 1
+          slidesToScroll: 1,
           arrows: true,
-          dots: false, // 👈 oculta dots en mobile
+          dots: false,
         },
       },
     ],

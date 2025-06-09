@@ -1,4 +1,5 @@
-// components/Slider/TriangleArrows.js
+"use client";
+
 export function PrevArrow({ onClick }) {
   return (
     <div onClick={onClick} className="triangle-arrow left-arrow">
