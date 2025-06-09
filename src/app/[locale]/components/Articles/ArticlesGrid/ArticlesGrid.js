@@ -20,33 +20,30 @@ export default function ArticlesGrid() {
   const locale = useLocale();
 
   useEffect(() => {
-    fetch(`/api/articles/list?limit=45&locale=${locale}`)
+    fetch(`/api/articles/list?limit=60&locale=${locale}`)
       .then((res) => res.json())
       .then((data) => setArticles(data.articles || []));
   }, [locale]);
 
   const settings = {
-    dots: true,
-    infinite: false,
+    infinite: true,
     speed: 500,
     slidesToShow: 3,
-    slidesToScroll: 3,
+    slidesToScroll: 3, // 👈 importante: avanzar de a 3 en desktop
     arrows: true,
+    dots: true,
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
+    swipe: true, // 👈 necesario
+    swipeToSlide: true,
     responsive: [
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
-        },
-      },
-      {
-        breakpoint: 640,
-        settings: {
           slidesToShow: 1,
-          slidesToScroll: 1,
+          slidesToScroll: 1, // 👈 en móvil, de a 1
+          arrows: true,
+          dots: false, // 👈 oculta dots en mobile
         },
       },
     ],

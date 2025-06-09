@@ -284,4 +284,31 @@ body {
   display: none !important;
 }
 
+@media (max-width: 768px) {
+  .triangle-arrow {
+    width: 20px;
+    height: 50px;
+  }
+
+  .triangle-left {
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-right: 10px solid #d13120;
+  }
+
+  .triangle-right {
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-left: 10px solid #d13120;
+  }
+
+  .left-arrow {
+    left: -10px;
+  }
+
+  .right-arrow {
+    right: -10px;
+  }
+}
+
 /* FIN STILOS FLECHAS */
