@@ -239,7 +239,7 @@ body {
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra sutil */
 }
 
-/* Base arrow wrapper */
+/* Base arrow wrapper  FLECHAS */
 .triangle-arrow {
   position: absolute;
   top: 50%;
@@ -268,7 +268,7 @@ body {
   height: 0;
   border-top: 40px solid transparent;
   border-bottom: 40px solid transparent;
-  border-right: 15px solid #d13120; /* 🔥 rojo para izquierda */
+  border-right: 15px solid #d13120 !important;
 }
 
 .triangle-right {
@@ -276,5 +276,12 @@ body {
   height: 0;
   border-top: 40px solid transparent;
   border-bottom: 40px solid transparent;
-  border-left: 15px solid #d13120; /* 🔥 rojo para derecha */
+  border-left: 15px solid #d13120 !important;
 }
+
+.slick-prev,
+.slick-next {
+  display: none !important;
+}
+
+/* FIN STILOS FLECHAS */
