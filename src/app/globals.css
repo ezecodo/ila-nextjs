@@ -238,3 +238,43 @@ body {
   z-index: 50;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra sutil */
 }
+
+/* Base arrow wrapper */
+.triangle-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  cursor: pointer;
+  width: 30px;
+  height: 80px; /* 🔥 más alta */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Posiciones */
+.left-arrow {
+  left: -15px;
+}
+
+.right-arrow {
+  right: -15px;
+}
+
+/* Flechas tipo punta larga */
+.triangle-left {
+  width: 0;
+  height: 0;
+  border-top: 40px solid transparent;
+  border-bottom: 40px solid transparent;
+  border-right: 15px solid #d13120; /* 🔥 rojo para izquierda */
+}
+
+.triangle-right {
+  width: 0;
+  height: 0;
+  border-top: 40px solid transparent;
+  border-bottom: 40px solid transparent;
+  border-left: 15px solid #d13120; /* 🔥 rojo para derecha */
+}
