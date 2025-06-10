@@ -10,6 +10,7 @@ export async function GET(req) {
     const showFavorites = searchParams.get("favorites") === "true";
     const editionId = searchParams.get("editionId");
     const locale = searchParams.get("locale");
+    const beitragstypId = searchParams.get("beitragstypId");
 
     let whereCondition = { isPublished: true };
 
@@ -36,6 +37,9 @@ export async function GET(req) {
     if (locale === "es") {
       whereCondition.isTranslatedES = true;
       whereCondition.needsReviewES = false;
+    }
+    if (beitragstypId) {
+      whereCondition.beitragstypId = parseInt(beitragstypId, 10);
     }
 
     const articles = await prisma.article.findMany({

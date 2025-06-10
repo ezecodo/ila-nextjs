@@ -15,38 +15,56 @@ import { PrevArrow, NextArrow } from "../CustomArrows/CustomArrows";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-export default function ArticlesGrid() {
+export default function FilteredArticlesCarousel(props) {
+  const { topic, region, category, beitragstypId, title, limit, slidesToShow } =
+    props;
+
+  const effectiveLimit = limit || 30;
+  const effectiveSlidesToShow = slidesToShow || 3;
+
   const [articles, setArticles] = useState([]);
   const locale = useLocale();
 
   useEffect(() => {
-    fetch(`/api/articles/list?limit=30&locale=${locale}`)
+    const params = new URLSearchParams();
+    params.set("limit", effectiveLimit.toString());
+    params.set("locale", locale);
+    if (topic) params.set("topic", topic);
+    if (region) params.set("region", region);
+    if (category) params.set("category", category);
+    if (beitragstypId) params.set("beitragstypId", beitragstypId);
+
+    fetch(`/api/articles/list?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => setArticles(data.articles || []));
-  }, [locale]);
+  }, [locale, topic, region, category, beitragstypId, effectiveLimit]);
+
+  if (!articles || articles.length === 0) return null;
 
   const isClient = typeof window !== "undefined";
+  const singleSlide = articles.length === 1;
 
   const settings = {
-    infinite: true,
+    infinite: !singleSlide,
     speed: 500,
-    slidesToShow: 3,
-    slidesToScroll: 3,
-    arrows: true,
-    dots: true,
-    swipe: true,
-    swipeToSlide: true,
-    ...(isClient && {
-      prevArrow: <PrevArrow />,
-      nextArrow: <NextArrow />,
-    }),
+    slidesToShow: singleSlide ? 1 : effectiveSlidesToShow,
+    slidesToScroll: singleSlide ? 1 : effectiveSlidesToShow,
+    arrows: !singleSlide,
+    dots: !singleSlide,
+    swipe: !singleSlide,
+    swipeToSlide: !singleSlide,
+    ...(isClient &&
+      !singleSlide && {
+        prevArrow: <PrevArrow />,
+        nextArrow: <NextArrow />,
+      }),
     responsive: [
       {
         breakpoint: 1024,
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
-          arrows: true,
+          arrows: !singleSlide,
           dots: false,
         },
       },
@@ -55,10 +73,18 @@ export default function ArticlesGrid() {
 
   return (
     <section className="relative w-full px-0 py-8 border-t border-gray-200">
+      {title && (
+        <div className="bg-gradient-to-r from-red-50 to-white px-4 py-2 rounded mb-6 mx-4">
+          <h2 className="text-2xl font-serif font-bold text-red-800">
+            {title}
+          </h2>
+        </div>
+      )}
+
       <Slider {...settings}>
         {articles.map((article) => {
           const firstImage = article.images?.[0];
-          const title =
+          const articleTitle =
             locale === "es" && article.isTranslatedES
               ? article.titleES
               : article.title;
@@ -74,12 +100,16 @@ export default function ArticlesGrid() {
             : null;
 
           return (
-            <div key={article.id} className="px-4">
+            <div
+              key={article.id}
+              className={`px-4 ${
+                articles.length === 1 ? "max-w-[360px] mx-auto" : ""
+              }`}
+            >
               <div className="flex flex-col">
-                {/* Imagen */}
                 <div className="relative w-full overflow-hidden rounded-md">
                   <Link href={`/articles/${article.id}`}>
-                    {firstImage?.url ? (
+                    {firstImage?.url && (
                       <Image
                         src={firstImage.url}
                         alt={firstImage.alt || "Artículo"}
@@ -87,7 +117,7 @@ export default function ArticlesGrid() {
                         height={400}
                         className="w-full h-[240px] object-cover rounded-md"
                       />
-                    ) : null}
+                    )}
                   </Link>
                   <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-gradient-to-t from-white/80 via-white/60 to-transparent backdrop-blur-sm">
                     <EntityBadges
@@ -118,7 +148,7 @@ export default function ArticlesGrid() {
                       href={`/articles/${article.id}`}
                       className="hover:underline"
                     >
-                      {title}
+                      {articleTitle}
                     </Link>
                   </PreviewHover>
                 </h2>
