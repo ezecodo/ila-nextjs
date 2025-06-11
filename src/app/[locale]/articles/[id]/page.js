@@ -11,6 +11,7 @@ import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
+import ShareBar from "../../components/ShareBar/ShareBar";
 
 export default function ArticlePage() {
   const { id } = useParams();
@@ -234,6 +235,7 @@ export default function ArticlePage() {
           />
         </div>
       )}
+      <ShareBar title={isES ? article.titleES : article.title} />
     </div>
   );
 }

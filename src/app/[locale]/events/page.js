@@ -70,7 +70,10 @@ export default function EventsPage() {
 
     for (let i = 0; i < 7; i++) {
       days.push(
-        <div key={i} className="text-center text-sm font-medium text-gray-600">
+        <div
+          key={i}
+          className="text-center text-xs font-semibold text-gray-600"
+        >
           {format(addDays(startDate, i), "EEEEEE", { locale: es })}
         </div>
       );
@@ -99,32 +102,43 @@ export default function EventsPage() {
         days.push(
           <div
             key={day}
-            className={`h-20 border p-1 text-sm relative rounded-md shadow-sm bg-white ${
-              !isSameMonth(day, monthStart) ? "text-gray-300" : ""
+            className={`h-16 border p-0.5 text-[11px] relative rounded bg-white flex flex-col justify-between ${
+              !isSameMonth(day, monthStart) ? "text-gray-300 bg-gray-50" : ""
             }`}
           >
-            <div className="text-right pr-1 font-medium">
+            <div className="text-right pr-1 pt-0.5 font-semibold text-gray-700">
               {format(day, "d")}
             </div>
-            {dayEvents.slice(0, 3).map((event) => (
+
+            {/* Miniatura del evento */}
+            {dayEvents.slice(0, 1).map((event) => (
               <Link key={event.id} href={`/events/${event.id}`}>
                 <div
-                  className="mt-1 text-xs bg-indigo-500 text-white px-1 py-0.5 rounded truncate cursor-pointer hover:bg-indigo-600"
                   title={event.title}
+                  className="w-full h-10 relative rounded overflow-hidden mx-auto mt-0.5 group cursor-pointer"
                 >
-                  {event.title}
+                  <Image
+                    src={event.image}
+                    alt={event.title}
+                    fill
+                    className="object-cover group-hover:brightness-90 transition"
+                  />
                 </div>
               </Link>
             ))}
-            {dayEvents.length > 3 && (
-              <div className="text-xs text-gray-500 mt-1">
-                +{dayEvents.length - 3} más
-              </div>
+
+            {/* Conteo adicional si hay más */}
+            {dayEvents.length > 1 && (
+              <p className="text-[10px] text-center text-gray-500 mt-0.5">
+                +{dayEvents.length - 1} más
+              </p>
             )}
           </div>
         );
+
         day = addDays(day, 1);
       }
+
       rows.push(
         <div key={day} className="grid grid-cols-7 gap-1 mb-1">
           {days}
@@ -132,6 +146,7 @@ export default function EventsPage() {
       );
       days = [];
     }
+
     return <div>{rows}</div>;
   };
 
@@ -141,7 +156,7 @@ export default function EventsPage() {
         {t("events")}
       </h1>
 
-      <div className="bg-gray-50 rounded-lg p-4 shadow">
+      <div className="bg-gray-50 rounded-md p-3 shadow-sm max-w-4xl mx-auto">
         {renderHeader()}
         {renderDays()}
         {renderCells()}
@@ -174,24 +189,12 @@ export default function EventsPage() {
                     <p className="mt-1 text-gray-700 text-sm line-clamp-2">
                       {event.description}
                     </p>
+                    <p className="mt-2 text-blue-500 font-semibold text-sm">
+                      📍 <span className="underline">{event.location}</span>
+                    </p>
                   </div>
                 </div>
               </Link>
-
-              {/* ✅ Enlace a Google Maps por fuera del <Link> */}
-              <p className="mt-2 text-blue-500 font-semibold text-sm pl-28">
-                📍{" "}
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                    event.location
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  {event.location}
-                </a>
-              </p>
             </div>
           ))
         )}
