@@ -3,6 +3,7 @@ import { SessionProvider } from "next-auth/react";
 import Header from "./Header";
 import { expect, it, describe, vi } from "vitest";
 import "@testing-library/jest-dom";
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),

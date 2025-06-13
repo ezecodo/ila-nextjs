@@ -73,7 +73,7 @@ export default function ArticlePage() {
       <DonationPopUp articleId={article.id} />
 
       {/* Título */}
-      <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center">
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4 text-center">
         {isES ? article.titleES : article.title}
       </h1>
       {/* Botón Editar traducción visible sólo para admin y artículo traducido */}
@@ -89,7 +89,7 @@ export default function ArticlePage() {
 
       {/* Subtítulo */}
       {(isES ? article.subtitleES : article.subtitle) && (
-        <h2 className="text-xl text-gray-600 italic mb-6 text-center">
+        <h2 className="text-xl text-gray-600 dark:text-gray-300 italic mb-6 text-center">
           {isES ? article.subtitleES : article.subtitle}
         </h2>
       )}
@@ -124,14 +124,13 @@ export default function ArticlePage() {
 
       {/* Edición */}
       {article.edition && article.edition.id ? (
-        <div className="text-gray-500 mb-4 relative flex items-center gap-2">
+        <div className="text-gray-500 dark:text-gray-400 mb-4 relative flex items-center gap-2">
           <HoverInfo
             id={article.edition.id}
             name={
               <Link
                 href={`/editions/${article.edition.id}`}
-                className="flex items-center gap-2 no-underline hover:no-underline"
-                style={{ color: "#000" }}
+                className="flex items-center gap-2 no-underline hover:no-underline text-black dark:text-white"
                 onMouseEnter={(e) => {
                   setHoveredEdition(article.edition.coverImage);
                   setHoverPosition({ x: e.clientX, y: e.clientY });
@@ -142,16 +141,12 @@ export default function ArticlePage() {
                 onMouseLeave={() => setHoveredEdition(null)}
               >
                 <span
-                  style={{
-                    fontFamily: "Futura, sans-serif",
-                    textTransform: "lowercase",
-                    fontSize: "1.2em",
-                    color: "#d13120",
-                  }}
+                  className="text-red-700 dark:text-red-400 text-[1.2em] lowercase"
+                  style={{ fontFamily: "Futura Cyrillic, sans-serif" }}
                 >
                   ila {article.edition.number}
                 </span>
-                <span style={{ fontWeight: "bold", color: "#000" }}>
+                <span className="font-bold text-black dark:text-white">
                   {article.edition.title}
                 </span>
               </Link>
@@ -166,7 +161,7 @@ export default function ArticlePage() {
 
       {/* Autores */}
       {article.authors?.length > 0 && (
-        <div className="text-gray-700 flex items-center gap-1">
+        <div className="text-gray-700 dark:text-gray-200 flex items-center gap-1">
           <span>Por:</span>
           {article.authors.map((author) => (
             <HoverInfo
@@ -188,7 +183,7 @@ export default function ArticlePage() {
       )}
 
       {/* Contenido */}
-      <div className="text-gray-700 mt-6">
+      <div className="text-gray-700 dark:text-gray-200 mt-6">
         {(isES ? article.contentES : article.content)
           ? (isES ? article.contentES : article.content)
               .split("\n")
@@ -202,7 +197,7 @@ export default function ArticlePage() {
 
       {/* Información adicional */}
       {((isES && article.additionalInfoES) || article.additionalInfo) && (
-        <div className="mt-6 text-sm text-gray-600 italic">
+        <div className="mt-6 text-sm text-gray-600 dark:text-gray-400 italic">
           {isES ? article.additionalInfoES : article.additionalInfo}
         </div>
       )}

@@ -75,9 +75,15 @@
 }
 
 body {
+  @apply bg-[var(--background)] text-[var(--foreground)];
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+/* ✅ Esto SÍ funciona porque la clase "dark" está en <html> */
+html.dark {
+  --background: #111111;
+  --foreground: #ffffff;
 }
 
 .page-content {

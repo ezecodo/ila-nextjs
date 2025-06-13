@@ -3,6 +3,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import localFont from "next/font/local";
+import { ThemeProvider } from "next-themes";
+
 import "@/app/globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "slick-carousel/slick/slick.css";
@@ -56,22 +58,24 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html lang={locale}>
+    <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
       >
-        <SessionProvider>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-grow w-full px-2 sm:px-4 md:px-6 lg:px-10 xl:px-16">
-                {children}
-              </main>
-              <Footer />
-            </div>
-            <CookieConsent />
-          </NextIntlClientProvider>
-        </SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <SessionProvider>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-grow w-full px-2 sm:px-4 md:px-6 lg:px-10 xl:px-16">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+              <CookieConsent />
+            </NextIntlClientProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

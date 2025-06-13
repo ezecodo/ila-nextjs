@@ -72,10 +72,10 @@ export default function FilteredArticlesCarousel(props) {
   };
 
   return (
-    <section className="relative w-full px-0 py-8 border-t border-gray-200">
+    <section className="relative w-full px-0 py-8 border-t border-gray-200 dark:border-gray-700">
       {title && (
-        <div className="bg-gradient-to-r from-red-50 to-white px-4 py-2 rounded mb-6 mx-4">
-          <h2 className="text-2xl font-serif font-bold text-red-800">
+        <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900 px-4 py-2 rounded mb-6 mx-4">
+          <h2 className="text-2xl font-serif font-bold text-red-800 dark:text-red-300">
             {title}
           </h2>
         </div>
@@ -119,7 +119,7 @@ export default function FilteredArticlesCarousel(props) {
                       />
                     )}
                   </Link>
-                  <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-gradient-to-t from-white/80 via-white/60 to-transparent backdrop-blur-sm">
+                  <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-gradient-to-t from-white/80 via-white/60 to-transparent dark:from-black/70 dark:via-black/40 backdrop-blur-sm">
                     <EntityBadges
                       categories={article.categories}
                       regions={article.regions}
@@ -131,7 +131,7 @@ export default function FilteredArticlesCarousel(props) {
                 </div>
 
                 {firstImage?.credit && (
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                     {firstImage.credit}
                   </p>
                 )}
@@ -154,13 +154,13 @@ export default function FilteredArticlesCarousel(props) {
                 </h2>
 
                 {subtitle && (
-                  <p className="text-sm text-gray-700 mt-2 leading-relaxed">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 leading-relaxed">
                     {subtitle}
                   </p>
                 )}
 
                 <div className="flex justify-between items-start mt-2">
-                  <div className="text-xs text-gray-500 flex flex-wrap gap-x-1 items-center">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-1 items-center">
                     {date && <span>{date}</span>}
 
                     {article.beitragstyp && (

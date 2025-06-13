@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FaBars, FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
@@ -21,6 +21,29 @@ const Header = () => {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") === "dark";
+    }
+    return false;
+  });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode, mounted]);
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -31,7 +54,13 @@ const Header = () => {
     session?.user?.role === "admin" ? "/dashboard" : "/dashboard-users";
 
   return (
-    <header className={styles.header}>
+    <header
+      className={`${styles.header}`}
+      style={{
+        background: "var(--background)",
+        color: "var(--foreground)",
+      }}
+    >
       {/* 🔹 Top bar: hamburguesa + auth/idioma (solo desktop) */}
       <div className="w-full flex items-center justify-between px-4 mt-2">
         {/* 🔹 Botón hamburguesa visible solo en mobile */}
@@ -66,6 +95,20 @@ const Header = () => {
               <FaUser />
             </button>
           )}
+          {/* 🌙☀️ Toggle theme */}
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={darkMode}
+              onChange={() => setDarkMode(!darkMode)}
+              aria-label="Toggle dark mode"
+            />
+            <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-black transition-colors" />
+            <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] transition-transform transform peer-checked:translate-x-5">
+              {darkMode ? "🌙" : "☀️"}
+            </div>
+          </label>
           <div className={styles.languageSwitcher}>
             <button
               onClick={() => router.replace(pathname, { locale: "es" })}
@@ -90,6 +133,7 @@ const Header = () => {
           <span className="text-xl font-bold text-center">{t("tagline")}</span>
         </Link>
       </div>
+
       {/* 🔹 Auth + idioma visibles solo en mobile */}
       {menuOpen && (
         <div className="flex items-center justify-center gap-3 mt-4 md:hidden flex-wrap">
