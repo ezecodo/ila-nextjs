@@ -4,7 +4,7 @@
   },
   "header": {
     "tagline": "Das Lateinamerika-Magazin",
-    "greeting": "Hallo, {name} 👋",
+    "greeting": "Hallo, {name}",
     "login": "Anmelden",
     "signup": "Registrieren",
     "dashboard": "Panel",

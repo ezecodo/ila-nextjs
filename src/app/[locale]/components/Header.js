@@ -32,44 +32,35 @@ const Header = () => {
 
   return (
     <header className={styles.header}>
-      <div className={styles.headerTop}>
-        <div className={styles.logoContainer}>
-          <Link href="/">
-            <Image
-              src="/ila-logo.png"
-              alt="ILA Logo"
-              width={50}
-              height={50}
-              className={styles.logo}
-            />
-          </Link>
-          <span className="text-lg font-bold mt-4 mb-2">{t("tagline")}</span>
-        </div>
+      {/* 🔹 Top bar: hamburguesa + auth/idioma (solo desktop) */}
+      <div className="w-full flex items-center justify-between px-4 mt-2">
+        {/* 🔹 Botón hamburguesa visible solo en mobile */}
+        <button
+          className={`${styles.menuButton} block md:hidden`}
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
+        >
+          <FaBars size={24} />
+        </button>
 
-        <div className={styles.authButtons}>
+        {/* 🔹 Auth + idioma visible solo en desktop */}
+        <div className="hidden md:flex items-center gap-2 ml-auto">
           {session ? (
             <>
-              <span className={styles.welcomeText}>
-                {t("greeting", { name: session.user?.name || "Usuario" })}
-              </span>
               <Link href={dashboardRoute}>
                 <button className={styles.iconButton}>
-                  <FaTachometerAlt size={16} />
+                  <FaTachometerAlt />
                 </button>
               </Link>
               <button className={styles.iconButton} onClick={handleSignOut}>
-                <FaSignOutAlt size={16} />
+                <FaSignOutAlt />
               </button>
             </>
           ) : (
-            <>
-              <button className={styles.iconButton} onClick={() => signIn()}>
-                <FaUser size={16} />
-              </button>
-            </>
+            <button className={styles.iconButton} onClick={() => signIn()}>
+              <FaUser />
+            </button>
           )}
-
-          {/* 🔹 Selector de idioma SIEMPRE visible */}
           <div className={styles.languageSwitcher}>
             <button
               onClick={() => router.replace(pathname, { locale: "es" })}
@@ -87,14 +78,54 @@ const Header = () => {
         </div>
       </div>
 
-      <button
-        className={styles.menuButton}
-        onClick={toggleMenu}
-        aria-label="Toggle menu"
-      >
-        <FaBars size={24} />
-      </button>
+      {/* 🔹 Logo + título centrado */}
+      <div className="w-full flex flex-col items-center mt-3 mb-2">
+        <Link href="/" className="flex flex-col items-center gap-1">
+          <Image src="/ila-logo.png" alt="ILA Logo" width={48} height={48} />
+          <span className="text-xl font-bold text-center">{t("tagline")}</span>
+        </Link>
+      </div>
+      {/* 🔹 Auth + idioma visibles solo en mobile */}
+      {menuOpen && (
+        <div className="flex items-center justify-center gap-3 mt-4 md:hidden flex-wrap">
+          {session && (
+            <span className={styles.welcomeText}>
+              {t("greeting", { name: session.user?.name || "Usuario" })}
+            </span>
+          )}
+          {session ? (
+            <>
+              <Link href={dashboardRoute}>
+                <button className={styles.iconButton}>
+                  <FaTachometerAlt />
+                </button>
+              </Link>
+              <button className={styles.iconButton} onClick={handleSignOut}>
+                <FaSignOutAlt />
+              </button>
+            </>
+          ) : (
+            <button className={styles.iconButton} onClick={() => signIn()}>
+              <FaUser />
+            </button>
+          )}
 
+          <button
+            onClick={() => router.replace(pathname, { locale: "es" })}
+            className={styles.langButton}
+          >
+            ES
+          </button>
+          <button
+            onClick={() => router.replace(pathname, { locale: "de" })}
+            className={styles.langButton}
+          >
+            DE
+          </button>
+        </div>
+      )}
+
+      {/* 🔹 Navegación */}
       <nav className={`${styles.nav} ${menuOpen ? styles.active : ""}`}>
         <ul className={styles.menu}>
           <li>
@@ -113,6 +144,7 @@ const Header = () => {
             <Link href="/events">{t("nav.events")}</Link>
           </li>
         </ul>
+
         <SearchBar />
       </nav>
     </header>

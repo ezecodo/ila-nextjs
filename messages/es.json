@@ -4,7 +4,7 @@
   },
   "header": {
     "tagline": "La revista de latinoamérica",
-    "greeting": "Hola, {name} 👋",
+    "greeting": "Hola, {name}",
     "login": "Iniciar sesión",
     "signup": "Registrarse",
     "dashboard": "Panel",
