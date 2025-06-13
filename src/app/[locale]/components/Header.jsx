@@ -45,6 +45,11 @@ const Header = () => {
 
         {/* 🔹 Auth + idioma visible solo en desktop */}
         <div className="hidden md:flex items-center gap-2 ml-auto">
+          {session && (
+            <span className={styles.welcomeText}>
+              {t("greeting", { name: session.user?.name || "Usuario" })}
+            </span>
+          )}
           {session ? (
             <>
               <Link href={dashboardRoute}>
