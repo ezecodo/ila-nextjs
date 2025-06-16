@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Region } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,17 +8,18 @@ export async function GET(req: NextRequest) {
     const beitragstypId = url.searchParams.get("beitragstypId");
     const regionId = url.searchParams.get("regionId");
 
-    const filters: any = {};
+    const filters: Record<string, unknown> = {};
 
-    // Si hay regionId, buscar artículos que tengan esa región o sus hijos
     if (regionId) {
-      const allRegions = await prisma.region.findMany();
+      const allRegions: Region[] = await prisma.region.findMany();
       const targetId = Number(regionId);
 
-      // Recursivamente encuentra todos los IDs hijos
-      const collectDescendantIds = (id: number, regions: any[]): number[] => {
+      const collectDescendantIds = (
+        id: number,
+        regions: Region[]
+      ): number[] => {
         const children = regions.filter((r) => r.parentId === id);
-        return children.reduce(
+        return children.reduce<number[]>(
           (acc, child) => [
             ...acc,
             child.id,
@@ -39,7 +41,6 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    // Si hay beitragstypId
     if (beitragstypId) {
       filters.beitragstypId = Number(beitragstypId);
     }
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(articles);
   } catch (error) {
-    console.error("Error en el filtrado:", error);
+    console.error("Error filtrando artículos:", error);
     return NextResponse.json(
       { error: "Error en el servidor" },
       { status: 500 }
