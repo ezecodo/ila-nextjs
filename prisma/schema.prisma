@@ -104,6 +104,7 @@ model Region {
   articles Article[] @relation("ArticleRegions")
   authors  Author[]  @relation("AuthorRegions")
   editions Edition[] @relation("EditionRegions")
+   carousels Carousel[]
 
   @@index([parentId], map: "Region_parentId_fkey")
 }
@@ -321,7 +322,8 @@ model Carousel {
   
   
   topic          String?         // también opcional
-  region         String?         
+  regionId       Int?      // 👉 NUEVO campo
+  region         Region?   @relation(fields: [regionId], references: [id]) // 👉 RELACIÓN REAL        
   category       String?
   limit          Int      @default(10)
   orderBy        String   @default("date_desc") // o "date_asc", "title", etc.

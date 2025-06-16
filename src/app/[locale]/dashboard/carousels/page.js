@@ -30,46 +30,70 @@ export default function CarouselsDashboardPage() {
         ➕ Crear nuevo carrusel
       </Link>
 
-      <ul className="space-y-4 mt-4">
-        {carousels.map((carousel) => (
-          <li
+      <div className="grid gap-6 mt-6">
+        {carousels.map((carousel, index) => (
+          <div
             key={carousel.id}
-            className="border rounded p-4 shadow-sm bg-white dark:bg-black dark:text-white"
+            className="relative rounded-lg border border-red-200 p-6 shadow-md bg-gradient-to-r from-white via-rose-50 to-red-100"
           >
-            <h2 className="text-lg font-semibold">{carousel.name}</h2>
-            <p>
-              <strong>Título (ES):</strong> {carousel.titleES} <br />
-              <strong>Título (DE):</strong> {carousel.titleDE} <br />
-              <strong>Tipo de contenido:</strong>{" "}
-              {carousel.beitragstyp?.nameES || "—"} <br />
-              <strong>Artículos mostrados:</strong> {carousel.limit}
-            </p>
-            <Link
-              href={`/dashboard/carousels/${carousel.id}`}
-              className="text-blue-500 hover:underline mt-2 inline-block"
-            >
-              Editar
-            </Link>
-            <button
-              onClick={async () => {
-                if (confirm("¿Estás seguro de eliminar este carrusel?")) {
-                  const res = await fetch(`/api/carousels/${carousel.id}`, {
-                    method: "DELETE",
-                  });
-                  if (res.ok) {
-                    setCarousels(carousels.filter((c) => c.id !== carousel.id));
-                  } else {
-                    alert("Error al eliminar carrusel");
-                  }
-                }
-              }}
-              className="text-red-600 hover:underline ml-4"
-            >
-              Eliminar
-            </button>
-          </li>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-red-800">
+                  #{index + 1} · {carousel.titleES}
+                </h2>
+                <p className="text-sm text-gray-700">
+                  Tipo:{" "}
+                  <span className="font-semibold">
+                    {carousel.beitragstyp?.nameES || "—"}
+                  </span>{" "}
+                  ·{" "}
+                  <span className="text-red-600 font-bold">
+                    {carousel.limit}
+                  </span>{" "}
+                  artículos
+                </p>
+              </div>
+
+              <div className="flex gap-3 text-sm">
+                <Link
+                  href={`/dashboard/carousels/${carousel.id}`}
+                  className="px-3 py-1 bg-red-100 text-red-800 hover:bg-red-200 rounded transition"
+                >
+                  ✏️ Editar
+                </Link>
+                <button
+                  onClick={async () => {
+                    if (confirm("¿Eliminar este carrusel?")) {
+                      const res = await fetch(`/api/carousels/${carousel.id}`, {
+                        method: "DELETE",
+                      });
+                      if (res.ok) {
+                        setCarousels(
+                          carousels.filter((c) => c.id !== carousel.id)
+                        );
+                      } else {
+                        alert("Error al eliminar");
+                      }
+                    }
+                  }}
+                  className="px-3 py-1 bg-rose-200 text-red-900 hover:bg-rose-300 rounded transition"
+                >
+                  🗑️ Eliminar
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-2 overflow-hidden">
+              {Array.from({ length: carousel.limit }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 h-16 bg-gradient-to-tr from-red-500 to-rose-400 rounded-md shadow-inner"
+                />
+              ))}
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

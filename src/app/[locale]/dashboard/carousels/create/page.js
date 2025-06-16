@@ -14,6 +14,9 @@ export default function CreateCarouselPage() {
   const [limit, setLimit] = useState(6);
   const [types, setTypes] = useState([]);
   const locale = useLocale();
+  const [regions, setRegions] = useState([]);
+  const [regionId, setRegionId] = useState("");
+  const [filteredArticles, setFilteredArticles] = useState([]);
 
   useEffect(() => {
     fetch("/api/beitragstypen")
@@ -22,7 +25,35 @@ export default function CreateCarouselPage() {
         console.log("TIPOS DE CONTENIDO:", data); // 👈🏼 ¿Se imprime?
         setTypes(data);
       });
+    fetch("/api/regions")
+      .then((res) => res.json())
+      .then((data) => setRegions(data));
   }, []);
+  useEffect(() => {
+    const query = new URLSearchParams();
+
+    if (regionId) query.append("regionId", regionId);
+    if (beitragstypId) query.append("beitragstypId", beitragstypId);
+
+    if (regionId || beitragstypId) {
+      fetch(`/api/articles/filtered?${query.toString()}`)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Artículos filtrados:", data);
+          setFilteredArticles(data);
+        });
+    } else {
+      setFilteredArticles([]);
+    }
+  }, [regionId, beitragstypId]);
+  function renderRegionOptions(regions, depth = 0) {
+    return regions.flatMap((region) => [
+      <option key={region.id} value={region.id}>
+        {"— ".repeat(depth) + region.name}
+      </option>,
+      ...renderRegionOptions(region.children || [], depth + 1),
+    ]);
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +67,7 @@ export default function CreateCarouselPage() {
         titleES,
         titleDE,
         beitragstypId,
+        regionId: regionId || null,
         limit,
       }),
     });
@@ -86,6 +118,14 @@ export default function CreateCarouselPage() {
             </option>
           ))}
         </select>
+        <select
+          className="w-full border p-2 rounded"
+          value={regionId}
+          onChange={(e) => setRegionId(e.target.value)}
+        >
+          <option value="">Sin región (opcional)</option>
+          {renderRegionOptions(regions)}
+        </select>
         <input
           type="number"
           min={1}
@@ -102,6 +142,24 @@ export default function CreateCarouselPage() {
           Crear carrusel
         </button>
       </form>
+      {filteredArticles.length > 0 && (
+        <div className="mt-8 border-t pt-4">
+          <h2 className="text-lg font-bold mb-3">Vista previa de artículos</h2>
+          <ul className="space-y-2">
+            {filteredArticles.slice(0, limit).map((article) => (
+              <li
+                key={article.id}
+                className="p-3 border rounded shadow-sm bg-gray-50 dark:bg-gray-800 dark:text-white"
+              >
+                <strong>{article.title}</strong>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  {article.summary || "Sin resumen disponible"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
