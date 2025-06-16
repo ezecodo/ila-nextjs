@@ -67,22 +67,23 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/carousels/[id]
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   context: { params: { id: string } }
 ) {
-  try {
-    const id = context.params.id;
+  const id = context.params.id;
 
+  try {
     await prisma.carousel.delete({
       where: { id },
     });
 
-    return NextResponse.json(
-      { message: "Carrusel eliminado" },
-      { status: 200 }
-    );
+    return new Response(JSON.stringify({ message: "Carrusel eliminado" }), {
+      status: 200,
+    });
   } catch (error) {
     console.error("Error eliminando carrusel:", error);
-    return NextResponse.json({ error: "Error al eliminar" }, { status: 500 });
+    return new Response(JSON.stringify({ error: "Error al eliminar" }), {
+      status: 500,
+    });
   }
 }
