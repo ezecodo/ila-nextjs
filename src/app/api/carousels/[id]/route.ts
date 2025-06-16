@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; //
 
 // GET /api/carousels/[id]
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const id = url.pathname.split("/").pop(); // extrae el ID de la URL
+
+  if (!id) {
+    return NextResponse.json({ error: "ID no proporcionado" }, { status: 400 });
+  }
+
   try {
     const carousel = await prisma.carousel.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         beitragstyp: true,
       },
@@ -29,16 +33,20 @@ export async function GET(
 }
 
 // PUT /api/carousels/[id]
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
+  const url = new URL(request.url);
+  const id = url.pathname.split("/").pop();
+
+  if (!id) {
+    return NextResponse.json({ error: "ID no proporcionado" }, { status: 400 });
+  }
+
   try {
-    const body = await req.json();
+    const body = await request.json();
     const { name, titleES, titleDE, beitragstypId, limit, orderBy } = body;
 
     const updated = await prisma.carousel.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         name,
         titleES,

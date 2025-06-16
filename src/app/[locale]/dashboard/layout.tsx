@@ -99,13 +99,14 @@ export default function DashboardLayout({
                 <li key={item.key}>
                   <Link
                     href={fullHref}
-                    className={`block p-2 rounded-md mb-2 text-sm transition ${
+                    className={`flex items-center gap-2 p-2 rounded-md mb-2 text-sm transition ${
                       isActive
                         ? "bg-red-100 text-red-700 font-semibold"
                         : "text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    {item.icon} {item.label}
+                    <span className="text-lg">{item.icon}</span>
+                    <span>{item.label}</span>
                   </Link>
                 </li>
               );
@@ -115,7 +116,7 @@ export default function DashboardLayout({
 
         {/* Contenido principal */}
         <main
-          className={`border border-red-500 flex-1 py-4 overflow-y-auto max-h-screen min-w-0 ${
+          className={`flex-1 py-4 overflow-y-auto max-h-screen min-w-0 ${
             isDashboard ? "px-0" : "px-6"
           }`}
         >
