@@ -66,20 +66,23 @@ export async function PUT(request: NextRequest) {
 
 // DELETE /api/carousels/[id]
 
-export async function DELETE(
-  request: Request,
-  context: { params: { id: string } }
-): Promise<Response> {
+export async function DELETE(req: NextRequest) {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop(); // Extraer ID desde URL
+
+  if (!id) {
+    return NextResponse.json({ error: "ID no proporcionado" }, { status: 400 });
+  }
+
   try {
-    const { id } = context.params;
+    await prisma.carousel.delete({ where: { id } });
 
-    await prisma.carousel.delete({
-      where: { id },
-    });
-
-    return Response.json({ message: "Carrusel eliminado" }, { status: 200 });
+    return NextResponse.json(
+      { message: "Carrusel eliminado" },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("Error eliminando carrusel:", error);
-    return Response.json({ error: "Error al eliminar" }, { status: 500 });
+    console.error("❌ Error eliminando carrusel:", error);
+    return NextResponse.json({ error: "Error al eliminar" }, { status: 500 });
   }
 }
