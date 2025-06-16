@@ -2,8 +2,8 @@
 // import EditionsList from "../components/EditionsList/EditionsList";
 
 // import LatestEdition from "./components/Editions/LatestEdition1";
-import ArticlesGrid from "./components/Articles/ArticlesGrid/ArticlesGrid";
-import ArticleCarousel from "./components/Articles/ArticleCarousel/ArticleCarousel";
+
+import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
 
 export default function Home() {
   return (
@@ -13,12 +13,8 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* 🔥 Sección principal más grande */}
         <main className="col-span-1 md:col-span-12 p-0">
-          <ArticlesGrid /> {/* 🔥 Sección más ancha */}
           {/* <LatestEdition />  🔥 Sección más ancha */}
-          <ArticleCarousel beitragstypId={3} title="Críticas de cine" />
-          <ArticleCarousel beitragstypId={6} title="Entrevistas" />
-          <ArticleCarousel beitragstypId={4} title="Música" />
-          <ArticleCarousel beitragstypId={1} title="Informe y Análisis" />
+          <CarouselFromDb />
         </main>
       </div>
     </div>

@@ -4,6 +4,16 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import DashboardStats from "../dashboard/components/DashboardStats/DashboardStats";
+import {
+  FaHome,
+  FaFileAlt,
+  FaBook,
+  FaUserCog,
+  FaCalendarAlt,
+  FaSlidersH,
+} from "react-icons/fa";
+import { usePathname } from "next/navigation";
+import { useLocale } from "next-intl";
 
 export default function DashboardLayout({
   children,
@@ -12,32 +22,59 @@ export default function DashboardLayout({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const t = useTranslations("dashboard");
+  const pathname = usePathname();
+  const locale = useLocale();
+  const isDashboard = pathname?.startsWith("/dashboard");
 
   const menuItems = [
-    { key: "inicio", label: t("menu.inicio"), href: "/dashboard" },
+    {
+      key: "inicio",
+      label: t("menu.inicio"),
+      href: "/dashboard",
+      icon: <FaHome />,
+    },
     {
       key: "articles",
       label: t("menu.articles"),
       href: "/dashboard/articles/new",
+      icon: <FaFileAlt />,
     },
     {
       key: "editions",
       label: t("menu.editions"),
       href: "/dashboard/editions/new",
+      icon: <FaBook />,
     },
-    { key: "account", label: t("menu.account"), href: "/dashboard/account" },
-    { key: "events", label: t("menu.events"), href: "/dashboard/events" },
+
+    {
+      key: "events",
+      label: t("menu.events"),
+      href: "/dashboard/events",
+      icon: <FaCalendarAlt />,
+    },
+    {
+      key: "carousels",
+      label: "Carruseles",
+      href: "/dashboard/carousels",
+      icon: <FaSlidersH />,
+    },
+    {
+      key: "account",
+      label: t("menu.account"),
+      href: "/dashboard/account",
+      icon: <FaUserCog />,
+    },
   ];
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Barra superior de estadísticas */}
-      <div className="bg-white border-b shadow px-4 py-2">
+      <div className="bg-white border-b shadow py-2">
         <DashboardStats />
       </div>
 
       {/* Estructura principal */}
-      <div className="flex flex-1 overflow-hidden md:flex-row min-w-0">
+      <div className="flex flex-1 overflow-hidden min-w-0 bg-gray-50">
         {/* Menú móvil */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -48,27 +85,40 @@ export default function DashboardLayout({
 
         {/* Sidebar */}
         <aside
-          className={`w-full md:w-36 bg-white shadow-md p-4 md:block ${
+          className={`w-full md:w-52 xl:w-64 bg-white shadow-md px-4 py-6 md:block ${
             menuOpen ? "block" : "hidden"
           }`}
         >
-          <h2 className="text-xl font-semibold mb-5">{t("title")}</h2>
+          <h2 className="text-xl font-semibold mb-6">{t("title")}</h2>
           <ul>
-            {menuItems.map((item) => (
-              <li key={item.key}>
-                <Link
-                  href={item.href}
-                  className="block p-2 rounded-md mb-2 hover:bg-gray-200 text-sm"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {menuItems.map((item) => {
+              const fullHref = `/${locale}${item.href}`;
+              const isActive = pathname === fullHref;
+
+              return (
+                <li key={item.key}>
+                  <Link
+                    href={fullHref}
+                    className={`block p-2 rounded-md mb-2 text-sm transition ${
+                      isActive
+                        ? "bg-red-100 text-red-700 font-semibold"
+                        : "text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {item.icon} {item.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </aside>
 
         {/* Contenido principal */}
-        <main className="flex-1 p-6 overflow-y-auto max-h-screen min-w-0">
+        <main
+          className={`border border-red-500 flex-1 py-4 overflow-y-auto max-h-screen min-w-0 ${
+            isDashboard ? "px-0" : "px-6"
+          }`}
+        >
           {children}
         </main>
       </div>

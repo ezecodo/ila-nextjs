@@ -92,6 +92,7 @@ model Beitragstyp {
   nameES   String?
   articles Article[]
   subtypes Beitragssubtyp[]
+  carousels Carousel[] // 🔁 Relación inversa
 }
 
 model Region {
@@ -307,5 +308,24 @@ model ActivityLog {
 
   @@index([userId])
   @@index([articleId])
+}
+
+model Carousel {
+  id             String   @id @default(cuid())
+  name           String   // 👈 Agregado
+  title          String
+  titleES        String?
+  titleDE        String?
+ beitragstypId  Int?           // 🔧 Asegúrate de que sea Int
+  beitragstyp    Beitragstyp?   @relation(fields: [beitragstypId], references: [id])
+  
+  
+  topic          String?         // también opcional
+  region         String?         
+  category       String?
+  limit          Int      @default(10)
+  orderBy        String   @default("date_desc") // o "date_asc", "title", etc.
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
