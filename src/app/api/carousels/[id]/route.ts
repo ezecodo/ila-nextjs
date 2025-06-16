@@ -65,13 +65,16 @@ export async function PUT(request: NextRequest) {
 }
 
 // DELETE /api/carousels/[id]
+
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
+    const id = context.params.id;
+
     await prisma.carousel.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json(
