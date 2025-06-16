@@ -80,7 +80,7 @@ export async function DELETE(
       status: 200,
     });
   } catch (error) {
-    console.error("Error eliminando carrusel:", error);
+    console.error("Error eliminando carrusel numero:", error);
     return new Response(JSON.stringify({ error: "Error al eliminar" }), {
       status: 500,
     });
