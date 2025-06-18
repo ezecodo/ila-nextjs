@@ -111,6 +111,7 @@
       "editTitle": "Editar carrusel",
       "selectType": "Seleccionar tipo de contenido",
       "saveChanges": "Guardar cambios",
+      "noRegion": "Sin región (opcional)",
       "loading": "Cargando...",
       "loadingCarousels": "Cargando carruseles...",
       "activeCarousels": "Carruseles activos",

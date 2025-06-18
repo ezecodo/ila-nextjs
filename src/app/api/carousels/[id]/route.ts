@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; //
 
-// GET /api/carousels/[id]
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const id = url.pathname.split("/").pop(); // extrae el ID de la URL
+  const id = url.pathname.split("/").pop();
 
   if (!id) {
     return NextResponse.json({ error: "ID no proporcionado" }, { status: 400 });
@@ -13,7 +12,17 @@ export async function GET(request: NextRequest) {
   try {
     const carousel = await prisma.carousel.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        title: true,
+        titleES: true,
+        titleDE: true,
+        beitragstypId: true,
+        regionId: true,
+        limit: true,
+        createdAt: true,
+        updatedAt: true,
         beitragstyp: true,
       },
     });
@@ -25,13 +34,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(carousel);
+    return NextResponse.json({
+      ...carousel,
+      regionId: carousel.regionId ?? null, // 👈 pasa explícitamente el regionId al frontend
+    });
   } catch (error) {
     console.error("Error obteniendo carrusel:", error);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
-
 // PUT /api/carousels/[id]
 export async function PUT(request: NextRequest) {
   const url = new URL(request.url);
@@ -43,7 +54,8 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, titleES, titleDE, beitragstypId, limit, orderBy } = body;
+    const { name, titleES, titleDE, beitragstypId, limit, orderBy, regionId } =
+      body;
 
     const updated = await prisma.carousel.update({
       where: { id },
@@ -54,6 +66,7 @@ export async function PUT(request: NextRequest) {
         beitragstypId,
         limit,
         orderBy,
+        regionId: regionId || null, // 👈 necesario para que se guarde correctamente
       },
     });
 

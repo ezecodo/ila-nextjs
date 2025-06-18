@@ -5,8 +5,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const { name, title, titleES, titleDE, beitragstypId, limit, orderBy } =
-      body;
+    const {
+      name,
+      title,
+      titleES,
+      titleDE,
+      beitragstypId,
+      limit,
+      orderBy,
+      regionId,
+    } = body;
 
     if (!name || !title || !titleES || !titleDE || !beitragstypId) {
       return NextResponse.json(
@@ -24,6 +32,7 @@ export async function POST(request: NextRequest) {
         beitragstypId: parseInt(beitragstypId, 10),
         limit: limit || 10,
         orderBy: orderBy || "desc",
+        regionId: regionId ? parseInt(regionId, 10) : null,
       },
     });
 
@@ -41,8 +50,23 @@ export async function GET() {
   try {
     const carousels = await prisma.carousel.findMany({
       orderBy: { createdAt: "desc" },
-      include: {
-        beitragstyp: true,
+      select: {
+        id: true,
+        name: true,
+        title: true,
+        titleES: true,
+        titleDE: true,
+        limit: true,
+        orderBy: true,
+        beitragstypId: true,
+        regionId: true, // ✅ Incluir en la respuesta
+        beitragstyp: {
+          select: {
+            id: true,
+            name: true,
+            nameES: true,
+          },
+        },
       },
     });
 

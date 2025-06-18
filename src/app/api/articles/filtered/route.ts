@@ -1,30 +1,28 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 import type { Region } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const limit = parseInt(url.searchParams.get("limit") || "10");
     const beitragstypId = url.searchParams.get("beitragstypId");
     const regionId = url.searchParams.get("regionId");
     const locale = url.searchParams.get("locale");
+    const limit = parseInt(url.searchParams.get("limit") || "10");
 
-    const filters: Record<string, any>[] = [{ isPublished: true }];
+    const baseWhere: Record<string, any>[] = [{ isPublished: true }];
 
-    // 🔥 Español: solo artículos traducidos y revisados
     if (locale === "es") {
-      filters.push({ isTranslatedES: true });
-      filters.push({ needsReviewES: false });
+      baseWhere.push({ isTranslatedES: true });
+      baseWhere.push({ needsReviewES: false });
     }
 
-    // 🔥 Tipo de contenido
     if (beitragstypId) {
-      filters.push({ beitragstypId: parseInt(beitragstypId, 10) });
+      baseWhere.push({ beitragstypId: parseInt(beitragstypId, 10) });
     }
 
-    // 🔥 Región + descendientes
+    let regionFilteredBeitragsIds: number[] | null = null;
+
     if (regionId) {
       const allRegions: Region[] = await prisma.region.findMany();
       const targetId = Number(regionId);
@@ -44,73 +42,82 @@ export async function GET(req: NextRequest) {
         );
       };
 
-      const regionIds = [
+      const regionIdsToMatch = [
         targetId,
         ...collectDescendantIds(targetId, allRegions),
       ];
 
-      filters.push({
-        regions: {
-          some: {
-            id: { in: regionIds },
+      const articlesInRegions = await prisma.article.findMany({
+        where: {
+          regions: {
+            some: {
+              id: { in: regionIdsToMatch },
+            },
           },
         },
+        select: {
+          beitragsId: true,
+        },
+      });
+
+      regionFilteredBeitragsIds = Array.from(
+        new Set(
+          articlesInRegions
+            .map((a: { beitragsId: number | null }) => a.beitragsId)
+            .filter((id: number | null): id is number => typeof id === "number")
+        )
+      );
+
+      if (regionFilteredBeitragsIds.length === 0) {
+        return NextResponse.json({ articles: [] });
+      }
+
+      baseWhere.push({
+        beitragsId: { in: regionFilteredBeitragsIds },
       });
     }
 
-    console.log("➡️ Filters aplicados:", JSON.stringify(filters, null, 2));
-
-    // 🔥 Query principal
-    const articles = await prisma.article.findMany({
-      where: {
-        AND: filters,
-      },
+    const articles = (await prisma.article.findMany({
+      where: { AND: baseWhere },
       orderBy: { publicationDate: "desc" },
       take: limit,
       include: {
         regions: true,
         topics: true,
+        authors: { select: { id: true, name: true } },
         categories: true,
-        authors: {
-          select: { id: true, name: true },
-        },
         beitragstyp: {
-          select: {
-            id: true,
-            name: true,
-            nameES: true,
-          },
+          select: { id: true, name: true, nameES: true },
         },
         edition: {
           select: { id: true, title: true, number: true },
         },
       },
-    });
+    })) as Array<{
+      id: number;
+      beitragsId: number | null;
+      [key: string]: any;
+    }>;
 
-    // 🔥 Cargar imágenes
     const articlesWithImages = await Promise.all(
-      articles.map(
-        async (
-          article: Awaited<ReturnType<typeof prisma.article.findMany>>[number]
-        ) => {
-          const contentIdToUse = article.beitragsId || article.id;
-          const images = await prisma.image.findMany({
-            where: {
-              contentType: "ARTICLE",
-              contentId: contentIdToUse,
-            },
-          });
+      articles.map(async (article) => {
+        const contentId = article.beitragsId || article.id;
+        const images = await prisma.image.findMany({
+          where: {
+            contentType: "ARTICLE",
+            contentId,
+          },
+        });
 
-          return { ...article, images };
-        }
-      )
+        return { ...article, images };
+      })
     );
 
-    return NextResponse.json({ articles: articlesWithImages }, { status: 200 });
+    return NextResponse.json({ articles: articlesWithImages });
   } catch (error) {
-    console.error("❌ Error en /api/articles/filtered:", error);
+    console.error("❌ Error final:", error);
     return NextResponse.json(
-      { message: "Error interno del servidor" },
+      { error: "Error en el servidor" },
       { status: 500 }
     );
   }

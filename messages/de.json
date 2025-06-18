@@ -111,6 +111,7 @@
       "selectType": "Inhaltstyp auswählen",
       "saveChanges": "Änderungen speichern",
       "loading": "Wird geladen...",
+      "noRegion": "Ohne Region (optional)",
       "loadingCarousels": "Karussells werden geladen...",
       "activeCarousels": "Aktive Karussells",
       "createNew": "Neues Karussell erstellen",

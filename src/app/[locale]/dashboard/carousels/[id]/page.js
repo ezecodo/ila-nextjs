@@ -11,6 +11,7 @@ export default function EditCarouselPage() {
   const locale = useLocale();
   const [carousel, setCarousel] = useState(null);
   const [types, setTypes] = useState([]);
+  const [regions, setRegions] = useState([]);
 
   useEffect(() => {
     fetch(`/api/carousels/${id}`)
@@ -20,6 +21,10 @@ export default function EditCarouselPage() {
     fetch("/api/beitragstypen")
       .then((res) => res.json())
       .then(setTypes);
+
+    fetch("/api/regions")
+      .then((res) => res.json())
+      .then(setRegions);
   }, [id]);
 
   const handleSubmit = async (e) => {
@@ -38,7 +43,17 @@ export default function EditCarouselPage() {
     }
   };
 
-  if (!carousel) return <p>{t("loading")}</p>;
+  if (!carousel || regions.length === 0) return <p>{t("loading")}</p>;
+  function renderRegionOptions(regions, depth = 0) {
+    return regions.flatMap((region) => [
+      <option key={region.id} value={region.id.toString()}>
+        {"— ".repeat(depth) + region.name}
+      </option>,
+      ...(region.children
+        ? renderRegionOptions(region.children, depth + 1)
+        : []),
+    ]);
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
@@ -79,6 +94,25 @@ export default function EditCarouselPage() {
               {locale === "de" ? type.name : type.nameES}
             </option>
           ))}
+        </select>
+        <select
+          className="w-full border p-2 rounded"
+          value={
+            typeof carousel.regionId === "number"
+              ? carousel.regionId.toString()
+              : carousel.regionId || ""
+          }
+          onChange={(e) =>
+            setCarousel({
+              ...carousel,
+              regionId: e.target.value ? Number(e.target.value) : null,
+            })
+          }
+        >
+          <option value="">
+            {t("noRegion", { defaultMessage: "Sin región (opcional)" })}
+          </option>
+          {renderRegionOptions(regions)}
         </select>
         <input
           type="number"

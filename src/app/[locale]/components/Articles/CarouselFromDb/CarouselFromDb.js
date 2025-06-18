@@ -28,6 +28,7 @@ export default function CarouselFromDb() {
         <ArticleCarousel
           key={carousel.id}
           beitragstypId={carousel.beitragstypId}
+          region={carousel.regionId || null}
           title={carousel.titleES}
           limit={carousel.limit}
         />
