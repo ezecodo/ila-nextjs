@@ -296,6 +296,8 @@ enum ActivityAction {
   CREATE_EDITION
   CREATE_EVENT
   REVIEW_TRANSLATION
+  CREATE_CAROUSEL 
+   DELETE_CAROUSEL 
 }
 
 model ActivityLog {
@@ -306,9 +308,13 @@ model ActivityLog {
   article    Article?        @relation(fields: [articleId], references: [id])
   action     ActivityAction
   createdAt  DateTime        @default(now())
+  carouselId  String? 
+carousel    Carousel? @relation("CarouselToActivityLogs", fields: [carouselId], references: [id], onDelete: SetNull)
+  metadata Json?
 
   @@index([userId])
   @@index([articleId])
+   @@index([carouselId]) 
 }
 
 model Carousel {
@@ -317,7 +323,7 @@ model Carousel {
   title          String
   titleES        String?
   titleDE        String?
- beitragstypId  Int?           // 🔧 Asegúrate de que sea Int
+ beitragstypId  Int?           
   beitragstyp    Beitragstyp?   @relation(fields: [beitragstypId], references: [id])
   
   
@@ -329,5 +335,6 @@ model Carousel {
   orderBy        String   @default("date_desc") // o "date_asc", "title", etc.
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  activityLogs ActivityLog[] @relation("CarouselToActivityLogs")
 }
 

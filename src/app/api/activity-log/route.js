@@ -12,11 +12,10 @@ export async function POST(req) {
       });
     }
 
-    let { articleId, action } = await req.json();
-    articleId = parseInt(articleId, 10); // 👈 convertir a número
+    let { articleId, action, carouselId } = await req.json();
 
-    if (!articleId || !action) {
-      return new Response(JSON.stringify({ error: "Datos incompletos" }), {
+    if (!action) {
+      return new Response(JSON.stringify({ error: "Acción requerida" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -24,9 +23,10 @@ export async function POST(req) {
 
     const log = await prisma.activityLog.create({
       data: {
-        userId: session.user.id, // 👈 ID desde tu auth()
-        articleId,
+        userId: session.user.id,
         action,
+        articleId: articleId ? parseInt(articleId, 10) : undefined,
+        carouselId: carouselId || undefined,
       },
     });
 
@@ -48,9 +48,29 @@ export async function GET() {
     const logs = await prisma.activityLog.findMany({
       orderBy: { createdAt: "desc" },
       take: 20,
-      include: {
+      select: {
+        id: true,
+        createdAt: true,
+        action: true,
+        metadata: true, // ✅ NECESARIO para los logs eliminados
         user: { select: { name: true } },
         article: { select: { title: true } },
+        carousel: {
+          select: {
+            id: true,
+            titleES: true,
+            titleDE: true,
+            beitragstyp: {
+              select: {
+                name: true,
+                nameES: true,
+              },
+            },
+            region: {
+              select: { name: true },
+            },
+          },
+        },
       },
     });
 

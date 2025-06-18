@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 export default function CarouselsDashboardPage() {
   const [carousels, setCarousels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const t = useTranslations("dashboard.Carousels");
+  const locale = useLocale();
 
   useEffect(() => {
     fetch("/api/carousels")
@@ -17,17 +20,17 @@ export default function CarouselsDashboardPage() {
       });
   }, []);
 
-  if (loading) return <p>Cargando carruseles...</p>;
+  if (loading) return <p>{t("loadingCarousels")}</p>;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Carruseles activos</h1>
+      <h1 className="text-2xl font-bold mb-4">{t("activeCarousels")}</h1>
 
       <Link
         href="/dashboard/carousels/create"
         className="mb-4 inline-block text-blue-600 hover:underline"
       >
-        ➕ Crear nuevo carrusel
+        ➕ {t("createNew")}
       </Link>
 
       <div className="grid gap-6 mt-6">
@@ -39,18 +42,21 @@ export default function CarouselsDashboardPage() {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-xl font-bold text-red-800">
-                  #{index + 1} · {carousel.titleES}
+                  #{index + 1} ·{" "}
+                  {locale === "es" ? carousel.titleES : carousel.titleDE}
                 </h2>
                 <p className="text-sm text-gray-700">
-                  Tipo:{" "}
+                  {t("type")}:{" "}
                   <span className="font-semibold">
-                    {carousel.beitragstyp?.nameES || "—"}
+                    {locale === "de"
+                      ? carousel.beitragstyp?.name
+                      : carousel.beitragstyp?.nameES}
                   </span>{" "}
                   ·{" "}
                   <span className="text-red-600 font-bold">
                     {carousel.limit}
                   </span>{" "}
-                  artículos
+                  {t("articles")}
                 </p>
               </div>
 
@@ -59,11 +65,11 @@ export default function CarouselsDashboardPage() {
                   href={`/dashboard/carousels/${carousel.id}`}
                   className="px-3 py-1 bg-red-100 text-red-800 hover:bg-red-200 rounded transition"
                 >
-                  ✏️ Editar
+                  ✏️ {t("edit")}
                 </Link>
                 <button
                   onClick={async () => {
-                    if (confirm("¿Eliminar este carrusel?")) {
+                    if (confirm(t("confirmDelete"))) {
                       const res = await fetch(`/api/carousels/${carousel.id}`, {
                         method: "DELETE",
                       });
@@ -72,13 +78,13 @@ export default function CarouselsDashboardPage() {
                           carousels.filter((c) => c.id !== carousel.id)
                         );
                       } else {
-                        alert("Error al eliminar");
+                        alert(t("errorDeleting"));
                       }
                     }
                   }}
                   className="px-3 py-1 bg-rose-200 text-red-900 hover:bg-rose-300 rounded transition"
                 >
-                  🗑️ Eliminar
+                  🗑️ {t("delete")}
                 </button>
               </div>
             </div>

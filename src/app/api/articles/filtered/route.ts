@@ -8,7 +8,11 @@ export async function GET(req: NextRequest) {
     const beitragstypId = url.searchParams.get("beitragstypId");
     const regionId = url.searchParams.get("regionId");
 
-    const filters: Record<string, unknown> = {};
+    const filters: any[] = [];
+
+    if (beitragstypId) {
+      filters.push({ beitragstypId: Number(beitragstypId) });
+    }
 
     if (regionId) {
       const allRegions: Region[] = await prisma.region.findMany();
@@ -32,31 +36,29 @@ export async function GET(req: NextRequest) {
       const descendantIds = collectDescendantIds(targetId, allRegions);
       const regionIdsToMatch = [targetId, ...descendantIds];
 
-      filters.regions = {
-        some: {
-          id: {
-            in: regionIdsToMatch,
+      filters.push({
+        regions: {
+          some: {
+            id: { in: regionIdsToMatch },
           },
         },
-      };
-    }
-
-    if (beitragstypId) {
-      filters.beitragstypId = Number(beitragstypId);
+      });
     }
 
     const articles = await prisma.article.findMany({
-      where: filters,
+      where: {
+        AND: filters,
+      },
       include: {
         regions: true,
         beitragstyp: true,
       },
       orderBy: {
-        publishedAt: "desc",
+        publicationDate: "desc",
       },
     });
 
-    return NextResponse.json(articles);
+    return NextResponse.json({ articles });
   } catch (error) {
     console.error("Error filtrando artículos:", error);
     return NextResponse.json(

@@ -101,10 +101,26 @@
       "account": "Kontoeinstellungen",
       "events": "Veranstaltung erstellen"
     },
+
     "openMenu": "Menü öffnen ☰",
     "closeMenu": "Menü schließen ☰",
     "errorStats": "Fehler beim Laden der Statistiken",
-    "welcome": "Willkommen im Admin-Dashboard"
+    "welcome": "Willkommen im Admin-Dashboard",
+    "Carousels": {
+      "editTitle": "Karussell bearbeiten",
+      "selectType": "Inhaltstyp auswählen",
+      "saveChanges": "Änderungen speichern",
+      "loading": "Wird geladen...",
+      "loadingCarousels": "Karussells werden geladen...",
+      "activeCarousels": "Aktive Karussells",
+      "createNew": "Neues Karussell erstellen",
+      "type": "Typ",
+      "articles": "Artikel",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "confirmDelete": "Dieses Karussell löschen?",
+      "errorDeleting": "Fehler beim Löschen"
+    }
   },
   "stats": {
     "title": "📊 Dashboard",
@@ -179,5 +195,17 @@
     "description": "Erwäge eine Spende oder ein Abo, um weiterhin hochwertige Inhalte zu lesen.",
     "donateButton": "Spenden",
     "subscribeButton": "Abonnieren"
+  },
+  "activity": {
+    "recent": "📝 Letzte Aktivitäten",
+    "none": "🔍 Keine aktuellen Aktivitäten.",
+    "createdCarousel": "hat das Karussell erstellt",
+    "deletedCarousel": "hat das Karussell gelöscht",
+    "withType": "vom Typ",
+    "inRegion": "in der Region",
+    "translatedArticle": "hat den Artikel übersetzt",
+    "reviewedTranslation": "hat die Übersetzung des Artikels überprüft",
+    "default": "führte eine Aktion aus –",
+    "untitled": "ohne Titel"
   }
 }

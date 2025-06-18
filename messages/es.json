@@ -106,7 +106,22 @@
     "openMenu": "Abrir Menú ☰",
     "closeMenu": "Cerrar Menú ☰",
     "errorStats": "Error al cargar estadísticas",
-    "welcome": "Bienvenido al Dashboard Admin"
+    "welcome": "Bienvenido al Dashboard Admin",
+    "Carousels": {
+      "editTitle": "Editar carrusel",
+      "selectType": "Seleccionar tipo de contenido",
+      "saveChanges": "Guardar cambios",
+      "loading": "Cargando...",
+      "loadingCarousels": "Cargando carruseles...",
+      "activeCarousels": "Carruseles activos",
+      "createNew": "Crear nuevo carrusel",
+      "type": "Tipo",
+      "articles": "artículos",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Eliminar este carrusel?",
+      "errorDeleting": "Error al eliminar"
+    }
   },
 
   "stats": {
@@ -182,5 +197,17 @@
     "description": "Considera hacer una donación o suscribirte para seguir leyendo contenido de calidad.",
     "donateButton": "Donar",
     "subscribeButton": "Suscribirse"
+  },
+  "activity": {
+    "recent": "📝 Actividad reciente",
+    "none": "🔍 No hay actividad reciente.",
+    "createdCarousel": "creó el carrusel",
+    "deletedCarousel": "eliminó el carrusel",
+    "withType": "con tipo",
+    "inRegion": "en región",
+    "translatedArticle": "tradujo el artículo",
+    "reviewedTranslation": "revisó la traducción del artículo",
+    "default": "realizó una acción –",
+    "untitled": "sin título"
   }
 }
