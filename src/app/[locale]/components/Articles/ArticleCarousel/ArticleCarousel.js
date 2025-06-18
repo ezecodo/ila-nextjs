@@ -29,38 +29,42 @@ export default function FilteredArticlesCarousel(props) {
     params.set("limit", effectiveLimit.toString());
     if (region) params.set("regionId", String(region)); // 👈 importante que sea regionId
     if (beitragstypId) params.set("beitragstypId", String(beitragstypId));
+    params.set("locale", locale);
 
     fetch(`/api/articles/filtered?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => setArticles(data.articles || []));
-  }, [region, beitragstypId, effectiveLimit]);
+  }, [region, beitragstypId, effectiveLimit, locale]);
 
   if (!articles || articles.length === 0) return null;
 
   const isClient = typeof window !== "undefined";
   const singleSlide = articles.length === 1;
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+  const showArrows = isMobile
+    ? articles.length > 1
+    : articles.length > effectiveSlidesToShow;
+
   const settings = {
-    infinite: !singleSlide,
+    infinite: articles.length > effectiveSlidesToShow,
     speed: 500,
     slidesToShow: singleSlide ? 1 : effectiveSlidesToShow,
     slidesToScroll: singleSlide ? 1 : effectiveSlidesToShow,
-    arrows: !singleSlide,
-    dots: !singleSlide,
-    swipe: !singleSlide,
-    swipeToSlide: !singleSlide,
-    ...(isClient &&
-      !singleSlide && {
-        prevArrow: <PrevArrow />,
-        nextArrow: <NextArrow />,
-      }),
+    arrows: articles.length > effectiveSlidesToShow,
+    dots: articles.length > effectiveSlidesToShow,
+    swipe: true,
+    swipeToSlide: true,
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />,
     responsive: [
       {
         breakpoint: 1024,
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
-          arrows: !singleSlide,
+          arrows: articles.length > 1, // ✅ flechas en mobile si hay más de 1
           dots: false,
         },
       },
