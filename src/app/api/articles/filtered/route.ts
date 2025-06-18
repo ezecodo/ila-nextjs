@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { Region } from "@prisma/client";
+import { Prisma, type Region } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const locale = url.searchParams.get("locale");
     const limit = parseInt(url.searchParams.get("limit") || "10");
 
-    const baseWhere: Record<string, any>[] = [{ isPublished: true }];
+    const baseWhere: Prisma.ArticleWhereInput[] = [{ isPublished: true }];
 
     if (locale === "es") {
       baseWhere.push({ isTranslatedES: true });
@@ -77,7 +77,15 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const articles = (await prisma.article.findMany({
+    interface ArticleWithExtras {
+      id: number;
+      beitragsId: number | null;
+      title?: string;
+      publicationDate?: Date;
+      // agrega otros campos relevantes que uses en el renderizado
+    }
+
+    const articles: ArticleWithExtras[] = await prisma.article.findMany({
       where: { AND: baseWhere },
       orderBy: { publicationDate: "desc" },
       take: limit,
@@ -93,11 +101,7 @@ export async function GET(req: NextRequest) {
           select: { id: true, title: true, number: true },
         },
       },
-    })) as Array<{
-      id: number;
-      beitragsId: number | null;
-      [key: string]: any;
-    }>;
+    });
 
     const articlesWithImages = await Promise.all(
       articles.map(async (article) => {

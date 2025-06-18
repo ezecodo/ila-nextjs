@@ -33,7 +33,7 @@ export default function AuthorPage() {
     }
 
     fetchAuthor();
-  }, [id]);
+  }, [id, t]);
 
   if (error) return <p className="text-red-500">{error}</p>;
   if (!author) return <p>{t("loadingAuthor")}</p>;

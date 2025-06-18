@@ -16,8 +16,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 export default function FilteredArticlesCarousel(props) {
-  const { topic, region, category, beitragstypId, title, limit, slidesToShow } =
-    props;
+  const { region, beitragstypId, title, limit, slidesToShow } = props;
 
   const effectiveLimit = limit || 30;
   const effectiveSlidesToShow = slidesToShow || 3;

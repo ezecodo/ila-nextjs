@@ -41,7 +41,7 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
     }
 
     fetchArticles();
-  }, [currentPage, authorId, articlesProp]);
+  }, [currentPage, authorId, articlesProp, locale, t]);
 
   if (error) {
     return <p className="text-red-500">{error}</p>;
