@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const beitragstypId = url.searchParams.get("beitragstypId");
     const regionId = url.searchParams.get("regionId");
 
-    const filters: any[] = [];
+    const filters: Record<string, unknown>[] = [];
 
     if (beitragstypId) {
       filters.push({ beitragstypId: Number(beitragstypId) });
