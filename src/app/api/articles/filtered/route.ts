@@ -1,19 +1,30 @@
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import type { Region } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
+    const limit = parseInt(url.searchParams.get("limit") || "10");
     const beitragstypId = url.searchParams.get("beitragstypId");
     const regionId = url.searchParams.get("regionId");
+    const locale = url.searchParams.get("locale");
 
-    const filters: Record<string, unknown>[] = [];
+    const filters: Record<string, any>[] = [{ isPublished: true }];
 
-    if (beitragstypId) {
-      filters.push({ beitragstypId: Number(beitragstypId) });
+    // 🔥 Español: solo artículos traducidos y revisados
+    if (locale === "es") {
+      filters.push({ isTranslatedES: true });
+      filters.push({ needsReviewES: false });
     }
 
+    // 🔥 Tipo de contenido
+    if (beitragstypId) {
+      filters.push({ beitragstypId: parseInt(beitragstypId, 10) });
+    }
+
+    // 🔥 Región + descendientes
     if (regionId) {
       const allRegions: Region[] = await prisma.region.findMany();
       const targetId = Number(regionId);
@@ -33,36 +44,73 @@ export async function GET(req: NextRequest) {
         );
       };
 
-      const descendantIds = collectDescendantIds(targetId, allRegions);
-      const regionIdsToMatch = [targetId, ...descendantIds];
+      const regionIds = [
+        targetId,
+        ...collectDescendantIds(targetId, allRegions),
+      ];
 
       filters.push({
         regions: {
           some: {
-            id: { in: regionIdsToMatch },
+            id: { in: regionIds },
           },
         },
       });
     }
 
+    console.log("➡️ Filters aplicados:", JSON.stringify(filters, null, 2));
+
+    // 🔥 Query principal
     const articles = await prisma.article.findMany({
       where: {
         AND: filters,
       },
+      orderBy: { publicationDate: "desc" },
+      take: limit,
       include: {
         regions: true,
-        beitragstyp: true,
-      },
-      orderBy: {
-        publicationDate: "desc",
+        topics: true,
+        categories: true,
+        authors: {
+          select: { id: true, name: true },
+        },
+        beitragstyp: {
+          select: {
+            id: true,
+            name: true,
+            nameES: true,
+          },
+        },
+        edition: {
+          select: { id: true, title: true, number: true },
+        },
       },
     });
 
-    return NextResponse.json({ articles });
+    // 🔥 Cargar imágenes
+    const articlesWithImages = await Promise.all(
+      articles.map(
+        async (
+          article: Awaited<ReturnType<typeof prisma.article.findMany>>[number]
+        ) => {
+          const contentIdToUse = article.beitragsId || article.id;
+          const images = await prisma.image.findMany({
+            where: {
+              contentType: "ARTICLE",
+              contentId: contentIdToUse,
+            },
+          });
+
+          return { ...article, images };
+        }
+      )
+    );
+
+    return NextResponse.json({ articles: articlesWithImages }, { status: 200 });
   } catch (error) {
-    console.error("Error filtrando artículos:", error);
+    console.error("❌ Error en /api/articles/filtered:", error);
     return NextResponse.json(
-      { error: "Error en el servidor" },
+      { message: "Error interno del servidor" },
       { status: 500 }
     );
   }

@@ -28,16 +28,13 @@ export default function FilteredArticlesCarousel(props) {
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("limit", effectiveLimit.toString());
-    params.set("locale", locale);
-    if (topic) params.set("topic", topic);
-    if (region) params.set("region", region);
-    if (category) params.set("category", category);
-    if (beitragstypId) params.set("beitragstypId", beitragstypId);
+    if (region) params.set("regionId", String(region)); // 👈 importante que sea regionId
+    if (beitragstypId) params.set("beitragstypId", String(beitragstypId));
 
-    fetch(`/api/articles/list?${params.toString()}`)
+    fetch(`/api/articles/filtered?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => setArticles(data.articles || []));
-  }, [locale, topic, region, category, beitragstypId, effectiveLimit]);
+  }, [region, beitragstypId, effectiveLimit]);
 
   if (!articles || articles.length === 0) return null;
 
