@@ -40,8 +40,6 @@ export default function FilteredArticlesCarousel(props) {
 
   const singleSlide = articles.length === 1;
 
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
   const settings = {
     infinite: articles.length > effectiveSlidesToShow,
     speed: 500,
