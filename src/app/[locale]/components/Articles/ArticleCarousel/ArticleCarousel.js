@@ -38,14 +38,9 @@ export default function FilteredArticlesCarousel(props) {
 
   if (!articles || articles.length === 0) return null;
 
-  const isClient = typeof window !== "undefined";
   const singleSlide = articles.length === 1;
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
-  const showArrows = isMobile
-    ? articles.length > 1
-    : articles.length > effectiveSlidesToShow;
 
   const settings = {
     infinite: articles.length > effectiveSlidesToShow,
