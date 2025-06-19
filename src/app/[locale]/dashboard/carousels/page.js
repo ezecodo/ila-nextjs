@@ -15,7 +15,10 @@ export default function CarouselsDashboardPage() {
       .then((res) => res.json())
       .then((data) => {
         const carouselsArray = Array.isArray(data) ? data : data.carousels;
-        setCarousels(carouselsArray || []);
+        const sorted = [...(carouselsArray || [])].sort(
+          (a, b) => a.position - b.position
+        );
+        setCarousels(sorted);
         setLoading(false);
       });
   }, []);
@@ -58,15 +61,81 @@ export default function CarouselsDashboardPage() {
                   </span>{" "}
                   {t("articles")}
                 </p>
+                <span className="text-sm italic text-gray-500">
+                  🌍 {carousel.region?.name}
+                </span>
               </div>
 
-              <div className="flex gap-3 text-sm">
+              <div className="flex gap-3 text-sm items-center">
+                {/* 🔼 Subir */}
+                <button
+                  disabled={index === 0}
+                  onClick={async () => {
+                    const updated = [...carousels];
+                    [updated[index - 1], updated[index]] = [
+                      updated[index],
+                      updated[index - 1],
+                    ];
+
+                    await Promise.all([
+                      fetch(`/api/carousels/${updated[index].id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ position: index }),
+                      }),
+                      fetch(`/api/carousels/${updated[index - 1].id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ position: index - 1 }),
+                      }),
+                    ]);
+
+                    setCarousels(updated);
+                  }}
+                  className="text-gray-500 hover:text-gray-800"
+                >
+                  🔼
+                </button>
+
+                {/* 🔽 Bajar */}
+                <button
+                  disabled={index === carousels.length - 1}
+                  onClick={async () => {
+                    const updated = [...carousels];
+                    [updated[index], updated[index + 1]] = [
+                      updated[index + 1],
+                      updated[index],
+                    ];
+
+                    await Promise.all([
+                      fetch(`/api/carousels/${updated[index].id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ position: index }),
+                      }),
+                      fetch(`/api/carousels/${updated[index + 1].id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ position: index + 1 }),
+                      }),
+                    ]);
+
+                    setCarousels(updated);
+                  }}
+                  className="text-gray-500 hover:text-gray-800"
+                >
+                  🔽
+                </button>
+
+                {/* ✏️ Editar */}
                 <Link
                   href={`/dashboard/carousels/${carousel.id}`}
                   className="px-3 py-1 bg-red-100 text-red-800 hover:bg-red-200 rounded transition"
                 >
                   ✏️ {t("edit")}
                 </Link>
+
+                {/* 🗑️ Eliminar */}
                 <button
                   onClick={async () => {
                     if (confirm(t("confirmDelete"))) {

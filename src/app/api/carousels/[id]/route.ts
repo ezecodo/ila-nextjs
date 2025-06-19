@@ -54,8 +54,16 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, titleES, titleDE, beitragstypId, limit, orderBy, regionId } =
-      body;
+    const {
+      name,
+      titleES,
+      titleDE,
+      beitragstypId,
+      limit,
+      orderBy,
+      regionId,
+      position,
+    } = body;
 
     const updated = await prisma.carousel.update({
       where: { id },
@@ -67,6 +75,7 @@ export async function PUT(request: NextRequest) {
         limit,
         orderBy,
         regionId: regionId || null, // 👈 necesario para que se guarde correctamente
+        position,
       },
     });
 

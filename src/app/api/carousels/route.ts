@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const carousels = await prisma.carousel.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { position: "asc" },
       select: {
         id: true,
         name: true,
@@ -57,9 +57,16 @@ export async function GET() {
         titleES: true,
         titleDE: true,
         limit: true,
-        orderBy: true,
+
+        position: true,
         beitragstypId: true,
-        regionId: true, // ✅ Incluir en la respuesta
+        regionId: true,
+        region: {
+          select: {
+            id: true,
+            name: true, // Esto es suficiente por ahora
+          },
+        },
         beitragstyp: {
           select: {
             id: true,
