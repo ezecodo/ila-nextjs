@@ -13,8 +13,8 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* 🔥 Sección principal más grande */}
         <main className="col-span-1 md:col-span-12 p-0">
-          <LatestEdition />
           <CarouselFromDb />
+          <LatestEdition />
         </main>
       </div>
     </div>
