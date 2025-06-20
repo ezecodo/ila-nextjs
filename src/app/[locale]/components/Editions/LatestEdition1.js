@@ -121,9 +121,9 @@ export default function LatestEditionWithArticles() {
   return (
     <div className="flex flex-col md:flex-row gap-6">
       {/* Columna Izquierda: Portada */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-3 flex flex-col items-center w-full md:w-1/3">
+      <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center w-full md:w-1/3">
         <div
-          className="w-full max-w-[300px] cursor-pointer"
+          className="relative w-full max-w-[300px] cursor-pointer"
           onClick={() => {
             if (currentEdition.coverImage) {
               setPopupImage(currentEdition.coverImage);
@@ -131,18 +131,20 @@ export default function LatestEditionWithArticles() {
             }
           }}
         >
-          <div className="relative">
+          <div className="relative overflow-hidden aspect-w-3 aspect-h-4">
             <Image
               src={currentEdition.coverImage}
               alt={`Portada de ${currentEdition.title}`}
               width={300}
               height={400}
               priority
-              className="rounded-lg shadow-md object-contain"
+              objectFit="contain"
+              className="rounded-lg shadow-md"
             />
+
             {currentEdition.isAvailableToOrder && (
               <div className="absolute top-2 right-2 z-10">
-                <i className="fa fa-shopping-cart text-white text-xl bg-red-600 p-2 shadow-md hover:bg-red-800 hover:scale-110 transition" />
+                <i className="fa fa-shopping-cart text-white text-xl bg-red-600 p-1 shadow-lg hover:bg-red-800 hover:scale-110"></i>
               </div>
             )}
           </div>

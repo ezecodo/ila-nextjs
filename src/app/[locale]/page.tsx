@@ -1,7 +1,7 @@
 // src/app/page.tsx
 // import EditionsList from "../components/EditionsList/EditionsList";
 
-import LatestEdition from "./components/Editions/LatestEdition1";
+import LatestEdition from "./components/Editions/LatestEdition";
 
 import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
 
