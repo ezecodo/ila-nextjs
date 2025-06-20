@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import Image from "next/image";
 import Link from "next/link";
-import HoverInfo from "../HoverInfo/HoverInfo";
+
 import EntityBadges from "../EntityBadges/EntityBadges";
 import MiniArticleCard from "../Articles/MiniArticleCard";
 import { useTranslations, useLocale } from "next-intl";
