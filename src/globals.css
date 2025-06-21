@@ -64,12 +64,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #111111;
-}
-
-.dark {
-  --background: #111111;
-  --foreground: #ffffff;
+  --foreground: #171717;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -79,26 +74,23 @@
   }
 }
 
-@layer base {
-  .ila-edition {
-    font-family: "Futura Cyrillic", Arial, sans-serif;
-    font-weight: 700;
-    font-size: clamp(2rem, 5vw, 3.25rem);
-    line-height: 1.1;
-    color: #333;
-  }
-}
-
 body {
+  @apply bg-[var(--background)] text-[var(--foreground)];
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+/* ✅ Esto SÍ funciona porque la clase "dark" está en <html> */
+html.dark {
+  --background: #111111;
+  --foreground: #ffffff;
 }
 
 .page-content {
   opacity: 0; /* Comienza invisible */
   transform: translateY(20px); /* Comienza ligeramente desplazada */
-  transition: opacity 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
+  transition:
+    opacity 0.8s cubic-bezier(0.25, 0.1, 0.25, 1),
     transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
@@ -163,6 +155,14 @@ body {
   overflow: auto;
 }
 
+.ila-edition {
+  font-family: "Futura Cyrillic", Arial, sans-serif;
+  font-weight: 700; /* Bold */
+  font-size: 1.2rem;
+
+  color: #333;
+  margin-bottom: 0.5rem;
+}
 .imageContainer {
   width: 100%;
   height: 140px; /* 🔥 Altura fija para TODAS */
@@ -192,7 +192,7 @@ body {
 }
 .regionBadge {
   display: inline-block;
-  background-color: #f0ad4e; /* Color de fondo para regiones */
+  background-color: #cccccc; /* Color de fondo para regiones */
   color: #fff; /* Color del texto */
   font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */
@@ -205,7 +205,7 @@ body {
 
 .topicBadge {
   display: inline-block;
-  background-color: #5bc0de; /* Color de fondo para topics */
+  background-color: #999999; /* Color de fondo para topics */
   color: #fff; /* Color del texto */
   font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */
@@ -218,7 +218,7 @@ body {
 
 .categoryBadge {
   display: inline-block;
-  background-color: #d13120; /* Color de fondo para topics */
+  background-color: #666666; /* Color de fondo para topics */
   color: #fff; /* Color del texto */
   font-size: 0.7rem; /* Tamaño de fuente */
   padding: 4px 8px; /* Espaciado interno */
@@ -245,3 +245,77 @@ body {
   z-index: 50;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Sombra sutil */
 }
+
+/* Base arrow wrapper  FLECHAS */
+.triangle-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  cursor: pointer;
+  width: 30px;
+  height: 80px; /* 🔥 más alta */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Posiciones */
+.left-arrow {
+  left: -15px;
+}
+
+.right-arrow {
+  right: -15px;
+}
+
+/* Flechas tipo punta larga */
+.triangle-left {
+  width: 0;
+  height: 0;
+  border-top: 40px solid transparent;
+  border-bottom: 40px solid transparent;
+  border-right: 15px solid #d13120 !important;
+}
+
+.triangle-right {
+  width: 0;
+  height: 0;
+  border-top: 40px solid transparent;
+  border-bottom: 40px solid transparent;
+  border-left: 15px solid #d13120 !important;
+}
+
+.slick-prev,
+.slick-next {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .triangle-arrow {
+    width: 20px;
+    height: 50px;
+  }
+
+  .triangle-left {
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-right: 10px solid #d13120;
+  }
+
+  .triangle-right {
+    border-top: 25px solid transparent;
+    border-bottom: 25px solid transparent;
+    border-left: 10px solid #d13120;
+  }
+
+  .left-arrow {
+    left: -10px;
+  }
+
+  .right-arrow {
+    right: -10px;
+  }
+}
+
+/* FIN STILOS FLECHAS */

@@ -140,7 +140,7 @@ const Header = () => {
                 <Link href="/articles">{t("nav.articles")}</Link>
               </li>
               <li>
-                <Link href="/editions">{t("nav.editions")}</Link>
+                <Link href="/#dossiers">{t("nav.editions")}</Link>
               </li>
               <li>
                 <Link href="/events">{t("nav.events")}</Link>
@@ -173,9 +173,7 @@ const Header = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/editions" onClick={() => setMenuOpen(false)}>
-                  {t("nav.editions")}
-                </Link>
+                <Link href="/#dossiers">{t("nav.editions")}</Link>
               </li>
               <li>
                 <Link href="/events" onClick={() => setMenuOpen(false)}>
