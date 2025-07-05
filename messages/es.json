@@ -61,7 +61,9 @@
     "noArticles": "No hay artículos escritos por este autor.",
     "articles": "Artículos",
     "loadingArticles": "Error al cargar los Artículos",
-    "loadingArticlesError": "Error al cargar los artículos"
+    "loadingArticlesError": "Error al cargar los artículos",
+    "by": "Por:",
+    "loading": "Cargando artículo..."
   },
   "dossiers": {
     "dossiers": "Ediciones",

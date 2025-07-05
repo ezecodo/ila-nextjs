@@ -28,7 +28,9 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/components/ClientLayout.js"
+    "src/components/ClientLayout.js",
+    "src/app/[locale]/components/Editions/EditionFlipCard/EditionFlipCard.js",
+    "src/app/[locale]/components/Editions/EditionsCarouselFlip/EditionsCarouselFlip.js"
   ],
   "exclude": ["node_modules"]
 }

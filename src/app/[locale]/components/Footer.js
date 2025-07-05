@@ -36,26 +36,6 @@ const Footer = () => (
             <FaInstagram className={styles.icon} aria-label="Instagram" />
           </Link>
         </li>
-        <li>
-          <Link
-            href="https://x.com/ila_Bonn"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {/* Usamos un SVG inline para el logo de X */}
-            <span className={styles.icon} aria-label="X">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                width="24px"
-                height="24px"
-              >
-                <path d="M23.07 0H16.9L12 7.2 7.14 0H.93L9.9 11.7 0 24h6.14l5.85-7.74L17.93 24H24l-9.93-12.28L23.07 0z" />
-              </svg>
-            </span>
-          </Link>
-        </li>
       </ul>
     </div>
   </footer>

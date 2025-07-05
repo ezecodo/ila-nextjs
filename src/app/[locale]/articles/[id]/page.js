@@ -12,8 +12,10 @@ import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
+import { useTranslations } from "next-intl";
 
 export default function ArticlePage() {
+  const t = useTranslations("article");
   const { id } = useParams();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
@@ -66,7 +68,7 @@ export default function ArticlePage() {
   }, [id]);
 
   if (error) return <p className="text-red-500">{error}</p>;
-  if (!article) return <p>Cargando artículo...</p>;
+  if (!article) return <p>{t("loading")}</p>;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -116,72 +118,108 @@ export default function ArticlePage() {
       )}
 
       {/* Etiquetas */}
-      <EntityBadges
-        categories={article.categories}
-        regions={article.regions}
-        topics={article.topics}
-      />
-
-      {/* Edición */}
-      {article.edition && article.edition.id ? (
-        <div className="text-gray-500 dark:text-gray-400 mb-4 relative flex items-center gap-2">
-          <HoverInfo
-            id={article.edition.id}
-            name={
-              <Link
-                href={`/editions/${article.edition.id}`}
-                className="flex items-center gap-2 no-underline hover:no-underline text-black dark:text-white"
-                onMouseEnter={(e) => {
-                  setHoveredEdition(article.edition.coverImage);
-                  setHoverPosition({ x: e.clientX, y: e.clientY });
-                }}
-                onMouseMove={(e) => {
-                  setHoverPosition({ x: e.clientX, y: e.clientY });
-                }}
-                onMouseLeave={() => setHoveredEdition(null)}
-              >
-                <span
-                  className="text-red-700 dark:text-red-400 text-[1.2em] lowercase"
-                  style={{ fontFamily: "Futura Cyrillic, sans-serif" }}
-                >
-                  ila {article.edition.number}
-                </span>
-                <span className="font-bold text-black dark:text-white">
-                  {article.edition.title}
-                </span>
-              </Link>
-            }
-            entityType="editions"
-            className="text-lg font-bold"
-          />
-        </div>
-      ) : (
-        <p className="text-gray-500 mb-4">Edición no disponible</p>
-      )}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <EntityBadges
+          categories={article.categories}
+          regions={article.regions}
+          topics={article.topics}
+        />
+      </div>
 
       {/* Autores */}
       {article.authors?.length > 0 && (
-        <div className="text-gray-700 dark:text-gray-200 flex items-center gap-1">
-          <span>Por:</span>
-          {article.authors.map((author) => (
-            <HoverInfo
-              key={author.id}
-              id={author.id}
-              name={
-                <Link
-                  href={`/authors/${author.id}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {author.name}
-                </Link>
-              }
-              entityType="authors"
-              className="text-blue-600 hover:underline"
-            />
+        <div className="text-gray-700 dark:text-gray-200 flex items-center gap-1 mb-6">
+          <span className="font-medium text-base">{t("by")}</span>
+          {article.authors.map((author, i) => (
+            <span key={author.id}>
+              <HoverInfo
+                id={author.id}
+                name={
+                  <Link
+                    href={`/authors/${author.id}`}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    {author.name}
+                  </Link>
+                }
+                entityType="authors"
+                className="text-blue-600 hover:underline"
+              />
+              {i < article.authors.length - 1 && <span>,&nbsp;</span>}
+            </span>
           ))}
         </div>
       )}
-
+      {/* Frase edición personalizada CON HOVER */}
+      {article.edition && article.edition.id && (
+        <div className="mb-4 text-sm text-gray-600 dark:text-gray-300 text-left italic">
+          {locale === "es" ? (
+            <>
+              Aparece en{" "}
+              <HoverInfo
+                id={article.edition.id}
+                name={
+                  <Link
+                    href={`/editions/${article.edition.id}`}
+                    className="inline-flex items-center gap-1 font-bold no-underline hover:underline"
+                    onMouseEnter={(e) => {
+                      setHoveredEdition(article.edition.coverImage);
+                      setHoverPosition({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(e) => {
+                      setHoverPosition({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => setHoveredEdition(null)}
+                  >
+                    <span
+                      className="text-red-700"
+                      style={{ fontFamily: "Futura Cyrillic, sans-serif" }}
+                    >
+                      ila {article.edition.number}
+                    </span>
+                    <span className="font-semibold text-black dark:text-white ml-1">
+                      {article.edition.title}
+                    </span>
+                  </Link>
+                }
+                entityType="editions"
+              />
+            </>
+          ) : (
+            <>
+              Erscheint in{" "}
+              <HoverInfo
+                id={article.edition.id}
+                name={
+                  <Link
+                    href={`/editions/${article.edition.id}`}
+                    className="inline-flex items-center gap-1 font-bold no-underline hover:underline"
+                    onMouseEnter={(e) => {
+                      setHoveredEdition(article.edition.coverImage);
+                      setHoverPosition({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(e) => {
+                      setHoverPosition({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseLeave={() => setHoveredEdition(null)}
+                  >
+                    <span
+                      className="text-red-700"
+                      style={{ fontFamily: "Futura Cyrillic, sans-serif" }}
+                    >
+                      ila {article.edition.number}
+                    </span>
+                    <span className="font-semibold text-black dark:text-white ml-1">
+                      {article.edition.title}
+                    </span>
+                  </Link>
+                }
+                entityType="editions"
+              />
+            </>
+          )}
+        </div>
+      )}
       {/* Contenido */}
       <div className="text-gray-700 dark:text-gray-200 mt-6">
         {(isES ? article.contentES : article.content)
