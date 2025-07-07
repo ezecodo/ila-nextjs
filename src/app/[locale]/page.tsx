@@ -20,10 +20,10 @@ export default function Home() {
     <div className="w-full px-1 sm:px-4 py-4">
       <main className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="col-span-1 md:col-span-12 p-0">
-          <CarouselFromDb />
           <div id="dossiers" className="scroll-mt-[120px]">
             <LatestEdition />
           </div>
+          <CarouselFromDb />
         </div>
       </main>
     </div>

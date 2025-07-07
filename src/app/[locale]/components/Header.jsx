@@ -10,8 +10,10 @@ import { FaBars, FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
 
 import styles from "./Header.module.css";
 import SearchBar from "./SearchBar";
+import { useLocale } from "next-intl";
 
 const Header = () => {
+  const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
   const pathname = usePathname();
@@ -108,26 +110,62 @@ const Header = () => {
         </button>
         <Link href="/" className="flex flex-col items-center gap-0.5 mx-auto">
           <Image src="/ila-logo.png" alt="ILA Logo" width={40} height={40} />
-          <span className="text-sm font-medium text-center">
+          <span
+            className="text-sm font-medium text-center"
+            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+          >
             {t("tagline")}
           </span>
         </Link>
       </div>
 
       {/* 🔹 Línea principal (desktop) */}
-      <div className="w-full hidden md:flex items-center px-4 py-3 relative">
-        {/* Logo + título a la izquierda, fuera del flujo */}
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+      <div className="w-full hidden md:flex flex-col px-4 pt-2 pb-1 relative">
+        {/* Logo + tagline arriba */}
+        <div className="flex items-center gap-3 mb-6">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/ila-logo.png" alt="ILA Logo" width={40} height={40} />
-            <span className="text-base font-medium whitespace-nowrap">
-              {t("tagline")}
+            <Image src="/ila-logo.png" alt="ILA Logo" width={48} height={48} />
+            <span
+              className="text-3xl font-bold whitespace-nowrap"
+              style={{
+                fontFamily: "'Futura Cyrillic', Arial, sans-serif",
+                letterSpacing: "-1px",
+                position: "relative",
+              }}
+            >
+              {locale === "es" ? (
+                <>
+                  La revista de Latinoam
+                  <span
+                    style={{ position: "relative", display: "inline-block" }}
+                  >
+                    e
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        left: "0.24em", // bien sobre la e
+                        top: "0.25em", // justo encima
+                        width: "0.21em", // más ancho para parecer tilde
+                        height: "0.10em", // bien bajo para que no sea punto
+                        background: "#222",
+                        borderRadius: "0.03em",
+                        display: "inline-block",
+                        transform: "rotate(-18deg)", // bien inclinado
+                        zIndex: 2,
+                      }}
+                    ></span>
+                  </span>
+                  rica
+                </>
+              ) : (
+                t("tagline")
+              )}
             </span>
           </Link>
         </div>
-
-        {/* Centro: menú + búsqueda centrado */}
-        <div className="mx-auto flex items-center gap-6">
+        {/* Menú debajo */}
+        <div className="flex justify-center w-full">
           <nav className="flex items-center gap-4">
             <ul className={styles.menu}>
               <li>
