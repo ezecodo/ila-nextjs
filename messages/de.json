@@ -26,7 +26,32 @@
     "noResults": "Keine Artikel zu dieser Suche gefunden.",
     "resultstitle": "Suchergebnisse:"
   },
-
+  "navMenu": {
+    "index": "Home",
+    "contents": "Inhalte",
+    "currentIssue": "Aktuelles Heft",
+    "onlineOnly": "online only",
+    "archive": "Archiv",
+    "orderSubscribe": "Bestellen & Abonnieren",
+    "subscription": "Abonnement",
+    "singleIssue": "Einzelheftbestellung",
+    "supportIla": "Support your ILA",
+    "donate": "Spenden",
+    "getInvolved": "Mitmachen",
+    "advertise": "Anzeigen",
+    "newsEvents": "Aktuelles & Veranstaltungen",
+    "news": "Aktuelles",
+    "events": "Veranstaltungen",
+    "aboutUs": "Über uns",
+    "history": "Geschichte der ila",
+    "editorialTeam": "die Redaktion (Köpfe)",
+    "speakers": "Referent:innen",
+    "network": "Netzwerk",
+    "contact": "Kontakt",
+    "legalNotice": "Impressum",
+    "terms": "AGB",
+    "privacy": "Datenschutz"
+  },
   "about": {
     "title": "Über uns",
     "historyTitle": "Wie es anfing",

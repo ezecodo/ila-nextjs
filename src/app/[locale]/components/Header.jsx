@@ -11,8 +11,9 @@ import { FaBars, FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
 import styles from "./Header.module.css";
 import SearchBar from "./SearchBar";
 import { useLocale } from "next-intl";
+import DesktopNavMenu from "./DesktopNavMenu/DesktopNavMenu";
 
-const Header = () => {
+export default function Header() {
   const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
@@ -28,15 +29,14 @@ const Header = () => {
     }
     return false;
   });
-
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-
   useEffect(() => {
     if (!mounted) return;
     localStorage.setItem("theme", darkMode ? "dark" : "light");
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode, mounted]);
+
   const handleSignOut = async () => {
     await signOut({ redirect: false });
     router.push("/");
@@ -47,7 +47,100 @@ const Header = () => {
 
   return (
     <header className={styles.header}>
-      {/* 🔹 Línea superior (desktop) - Auth + idioma */}
+      {/* Mobile top */}
+      <div className="w-full flex md:hidden items-center justify-between px-4 py-2">
+        <button
+          className={styles.menuButton}
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
+        >
+          <FaBars size={24} />
+        </button>
+        <Link href="/" className="flex flex-col items-center gap-0.5 mx-auto">
+          <Image src="/ila-logo.png" alt="ILA Logo" width={40} height={40} />
+          <span
+            className="text-sm font-medium text-center"
+            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+          >
+            {t("tagline")}
+          </span>
+        </Link>
+      </div>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="w-full md:hidden px-4 pb-6 pt-2 space-y-6 bg-white dark:bg-gray-900 shadow-md">
+          <nav className="space-y-3">
+            <ul className="flex flex-col gap-2 text-lg font-semibold text-center text-gray-900 dark:text-white">
+              <li>
+                <Link href="/" onClick={() => setMenuOpen(false)}>
+                  {t("nav.home")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" onClick={() => setMenuOpen(false)}>
+                  {t("nav.about")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/articles" onClick={() => setMenuOpen(false)}>
+                  {t("nav.articles")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/#dossiers" onClick={() => setMenuOpen(false)}>
+                  {t("nav.editions")}
+                </Link>
+              </li>
+              <li>
+                <Link href="/events" onClick={() => setMenuOpen(false)}>
+                  {t("nav.events")}
+                </Link>
+              </li>
+            </ul>
+          </nav>
+          <div className="w-full">
+            <SearchBar />
+          </div>
+          <div className="flex flex-wrap justify-center items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm">
+            {session && (
+              <span className="font-semibold text-center">
+                {t("greeting", { name: session.user?.name || "Usuario" })}
+              </span>
+            )}
+            {session ? (
+              <>
+                <Link href={dashboardRoute}>
+                  <button className={styles.iconButton}>
+                    <FaTachometerAlt />
+                  </button>
+                </Link>
+                <button className={styles.iconButton} onClick={handleSignOut}>
+                  <FaSignOutAlt />
+                </button>
+              </>
+            ) : (
+              <button className={styles.iconButton} onClick={() => signIn()}>
+                <FaUser />
+              </button>
+            )}
+            <button
+              onClick={() => router.replace(pathname, { locale: "es" })}
+              className={styles.langButton}
+            >
+              ES
+            </button>
+            <button
+              onClick={() => router.replace(pathname, { locale: "de" })}
+              className={styles.langButton}
+            >
+              DE
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop top: auth + locale */}
       <div className="w-full hidden md:flex justify-end items-center px-4 py-1 gap-2">
         {session && (
           <span className={styles.welcomeText}>
@@ -61,7 +154,7 @@ const Header = () => {
                 <FaTachometerAlt />
               </button>
             </Link>
-            <button className={styles.iconButton} onClick={() => signOut()}>
+            <button className={styles.iconButton} onClick={handleSignOut}>
               <FaSignOutAlt />
             </button>
           </>
@@ -99,38 +192,22 @@ const Header = () => {
         </div>
       </div>
 
-      {/* 🔹 Mobile top: logo + menú */}
-      <div className="w-full flex md:hidden items-center justify-between px-4 py-2">
-        <button
-          className={`${styles.menuButton}`}
-          onClick={toggleMenu}
-          aria-label="Toggle menu"
-        >
-          <FaBars size={24} />
-        </button>
-        <Link href="/" className="flex flex-col items-center gap-0.5 mx-auto">
-          <Image src="/ila-logo.png" alt="ILA Logo" width={40} height={40} />
-          <span
-            className="text-sm font-medium text-center"
-            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
-          >
-            {t("tagline")}
-          </span>
-        </Link>
-      </div>
-
-      {/* 🔹 Línea principal (desktop) */}
-      <div className="w-full hidden md:flex flex-col px-4 pt-2 pb-1 relative">
-        {/* Logo + tagline arriba */}
-        <div className="flex items-center gap-3 mb-6">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/ila-logo.png" alt="ILA Logo" width={48} height={48} />
+      {/* Desktop main */}
+      <div className="w-full hidden md:flex flex-col px-4 pt-2 pb-0">
+        {/* Logo centrado y tagline debajo */}
+        <div className="flex flex-col items-center mb-0">
+          <Link href="/" className="flex flex-col items-center">
+            <Image
+              src="/ila-logo.png"
+              alt="ILA Logo"
+              width={120}
+              height={120}
+            />
             <span
-              className="text-3xl font-bold whitespace-nowrap"
+              className="mt-2 text-2xl md:text-3xl font-bold whitespace-nowrap text-center"
               style={{
                 fontFamily: "'Futura Cyrillic', Arial, sans-serif",
-                letterSpacing: "-1px",
-                position: "relative",
+                letterSpacing: "-0.5px",
               }}
             >
               {locale === "es" ? (
@@ -144,17 +221,16 @@ const Header = () => {
                       aria-hidden="true"
                       style={{
                         position: "absolute",
-                        left: "0.24em", // bien sobre la e
-                        top: "0.25em", // justo encima
-                        width: "0.21em", // más ancho para parecer tilde
-                        height: "0.10em", // bien bajo para que no sea punto
+                        left: "0.24em",
+                        top: "0.25em",
+                        width: "0.21em",
+                        height: "0.10em",
                         background: "#222",
                         borderRadius: "0.03em",
-                        display: "inline-block",
-                        transform: "rotate(-18deg)", // bien inclinado
+                        transform: "rotate(-18deg)",
                         zIndex: 2,
                       }}
-                    ></span>
+                    />
                   </span>
                   rica
                 </>
@@ -163,112 +239,13 @@ const Header = () => {
               )}
             </span>
           </Link>
-        </div>
-        {/* Menú debajo */}
-        <div className="flex justify-center w-full">
-          <nav className="flex items-center gap-4">
-            <ul className={styles.menu}>
-              <li>
-                <Link href="/">{t("nav.home")}</Link>
-              </li>
-              <li>
-                <Link href="/about">{t("nav.about")}</Link>
-              </li>
-              <li>
-                <Link href="/articles">{t("nav.articles")}</Link>
-              </li>
-              <li>
-                <Link href="/#dossiers">{t("nav.editions")}</Link>
-              </li>
-              <li>
-                <Link href="/events">{t("nav.events")}</Link>
-              </li>
-            </ul>
-            <SearchBar />
-          </nav>
+
+          {/* Nav + Search en la misma línea, perfectamente alineados */}
+          <div className="flex items-center justify-center gap-8">
+            <DesktopNavMenu />
+          </div>
         </div>
       </div>
-
-      {/* 🔹 Menú mobile desplegado */}
-      {menuOpen && (
-        <div className="w-full md:hidden px-4 pb-6 pt-2 space-y-6 bg-white dark:bg-gray-900 shadow-md">
-          {/* Menú de navegación */}
-          <nav className="space-y-3">
-            <ul className="flex flex-col gap-2 text-lg font-semibold text-center text-gray-900 dark:text-white">
-              <li>
-                <Link href="/" onClick={() => setMenuOpen(false)}>
-                  {t("nav.home")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" onClick={() => setMenuOpen(false)}>
-                  {t("nav.about")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/articles" onClick={() => setMenuOpen(false)}>
-                  {t("nav.articles")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/#dossiers">{t("nav.editions")}</Link>
-              </li>
-              <li>
-                <Link href="/events" onClick={() => setMenuOpen(false)}>
-                  {t("nav.events")}
-                </Link>
-              </li>
-            </ul>
-          </nav>
-
-          {/* Buscador */}
-          <div className="w-full">
-            <SearchBar />
-          </div>
-
-          {/* Controles */}
-          {/* Controles en una sola línea */}
-          <div className="flex flex-wrap justify-center items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm">
-            {session && (
-              <span className="font-semibold text-center">
-                {t("greeting", { name: session.user?.name || "Usuario" })}
-              </span>
-            )}
-
-            {session ? (
-              <>
-                <Link href={dashboardRoute}>
-                  <button className={styles.iconButton}>
-                    <FaTachometerAlt />
-                  </button>
-                </Link>
-                <button className={styles.iconButton} onClick={handleSignOut}>
-                  <FaSignOutAlt />
-                </button>
-              </>
-            ) : (
-              <button className={styles.iconButton} onClick={() => signIn()}>
-                <FaUser />
-              </button>
-            )}
-
-            <button
-              onClick={() => router.replace(pathname, { locale: "es" })}
-              className={styles.langButton}
-            >
-              ES
-            </button>
-            <button
-              onClick={() => router.replace(pathname, { locale: "de" })}
-              className={styles.langButton}
-            >
-              DE
-            </button>
-          </div>
-        </div>
-      )}
     </header>
   );
-};
-
-export default Header;
+}
