@@ -1,10 +1,10 @@
 import Image from "next/image";
-import Link from "next/link";
 import { useLocale } from "next-intl";
 import EntityBadges from "../EntityBadges/EntityBadges";
 import HoverInfo from "../HoverInfo/HoverInfo";
 import PreviewHover from "../PreviewHover/PreviewHover";
 import { Link as LocaleLink } from "@/i18n/navigation";
+import ArticleLink from "../Articles/ArticleLink/ArticleLink";
 
 export default function MiniArticleCard({ article }) {
   const locale = useLocale();
@@ -47,9 +47,11 @@ export default function MiniArticleCard({ article }) {
               isES ? article.previewTextES || "—" : article.previewText || "—"
             }
           >
-            <Link href={`/articles/${article.id}`} className="hover:underline">
-              {isES ? article.titleES : article.title}
-            </Link>
+            <ArticleLink article={article}>
+              <span className="hover:underline">
+                {isES ? article.titleES : article.title}
+              </span>
+            </ArticleLink>
           </PreviewHover>
 
           {isES && (

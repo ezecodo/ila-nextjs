@@ -12,6 +12,7 @@ model Article {
   id                Int               @id @default(autoincrement())
   title             String
   content           String            @db.LongText
+  legacyPath        String?           @unique
   beitragstypId     Int
   beitragssubtypId  Int?
   editionId         Int?

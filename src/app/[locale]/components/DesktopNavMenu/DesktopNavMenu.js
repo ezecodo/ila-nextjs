@@ -1,212 +1,175 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
 import SearchBar from "../SearchBar";
+import { navSections } from "./navMenuConfig";
 
-export default function DesktopNavMenu() {
+export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
   const t = useTranslations("navMenu");
+  const { data: session } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [openSection, setOpenSection] = useState(null);
 
-  return (
-    <nav>
-      <div className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-lg">
-        {/* Flex container que alinea UL y SearchBar en la misma fila */}
-        <div className="flex items-center justify-center">
-          {/* El menú */}
-          <ul className="flex items-center gap-8 text-base font-semibold text-gray-800">
-            <li>
-              <Link
-                href="/reiter"
-                className="hover:text-red-600 transition-colors"
+  // ─── MÓVIL: acordeón + auth + locale ─────────────────────────────────
+  if (isMobile) {
+    return (
+      <nav>
+        <ul className="flex flex-col gap-1 text-lg font-medium text-center">
+          {/* 1) Saludo */}
+          {session && (
+            <li className="py-2 text-base font-semibold">
+              {t("greeting", { name: session.user.name })}
+            </li>
+          )}
+
+          {/* 2) Secciones desplegables */}
+          {navSections.map((sec) => (
+            <React.Fragment key={sec.labelKey}>
+              <li
+                className="py-2 cursor-pointer hover:text-red-600 transition-colors"
+                onClick={() =>
+                  setOpenSection(
+                    openSection === sec.labelKey ? null : sec.labelKey
+                  )
+                }
               >
-                {t("index")}
-              </Link>
-            </li>
-            <li className="group relative">
-              <span className="cursor-pointer hover:text-red-600 transition-colors">
-                {t("contents")}
-              </span>
-              <ul className="absolute left-0 top-full w-48 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity overflow-hidden">
-                <li>
-                  <Link
-                    href="/contents/current-issue"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("currentIssue")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contents/online-only"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("onlineOnly")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contents/archive"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("archive")}
-                  </Link>
-                </li>
-              </ul>
-            </li>
-            <li className="group relative">
-              <span className="cursor-pointer hover:text-red-600 transition-colors">
-                {t("orderSubscribe")}
-              </span>
-              <ul className="absolute left-0 top-full w-48 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity overflow-hidden">
-                <li>
-                  <Link
-                    href="/subscribe/subscription"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("subscription")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/subscribe/single-issue"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("singleIssue")}
-                  </Link>
-                </li>
-              </ul>
-            </li>
-            <li className="group relative">
-              <span className="cursor-pointer hover:text-red-600 transition-colors">
-                {t("supportIla")}
-              </span>
-              <ul className="absolute left-0 top-full w-48 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity overflow-hidden">
-                <li>
-                  <Link
-                    href="/support/donate"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("donate")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/support/get-involved"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("getInvolved")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/support/advertise"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("advertise")}
-                  </Link>
-                </li>
-              </ul>
-            </li>
-            <li className="group relative">
-              <span className="cursor-pointer hover:text-red-600 transition-colors">
-                {t("newsEvents")}
-              </span>
-              <ul className="absolute left-0 top-full w-48 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity overflow-hidden">
-                <li>
-                  <Link
-                    href="/news"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("news")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/events"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("events")}
-                  </Link>
-                </li>
-              </ul>
-            </li>
-            <li className="group relative">
-              <span className="cursor-pointer hover:text-red-600 transition-colors">
-                {t("aboutUs")}
-              </span>
-              <ul className="absolute left-0 top-full w-56 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity overflow-hidden">
-                <li>
-                  <Link
-                    href="/about/history"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("history")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about/editorial-team"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("editorialTeam")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about/speakers"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("speakers")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about/network"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("network")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about/contact"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("contact")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about/legal-notice"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("legalNotice")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about/terms"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("terms")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/about/privacy"
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {t("privacy")}
-                  </Link>
-                </li>
-              </ul>
-            </li>
-          </ul>
+                {t(sec.labelKey)}
+              </li>
+              {sec.items && openSection === sec.labelKey && (
+                <ul className="flex flex-col gap-1 pl-6 text-base font-normal">
+                  {sec.items.map((item) => (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => {
+                          setOpenSection(null);
+                          onLinkClick?.();
+                        }}
+                        className="block py-1 hover:underline"
+                      >
+                        {t(item.labelKey)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </React.Fragment>
+          ))}
 
-          {/* aquí, justo al lado derecho del UL, pegada con un ml-8 */}
-          <div className="ml-8 w-64">
+          {/* 3) SearchBar */}
+          <li className="pt-4 px-4">
             <SearchBar />
+          </li>
+
+          {/* 4) Separador */}
+          <li>
+            <hr className="border-gray-200 dark:border-gray-700 my-4" />
+          </li>
+
+          {/* 5) Dashboard / Logout / Login */}
+          <li className="flex justify-center items-center gap-4">
+            {session ? (
+              <>
+                <Link
+                  href={
+                    session.user.role === "admin"
+                      ? "/dashboard"
+                      : "/dashboard-users"
+                  }
+                  onClick={onLinkClick}
+                  className="flex items-center gap-2"
+                >
+                  <FaTachometerAlt />
+                  {t("dashboard")}
+                </Link>
+                <button
+                  onClick={() => {
+                    signOut({ redirect: false });
+                    onLinkClick?.();
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <FaSignOutAlt />
+                  {t("logout")}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  signIn();
+                  onLinkClick?.();
+                }}
+                className="flex items-center gap-2"
+              >
+                <FaUser />
+                {t("login")}
+              </button>
+            )}
+          </li>
+
+          {/* 6) Selector de idioma */}
+          <li className="flex justify-center gap-2 pt-2">
+            <button
+              onClick={() => {
+                router.replace(pathname, { locale: "es" });
+                onLinkClick?.();
+              }}
+              className="px-2 py-1 border rounded"
+            >
+              ES
+            </button>
+            <button
+              onClick={() => {
+                router.replace(pathname, { locale: "de" });
+                onLinkClick?.();
+              }}
+              className="px-2 py-1 border rounded"
+            >
+              DE
+            </button>
+          </li>
+        </ul>
+      </nav>
+    );
+  }
+
+  // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
+  return (
+    <nav className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-lg shadow-md">
+      <div className="flex items-center justify-center gap-8">
+        {navSections.map((sec) => (
+          <div key={sec.labelKey} className="relative group">
+            <Link
+              href={sec.href || "#"}
+              className="font-semibold hover:text-red-600 transition-colors"
+            >
+              {t(sec.labelKey)}
+            </Link>
+            {sec.items && (
+              <ul className="absolute left-0 top-full w-48 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity">
+                {sec.items.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="block px-4 py-2 hover:bg-gray-100"
+                    >
+                      {t(item.labelKey)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
+        ))}
+
+        {/* SearchBar al final, mismo look */}
+        <div className="ml-8 w-64">
+          <SearchBar />
         </div>
       </div>
     </nav>

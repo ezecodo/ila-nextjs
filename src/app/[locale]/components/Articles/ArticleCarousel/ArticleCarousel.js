@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import Slider from "../../SafeSlick/SafeSlick";
 import { useLocale } from "next-intl";
@@ -11,6 +10,7 @@ import FavoriteButton from "../../../components/FavoriteButton/FavoriteButton";
 import HoverInfo from "../../../components/HoverInfo/HoverInfo";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import { PrevArrow, NextArrow } from "../CustomArrows/CustomArrows";
+import ArticleLink from "../ArticleLink/ArticleLink";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -27,7 +27,7 @@ export default function FilteredArticlesCarousel(props) {
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("limit", effectiveLimit.toString());
-    if (region) params.set("regionId", String(region)); // 👈 importante que sea regionId
+    if (region) params.set("regionId", String(region));
     if (beitragstypId) params.set("beitragstypId", String(beitragstypId));
     params.set("locale", locale);
 
@@ -57,7 +57,7 @@ export default function FilteredArticlesCarousel(props) {
         settings: {
           slidesToShow: 1,
           slidesToScroll: 1,
-          arrows: articles.length > 1, // ✅ flechas en mobile si hay más de 1
+          arrows: articles.length > 1,
           dots: false,
         },
       },
@@ -101,7 +101,7 @@ export default function FilteredArticlesCarousel(props) {
             >
               <div className="flex flex-col">
                 <div className="relative w-full overflow-hidden rounded-md">
-                  <Link href={`/articles/${article.id}`}>
+                  <ArticleLink article={article}>
                     {firstImage?.url && (
                       <Image
                         src={firstImage.url}
@@ -111,7 +111,7 @@ export default function FilteredArticlesCarousel(props) {
                         className="w-full h-[240px] object-cover rounded-md"
                       />
                     )}
-                  </Link>
+                  </ArticleLink>
                   <div className="absolute bottom-0 left-0 w-full px-2 py-1 bg-gradient-to-t from-white/80 via-white/60 to-transparent dark:from-black/70 dark:via-black/40 backdrop-blur-sm">
                     <EntityBadges
                       categories={article.categories}
@@ -137,12 +137,9 @@ export default function FilteredArticlesCarousel(props) {
                         : article.previewText || "—"
                     }
                   >
-                    <Link
-                      href={`/articles/${article.id}`}
-                      className="hover:underline"
-                    >
-                      {articleTitle}
-                    </Link>
+                    <ArticleLink article={article}>
+                      <span className="hover:underline">{articleTitle}</span>
+                    </ArticleLink>
                   </PreviewHover>
                 </h2>
 

@@ -9,7 +9,7 @@ import Image from "next/image";
 import { FaBars, FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
 
 import styles from "./Header.module.css";
-import SearchBar from "./SearchBar";
+
 import { useLocale } from "next-intl";
 import DesktopNavMenu from "./DesktopNavMenu/DesktopNavMenu";
 
@@ -69,74 +69,11 @@ export default function Header() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="w-full md:hidden px-4 pb-6 pt-2 space-y-6 bg-white dark:bg-gray-900 shadow-md">
-          <nav className="space-y-3">
-            <ul className="flex flex-col gap-2 text-lg font-semibold text-center text-gray-900 dark:text-white">
-              <li>
-                <Link href="/" onClick={() => setMenuOpen(false)}>
-                  {t("nav.home")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" onClick={() => setMenuOpen(false)}>
-                  {t("nav.about")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/articles" onClick={() => setMenuOpen(false)}>
-                  {t("nav.articles")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/#dossiers" onClick={() => setMenuOpen(false)}>
-                  {t("nav.editions")}
-                </Link>
-              </li>
-              <li>
-                <Link href="/events" onClick={() => setMenuOpen(false)}>
-                  {t("nav.events")}
-                </Link>
-              </li>
-            </ul>
-          </nav>
-          <div className="w-full">
-            <SearchBar />
-          </div>
-          <div className="flex flex-wrap justify-center items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 text-sm">
-            {session && (
-              <span className="font-semibold text-center">
-                {t("greeting", { name: session.user?.name || "Usuario" })}
-              </span>
-            )}
-            {session ? (
-              <>
-                <Link href={dashboardRoute}>
-                  <button className={styles.iconButton}>
-                    <FaTachometerAlt />
-                  </button>
-                </Link>
-                <button className={styles.iconButton} onClick={handleSignOut}>
-                  <FaSignOutAlt />
-                </button>
-              </>
-            ) : (
-              <button className={styles.iconButton} onClick={() => signIn()}>
-                <FaUser />
-              </button>
-            )}
-            <button
-              onClick={() => router.replace(pathname, { locale: "es" })}
-              className={styles.langButton}
-            >
-              ES
-            </button>
-            <button
-              onClick={() => router.replace(pathname, { locale: "de" })}
-              className={styles.langButton}
-            >
-              DE
-            </button>
-          </div>
+        <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-md">
+          <DesktopNavMenu
+            isMobile={true}
+            onLinkClick={() => setMenuOpen(false)}
+          />
         </div>
       )}
 
