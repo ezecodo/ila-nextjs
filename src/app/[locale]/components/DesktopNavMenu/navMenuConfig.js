@@ -19,7 +19,7 @@ export const navSections = [
   {
     labelKey: "supportIla",
     items: [
-      { labelKey: "donate", href: "/support/donate" },
+      { labelKey: "donate", href: "/donar" },
       { labelKey: "getInvolved", href: "/support/get-involved" },
       { labelKey: "advertise", href: "/support/advertise" },
     ],
