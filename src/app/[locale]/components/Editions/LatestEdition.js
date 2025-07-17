@@ -85,17 +85,31 @@ export default function LatestEditionWithArticles() {
 
   return (
     <>
-      {/* ENCABEZADO DE EDICIÓN */}
       {currentEdition && (
-        <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900 px-6 py-4 rounded mb-8">
-          <h2 className="tracking-tight leading-tight flex flex-wrap items-baseline gap-2">
-            <span className="ila-edition block text-[2.75rem] md:text-[3rem] leading-none">
-              ila {currentEdition.number}
-            </span>
-            <span className="block font-serif text-black dark:text-white text-2xl md:text-3xl font-bold">
-              – {currentEdition.title}
-            </span>
-          </h2>
+        <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900 px-4 py-3 rounded mb-6">
+          <div className="flex flex-col md:flex-row md:items-baseline md:gap-4">
+            <div className="flex flex-col leading-tight">
+              <span className="ila-edition block text-[2rem] md:text-[2.25rem] font-bold leading-none">
+                ila {currentEdition.number}
+              </span>
+              {currentEdition.datePublished && (
+                <span className="text-xs text-gray-500 dark:text-gray-400 -mt-0.5">
+                  {new Date(currentEdition.datePublished)
+                    .toLocaleDateString(locale === "es" ? "es-ES" : "de-DE", {
+                      month: "short",
+                      year: "numeric",
+                    })
+                    .replace(".", "")
+                    .replace(/^\w/, (c) => c.toUpperCase())}
+                </span>
+              )}
+            </div>
+
+            <h2 className="text-[1.25rem] md:text-[1.5rem] font-serif font-bold leading-snug">
+              <span className="text-black dark:text-white">Dossier:</span>{" "}
+              <span className="text-red-800">{currentEdition.title}</span>
+            </h2>
+          </div>
         </div>
       )}
 

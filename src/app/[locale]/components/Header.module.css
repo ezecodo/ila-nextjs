@@ -228,3 +228,33 @@
     font-size: 14px;
   }
 }
+/* 🔥 Estilos cuando el header está en modo compacto */
+.compact {
+  padding: 0.25rem 1rem;
+  background-color: var(--background);
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compact .desktopMain,
+.compact .desktopTop {
+  display: none;
+}
+
+.compact .compactMenu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.compact .logo {
+  width: 40px;
+  height: auto;
+  max-height: 40px;
+}
