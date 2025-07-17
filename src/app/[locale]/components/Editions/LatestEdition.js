@@ -85,15 +85,16 @@ export default function LatestEditionWithArticles() {
 
   return (
     <>
-      {currentEdition && (
-        <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900 px-4 py-3 rounded mb-6">
-          <div className="flex flex-col md:flex-row md:items-baseline md:gap-4">
-            <div className="flex flex-col leading-tight">
-              <span className="ila-edition block text-[2rem] md:text-[2.25rem] font-bold leading-none">
+      <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900 px-4 py-4 rounded mb-6 text-center">
+        {currentEdition && (
+          <div className="flex flex-wrap justify-center items-center gap-4 text-[1.25rem] md:text-[1.5rem] leading-snug">
+            {/* Bloque ILA + Fecha */}
+            <div className="flex flex-col items-center">
+              <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem]">
                 ila {currentEdition.number}
               </span>
               {currentEdition.datePublished && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 -mt-0.5">
+                <span className="text-sm text-gray-500 dark:text-gray-400 -mt-1">
                   {new Date(currentEdition.datePublished)
                     .toLocaleDateString(locale === "es" ? "es-ES" : "de-DE", {
                       month: "short",
@@ -105,13 +106,18 @@ export default function LatestEditionWithArticles() {
               )}
             </div>
 
-            <h2 className="text-[1.25rem] md:text-[1.5rem] font-serif font-bold leading-snug">
-              <span className="text-black dark:text-white">Dossier:</span>{" "}
-              <span className="text-red-800">{currentEdition.title}</span>
-            </h2>
+            {/* Bloque Dossier */}
+            <div className="flex items-center gap-2">
+              <span className="font-serif font-bold text-black dark:text-white">
+                Dossier:
+              </span>
+              <span className="font-serif font-bold text-red-800">
+                {currentEdition.title}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* CONTENIDO PRINCIPAL */}
       <div className="max-w-7xl mx-auto px-6 pb-16">
