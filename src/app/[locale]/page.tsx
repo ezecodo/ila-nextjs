@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import LatestEdition from "./components/Editions/LatestEdition";
+import LatestEdition1 from "./components/Editions/LatestEdition1";
 import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
 
 export default function Home() {
@@ -21,7 +21,7 @@ export default function Home() {
       <main className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="col-span-1 md:col-span-12 p-0">
           <div id="dossiers" className="scroll-mt-[120px]">
-            <LatestEdition />
+            <LatestEdition1 />
           </div>
           <CarouselFromDb />
         </div>
