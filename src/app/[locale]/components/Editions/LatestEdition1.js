@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import Image from "next/image";
 import Link from "next/link";
+import DonationBanner from "../DonationBanner/DonationBanner";
 
 import EntityBadges from "../EntityBadges/EntityBadges";
 import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
@@ -175,7 +176,8 @@ export default function LatestEditionWithArticles() {
                     entityType="editions"
                     context="editions"
                   />
-
+                  {/* Banner de Donación */}
+                  <DonationBanner />
                   {/* Botón de acceso */}
                   <Link
                     href={`/editions/${currentEdition.id}`}
