@@ -19,7 +19,7 @@ export default function MiniArticleCardGrid({ article }) {
     : null;
 
   return (
-    <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-white border shadow-sm">
       {/* Imagen */}
       {firstImage && (
         <div className="relative w-full h-48">

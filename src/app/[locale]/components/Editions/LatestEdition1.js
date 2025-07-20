@@ -5,7 +5,7 @@ import { Dialog } from "@headlessui/react";
 import Image from "next/image";
 import Link from "next/link";
 import DonationBanner from "../DonationBanner/DonationBanner";
-
+import Events from "../Events/Events";
 import EntityBadges from "../EntityBadges/EntityBadges";
 import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
 import { useTranslations, useLocale } from "next-intl";
@@ -86,125 +86,117 @@ export default function LatestEditionWithArticles() {
 
   return (
     <>
-      <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900 px-4 py-4 rounded mb-6 text-center">
-        {currentEdition && (
-          <div className="flex flex-wrap justify-center items-center gap-4 text-[1.25rem] md:text-[1.5rem] leading-snug">
-            {/* Bloque ILA + Fecha */}
-            <div className="flex flex-col items-center">
-              <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem]">
-                ila {currentEdition.number}
-              </span>
-              {currentEdition.datePublished && (
-                <span className="text-sm text-gray-500 dark:text-gray-400 -mt-1">
-                  {new Date(currentEdition.datePublished)
-                    .toLocaleDateString(locale === "es" ? "es-ES" : "de-DE", {
-                      month: "short",
-                      year: "numeric",
-                    })
-                    .replace(".", "")
-                    .replace(/^\w/, (c) => c.toUpperCase())}
-                </span>
-              )}
-            </div>
-
-            {/* Bloque Dossier */}
-            <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-black dark:text-white">
-                Dossier:
-              </span>
-              <span className="font-serif font-bold text-red-800">
-                {currentEdition.title}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* CONTENIDO PRINCIPAL */}
       <div className="max-w-7xl mx-auto px-6 pb-16">
         {currentEdition && (
           <div className="flex flex-col lg:flex-row gap-10 items-start">
-            {/* PORTADA DE LA EDICIÓN */}
-            <div className="relative w-full lg:w-1/3 flex justify-center">
-              <div className="relative w-full max-w-sm">
-                {/* Flecha izquierda */}
-                <div className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 z-20">
-                  <PrevArrow
-                    onClick={() =>
-                      currentEditionIndex > 0 &&
-                      setCurrentEditionIndex((prev) => prev - 1)
-                    }
-                    className={
-                      currentEditionIndex === 0
-                        ? "opacity-40 pointer-events-none"
-                        : ""
-                    }
-                  />
-                </div>
+            <div className="relative w-full lg:w-1/3 flex items-start justify-center">
+              <div className="bg-white shadow-lg p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm">
+                {/* Título + flechas */}
+                <div className="relative w-full">
+                  <div className="flex items-center justify-center">
+                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
+                      <PrevArrow
+                        onClick={() =>
+                          currentEditionIndex > 0 &&
+                          setCurrentEditionIndex((prev) => prev - 1)
+                        }
+                        className={
+                          currentEditionIndex === 0
+                            ? "opacity-40 pointer-events-none"
+                            : ""
+                        }
+                      />
+                    </div>
 
-                {/* Tarjeta de portada */}
-                <div className="bg-white rounded-lg shadow-lg p-4 flex flex-col gap-4 items-center">
-                  <div
-                    className="relative w-full cursor-pointer"
-                    onClick={() => {
-                      if (currentEdition.coverImage) {
-                        setPopupImage(currentEdition.coverImage);
-                        setIsOpen(true);
-                      }
-                    }}
-                  >
-                    <Image
-                      src={currentEdition.coverImage}
-                      alt={`Portada de ${currentEdition.title}`}
-                      width={300}
-                      height={400}
-                      className="rounded-lg shadow-md object-cover w-full h-auto"
-                      priority
-                    />
+                    <div className="text-center mx-10">
+                      <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem] block">
+                        ila {currentEdition.number}
+                      </span>
+                      {currentEdition.datePublished && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400 block -mt-1">
+                          {new Date(currentEdition.datePublished)
+                            .toLocaleDateString(
+                              locale === "es" ? "es-ES" : "de-DE",
+                              {
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )
+                            .replace(".", "")
+                            .replace(/^\w/, (c) => c.toUpperCase())}
+                        </span>
+                      )}
+                      <div className="mt-1">
+                        <span className="font-serif font-bold text-black dark:text-white">
+                          Dossier:
+                        </span>{" "}
+                        <span className="font-serif font-bold text-red-800">
+                          {currentEdition.title}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+                      <NextArrow
+                        onClick={() =>
+                          currentEditionIndex < editions.length - 1 &&
+                          setCurrentEditionIndex((prev) => prev + 1)
+                        }
+                        className={
+                          currentEditionIndex === editions.length - 1
+                            ? "opacity-40 pointer-events-none"
+                            : ""
+                        }
+                      />
+                    </div>
                   </div>
-
-                  {/* Badges */}
-                  <EntityBadges
-                    regions={currentEdition.regions.map((region) => ({
-                      ...region,
-                      count: editionsCount.regions?.[region.id] || 0,
-                    }))}
-                    topics={currentEdition.topics.map((topic) => ({
-                      ...topic,
-                      count: editionsCount.topics?.[topic.id] || 0,
-                    }))}
-                    entityType="editions"
-                    context="editions"
-                  />
-                  {/* Banner de Donación */}
-                  <DonationBanner />
-                  {/* Botón de acceso */}
-                  <Link
-                    href={`/editions/${currentEdition.id}`}
-                    className="bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-700 transition"
-                  >
-                    {t("viewEdition")}
-                  </Link>
                 </div>
 
-                {/* Flecha derecha */}
-                <div className="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 z-20">
-                  <NextArrow
-                    onClick={() =>
-                      currentEditionIndex < editions.length - 1 &&
-                      setCurrentEditionIndex((prev) => prev + 1)
+                {/* Imagen de portada */}
+                <div
+                  className="relative w-full cursor-pointer"
+                  onClick={() => {
+                    if (currentEdition.coverImage) {
+                      setPopupImage(currentEdition.coverImage);
+                      setIsOpen(true);
                     }
-                    className={
-                      currentEditionIndex === editions.length - 1
-                        ? "opacity-40 pointer-events-none"
-                        : ""
-                    }
+                  }}
+                >
+                  <Image
+                    src={currentEdition.coverImage}
+                    alt={`Portada de ${currentEdition.title}`}
+                    width={300}
+                    height={400}
+                    className="shadow-md object-cover w-full h-auto"
+                    priority
                   />
                 </div>
+
+                <EntityBadges
+                  regions={currentEdition.regions.map((region) => ({
+                    ...region,
+                    count: editionsCount.regions?.[region.id] || 0,
+                  }))}
+                  topics={currentEdition.topics.map((topic) => ({
+                    ...topic,
+                    count: editionsCount.topics?.[topic.id] || 0,
+                  }))}
+                  entityType="editions"
+                  context="editions"
+                />
+
+                <Link
+                  href={`/editions/${currentEdition.id}`}
+                  className="bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-700 transition"
+                >
+                  {t("viewEdition")}
+                </Link>
+
+                <DonationBanner />
+                <Events />
               </div>
             </div>
 
-            {/* ARTÍCULOS DE LA EDICIÓN */}
             <div className="w-full lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-4">
               {filteredArticles.length > 0 ? (
                 filteredArticles.map((article) => (
@@ -220,7 +212,6 @@ export default function LatestEditionWithArticles() {
         )}
       </div>
 
-      {/* MODAL DE IMAGEN */}
       <Dialog
         open={isOpen}
         onClose={() => setIsOpen(false)}

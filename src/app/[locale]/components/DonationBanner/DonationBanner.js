@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function DonationBanner() {
   return (
-    <div className="bg-red-600 text-white p-6 rounded-lg shadow-lg flex flex-col items-center text-center gap-4">
+    <div className="bg-red-600 text-white p-6 shadow-lg flex flex-col items-center text-center gap-4">
       {/* Logo */}
       <div className="w-20 h-20 relative">
         <Image

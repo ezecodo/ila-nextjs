@@ -104,69 +104,78 @@ export default function Header() {
 
       {/* Desktop compact */}
       {isCompact && (
-        <div className="hidden md:flex items-center justify-between w-full px-4 py-2">
-          <Link href="/">
-            <Image src="/ila-logo.png" alt="ILA Logo" width={40} height={40} />
-          </Link>
-          <div className="flex items-center gap-6">
-            <DesktopNavMenu />
+        <div className="hidden md:flex items-center justify-center w-full px-4 py-2">
+          <div className="max-w-7xl w-full flex items-center justify-between">
+            <Link href="/">
+              <Image
+                src="/ila-logo.png"
+                alt="ILA Logo"
+                width={40}
+                height={40}
+              />
+            </Link>
+            <div className="flex items-center gap-6">
+              <DesktopNavMenu />
+            </div>
           </div>
         </div>
       )}
 
       {/* Desktop top: auth + locale */}
       {!isCompact && (
-        <div className="w-full hidden md:flex justify-end items-center px-4 py-1 gap-2">
-          {session && (
-            <span className={styles.welcomeText}>
-              {t("greeting", { name: session.user?.name || "Usuario" })}
-            </span>
-          )}
+        <div className="w-full hidden md:flex justify-center px-4 py-1">
+          <div className="max-w-7xl w-full flex justify-end items-center gap-2">
+            {session && (
+              <span className={styles.welcomeText}>
+                {t("greeting", { name: session.user?.name || "Usuario" })}
+              </span>
+            )}
 
-          {session ? (
-            <>
-              <Link href={dashboardRoute}>
-                <button className={styles.iconButton}>
-                  <FaTachometerAlt />
+            {session ? (
+              <>
+                <Link href={dashboardRoute}>
+                  <button className={styles.iconButton}>
+                    <FaTachometerAlt />
+                  </button>
+                </Link>
+                <button className={styles.iconButton} onClick={handleSignOut}>
+                  <FaSignOutAlt />
                 </button>
-              </Link>
-              <button className={styles.iconButton} onClick={handleSignOut}>
-                <FaSignOutAlt />
+              </>
+            ) : (
+              <button className={styles.iconButton} onClick={() => signIn()}>
+                <FaUser />
               </button>
-            </>
-          ) : (
-            <button className={styles.iconButton} onClick={() => signIn()}>
-              <FaUser />
-            </button>
-          )}
+            )}
 
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={darkMode}
-              onChange={() => setDarkMode(!darkMode)}
-              aria-label="Toggle dark mode"
-            />
-            <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-black transition-colors" />
-            <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] transition-transform transform peer-checked:translate-x-5">
-              {darkMode ? "🌙" : "☀️"}
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={darkMode}
+                onChange={() => setDarkMode(!darkMode)}
+                aria-label="Toggle dark mode"
+              />
+              <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-black transition-colors" />
+              <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white flex items-center justify-center text-[10px] transition-transform transform peer-checked:translate-x-5">
+                {darkMode ? "🌙" : "☀️"}
+              </div>
+            </label>
+
+            <div className={styles.languageSwitcher}>
+              <button
+                onClick={() => router.replace(pathname, { locale: "es" })}
+                className={styles.langButton}
+              >
+                ES
+              </button>
+              <button
+                onClick={() => router.replace(pathname, { locale: "de" })}
+                className={styles.langButton}
+              >
+                DE
+              </button>
             </div>
-          </label>
-
-          <div className={styles.languageSwitcher}>
-            <button
-              onClick={() => router.replace(pathname, { locale: "es" })}
-              className={styles.langButton}
-            >
-              ES
-            </button>
-            <button
-              onClick={() => router.replace(pathname, { locale: "de" })}
-              className={styles.langButton}
-            >
-              DE
-            </button>
           </div>
         </div>
       )}
@@ -174,8 +183,8 @@ export default function Header() {
       {/* Desktop main */}
       {!isCompact && (
         <div className="w-full hidden md:flex flex-col px-4 pt-2 pb-0">
-          {/* Logo centrado y tagline debajo */}
-          <div className="flex flex-col items-center mb-0">
+          <div className="max-w-7xl mx-auto w-full flex flex-col items-center">
+            {/* Logo centrado y tagline debajo */}
             <Link href="/" className="flex flex-col items-center">
               <Image
                 src="/ila-logo.png"
