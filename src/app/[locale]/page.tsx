@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import LatestEdition1 from "./components/Editions/LatestEdition1";
 import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
-import InfoBox from "./components/InfoBox/InfoBox";
 
 export default function Home() {
   const pathname = usePathname();
