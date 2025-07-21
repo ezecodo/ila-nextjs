@@ -290,6 +290,10 @@ html.dark {
 .slick-next {
   display: none !important;
 }
+.slick-slide > div {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
 
 @media (max-width: 768px) {
   .triangle-arrow {

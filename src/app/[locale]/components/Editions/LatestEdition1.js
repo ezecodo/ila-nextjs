@@ -103,7 +103,7 @@ export default function LatestEditionWithArticles() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-6 pb-16">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 pb-16">
         {currentEdition && (
           <div className="flex flex-col lg:flex-row gap-10 items-start">
             <div className="relative w-full lg:w-1/3 flex items-start justify-center">
@@ -232,11 +232,11 @@ export default function LatestEditionWithArticles() {
               </div>
 
               {/* Artículos en móvil */}
-              <div className="block lg:hidden">
+              <div className="block lg:hidden w-full">
                 {filteredArticles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
                     {filteredArticles.map((article) => (
-                      <div key={article.id} className="px-4">
+                      <div key={article.id} className="w-full">
                         <MiniArticleCardGrid article={article} />
                       </div>
                     ))}
