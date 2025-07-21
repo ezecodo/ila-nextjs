@@ -10,6 +10,10 @@ import EntityBadges from "../EntityBadges/EntityBadges";
 import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
 import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
+import Slider from "../SafeSlick/SafeSlick";
+
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 export default function LatestEditionWithArticles() {
   const [editions, setEditions] = useState([]);
@@ -83,6 +87,19 @@ export default function LatestEditionWithArticles() {
     locale === "es"
       ? articles.filter((a) => a.isTranslatedES && !a.needsReviewES)
       : articles;
+
+  const mobileCarouselSettings = {
+    infinite: filteredArticles.length > 1,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: filteredArticles.length > 1,
+    dots: true,
+    swipe: true,
+    swipeToSlide: true,
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />,
+  };
 
   return (
     <>
@@ -192,21 +209,48 @@ export default function LatestEditionWithArticles() {
                   {t("viewEdition")}
                 </Link>
 
-                <DonationBanner />
-                <Events />
+                {/* Solo escritorio */}
+                <div className="hidden lg:flex flex-col gap-4 w-full">
+                  <DonationBanner />
+                  <Events />
+                </div>
               </div>
             </div>
 
-            <div className="w-full lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredArticles.length > 0 ? (
-                filteredArticles.map((article) => (
-                  <MiniArticleCardGrid key={article.id} article={article} />
-                ))
-              ) : (
-                <p className="text-gray-500 col-span-full">
-                  {t("noArticlesInEdition")}
-                </p>
-              )}
+            <div className="w-full lg:w-2/3 flex flex-col gap-6">
+              {/* Artículos en escritorio */}
+              <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredArticles.length > 0 ? (
+                  filteredArticles.map((article) => (
+                    <MiniArticleCardGrid key={article.id} article={article} />
+                  ))
+                ) : (
+                  <p className="text-gray-500 col-span-full">
+                    {t("noArticlesInEdition")}
+                  </p>
+                )}
+              </div>
+
+              {/* Artículos en móvil */}
+              <div className="block lg:hidden">
+                {filteredArticles.length > 0 ? (
+                  <Slider {...mobileCarouselSettings}>
+                    {filteredArticles.map((article) => (
+                      <div key={article.id} className="px-4">
+                        <MiniArticleCardGrid article={article} />
+                      </div>
+                    ))}
+                  </Slider>
+                ) : (
+                  <p className="text-gray-500">{t("noArticlesInEdition")}</p>
+                )}
+              </div>
+
+              {/* Banner y eventos en móvil */}
+              <div className="block lg:hidden w-full mt-6 space-y-4">
+                <DonationBanner />
+                <Events />
+              </div>
             </div>
           </div>
         )}
