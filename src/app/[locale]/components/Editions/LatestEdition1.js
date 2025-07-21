@@ -237,7 +237,9 @@ export default function LatestEditionWithArticles() {
               <div className="block lg:hidden w-full bg-red-50 text-center py-3 rounded-t shadow-sm border-t border-b border-red-200">
                 <span className="text-sm text-red-800 font-semibold tracking-wide">
                   ⬇ {t("articlesFromDossier")}{" "}
-                  <span className="italic">"{currentEdition.title}"</span>
+                  <span className="italic">
+                    &quot;{currentEdition.title}&quot;
+                  </span>
                 </span>
               </div>
               <div className="block lg:hidden w-full mt-0">
