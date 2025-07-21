@@ -204,9 +204,9 @@ export default function LatestEditionWithArticles() {
 
                 <Link
                   href={`/editions/${currentEdition.id}`}
-                  className="bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-700 transition"
+                  className="bg-white text-red-600 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition border border-red-600"
                 >
-                  {t("viewEdition")}
+                  Editorial
                 </Link>
 
                 {/* Solo escritorio */}
@@ -232,7 +232,15 @@ export default function LatestEditionWithArticles() {
               </div>
 
               {/* Artículos en móvil */}
-              <div className="block lg:hidden w-full">
+              {/* Franja de conexión visual */}
+              {/* Franja de conexión visual mejorada */}
+              <div className="block lg:hidden w-full bg-red-50 text-center py-3 rounded-t shadow-sm border-t border-b border-red-200">
+                <span className="text-sm text-red-800 font-semibold tracking-wide">
+                  ⬇ {t("articlesFromDossier")}{" "}
+                  <span className="italic">"{currentEdition.title}"</span>
+                </span>
+              </div>
+              <div className="block lg:hidden w-full mt-0">
                 {filteredArticles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
                     {filteredArticles.map((article) => (

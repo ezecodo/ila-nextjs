@@ -101,7 +101,8 @@
     "loadLastEdition": "Cargando la última edición...",
     "noArticlesInEdition": " No hay artículos disponibles en esta edición.",
     "viewEdition": "Ver Edición",
-    "tableOfContents": "Tabla de Contenidos"
+    "tableOfContents": "Tabla de Contenidos",
+    "articlesFromDossier": "Artículos online del dossier"
   },
   "main": {
     "prev": "Anterior",

@@ -101,7 +101,8 @@
     "loadLastEdition": "Lade die letzte Ausgabe...",
     "noArticlesInEdition": "Es gibt keine Artikel in dieser Ausgabe.",
     "viewEdition": "Dossier ansehen",
-    "tableOfContents": "Inhaltsverzeichnis"
+    "tableOfContents": "Inhaltsverzeichnis",
+    "articlesFromDossier": "Online-Artikel aus dem Dossier"
   },
   "main": {
     "prev": "Vorherige",
