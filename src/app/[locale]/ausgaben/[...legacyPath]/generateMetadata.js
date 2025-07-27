@@ -1,48 +1,87 @@
+// app/[locale]/ausgaben/[...legacyPath]/generateMetadata.js
 import { getArticleByLegacyPath } from "@/lib/api/articles";
 
-export async function generateMetadata({ params }) {
-  // Unimos el path SIN volver a codificar (porque ya viene codificado desde la URL)
-  const fullPath = `/ausgaben/${params.legacyPath.join("/")}`;
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000");
 
-  console.log("\n🧪 generateMetadata legacyPath");
-  console.log("👉 fullPath:", fullPath);
+export async function generateMetadata({ params }) {
+  const slug = params.legacyPath.join("/");
+  const fullPath = `/ausgaben/${slug}`;
+  const canonicalUrl = `${SITE_URL}${fullPath}`;
 
   const article = await getArticleByLegacyPath(fullPath);
-
   if (!article) {
-    console.log("❌ Artículo NO encontrado para:", fullPath);
     return {
       title: "Artículo no encontrado – ila",
       description: "El artículo solicitado no fue encontrado.",
+      alternates: { canonical: canonicalUrl },
+      robots: { index: false, follow: false },
     };
   }
 
-  const title = article.title || "Artículo – ila";
-  const description =
-    article.subtitle || article.previewText || "Artículo publicado en ila.";
+  const title = article.title;
+  const description = article.subtitle || article.previewText || "";
+
+  const imageUrl = article.images?.[0]?.url;
+  const ogImages = imageUrl
+    ? [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: article.images[0].alt || title,
+        },
+      ]
+    : [];
+
+  // Regiones y temas
+  const section = article.regions[0]?.name || "";
+  const tags = [
+    ...article.regions.map((r) => r.name),
+    ...article.topics.map((t) => t.name),
+  ];
+
+  // Autores
+  const authorsMeta = article.authors.map((a) => ({
+    name: a.name,
+    url: `${SITE_URL}/authors/${a.id}`,
+  }));
+  const ogAuthors = article.authors.map((a) => `${SITE_URL}/authors/${a.id}`);
 
   return {
     title,
     description,
+
+    alternates: { canonical: canonicalUrl },
+    robots: { index: true, follow: true },
+    authors: authorsMeta,
+
     openGraph: {
+      type: "article",
       title,
       description,
-      images: article.images?.[0]?.url
-        ? [
-            {
-              url: article.images[0].url,
-              width: 1200,
-              height: 630,
-              alt: article.images[0].alt || "Imagen del artículo",
-            },
-          ]
-        : [],
+      url: canonicalUrl,
+      siteName: "ILA",
+      images: ogImages,
+      article: {
+        // ← este bloque es el que genera tus tags
+        section,
+        tags,
+        authors: ogAuthors,
+      },
     },
+
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: article.images?.[0]?.url ? [article.images[0].url] : [],
+      images: ogImages.map((i) => i.url),
+      creator: authorsMeta[0]?.name,
     },
+
+    other: [{ name: "language", content: params.locale }],
   };
 }
