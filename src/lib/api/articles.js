@@ -56,6 +56,10 @@ export async function getArticleById(id) {
 
 export async function getArticleByLegacyPath(path) {
   try {
+    console.log("\n\n🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥");
+    console.log("📌 BUSCANDO ARTICLE CON PATH:", path);
+    console.log("🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥\n\n");
+
     const article = await prisma.article.findFirst({
       where: {
         legacyPath: path,
@@ -84,7 +88,12 @@ export async function getArticleByLegacyPath(path) {
       },
     });
 
-    if (!article) return null;
+    if (!article) {
+      console.warn("\n\n🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨");
+      console.warn("⚠️ ARTÍCULO NO ENCONTRADO PARA:", path);
+      console.warn("🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨\n\n");
+      return null;
+    }
 
     const contentIdToUse = article.beitragsId || article.id;
 
@@ -97,7 +106,7 @@ export async function getArticleByLegacyPath(path) {
 
     return { ...article, images };
   } catch (error) {
-    console.error("Error en getArticleByLegacyPath:", error);
+    console.error("❌ Error en getArticleByLegacyPath:", error);
     return null;
   }
 }

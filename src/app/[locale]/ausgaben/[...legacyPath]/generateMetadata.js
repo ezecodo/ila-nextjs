@@ -1,15 +1,16 @@
 import { getArticleByLegacyPath } from "@/lib/api/articles";
 
 export async function generateMetadata({ params }) {
-  // 🔍 Reconstruimos el path desde los segmentos
-  const rawPath = `/ausgaben/${params.legacyPath.join("/")}`;
+  // Unimos el path SIN volver a codificar (porque ya viene codificado desde la URL)
+  const fullPath = `/ausgaben/${params.legacyPath.join("/")}`;
 
-  // ✅ Lo decodificamos para que coincida con la base de datos (que guarda el path sin codificar)
-  const fullPath = decodeURIComponent(rawPath);
+  console.log("\n🧪 generateMetadata legacyPath");
+  console.log("👉 fullPath:", fullPath);
 
   const article = await getArticleByLegacyPath(fullPath);
 
   if (!article) {
+    console.log("❌ Artículo NO encontrado para:", fullPath);
     return {
       title: "Artículo no encontrado – ila",
       description: "El artículo solicitado no fue encontrado.",
