@@ -1,3 +1,9 @@
+import { prisma } from "@/lib/prisma";
+// ⚠️ Forzamos que Prisma nunca sea eliminado en producción
+if (!prisma)
+  throw new Error(
+    "❌ Prisma no está definido — revisa tu import de lib/prisma.js"
+  );
 export async function getArticleById(id) {
   try {
     const article = await prisma.article.findUnique({
