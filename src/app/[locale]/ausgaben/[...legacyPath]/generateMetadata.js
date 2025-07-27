@@ -1,8 +1,11 @@
 import { getArticleByLegacyPath } from "@/lib/api/articles";
 
 export async function generateMetadata({ params }) {
+  // 🔍 Reconstruimos el path desde los segmentos
   const rawPath = `/ausgaben/${params.legacyPath.join("/")}`;
-  const fullPath = encodeURI(rawPath); // ✅ codifica cualquier carácter especial
+
+  // ✅ Lo decodificamos para que coincida con la base de datos (que guarda el path sin codificar)
+  const fullPath = decodeURIComponent(rawPath);
 
   const article = await getArticleByLegacyPath(fullPath);
 
