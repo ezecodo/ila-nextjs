@@ -1,7 +1,9 @@
 import { getArticleByLegacyPath } from "@/lib/api/articles";
 
 export async function generateMetadata({ params }) {
-  const fullPath = `/ausgaben/${params.legacyPath.join("/")}`;
+  const rawPath = `/ausgaben/${params.legacyPath.join("/")}`;
+  const fullPath = encodeURI(rawPath); // ✅ codifica cualquier carácter especial
+
   const article = await getArticleByLegacyPath(fullPath);
 
   if (!article) {
