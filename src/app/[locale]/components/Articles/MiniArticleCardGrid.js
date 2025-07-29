@@ -40,6 +40,7 @@ export default function MiniArticleCardGrid({ article }) {
           regions={article.regions}
           topics={article.topics}
           context="articles"
+          locale={locale}
         />
 
         {/* Título */}

@@ -72,6 +72,7 @@ model Edition {
   id                 Int       @id @default(autoincrement())
   number             Int       @unique
   title              String
+  titleES            String?
   createdAt          DateTime  @default(now())
   datePublished      DateTime  @default(now())
   subtitle           String?
@@ -99,6 +100,7 @@ model Beitragstyp {
 model Region {
   id       Int       @id @default(autoincrement())
   name     String    @unique
+  nameES   String?
   parentId Int?
   parent   Region?   @relation("RegionHierarchy", fields: [parentId], references: [id])
   children Region[]  @relation("RegionHierarchy")
@@ -113,6 +115,7 @@ model Region {
 model Topic {
   id       Int       @id @default(autoincrement())
   name     String    @unique
+  nameES   String?
   parentId Int?
   parent   Topic?    @relation("TopicHierarchy", fields: [parentId], references: [id])
   children Topic[]   @relation("TopicHierarchy")

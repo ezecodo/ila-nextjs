@@ -1,7 +1,13 @@
 import Link from "next/link";
 import HoverInfo from "../HoverInfo/HoverInfo";
 
-export default function EntityBadges({ categories, regions, topics, context }) {
+export default function EntityBadges({
+  categories,
+  regions,
+  topics,
+  context,
+  locale,
+}) {
   const badgeClasses =
     "text-[11px] px-2 py-[1px] rounded-none bg-white/80 text-gray-800 font-normal shadow-sm border border-gray-300";
 
@@ -16,7 +22,9 @@ export default function EntityBadges({ categories, regions, topics, context }) {
         >
           <HoverInfo
             id={region.id}
-            name={region.name}
+            name={
+              locale === "es" && region.nameES ? region.nameES : region.name
+            }
             entityType="regions"
             context={context}
           />
@@ -32,7 +40,7 @@ export default function EntityBadges({ categories, regions, topics, context }) {
         >
           <HoverInfo
             id={topic.id}
-            name={topic.name}
+            name={locale === "es" && topic.nameES ? topic.nameES : topic.name}
             entityType="topics"
             context={context}
           />

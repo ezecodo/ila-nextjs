@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Topic` ADD COLUMN `nameES` VARCHAR(191) NULL;

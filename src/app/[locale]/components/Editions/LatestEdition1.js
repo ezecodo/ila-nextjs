@@ -148,7 +148,9 @@ export default function LatestEditionWithArticles() {
                           Dossier:
                         </span>{" "}
                         <span className="font-serif font-bold text-red-800">
-                          {currentEdition.title}
+                          {locale === "es" && currentEdition.titleES
+                            ? currentEdition.titleES
+                            : currentEdition.title}
                         </span>
                       </div>
                     </div>
@@ -200,6 +202,7 @@ export default function LatestEditionWithArticles() {
                   }))}
                   entityType="editions"
                   context="editions"
+                  locale={locale}
                 />
 
                 <Link

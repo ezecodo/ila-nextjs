@@ -14,8 +14,20 @@ export async function GET() {
   try {
     const editions = await prisma.edition.findMany({
       include: {
-        regions: { select: { id: true, name: true } },
-        topics: { select: { id: true, name: true } },
+        regions: {
+          select: {
+            id: true,
+            name: true,
+            nameES: true, // ✅ incluimos el campo traducido
+          },
+        },
+        topics: {
+          select: {
+            id: true,
+            name: true,
+            nameES: true, // ✅ incluimos el campo traducido
+          },
+        },
       },
     });
 

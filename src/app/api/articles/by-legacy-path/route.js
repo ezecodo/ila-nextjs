@@ -24,6 +24,7 @@ export async function GET(req) {
             id: true,
             number: true,
             title: true,
+            titleES: true,
             coverImage: true,
           },
         },
