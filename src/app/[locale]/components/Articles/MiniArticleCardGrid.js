@@ -34,17 +34,8 @@ export default function MiniArticleCardGrid({ article }) {
 
       {/* Contenido */}
       <div className="p-4 flex flex-col gap-1">
-        {/* Badges */}
-        <EntityBadges
-          categories={article.categories}
-          regions={article.regions}
-          topics={article.topics}
-          context="articles"
-          locale={locale}
-        />
-
         {/* Título */}
-        <h3 className="text-xl font-extrabold font-serif mt-4 leading-snug flex items-center gap-2">
+        <h3 className="text-xl font-extrabold font-serif leading-snug flex items-center gap-2">
           <PreviewHover
             preview={
               isES ? article.previewTextES || "—" : article.previewText || "—"
@@ -63,8 +54,9 @@ export default function MiniArticleCardGrid({ article }) {
             </span>
           )}
         </h3>
+
         {/* Subtítulo */}
-        {(article.subtitle || article.subtitleES) && (
+        {(isES ? article.subtitleES : article.subtitle) && (
           <p className="text-sm text-gray-700 italic leading-tight mb-1">
             {isES ? article.subtitleES : article.subtitle}
           </p>
@@ -104,6 +96,17 @@ export default function MiniArticleCardGrid({ article }) {
             ))}
           </div>
         )}
+
+        {/* Badges al final */}
+        <div className="mt-2">
+          <EntityBadges
+            categories={article.categories}
+            regions={article.regions}
+            topics={article.topics}
+            context="articles"
+            locale={locale}
+          />
+        </div>
       </div>
     </div>
   );
