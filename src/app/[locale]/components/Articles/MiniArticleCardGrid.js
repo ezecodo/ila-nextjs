@@ -44,7 +44,7 @@ export default function MiniArticleCardGrid({ article }) {
         />
 
         {/* Título */}
-        <h3 className="text-base font-semibold leading-snug mt-1 flex items-center gap-2">
+        <h3 className="text-xl font-extrabold font-serif mt-4 leading-snug flex items-center gap-2">
           <PreviewHover
             preview={
               isES ? article.previewTextES || "—" : article.previewText || "—"
@@ -63,6 +63,12 @@ export default function MiniArticleCardGrid({ article }) {
             </span>
           )}
         </h3>
+        {/* Subtítulo */}
+        {(article.subtitle || article.subtitleES) && (
+          <p className="text-sm text-gray-700 italic leading-tight mb-1">
+            {isES ? article.subtitleES : article.subtitle}
+          </p>
+        )}
 
         {/* Meta info */}
         <div className="text-sm text-gray-600 mt-0.5 flex flex-wrap gap-1">
