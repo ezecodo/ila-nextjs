@@ -5,8 +5,10 @@ import { useSearchParams } from "next/navigation"; // ✅ Hook para manejar sear
 import ArticleList from "./ArticleList";
 import Pagination from "../Pagination/Pagination"; // ✅ Importar componente de paginación
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 const SearchResults = () => {
+  const locale = useLocale();
   const t = useTranslations("search");
 
   const searchParams = useSearchParams(); // ✅ Obtener los parámetros de la URL
@@ -24,14 +26,12 @@ const SearchResults = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          `/api/articles/search?query=${encodeURIComponent(
-            query
-          )}&page=${currentPage}&limit=10`
+          `/api/articles/search?query=${encodeURIComponent(query)}&page=${currentPage}&limit=10&locale=${locale}`
         );
         if (!response.ok) throw new Error("Error en la búsqueda");
         const data = await response.json();
         setArticles(data.articles);
-        setTotalPages(data.totalPages); // ✅ Guardamos el total de páginas
+        setTotalPages(data.totalPages);
       } catch (error) {
         console.error("Error cargando resultados:", error);
       } finally {
@@ -40,7 +40,11 @@ const SearchResults = () => {
     };
 
     fetchResults();
-  }, [query, currentPage]); // ✅ Se ejecuta cuando cambia la búsqueda o la página
+  }, [query, currentPage, locale]); // ✅ Se ejecuta cuando cambia la búsqueda o la página
+  // 🔁 Reiniciar a la página 1 si cambia el idioma
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [locale]);
 
   return (
     <div>

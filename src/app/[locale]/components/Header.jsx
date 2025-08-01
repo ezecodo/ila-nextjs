@@ -7,6 +7,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FaBars, FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
+import { useSearchParams } from "next/navigation";
 
 import styles from "./Header.module.css";
 
@@ -21,6 +22,9 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations("header");
+  const searchParams = useSearchParams();
+  const query = searchParams.get("query");
+  const queryParam = query ? `?query=${encodeURIComponent(query)}` : "";
 
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -164,13 +168,17 @@ export default function Header() {
 
             <div className={styles.languageSwitcher}>
               <button
-                onClick={() => router.replace(pathname, { locale: "es" })}
+                onClick={() =>
+                  router.replace(`${pathname}${queryParam}`, { locale: "es" })
+                }
                 className={styles.langButton}
               >
                 ES
               </button>
               <button
-                onClick={() => router.replace(pathname, { locale: "de" })}
+                onClick={() =>
+                  router.replace(`${pathname}${queryParam}`, { locale: "de" })
+                }
                 className={styles.langButton}
               >
                 DE

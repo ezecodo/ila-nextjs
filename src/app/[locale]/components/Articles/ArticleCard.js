@@ -1,13 +1,13 @@
 import Image from "next/image";
 import ImageModal from "../ImageModal/ImageModal";
 import { useState } from "react";
-import Link from "next/link";
 import HoverInfo from "../HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import PreviewHover from "../PreviewHover/PreviewHover";
+import ArticleLink from "../Articles/ArticleLink/ArticleLink";
 
 export default function ArticleCard({ article, onRemoveFavorite }) {
   const locale = useLocale();
@@ -70,9 +70,9 @@ export default function ArticleCard({ article, onRemoveFavorite }) {
               isES ? article.previewTextES || "—" : article.previewText || "—"
             }
           >
-            <Link href={`/articles/${article.id}`} className="hover:underline">
+            <ArticleLink article={article} className="hover:underline">
               {isES ? article.titleES : article.title}
-            </Link>
+            </ArticleLink>
           </PreviewHover>
 
           {article.isTranslatedES && (

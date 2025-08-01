@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import ArticleCard from "../Articles/ArticleCard";
-import styles from "./ArticleList.module.css";
+import MiniArticleCardGrid from "./MiniArticleCardGrid";
+
 import Pagination from "../Pagination/Pagination";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -59,9 +59,9 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
 
   return (
     <div>
-      <div className={styles.articlesList}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-3">
         {filteredArticles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
+          <MiniArticleCardGrid key={article.id} article={article} />
         ))}
       </div>
 

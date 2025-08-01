@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FaSearch } from "react-icons/fa";
 import styles from "./SearchBar.module.css";
 import { useTranslations } from "next-intl";
@@ -9,14 +9,21 @@ import { useTranslations } from "next-intl";
 const SearchBar = () => {
   const t = useTranslations("search");
 
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("query") || "";
+
+  const [query, setQuery] = useState(initialQuery);
   const router = useRouter();
+
+  // Mantener sincronizado el valor si cambia en la URL
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (!query.trim()) return; // No buscar si está vacío
-
-    router.push(`/search?query=${encodeURIComponent(query)}`); // ✅ Redirige a la página de búsqueda
+    if (!query.trim()) return;
+    router.push(`/search?query=${encodeURIComponent(query)}`);
   };
 
   return (
