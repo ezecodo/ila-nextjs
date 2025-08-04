@@ -81,6 +81,7 @@ export default function LegacyArticlePage() {
 
       <article itemScope itemType="https://schema.org/Article">
         <div className="max-w-3xl mx-auto">
+          <div id="article-start" />
           {/* FECHA */}
           <p className="text-sm text-gray-400 italic mb-2">
             {formatDate(article.publicationDate, locale)}
@@ -319,7 +320,12 @@ export default function LegacyArticlePage() {
         </div>
       )}
 
-      <ShareBar title={isES ? article.titleES : article.title} />
+      <ShareBar
+        title={isES ? article.titleES : article.title}
+        anchorSelector="#article-start" // 👈 se alinea al comienzo del contenido
+        contentMaxWidth={1024}
+        gapFromContent={16}
+      />
     </main>
   );
 }
