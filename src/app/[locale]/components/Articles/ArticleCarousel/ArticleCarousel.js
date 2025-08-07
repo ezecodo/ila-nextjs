@@ -185,7 +185,7 @@ export default function FilteredArticlesCarousel(props) {
                     )}
                   </div>
 
-                  <FavoriteButton articleId={article.id} />
+                  <FavoriteButton articleId={article.id} variant="compact" />
                 </div>
               </div>
             </div>

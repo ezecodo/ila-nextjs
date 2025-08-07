@@ -322,8 +322,9 @@ export default function LegacyArticlePage() {
 
       <ShareBar
         title={isES ? article.titleES : article.title}
-        anchorSelector="#article-start" // 👈 se alinea al comienzo del contenido
-        contentMaxWidth={1024}
+        articleId={article.id} // 👈 habilita el botón de favoritos
+        anchorSelector="#article-start" // 👈 alinear con el inicio del contenido
+        contentMaxWidth={1024} // max-w-4xl
         gapFromContent={16}
       />
     </main>

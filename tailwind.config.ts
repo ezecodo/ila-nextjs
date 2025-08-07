@@ -13,8 +13,17 @@ export default {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      keyframes: {
+        "ping-once": {
+          "0%": { transform: "scale(1)", opacity: "1" },
+          "50%": { transform: "scale(1.2)", opacity: "0.5" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+      },
+      animation: {
+        "ping-once": "ping-once 0.4s ease-in-out",
+      },
     },
   },
-
   plugins: [],
 } satisfies Config;

@@ -7,30 +7,33 @@ import {
   FaEnvelope,
   FaLink,
 } from "react-icons/fa";
+import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
 /**
  * ShareBar
  *
  * Props:
  * - title?: string
- * - stickyTop?: number              // fallback de top (px) en desktop si no hay ancla
- * - contentMaxWidth?: number        // ancho máx. del contenedor central (px). max-w-4xl = 1024
- * - gapFromContent?: number         // separación respecto al borde del contenido (px)
+ * - stickyTop?: number               // top (px) donde se fija la barra en desktop
+ * - contentMaxWidth?: number         // ancho máx. del contenedor central (px). max-w-4xl = 1024
+ * - gapFromContent?: number          // separación respecto al borde del contenido (px)
+ * - anchorSelector?: string          // CSS selector para alinear el top de la barra (ej: "#article-start")
+ * - articleId?: number               // para mostrar el botón de favoritos
  * - className?: string
- * - anchorSelector?: string         // selector CSS para alinear la barra al inicio del contenido (ej: "#article-start")
  */
 export default function ShareBar({
   title,
   stickyTop = 120,
   contentMaxWidth = 1024,
   gapFromContent = 16,
+  anchorSelector,
+  articleId,
   className = "",
-  anchorSelector = null,
 }) {
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [left, setLeft] = useState("8px"); // posición izquierda en desktop
-  const [topPx, setTopPx] = useState(stickyTop); // posición superior en desktop
+  const [computedTop, setComputedTop] = useState(stickyTop);
 
   // Tomar URL en cliente
   useEffect(() => {
@@ -44,9 +47,9 @@ export default function ShareBar({
     if (typeof window === "undefined") return;
 
     const computeLeft = () => {
-      const barWidth = 52; // ancho aprox. del bloque (icono+padding+borde)
-      const gutter = (window.innerWidth - contentMaxWidth) / 2; // margen externo hasta el contenido
-      const desired = Math.max(8, gutter - (gapFromContent + barWidth)); // nunca menos de 8px
+      const barWidth = 52; // ancho aprox del botón (icono + padding + borde)
+      const gutter = (window.innerWidth - contentMaxWidth) / 2;
+      const desired = Math.max(8, gutter - (gapFromContent + barWidth));
       setLeft(`${desired}px`);
     };
 
@@ -55,34 +58,30 @@ export default function ShareBar({
     return () => window.removeEventListener("resize", computeLeft);
   }, [contentMaxWidth, gapFromContent]);
 
-  // Calcular top inicial en desktop, alineado al inicio del contenido si hay ancla
+  // Alinear con ancla si existe
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!anchorSelector) return;
+    const el = document.querySelector(anchorSelector);
+    if (!el) return;
 
-    const computeTop = () => {
-      if (anchorSelector) {
-        const el = document.querySelector(anchorSelector);
-        if (el) {
-          const rect = el.getBoundingClientRect(); // posición respecto al viewport
-          // Garantiza que no quede escondida bajo el header
-          const safeTop = Math.max(64, Math.round(rect.top));
-          setTopPx(safeTop);
-          return;
-        }
-      }
-      setTopPx(stickyTop);
+    const updateTop = () => {
+      const rect = el.getBoundingClientRect();
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop || 0;
+      // Fijamos la barra a la altura del ancla + un pequeño offset
+      setComputedTop(rect.top + scrollTop);
     };
 
-    // Ejecutar al montar y tras un pequeño delay por si hay fuentes/imagenes que reflowean
-    computeTop();
-    const t = setTimeout(computeTop, 250);
+    updateTop();
+    window.addEventListener("resize", updateTop);
+    window.addEventListener("load", updateTop);
+    setTimeout(updateTop, 0);
 
-    window.addEventListener("resize", computeTop);
     return () => {
-      clearTimeout(t);
-      window.removeEventListener("resize", computeTop);
+      window.removeEventListener("resize", updateTop);
+      window.removeEventListener("load", updateTop);
     };
-  }, [anchorSelector, stickyTop]);
+  }, [anchorSelector]);
 
   const encodedTitle = encodeURIComponent(
     title || "Mirá este artículo de ILA:"
@@ -106,10 +105,21 @@ export default function ShareBar({
     <>
       {/* Desktop: barra vertical izquierda */}
       <div
-        className={`hidden md:flex fixed z-50 flex-col items-center gap-2 ${className}`}
-        style={{ top: topPx, left }}
+        className={`hidden md:flex fixed z-40 flex-col items-center gap-2 ${className}`}
+        style={{ top: computedTop, left }}
         aria-label="Compartir artículo"
       >
+        {/* Favorito (con contador pequeñito) */}
+        {typeof articleId !== "undefined" && articleId !== null && (
+          <FavoriteButton
+            articleId={articleId}
+            className={iconClass}
+            size={20}
+            showCount={true}
+          />
+        )}
+
+        {/* WhatsApp */}
         <a
           href={`https://wa.me/?text=${encodedTitle}%20${encodedURL}`}
           target="_blank"
@@ -121,6 +131,7 @@ export default function ShareBar({
           <FaWhatsapp size={20} />
         </a>
 
+        {/* Telegram */}
         <a
           href={`https://t.me/share/url?url=${encodedURL}&text=${encodedTitle}`}
           target="_blank"
@@ -132,6 +143,7 @@ export default function ShareBar({
           <FaTelegramPlane size={20} />
         </a>
 
+        {/* Email */}
         <a
           href={`mailto:?subject=${encodedTitle}&body=${encodedURL}`}
           className={iconClass}
@@ -141,6 +153,7 @@ export default function ShareBar({
           <FaEnvelope size={20} />
         </a>
 
+        {/* Copiar enlace */}
         <button
           onClick={handleCopy}
           className={iconClass}
@@ -150,6 +163,7 @@ export default function ShareBar({
           <FaLink size={20} />
         </button>
 
+        {/* Aviso 'copiado' */}
         <div
           className={`text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity ${
             copied ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -163,6 +177,11 @@ export default function ShareBar({
       {/* Mobile: barra inferior */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t z-50 md:hidden">
         <div className="flex justify-around items-center px-4 py-2">
+          {/* Favorito (sin contador para mobile) */}
+          {typeof articleId !== "undefined" && articleId !== null && (
+            <FavoriteButton articleId={articleId} className={iconClass} />
+          )}
+
           <a
             href={`https://wa.me/?text=${encodedTitle}%20${encodedURL}`}
             target="_blank"
