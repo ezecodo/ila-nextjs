@@ -30,15 +30,25 @@ export default function LatestEditionWithArticles() {
   useEffect(() => {
     async function fetchAllEditions() {
       try {
-        const response = await fetch("/api/editions?sort=desc");
-        const data = await response.json();
-        setEditions(data);
-        if (data.length) {
-          fetchArticles(data[0].id);
-          fetchEditionsCount(data[0]);
+        const res = await fetch("/api/editions?sort=desc");
+        const data = await res.json();
+
+        // ✅ ordena SIEMPRE por edition.number DESC (fallback si el API no lo hace)
+        const byNumberDesc = [...data].sort((a, b) => {
+          const an = typeof a.number === "number" ? a.number : -Infinity;
+          const bn = typeof b.number === "number" ? b.number : -Infinity;
+          return bn - an;
+        });
+
+        setEditions(byNumberDesc);
+
+        if (byNumberDesc.length) {
+          fetchArticles(byNumberDesc[0].id);
+          fetchEditionsCount(byNumberDesc[0]);
+          setCurrentEditionIndex(0);
         }
-      } catch (error) {
-        console.error("Error cargando ediciones", error);
+      } catch (e) {
+        console.error("Error cargando ediciones", e);
       }
     }
 
