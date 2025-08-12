@@ -237,5 +237,19 @@
     "reviewedTranslation": "hat die Übersetzung des Artikels überprüft",
     "default": "führte eine Aktion aus –",
     "untitled": "ohne Titel"
+  },
+  "ShareBar": {
+    "defaultShareTitle": "Schau dir diesen ILA-Artikel an:",
+    "ariaShare": "Artikel teilen",
+    "favorite": "Zu Lesezeichen hinzufügen",
+    "whatsapp": "Per WhatsApp teilen",
+    "telegram": "Per Telegram teilen",
+    "email": "Per E‑Mail teilen",
+    "copyLink": "Link kopieren",
+    "copied": "Kopiert!",
+    "copyError": "Der Link konnte nicht kopiert werden."
+  },
+  "Footer": {
+    "tagline": "Das Lateinamerika-Magazin"
   }
 }

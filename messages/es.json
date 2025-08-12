@@ -240,5 +240,19 @@
     "reviewedTranslation": "revisó la traducción del artículo",
     "default": "realizó una acción –",
     "untitled": "sin título"
+  },
+  "ShareBar": {
+    "defaultShareTitle": "Mirá este artículo de ILA:",
+    "ariaShare": "Compartir artículo",
+    "favorite": "Agregar a favoritos",
+    "whatsapp": "Compartir por WhatsApp",
+    "telegram": "Compartir por Telegram",
+    "email": "Compartir por Email",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!",
+    "copyError": "No se pudo copiar el enlace."
+  },
+  "Footer": {
+    "tagline": "La revista de Latinoamérica"
   }
 }

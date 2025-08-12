@@ -26,6 +26,13 @@
   margin: 0;
 }
 
+.logoText {
+  font-family: "Futura", "Futura PT", sans-serif; /* Fuente del logo */
+  font-weight: bold;
+  text-transform: lowercase; /* Siempre en minúsculas */
+  letter-spacing: 0.5px;
+}
+
 .socials {
   list-style: none;
   display: flex;
@@ -42,7 +49,9 @@
 .icon {
   font-size: 1.8rem; /* Tamaño de los íconos */
   color: #fff; /* Color blanco por defecto */
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
 }
 
 .icon:hover {

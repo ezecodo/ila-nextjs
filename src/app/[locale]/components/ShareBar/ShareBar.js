@@ -8,19 +8,34 @@ import {
   FaLink,
 } from "react-icons/fa";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
+import { useTranslations } from "next-intl";
 
 /**
- * ShareBar
- *
- * Props:
- * - title?: string
- * - stickyTop?: number               // top (px) donde se fija la barra en desktop
- * - contentMaxWidth?: number         // ancho máx. del contenedor central (px). max-w-4xl = 1024
- * - gapFromContent?: number          // separación respecto al borde del contenido (px)
- * - anchorSelector?: string          // CSS selector para alinear el top de la barra (ej: "#article-start")
- * - articleId?: number               // para mostrar el botón de favoritos
- * - className?: string
+ * Tooltip item (solo desktop). Muestra label a la derecha en hover.
  */
+function ShareItem({ children, label, title }) {
+  return (
+    <div className="relative group hidden md:block">
+      <div
+        className="bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition cursor-pointer"
+        title={title}
+        aria-label={label}
+      >
+        {children}
+      </div>
+      {/* Tooltip */}
+      <span
+        className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2
+                   whitespace-nowrap rounded bg-black/80 text-white text-sm px-2 py-1
+                   opacity-0 group-hover:opacity-100 transition-opacity"
+        role="tooltip"
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
 export default function ShareBar({
   title,
   stickyTop = 120,
@@ -30,66 +45,51 @@ export default function ShareBar({
   articleId,
   className = "",
 }) {
+  const t = useTranslations("ShareBar"); // <-- usa namespace "ShareBar"
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
-  const [left, setLeft] = useState("8px"); // posición izquierda en desktop
+  const [left, setLeft] = useState("8px");
   const [computedTop, setComputedTop] = useState(stickyTop);
 
-  // Tomar URL en cliente
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setUrl(window.location.href);
-    }
+    if (typeof window !== "undefined") setUrl(window.location.href);
   }, []);
 
-  // Calcular posición izquierda segura para desktop
   useEffect(() => {
     if (typeof window === "undefined") return;
-
     const computeLeft = () => {
-      const barWidth = 52; // ancho aprox del botón (icono + padding + borde)
+      const barWidth = 52;
       const gutter = (window.innerWidth - contentMaxWidth) / 2;
       const desired = Math.max(8, gutter - (gapFromContent + barWidth));
       setLeft(`${desired}px`);
     };
-
     computeLeft();
     window.addEventListener("resize", computeLeft);
     return () => window.removeEventListener("resize", computeLeft);
   }, [contentMaxWidth, gapFromContent]);
 
-  // Alinear con ancla si existe
   useEffect(() => {
     if (!anchorSelector) return;
     const el = document.querySelector(anchorSelector);
     if (!el) return;
-
     const updateTop = () => {
       const rect = el.getBoundingClientRect();
       const scrollTop =
         window.pageYOffset || document.documentElement.scrollTop || 0;
-      // Fijamos la barra a la altura del ancla + un pequeño offset
       setComputedTop(rect.top + scrollTop);
     };
-
     updateTop();
     window.addEventListener("resize", updateTop);
     window.addEventListener("load", updateTop);
     setTimeout(updateTop, 0);
-
     return () => {
       window.removeEventListener("resize", updateTop);
       window.removeEventListener("load", updateTop);
     };
   }, [anchorSelector]);
 
-  const encodedTitle = encodeURIComponent(
-    title || "Mirá este artículo de ILA:"
-  );
+  const encodedTitle = encodeURIComponent(title || t("defaultShareTitle"));
   const encodedURL = encodeURIComponent(url);
-
-  const iconClass =
-    "bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition";
 
   const handleCopy = async () => {
     try {
@@ -97,26 +97,38 @@ export default function ShareBar({
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      alert("No se pudo copiar el enlace.");
+      alert(t("copyError"));
     }
   };
 
   return (
     <>
-      {/* Desktop: barra vertical izquierda */}
+      {/* Desktop */}
       <div
         className={`hidden md:flex fixed z-40 flex-col items-center gap-2 ${className}`}
         style={{ top: computedTop, left }}
-        aria-label="Compartir artículo"
+        aria-label={t("ariaShare")}
       >
-        {/* Favorito (con contador pequeñito) */}
-        {typeof articleId !== "undefined" && articleId !== null && (
-          <FavoriteButton
-            articleId={articleId}
-            className={iconClass}
-            size={20}
-            showCount={true}
-          />
+        {/* Favorito */}
+        {articleId != null && (
+          <div className="relative group">
+            <FavoriteButton
+              articleId={articleId}
+              className="bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition"
+              size={20}
+              showCount={true}
+              title={t("favorite")}
+              aria-label={t("favorite")}
+            />
+            <span
+              className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2
+                         whitespace-nowrap rounded bg-black/80 text-white text-sm px-2 py-1
+                         opacity-0 group-hover:opacity-100 transition-opacity"
+              role="tooltip"
+            >
+              {t("favorite")}
+            </span>
+          </div>
         )}
 
         {/* WhatsApp */}
@@ -124,11 +136,11 @@ export default function ShareBar({
           href={`https://wa.me/?text=${encodedTitle}%20${encodedURL}`}
           target="_blank"
           rel="noopener noreferrer"
-          className={iconClass}
-          title="Compartir por WhatsApp"
-          aria-label="Compartir por WhatsApp"
+          className="hidden md:block"
         >
-          <FaWhatsapp size={20} />
+          <ShareItem label={t("whatsapp")} title={t("whatsapp")}>
+            <FaWhatsapp size={20} />
+          </ShareItem>
         </a>
 
         {/* Telegram */}
@@ -136,59 +148,63 @@ export default function ShareBar({
           href={`https://t.me/share/url?url=${encodedURL}&text=${encodedTitle}`}
           target="_blank"
           rel="noopener noreferrer"
-          className={iconClass}
-          title="Compartir por Telegram"
-          aria-label="Compartir por Telegram"
+          className="hidden md:block"
         >
-          <FaTelegramPlane size={20} />
+          <ShareItem label={t("telegram")} title={t("telegram")}>
+            <FaTelegramPlane size={20} />
+          </ShareItem>
         </a>
 
         {/* Email */}
         <a
           href={`mailto:?subject=${encodedTitle}&body=${encodedURL}`}
-          className={iconClass}
-          title="Compartir por Email"
-          aria-label="Compartir por Email"
+          className="hidden md:block"
         >
-          <FaEnvelope size={20} />
+          <ShareItem label={t("email")} title={t("email")}>
+            <FaEnvelope size={20} />
+          </ShareItem>
         </a>
 
         {/* Copiar enlace */}
-        <button
-          onClick={handleCopy}
-          className={iconClass}
-          title="Copiar enlace"
-          aria-label="Copiar enlace"
-        >
-          <FaLink size={20} />
+        <button onClick={handleCopy} className="hidden md:block">
+          <ShareItem
+            label={copied ? t("copied") : t("copyLink")}
+            title={t("copyLink")}
+          >
+            <FaLink size={20} />
+          </ShareItem>
         </button>
-
-        {/* Aviso 'copiado' */}
-        <div
-          className={`text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity ${
-            copied ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-          aria-live="polite"
-        >
-          ¡Copiado!
-        </div>
       </div>
 
-      {/* Mobile: barra inferior */}
+      {/* Aviso “copiado” discreto (desktop) */}
+      <div
+        className={`hidden md:block fixed z-40 text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity
+          ${copied ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        style={{ top: computedTop, left: `calc(${left} + 0px)` }}
+        aria-live="polite"
+      >
+        {t("copied")}
+      </div>
+
+      {/* Mobile: barra inferior (sin tooltips) */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t z-50 md:hidden">
         <div className="flex justify-around items-center px-4 py-2">
-          {/* Favorito (sin contador para mobile) */}
-          {typeof articleId !== "undefined" && articleId !== null && (
-            <FavoriteButton articleId={articleId} className={iconClass} />
+          {articleId != null && (
+            <FavoriteButton
+              articleId={articleId}
+              className="bg-white border border-red-500 text-red-600 p-2 rounded"
+              title={t("favorite")}
+              aria-label={t("favorite")}
+            />
           )}
 
           <a
             href={`https://wa.me/?text=${encodedTitle}%20${encodedURL}`}
             target="_blank"
             rel="noopener noreferrer"
-            className={iconClass}
-            title="Compartir por WhatsApp"
-            aria-label="Compartir por WhatsApp"
+            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            title={t("whatsapp")}
+            aria-label={t("whatsapp")}
           >
             <FaWhatsapp size={20} />
           </a>
@@ -197,27 +213,27 @@ export default function ShareBar({
             href={`https://t.me/share/url?url=${encodedURL}&text=${encodedTitle}`}
             target="_blank"
             rel="noopener noreferrer"
-            className={iconClass}
-            title="Compartir por Telegram"
-            aria-label="Compartir por Telegram"
+            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            title={t("telegram")}
+            aria-label={t("telegram")}
           >
             <FaTelegramPlane size={20} />
           </a>
 
           <a
             href={`mailto:?subject=${encodedTitle}&body=${encodedURL}`}
-            className={iconClass}
-            title="Compartir por Email"
-            aria-label="Compartir por Email"
+            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            title={t("email")}
+            aria-label={t("email")}
           >
             <FaEnvelope size={20} />
           </a>
 
           <button
             onClick={handleCopy}
-            className={iconClass}
-            title="Copiar enlace"
-            aria-label="Copiar enlace"
+            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            title={t("copyLink")}
+            aria-label={t("copyLink")}
           >
             <FaLink size={20} />
           </button>
