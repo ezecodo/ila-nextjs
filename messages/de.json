@@ -18,8 +18,8 @@
     }
   },
   "search": {
-    "placeholder": "In ILA suchen...",
-    "ariaLabel": "In ILA suchen",
+    "placeholder": "in ila suchen...",
+    "ariaLabel": "in ila suchen",
     "button": "Suchen",
     "loading": "Lade Ergebnisse...",
     "error": "Fehler beim Laden der Ergebnisse",
@@ -32,7 +32,7 @@
     "currentIssue": "Aktuelles Heft",
     "onlineOnly": "online only",
     "archive": "Archiv",
-    "orderSubscribe": "Bestellen & Abonnieren",
+    "orderSubscribe": "Abos & Shop",
     "subscription": "Abonnement",
     "singleIssue": "Einzelheftbestellung",
     "supportIla": "Support your ILA",

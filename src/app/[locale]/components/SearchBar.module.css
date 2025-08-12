@@ -1,6 +1,6 @@
-/* SearchBar.module.css */
-
+/* Contenedor */
 .searchContainer {
+  position: relative; /* para posicionar el placeholder falso */
   display: flex;
   align-items: center;
   padding: 0.25rem 0.5rem;
@@ -14,6 +14,7 @@
   box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.5);
 }
 
+/* Input */
 .searchInput {
   flex: 1;
   border: none;
@@ -22,13 +23,9 @@
   font-size: 0.875rem;
   padding: 0.25rem;
   color: #111827;
-  transition: color 0.2s ease;
-}
-.searchInput::placeholder {
-  color: #6b7280;
-  font-style: italic;
 }
 
+/* Botón */
 .searchButton {
   padding: 0.25rem 0.75rem;
   background-color: #e5e7eb;
@@ -43,4 +40,36 @@
 }
 .searchButton:hover {
   background-color: #d1d5db;
+}
+
+/* Placeholder falso */
+.customPlaceholder {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-style: italic;
+  font-size: 0.875rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: baseline; /* alinea alturas de texto con “ila” */
+  white-space: pre-wrap;
+  pointer-events: auto; /* permite click para enfocar */
+  cursor: text;
+  transition: opacity 0.16s ease;
+}
+/* Desvanece al enfocar; luego se desmonta al escribir */
+.searchContainer:focus-within .customPlaceholder {
+  opacity: 0;
+}
+
+/* Solo “ila” con la fuente del logo */
+.logoFont {
+  font-family: "Futura", "Futura PT", sans-serif;
+  text-transform: lowercase;
+  font-weight: 700;
+  font-size: 0.95rem; /* compensa x-height de Futura */
+  line-height: 1;
+  margin: 0 0.05rem;
 }

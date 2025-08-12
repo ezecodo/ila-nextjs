@@ -18,8 +18,8 @@
     }
   },
   "search": {
-    "placeholder": "Buscar en ILA...",
-    "ariaLabel": "Buscar en ILA",
+    "placeholder": "buscar en ila...",
+    "ariaLabel": "buscar en ila",
     "button": "Buscar",
     "loading": "Cargando resultados...",
     "error": "Error cargando resultados",
@@ -32,7 +32,7 @@
     "currentIssue": "Número Actual",
     "onlineOnly": "Solo Online",
     "archive": "Archivo",
-    "orderSubscribe": "Pedidos & Suscripciones",
+    "orderSubscribe": "Suscr. & Tienda",
     "subscription": "Suscripción",
     "singleIssue": "Compra de Ejemplar",
     "supportIla": "Apoya a ILA",

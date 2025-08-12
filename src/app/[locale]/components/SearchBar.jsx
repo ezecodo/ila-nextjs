@@ -1,10 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaSearch } from "react-icons/fa";
 import styles from "./SearchBar.module.css";
 import { useTranslations } from "next-intl";
+
+// Helper: pinta solo “ila” con la clase del logo (tolera "ila...", "ila," etc.)
+function renderPlaceholder(text, logoClass) {
+  // divide en [texto, "ila", texto] manteniendo la palabra aislada
+  return text.split(/(\bila\b)/i).map((part, i) =>
+    part.toLowerCase().trim() === "ila" ? (
+      <span key={`ila-${i}`} className={logoClass}>
+        ila
+      </span>
+    ) : (
+      <span key={`t-${i}`}>{part}</span>
+    )
+  );
+}
 
 const SearchBar = () => {
   const t = useTranslations("search");
@@ -14,6 +28,7 @@ const SearchBar = () => {
 
   const [query, setQuery] = useState(initialQuery);
   const router = useRouter();
+  const inputRef = useRef(null);
 
   // Mantener sincronizado el valor si cambia en la URL
   useEffect(() => {
@@ -28,14 +43,27 @@ const SearchBar = () => {
 
   return (
     <form onSubmit={handleSearch} className={styles.searchContainer}>
+      {/* Placeholder “falso”: solo mientras no hay texto */}
+      {!query && (
+        <div
+          className={styles.customPlaceholder}
+          onClick={() => inputRef.current?.focus()}
+        >
+          {renderPlaceholder(t("placeholder"), styles.logoFont)}
+        </div>
+      )}
+
       <input
+        ref={inputRef}
         type="text"
-        placeholder={t("placeholder")}
         className={styles.searchInput}
         aria-label={t("ariaLabel")}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        autoCapitalize="none"
+        autoCorrect="off"
       />
+
       <button
         type="submit"
         className={styles.searchButton}
