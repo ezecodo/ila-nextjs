@@ -10,9 +10,7 @@ import {
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { useTranslations } from "next-intl";
 
-/**
- * Tooltip item (solo desktop). Muestra label a la derecha en hover.
- */
+/** Item con tooltip (solo desktop) */
 function ShareItem({ children, label, title }) {
   return (
     <div className="relative group hidden md:block">
@@ -23,7 +21,6 @@ function ShareItem({ children, label, title }) {
       >
         {children}
       </div>
-      {/* Tooltip */}
       <span
         className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2
                    whitespace-nowrap rounded bg-black/80 text-white text-sm px-2 py-1
@@ -45,7 +42,7 @@ export default function ShareBar({
   articleId,
   className = "",
 }) {
-  const t = useTranslations("ShareBar"); // <-- usa namespace "ShareBar"
+  const t = useTranslations("ShareBar");
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [left, setLeft] = useState("8px");
@@ -109,26 +106,11 @@ export default function ShareBar({
         style={{ top: computedTop, left }}
         aria-label={t("ariaShare")}
       >
-        {/* Favorito */}
+        {/* Favorito (ahora en modo icon para que herede estilos del wrapper) */}
         {articleId != null && (
-          <div className="relative group">
-            <FavoriteButton
-              articleId={articleId}
-              className="bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition"
-              size={20}
-              showCount={true}
-              title={t("favorite")}
-              aria-label={t("favorite")}
-            />
-            <span
-              className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2
-                         whitespace-nowrap rounded bg-black/80 text-white text-sm px-2 py-1
-                         opacity-0 group-hover:opacity-100 transition-opacity"
-              role="tooltip"
-            >
-              {t("favorite")}
-            </span>
-          </div>
+          <ShareItem label={t("favorite")} title={t("favorite")}>
+            <FavoriteButton articleId={articleId} variant="icon" />
+          </ShareItem>
         )}
 
         {/* WhatsApp */}
@@ -176,26 +158,24 @@ export default function ShareBar({
         </button>
       </div>
 
-      {/* Aviso “copiado” discreto (desktop) */}
+      {/* Aviso “copiado” (desktop) */}
       <div
-        className={`hidden md:block fixed z-40 text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity
-          ${copied ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`hidden md:block fixed z-40 text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity ${
+          copied ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
         style={{ top: computedTop, left: `calc(${left} + 0px)` }}
         aria-live="polite"
       >
         {t("copied")}
       </div>
 
-      {/* Mobile: barra inferior (sin tooltips) */}
+      {/* Mobile */}
       <div className="fixed bottom-0 left-0 w-full bg-white border-t z-50 md:hidden">
         <div className="flex justify-around items-center px-4 py-2">
           {articleId != null && (
-            <FavoriteButton
-              articleId={articleId}
-              className="bg-white border border-red-500 text-red-600 p-2 rounded"
-              title={t("favorite")}
-              aria-label={t("favorite")}
-            />
+            <div className="bg-white border border-red-500 text-red-600 p-2 rounded">
+              <FavoriteButton articleId={articleId} variant="icon" />
+            </div>
           )}
 
           <a

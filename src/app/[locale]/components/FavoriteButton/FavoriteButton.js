@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Heart } from "lucide-react";
+import { FaRegBookmark, FaBookmark } from "react-icons/fa";
 
 const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
   const { data: session } = useSession();
@@ -16,17 +16,16 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
+        const res = await fetch(
           `/api/articles/favorites?articleId=${articleId}&checkUser=true`
         );
-        const data = await response.json();
+        const data = await res.json();
         setFavorites(data.count || 0);
-        setIsFavorited(data.isFavorited || false);
-      } catch (error) {
-        console.error("Error al obtener datos de favoritos:", error);
+        setIsFavorited(!!data.isFavorited);
+      } catch (err) {
+        console.error("Error al obtener datos de favoritos:", err);
       }
     };
-
     fetchData();
   }, [articleId, session]);
 
@@ -35,37 +34,37 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
 
     if (!session) {
       const shouldRegister = window.confirm(
-        "Para likear un artículo debes estar registrado. ¿Quieres registrarte y acceder a todas las ventajas de ser parte de ILA?"
+        "Para guardar un artículo debes estar registrado. ¿Quieres registrarte y acceder a todas las ventajas de ser parte de ila?"
       );
-      if (shouldRegister) {
-        router.push("/auth/register");
-      }
+      if (shouldRegister) router.push("/auth/register");
       return;
     }
 
     const method = isFavorited ? "DELETE" : "POST";
 
-    const response = await fetch(`/api/articles/favorites`, {
+    const res = await fetch(`/api/articles/favorites`, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ articleId }),
     });
 
-    if (response.ok) {
+    if (res.ok) {
       setFavorites((prev) => (isFavorited ? prev - 1 : prev + 1));
       setIsFavorited(!isFavorited);
       setClicked(true);
       setTimeout(() => setClicked(false), 300);
     } else {
-      const errorData = await response.json();
+      const errorData = await res.json();
       console.error("Error en la API de favoritos:", errorData);
     }
   };
 
   const buttonClass =
     variant === "shareBar"
-      ? `bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition`
-      : `bg-transparent p-1 transition-transform hover:scale-110`;
+      ? "bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition flex items-center justify-center leading-none"
+      : variant === "icon"
+        ? "bg-transparent p-0 m-0 border-0 flex items-center justify-center leading-none"
+        : "bg-transparent p-1 transition-transform hover:scale-110 flex items-center justify-center leading-none";
 
   return (
     <div
@@ -76,15 +75,11 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
       <button
         onClick={toggleFavorite}
         className={`${buttonClass} ${clicked ? "animate-ping-once" : ""}`}
+        aria-label={isFavorited ? "Quitar de favoritos" : "Añadir a favoritos"}
+        title={isFavorited ? "Quitar de favoritos" : "Añadir a favoritos"}
+        aria-pressed={isFavorited}
       >
-        <Heart
-          size={22}
-          className={`transition-all ${
-            isFavorited
-              ? "fill-red-500 text-red-500 stroke-black"
-              : "hover:fill-red-500"
-          }`}
-        />
+        {isFavorited ? <FaBookmark size={20} /> : <FaRegBookmark size={20} />}
       </button>
 
       {showTooltip && favorites > 0 && (
