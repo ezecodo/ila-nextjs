@@ -35,7 +35,7 @@
     "orderSubscribe": "Suscr. & Tienda",
     "subscription": "Suscripción",
     "singleIssue": "Compra de Ejemplar",
-    "supportIla": "Apoya a ila",
+    "supportIla": "Apoya la ila",
     "donate": "Donaciones",
     "getInvolved": "Participar",
     "advertise": "Anuncios",
@@ -102,7 +102,8 @@
     "noArticlesInEdition": " No hay artículos disponibles en esta edición.",
     "viewEdition": "Ver Edición",
     "tableOfContents": "Tabla de Contenidos",
-    "articlesFromDossier": "Artículos online del dossier"
+    "articlesFromDossier": "Artículos online del dossier",
+    "editorialButton": "Editorial y Contenido"
   },
   "main": {
     "prev": "Anterior",
@@ -254,5 +255,29 @@
   },
   "Footer": {
     "tagline": "La revista de Latinoamérica"
+  },
+  "insertDossier": {
+    "formTitle": "Crear una nueva edición",
+    "numberLabel": "Número de Edición",
+    "numberPh": "Ingrese el número de la edición",
+    "titleLabel": "Título",
+    "titlePh": "Ingrese el título de la edición",
+    "subtitleLabel": "Subtítulo",
+    "subtitlePh": "Ingrese un subtítulo (opcional)",
+    "dateLabel": "Fecha de Publicación (Mes y Año)",
+    "dateHint": "Ejemplo: Mayo 2025",
+    "datePh": "Selecciona el mes y año",
+    "editorialLabel": "Editorial",
+    "tocLabel": "Tabla de Contenidos",
+    "tocPh": "Ingrese la tabla de contenidos (opcional)",
+    "isCurrent": "¿Es la edición actual?",
+    "isAvailable": "¿Disponible para pedir?",
+    "topicsLabel": "Tema/s:",
+    "topicsPh": "Escriba para buscar o agregar temas",
+    "regionsLabel": "Categoría de Región:",
+    "regionsPh": "Escriba para buscar regiones",
+    "coverLabel": "Imagen de Portada:",
+    "bgLabel": "Imagen de Fondo:",
+    "submit": "Crear Edición"
   }
 }

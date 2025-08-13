@@ -10,6 +10,7 @@ import FormMessage from "../../../components/Articles/NewArticle/FormMessage";
 import AsyncSelect from "react-select/async"; // Importamos AsyncSelect
 import "react-datepicker/dist/react-datepicker.css"; // Estilos de react-datepicker
 import styles from "../../../../styles/global.module.css";
+import { useTranslations } from "next-intl";
 
 const QuillEditor = dynamic(
   () => import("../../../components/QuillEditor/QuillEditor"),
@@ -23,6 +24,7 @@ const DatePicker = dynamic(
 );
 
 export default function NewEditionForm() {
+  const t = useTranslations("insertDossier");
   const [number, setNumber] = useState("");
   const [title, setTitle] = useState("");
   const [isAvailableToOrder, setIsAvailableToOrder] = useState(false);
@@ -237,35 +239,35 @@ export default function NewEditionForm() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.formTitle}>Crear una nueva edición</h1>
+      <h1 className={styles.formTitle}>{t("formTitle")}</h1>
       {message && <FormMessage message={message} />}
       <form onSubmit={handleSubmit} className={styles.form}>
         <InputField
           id="number"
-          label="Número de Edición"
+          label={t("numberLabel")}
           value={number}
           onChange={(e) => setNumber(e.target.value)}
-          placeholder="Ingrese el número de la edición"
+          placeholder={t("numberPh")}
           required
         />
         <InputField
           id="title"
-          label="Título"
+          label={t("titleLabel")}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ingrese el título de la edición"
+          placeholder={t("titlePh")}
           required
         />
         <InputField
           id="subtitle"
-          label="Subtítulo"
+          label={t("subtitleLabel")}
           value={subtitle}
           onChange={(e) => setSubtitle(e.target.value)}
-          placeholder="Ingrese un subtítulo (opcional)"
+          placeholder={t("subtitlePh")}
         />
         <div className={styles.formGroup}>
           <label htmlFor="datePublished" className={styles.formLabel}>
-            Fecha de Publicación (Mes y Año)
+            {t("dateLabel")}
           </label>
           <DatePicker
             selected={datePublished}
@@ -273,37 +275,44 @@ export default function NewEditionForm() {
             dateFormat="MM/yyyy"
             showMonthYearPicker
             className={styles.input}
-            placeholderText="Selecciona el mes y año"
+            placeholderText={t("datePh")}
           />
         </div>
         {/* <QuillEditor onChange={handleSaveSummary} /> */}
-        <QuillEditor
-          value={summary}
-          onChange={(newSummary) => setSummary(newSummary)}
-          resetTrigger={resetTrigger} // Pasamos el trigger al QuillEditor
-        />
+        {/* Editorial */}
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>{t("editorialLabel")}</label>
+
+          <QuillEditor
+            value={summary}
+            onChange={(newSummary) => setSummary(newSummary)}
+            resetTrigger={resetTrigger}
+            // si tu QuillEditor acepta placeholder, puedes pasar uno:
+            // placeholder={t("editorialPlaceholder")}
+          />
+        </div>
         <TextAreaField
           id="tableOfContents"
-          label="Tabla de Contenidos"
+          label={t("tocLabel")}
           value={tableOfContents}
           onChange={(e) => setTableOfContents(e.target.value)}
-          placeholder="Ingrese la tabla de contenidos (opcional)"
+          placeholder={t("tocPh")}
         />
         <ToggleSwitch
           id="isCurrent"
-          label="¿Es la edición actual?"
+          label={t("isCurrent")}
           checked={isCurrent}
           onChange={(e) => setIsCurrent(e.target.checked)}
         />
         <ToggleSwitch
           id="isAvailableToOrder"
-          label="¿Disponible para pedir?"
+          label={t("isAvailable")}
           checked={isAvailableToOrder}
           onChange={(e) => setIsAvailableToOrder(e.target.checked)}
         />
         <div className={styles.formGroup}>
           <label htmlFor="topic" className={styles.formLabel}>
-            Tema/s:
+            {t("topicsLabel")}
           </label>
           <AsyncSelect
             isMulti
@@ -312,12 +321,12 @@ export default function NewEditionForm() {
             loadOptions={loadTopics}
             onChange={handleTopicChange}
             value={topics} // Temas seleccionados
-            placeholder="Escriba para buscar o agregar temas"
+            placeholder={t("topicsPh")}
           />
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="region" className={styles.formLabel}>
-            Categoría de Región:
+            {t("regionsLabel")}
           </label>
           <AsyncSelect
             isMulti // Permitir selección múltiple
@@ -326,13 +335,13 @@ export default function NewEditionForm() {
             loadOptions={loadRegions}
             onChange={(selectedOptions) => setRegions(selectedOptions || [])} // Actualizar el array de regiones
             value={regions} // Mostrar las regiones seleccionadas
-            placeholder="Escriba para buscar regiones"
+            placeholder={t("regionsPh")}
           />
         </div>
 
         <div className={styles.formGroup}>
           <label htmlFor="coverImage" className={styles.formLabel}>
-            Imagen de Portada:
+            {t("coverLabel")}
           </label>
           <input
             type="file"
@@ -343,20 +352,8 @@ export default function NewEditionForm() {
             required
           />
         </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="backgroundImage" className={styles.formLabel}>
-            Imagen de Fondo:
-          </label>
-          <input
-            type="file"
-            id="backgroundImage"
-            ref={backgroundImageRef}
-            onChange={(e) => setBackgroundImage(e.target.files[0])}
-            className={styles.input}
-            required
-          />
-        </div>
-        <SubmitButton label="Crear Edición" />
+
+        <SubmitButton label={t("submit")} />
       </form>
     </div>
   );

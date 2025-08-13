@@ -132,23 +132,28 @@ export default function LatestEditionWithArticles() {
 
                     {/* Centro: número y datos de la edición */}
                     <div className="text-center mx-10">
-                      <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem] block">
-                        ila {currentEdition.number}
-                      </span>
-                      {currentEdition.datePublished && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 block -mt-1">
-                          {new Date(currentEdition.datePublished)
-                            .toLocaleDateString(
-                              locale === "es" ? "es-ES" : "de-DE",
-                              {
-                                month: "short",
-                                year: "numeric",
-                              }
-                            )
-                            .replace(".", "")
-                            .replace(/^\w/, (c) => c.toUpperCase())}
+                      {/* título + fecha en la MISMA línea */}
+                      <div className="inline-flex items-baseline justify-center gap-3">
+                        <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem]">
+                          ila {currentEdition.number}
                         </span>
-                      )}
+
+                        {currentEdition.datePublished && (
+                          <span className="text-sm md:text-base text-gray-500 dark:text-gray-400">
+                            {new Date(currentEdition.datePublished)
+                              .toLocaleDateString(
+                                locale === "es" ? "es-ES" : "de-DE",
+                                {
+                                  month: "short",
+                                  year: "numeric",
+                                }
+                              )
+                              .replace(".", "")
+                              .replace(/^\w/, (c) => c.toUpperCase())}
+                          </span>
+                        )}
+                      </div>
+
                       <div className="mt-1">
                         <span className="font-serif font-bold text-black dark:text-white">
                           Dossier:
@@ -210,7 +215,7 @@ export default function LatestEditionWithArticles() {
                   href={`/editions/${currentEdition.id}`}
                   className="bg-white text-red-600 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition border border-red-600"
                 >
-                  Editorial
+                  {t("editorialButton")}
                 </Link>
 
                 {/* Solo escritorio */}
