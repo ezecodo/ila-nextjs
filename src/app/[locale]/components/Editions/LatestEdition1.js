@@ -121,20 +121,16 @@ export default function LatestEditionWithArticles() {
                 {/* Título + flechas */}
                 <div className="relative w-full">
                   <div className="flex items-center justify-center">
+                    {/* Flecha IZQUIERDA → ediciones más antiguas */}
                     <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
-                      <PrevArrow
-                        onClick={() =>
-                          currentEditionIndex > 0 &&
-                          setCurrentEditionIndex((prev) => prev - 1)
-                        }
-                        className={
-                          currentEditionIndex === 0
-                            ? "opacity-40 pointer-events-none"
-                            : ""
-                        }
-                      />
+                      {currentEditionIndex < editions.length - 1 && (
+                        <PrevArrow
+                          onClick={() => setCurrentEditionIndex((i) => i + 1)}
+                        />
+                      )}
                     </div>
 
+                    {/* Centro: número y datos de la edición */}
                     <div className="text-center mx-10">
                       <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem] block">
                         ila {currentEdition.number}
@@ -165,18 +161,13 @@ export default function LatestEditionWithArticles() {
                       </div>
                     </div>
 
+                    {/* Flecha DERECHA → ediciones más nuevas */}
                     <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
-                      <NextArrow
-                        onClick={() =>
-                          currentEditionIndex < editions.length - 1 &&
-                          setCurrentEditionIndex((prev) => prev + 1)
-                        }
-                        className={
-                          currentEditionIndex === editions.length - 1
-                            ? "opacity-40 pointer-events-none"
-                            : ""
-                        }
-                      />
+                      {currentEditionIndex > 0 && (
+                        <NextArrow
+                          onClick={() => setCurrentEditionIndex((i) => i - 1)}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
