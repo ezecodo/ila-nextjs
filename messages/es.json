@@ -230,7 +230,13 @@
     "donateButton": "Donar",
     "subscribeButton": "Suscribirse"
   },
+  "donation": {
+    "title": "¡Apoya la ila!",
+    "body": "Ponemos todos nuestros contenidos a disposición de forma gratuita. Detrás hay mucho esfuerzo, y sin dinero no es posible. Apoya el periodismo independiente y comprometido. Cada aporte cuenta.",
+    "cta": "Donar ahora"
+  },
   "activity": {
+    "createdArticle": "creó un artículo",
     "recent": "📝 Actividad reciente",
     "none": "🔍 No hay actividad reciente.",
     "createdCarousel": "creó el carrusel",

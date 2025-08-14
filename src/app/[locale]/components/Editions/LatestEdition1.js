@@ -131,15 +131,15 @@ export default function LatestEditionWithArticles() {
                     </div>
 
                     {/* Centro: número y datos de la edición */}
-                    <div className="text-center mx-10">
-                      {/* título + fecha en la MISMA línea */}
-                      <div className="inline-flex items-baseline justify-center gap-3">
-                        <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem]">
+                    <div className="text-center mx-10 flex flex-col items-center space-y-1">
+                      {/* línea: ila + número + fecha (súper compacta) */}
+                      <div className="flex items-baseline justify-center gap-3 leading-none">
+                        <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none">
                           ila {currentEdition.number}
                         </span>
 
                         {currentEdition.datePublished && (
-                          <span className="text-sm md:text-base text-gray-500 dark:text-gray-400">
+                          <span className="text-sm md:text-base text-gray-500 dark:text-gray-400 leading-none">
                             {new Date(currentEdition.datePublished)
                               .toLocaleDateString(
                                 locale === "es" ? "es-ES" : "de-DE",
@@ -154,15 +154,16 @@ export default function LatestEditionWithArticles() {
                         )}
                       </div>
 
-                      <div className="mt-1">
-                        <span className="font-serif font-bold text-black dark:text-white">
-                          Dossier:
-                        </span>{" "}
-                        <span className="font-serif font-bold text-red-800">
-                          {locale === "es" && currentEdition.titleES
-                            ? currentEdition.titleES
-                            : currentEdition.title}
-                        </span>
+                      {/* etiqueta Dossier */}
+                      <div className="font-serif font-bold text-black dark:text-white text-lg md:text-xl leading-none">
+                        Dossier
+                      </div>
+
+                      {/* título del dossier */}
+                      <div className="font-serif font-bold text-red-800 text-xl md:text-2xl leading-snug">
+                        {locale === "es" && currentEdition.titleES
+                          ? currentEdition.titleES
+                          : currentEdition.title}
                       </div>
                     </div>
 

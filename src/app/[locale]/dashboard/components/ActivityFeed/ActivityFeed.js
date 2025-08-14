@@ -106,6 +106,21 @@ export default function ActivityFeed() {
                 ) : (
                   <>{t("deletedCarousel")}</>
                 )
+              ) : log.action === "CREATE_ARTICLE" ? (
+                <>
+                  {t("createdArticle")}{" "}
+                  <Link
+                    href={`/dashboard/articles/${log.articleId}`}
+                    className="text-blue-600 hover:underline"
+                  >
+                    “
+                    {log.article?.title ||
+                      log.metadata?.titleDE ||
+                      log.metadata?.titleES ||
+                      t("untitled")}
+                    ”
+                  </Link>
+                </>
               ) : log.action === "TRANSLATE_ARTICLE" ? (
                 <>
                   {t("translatedArticle")}{" "}
