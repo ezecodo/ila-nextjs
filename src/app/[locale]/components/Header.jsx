@@ -189,57 +189,75 @@ export default function Header() {
       )}
 
       {/* Desktop main */}
+      {/* Desktop main */}
       {!isCompact && (
-        <div className="w-full hidden md:flex flex-col px-4 pt-2 pb-0">
-          <div className="max-w-7xl mx-auto w-full flex flex-col items-center">
-            {/* Logo centrado y tagline debajo */}
-            <Link href="/" className="flex flex-col items-center">
-              <Image
-                src="/ila-logo.png"
-                alt="ILA Logo"
-                width={120}
-                height={120}
-              />
-              <span
-                className="mt-2 text-2xl md:text-3xl font-bold whitespace-nowrap text-center"
-                style={{
-                  fontFamily: "'Futura Cyrillic', Arial, sans-serif",
-                  letterSpacing: "-0.5px",
-                }}
-              >
-                {locale === "es" ? (
-                  <>
-                    La revista de Latinoam
-                    <span
-                      style={{ position: "relative", display: "inline-block" }}
-                    >
-                      e
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          position: "absolute",
-                          left: "0.24em",
-                          top: "0.25em",
-                          width: "0.21em",
-                          height: "0.10em",
-                          background: "#222",
-                          borderRadius: "0.03em",
-                          transform: "rotate(-18deg)",
-                          zIndex: 2,
-                        }}
-                      />
-                    </span>
-                    rica
-                  </>
-                ) : (
-                  t("tagline")
-                )}
-              </span>
-            </Link>
+        <div className="w-full hidden md:flex px-4 pt-2 pb-0">
+          <div className="max-w-7xl mx-auto w-full">
+            {/* Fila superior: logo IZQ + tagline CENTRO */}
+            <div className="relative flex items-center h-[96px]">
+              {/* Logo a la izquierda */}
+              <Link href="/" className="absolute left-0 flex items-center">
+                <Image
+                  src="/ila-logo.png"
+                  alt="ILA Logo"
+                  width={80}
+                  height={80}
+                />
+              </Link>
 
-            {/* Nav + Search en la misma línea, perfectamente alineados */}
-            <div className="flex items-center justify-center gap-8">
-              <DesktopNavMenu />
+              {/* Tagline centrado en el espacio superior */}
+              <div className="absolute left-1/2 -translate-x-1/2 text-center">
+                <span
+                  className="text-[1.9rem] md:text-[2.4rem] font-bold leading-tight whitespace-nowrap"
+                  style={{
+                    fontFamily: "'Futura Cyrillic', Arial, sans-serif",
+                    letterSpacing: "-0.5px",
+                  }}
+                >
+                  {locale === "es" ? (
+                    <>
+                      La revista de Latinoam
+                      <span
+                        style={{
+                          position: "relative",
+                          display: "inline-block",
+                        }}
+                      >
+                        e
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: "absolute",
+                            left: "0.24em",
+                            top: "0.25em",
+                            width: "0.21em",
+                            height: "0.10em",
+                            background: "#222",
+                            borderRadius: "0.03em",
+                            transform: "rotate(-18deg)",
+                            zIndex: 2,
+                          }}
+                        />
+                      </span>
+                      rica
+                    </>
+                  ) : (
+                    t("tagline")
+                  )}
+                </span>
+              </div>
+
+              {/* (Opcional) hueco a la derecha para SearchBar u otro control */}
+              {/* <div className="absolute right-0 w-[380px]">
+          <SearchBar />
+        </div> */}
+            </div>
+
+            {/* Fila inferior: menú centrado en una sola línea */}
+            <div className="flex items-center justify-center py-2">
+              <div className="shrink-0 overflow-x-visible whitespace-nowrap">
+                <DesktopNavMenu />
+              </div>
             </div>
           </div>
         </div>
