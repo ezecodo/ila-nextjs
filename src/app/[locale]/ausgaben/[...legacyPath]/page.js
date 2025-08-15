@@ -103,6 +103,16 @@ export default function LegacyArticlePage() {
           )}
         </div>
 
+        {/* VORSPANN / STANDFIRST */}
+        {(isES ? article.previewTextES : article.previewText) && (
+          <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
+            <p className="font-serif text-lg md:text-xl leading-relaxed text-gray-800">
+              {isES && article.previewTextES
+                ? article.previewTextES
+                : article.previewText}
+            </p>
+          </div>
+        )}
         {isAdmin && isES && article.isTranslatedES && (
           <div className="text-center mb-6">
             <Link href={`/dashboard/articles/translate/${article.id}`}>

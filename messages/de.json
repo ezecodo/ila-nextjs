@@ -86,6 +86,7 @@
   },
   "article": {
     "noArticles": "Es gibt keine Artikel.",
+
     "articles": "Artikel",
     "loadingArticles": "Fehler beim Laden der Artikel",
     "loadingArticlesError": "Fehler beim Laden der Artikel",

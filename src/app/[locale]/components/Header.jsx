@@ -204,22 +204,28 @@ export default function Header() {
         <div className="w-full hidden md:flex px-4 pt-2 pb-0">
           <div className="max-w-7xl mx-auto w-full">
             {/* Fila superior: logo IZQ + tagline CENTRO */}
-            <div className="flex items-center h-[96px] relative">
-              {/* Logo dentro del contenedor, alineado con el inicio del menú */}
+            {/* Fila superior: logo fijo a la IZQ + tagline CENTRO */}
+            <div className="relative flex items-center h-[96px]">
+              {/* Logo: fijo respecto al contenedor, no depende del menú */}
               <Link
                 href="/"
-                className="flex items-center mr-auto pl-10 md:pl-28"
+                className="absolute left-[8rem] md:left-[12rem] flex items-center"
+                aria-label="ILA Home"
               >
                 <Image
                   src="/ila-logo.png"
                   alt="ILA Logo"
                   width={80}
                   height={80}
+                  priority
                 />
               </Link>
 
-              {/* Tagline centrado en el espacio superior */}
-              <div className="absolute left-1/2 -translate-x-1/2 text-center">
+              {/* Tagline perfectamente centrado en el contenedor */}
+              <div
+                className="mx-auto text-center relative"
+                style={{ left: "-10px" }}
+              >
                 <span
                   className="text-[1.9rem] md:text-[2.4rem] font-bold leading-tight whitespace-nowrap"
                   style={{
