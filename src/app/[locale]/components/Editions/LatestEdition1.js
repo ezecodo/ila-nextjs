@@ -154,11 +154,6 @@ export default function LatestEditionWithArticles() {
                         )}
                       </div>
 
-                      {/* etiqueta Dossier */}
-                      <div className="font-serif font-bold text-black dark:text-white text-lg md:text-xl leading-none">
-                        Dossier
-                      </div>
-
                       {/* título del dossier */}
                       <div className="font-serif font-bold text-red-800 text-xl md:text-2xl leading-snug">
                         {locale === "es" && currentEdition.titleES
