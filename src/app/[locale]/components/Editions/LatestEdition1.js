@@ -139,7 +139,7 @@ export default function LatestEditionWithArticles() {
                         </span>
 
                         {currentEdition.datePublished && (
-                          <span className="text-sm md:text-base text-gray-500 dark:text-gray-400 leading-none">
+                          <span className="font-bold text-xs md:text-sm text-black dark:text-white leading-none">
                             {new Date(currentEdition.datePublished)
                               .toLocaleDateString(
                                 locale === "es" ? "es-ES" : "de-DE",

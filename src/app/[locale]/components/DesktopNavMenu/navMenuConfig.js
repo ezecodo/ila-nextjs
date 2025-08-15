@@ -2,6 +2,13 @@
 export const navSections = [
   { labelKey: "index", href: "/" },
   {
+    labelKey: "newsEvents",
+    items: [
+      { labelKey: "news", href: "/news" },
+      { labelKey: "events", href: "/events" },
+    ],
+  },
+  {
     labelKey: "contents",
     items: [
       { labelKey: "currentIssue", href: "/contents/current-issue" },
@@ -17,21 +24,6 @@ export const navSections = [
     ],
   },
   {
-    labelKey: "supportIla",
-    items: [
-      { labelKey: "donate", href: "/donar" },
-      { labelKey: "getInvolved", href: "/support/get-involved" },
-      { labelKey: "advertise", href: "/support/advertise" },
-    ],
-  },
-  {
-    labelKey: "newsEvents",
-    items: [
-      { labelKey: "news", href: "/news" },
-      { labelKey: "events", href: "/events" },
-    ],
-  },
-  {
     labelKey: "aboutUs",
     items: [
       { labelKey: "history", href: "/about/history" },
@@ -42,6 +34,14 @@ export const navSections = [
       { labelKey: "legalNotice", href: "/about/legal-notice" },
       { labelKey: "terms", href: "/about/terms" },
       { labelKey: "privacy", href: "/about/privacy" },
+    ],
+  },
+  {
+    labelKey: "supportIla",
+    items: [
+      { labelKey: "donate", href: "/donar" },
+      { labelKey: "getInvolved", href: "/support/get-involved" },
+      { labelKey: "advertise", href: "/support/advertise" },
     ],
   },
 ];

@@ -108,9 +108,10 @@ export default function Header() {
 
       {/* Desktop compact */}
       {isCompact && (
-        <div className="hidden md:flex items-center justify-center w-full px-4 py-2">
-          <div className="max-w-7xl w-full flex items-center justify-between">
-            <Link href="/">
+        <div className="hidden md:flex w-full px-4 py-2">
+          <div className="max-w-7xl mx-auto w-full grid grid-cols-[auto,1fr,auto] items-center">
+            {/* Logo a la izquierda */}
+            <Link href="/" className="justify-self-start">
               <Image
                 src="/ila-logo.png"
                 alt="ILA Logo"
@@ -118,9 +119,19 @@ export default function Header() {
                 height={40}
               />
             </Link>
-            <div className="flex items-center gap-6">
+
+            {/* Menú perfectamente CENTRADO */}
+            <div className="justify-self-center overflow-x-visible whitespace-nowrap">
               <DesktopNavMenu />
             </div>
+
+            {/* Espaciador a la derecha (si luego quieres, pon aquí SearchBar u otro control) */}
+            <div className="justify-self-end" />
+            {/* Ejemplo con buscador:
+      <div className="justify-self-end w-[360px]">
+        <SearchBar />
+      </div>
+      */}
           </div>
         </div>
       )}
@@ -189,14 +200,16 @@ export default function Header() {
       )}
 
       {/* Desktop main */}
-      {/* Desktop main */}
       {!isCompact && (
         <div className="w-full hidden md:flex px-4 pt-2 pb-0">
           <div className="max-w-7xl mx-auto w-full">
             {/* Fila superior: logo IZQ + tagline CENTRO */}
-            <div className="relative flex items-center h-[96px]">
-              {/* Logo a la izquierda */}
-              <Link href="/" className="absolute left-0 flex items-center">
+            <div className="flex items-center h-[96px] relative">
+              {/* Logo dentro del contenedor, alineado con el inicio del menú */}
+              <Link
+                href="/"
+                className="flex items-center mr-auto pl-10 md:pl-28"
+              >
                 <Image
                   src="/ila-logo.png"
                   alt="ILA Logo"
@@ -246,11 +259,6 @@ export default function Header() {
                   )}
                 </span>
               </div>
-
-              {/* (Opcional) hueco a la derecha para SearchBar u otro control */}
-              {/* <div className="absolute right-0 w-[380px]">
-          <SearchBar />
-        </div> */}
             </div>
 
             {/* Fila inferior: menú centrado en una sola línea */}
