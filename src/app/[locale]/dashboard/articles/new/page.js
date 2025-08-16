@@ -583,6 +583,41 @@ export default function NewArticlePage() {
             />
           </div>
         )}
+        <ToggleSwitch
+          id="isPrinted"
+          label="¿Está en la versión impresa?"
+          checked={isPrinted}
+          onChange={(e) => setIsPrinted(e.target.checked)}
+        />
+        {isPrinted && (
+          <>
+            <SelectField
+              id="edition"
+              label="Edición de la revista"
+              options={editions.map((edition) => ({
+                id: edition.id,
+                name: `${edition.number} - ${edition.title}`,
+              }))}
+              value={selectedEdition}
+              onChange={(e) => setSelectedEdition(e.target.value)}
+              placeholder="Seleccione una edición"
+            />
+            <InputField
+              id="startPage"
+              label="Página de inicio"
+              value={startPage}
+              onChange={(e) => setStartPage(e.target.value)}
+              placeholder="Página de inicio"
+            />
+            <InputField
+              id="endPage"
+              label="Página de fin"
+              value={endPage}
+              onChange={(e) => setEndPage(e.target.value)}
+              placeholder="Página de fin"
+            />
+          </>
+        )}
         <div>
           <h3>{t("categoryLabel")}</h3>
           {categories.map((category) => (
@@ -791,41 +826,7 @@ export default function NewArticlePage() {
             </button>
           </>
         )}
-        <ToggleSwitch
-          id="isPrinted"
-          label="¿Está en la versión impresa?"
-          checked={isPrinted}
-          onChange={(e) => setIsPrinted(e.target.checked)}
-        />
-        {isPrinted && (
-          <>
-            <SelectField
-              id="edition"
-              label="Edición de la revista"
-              options={editions.map((edition) => ({
-                id: edition.id,
-                name: `${edition.number} - ${edition.title}`,
-              }))}
-              value={selectedEdition}
-              onChange={(e) => setSelectedEdition(e.target.value)}
-              placeholder="Seleccione una edición"
-            />
-            <InputField
-              id="startPage"
-              label="Página de inicio"
-              value={startPage}
-              onChange={(e) => setStartPage(e.target.value)}
-              placeholder="Página de inicio"
-            />
-            <InputField
-              id="endPage"
-              label="Página de fin"
-              value={endPage}
-              onChange={(e) => setEndPage(e.target.value)}
-              placeholder="Página de fin"
-            />
-          </>
-        )}
+
         <ToggleSwitch
           id="isPublished"
           label="Publicar Ahora"
