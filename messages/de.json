@@ -166,8 +166,8 @@
     "favorites": "Favoriten"
   },
   "newArticle": {
-    "title": "Neuen Artikel erstellen",
     "form": {
+      "formTitle": "Neuen Artikel erstellen",
       "title": "Titel",
       "titlePlaceholder": "Geben Sie den Titel ein",
       "subtitle": "Untertitel",

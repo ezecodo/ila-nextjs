@@ -255,6 +255,7 @@ model ObituaryDetails {
 model Category {
   id                Int               @id @default(autoincrement())
   name              String            @unique
+  nameES    String?
   articles           Article[]         @relation("ArticleCategories")
 }
 

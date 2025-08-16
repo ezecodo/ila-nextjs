@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import InputField from "../../../components/Articles/NewArticle/InputField";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import SelectField from "../../../components/Articles/NewArticle/SelectField";
 import ToggleSwitch from "../../../components/Articles/NewArticle/ToggleSwitch";
@@ -26,6 +26,7 @@ export default function NewArticlePage() {
   const [content, setContent] = useState("");
   const [resetTrigger, setResetTrigger] = useState(false);
   const t = useTranslations("newArticle.form");
+  const locale = useLocale();
 
   const [articleImage, setArticleImage] = useState(null); // Manejar la imagen del artículo
 
@@ -544,7 +545,7 @@ export default function NewArticlePage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.formTitle}>{t("title")}</h1>
+      <h1 className={styles.formTitle}>{t("formTitle")}</h1>
       {message && <FormMessage message={message} />}
       <form onSubmit={handleSubmit} className={styles.form}>
         <InputField
@@ -588,7 +589,11 @@ export default function NewArticlePage() {
             <CheckboxField
               key={category.id}
               id={`category-${category.id}`}
-              label={category.name}
+              label={
+                locale === "es" && category.nameES
+                  ? category.nameES
+                  : category.name
+              }
               checked={selectedCategories.includes(category.id)}
               onChange={() => handleCategoryChange(category.id)}
             />
