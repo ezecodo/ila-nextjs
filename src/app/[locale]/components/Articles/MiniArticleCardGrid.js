@@ -8,15 +8,15 @@ import ArticleLink from "../Articles/ArticleLink/ArticleLink";
 
 export default function MiniArticleCardGrid({ article }) {
   const locale = useLocale();
+  const t = useTranslations("article");
   const isES = locale === "es" && article.isTranslatedES;
   const firstImage = article.images?.[0];
-  const t = useTranslations("article");
 
   const formattedDate = article.publicationDate
-    ? new Date(article.publicationDate).toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "numeric",
-      })
+    ? new Date(article.publicationDate).toLocaleDateString(
+        locale === "es" ? "es-ES" : "de-DE",
+        { year: "numeric", month: "numeric" }
+      )
     : null;
 
   return (
@@ -56,46 +56,47 @@ export default function MiniArticleCardGrid({ article }) {
           )}
         </h3>
 
-        {/* Subtítulo */}
+        {/* Subtítulo (sin cursiva) */}
         {(isES ? article.subtitleES : article.subtitle) && (
           <p className="text-sm text-gray-700 leading-tight mb-1">
             {isES ? article.subtitleES : article.subtitle}
           </p>
         )}
-        {/* Autores */}
-        {article.authors?.length > 0 && (
-          <div className="text-sm text-gray-600 mt-0.5 flex gap-1 flex-wrap">
-            <span>{t("by")}</span>
-            {article.authors.map((author) => (
-              <LocaleLink
-                key={author.id}
-                href={`/authors/${author.id}`}
-                className="text-blue-600 hover:underline"
-              >
-                <HoverInfo
-                  id={author.id}
-                  name={author.name}
-                  entityType="authors"
-                />
-              </LocaleLink>
-            ))}
+
+        {/* Autores + Fecha EN LA MISMA LÍNEA */}
+        {(article.authors?.length > 0 || formattedDate) && (
+          <div className="text-sm text-gray-600 mt-0.5 flex flex-wrap items-center gap-1">
+            {article.authors?.length > 0 && (
+              <>
+                <span>{t("by")}</span>
+                {article.authors.map((author, i) => (
+                  <span key={author.id} className="flex gap-1">
+                    <LocaleLink
+                      href={`/authors/${author.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      <HoverInfo
+                        id={author.id}
+                        name={author.name}
+                        entityType="authors"
+                      />
+                    </LocaleLink>
+                    {i < article.authors.length - 1 && <span>,</span>}
+                  </span>
+                ))}
+              </>
+            )}
+
+            {formattedDate && (
+              <>
+                {article.authors?.length > 0 && (
+                  <span className="opacity-60">|</span>
+                )}
+                <span>{formattedDate}</span>
+              </>
+            )}
           </div>
         )}
-
-        {/* Meta info */}
-        <div className="text-sm text-gray-600 mt-0.5 flex flex-wrap gap-1">
-          {formattedDate && <span>{formattedDate}</span>}
-          {article.beitragstyp && (
-            <>
-              <span className="opacity-60">|</span>
-              <span>
-                {isES && article.beitragstyp.nameES
-                  ? article.beitragstyp.nameES
-                  : article.beitragstyp.name}
-              </span>
-            </>
-          )}
-        </div>
 
         {/* Badges al final */}
         <div className="mt-2">
