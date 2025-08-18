@@ -562,6 +562,14 @@ export default function NewArticlePage() {
           onChange={(e) => setSubtitle(e.target.value)}
           placeholder={t("subtitlePlaceholder")}
         />
+        <SelectField
+          id="beitragstyp"
+          label="Tipo de Artículo"
+          options={beitragstypen}
+          value={selectedBeitragstyp}
+          onChange={(e) => setSelectedBeitragstyp(e.target.value)}
+          placeholder="Seleccione un tipo"
+        />
         <ToggleSwitch
           id="enablePreviewText"
           label={t("previewToggle")} //Agregar Texto de vista previa

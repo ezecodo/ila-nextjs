@@ -6,48 +6,57 @@ import { useLocale } from "next-intl";
 
 export default function CreateCarouselPage() {
   const router = useRouter();
+  const locale = useLocale();
 
   const [titleES, setTitleES] = useState("");
   const [titleDE, setTitleDE] = useState("");
   const [name, setName] = useState("");
-  const [beitragstypId, setBeitragstypId] = useState("");
-  const [limit, setLimit] = useState(6);
+
   const [types, setTypes] = useState([]);
-  const locale = useLocale();
+  const [beitragstypId, setBeitragstypId] = useState("");
+
   const [regions, setRegions] = useState([]);
   const [regionId, setRegionId] = useState("");
+
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+
+  const [limit, setLimit] = useState(6);
   const [filteredArticles, setFilteredArticles] = useState([]);
 
+  // Cargar tipos, regiones y categorías
   useEffect(() => {
     fetch("/api/beitragstypen")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("TIPOS DE CONTENIDO:", data); // 👈🏼 ¿Se imprime?
-        setTypes(data);
-      });
+      .then((r) => r.json())
+      .then(setTypes);
     fetch("/api/regions")
-      .then((res) => res.json())
-      .then((data) => setRegions(data));
+      .then((r) => r.json())
+      .then(setRegions);
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then(setCategories);
   }, []);
+
+  // Vista previa: filtra por region, tipo y categorías
   useEffect(() => {
     const query = new URLSearchParams();
-
     if (regionId) query.append("regionId", regionId);
     if (beitragstypId) query.append("beitragstypId", beitragstypId);
+    // 👇 añadimos múltiples categoryId en la URL (?categoryId=1&categoryId=5…)
+    selectedCategoryIds.forEach((id) => query.append("categoryId", String(id)));
 
-    if (regionId || beitragstypId) {
+    if (regionId || beitragstypId || selectedCategoryIds.length > 0) {
       fetch(`/api/articles/filtered?${query.toString()}`)
         .then((res) => res.json())
-        .then((data) => {
-          console.log("Artículos filtrados:", data);
-          setFilteredArticles(data);
-        });
+        .then((data) => setFilteredArticles(data))
+        .catch(() => setFilteredArticles([]));
     } else {
       setFilteredArticles([]);
     }
-  }, [regionId, beitragstypId]);
-  function renderRegionOptions(regions, depth = 0) {
-    return regions.flatMap((region) => [
+  }, [regionId, beitragstypId, selectedCategoryIds]);
+
+  function renderRegionOptions(list, depth = 0) {
+    return list.flatMap((region) => [
       <option key={region.id} value={region.id}>
         {"— ".repeat(depth) + region.name}
       </option>,
@@ -55,7 +64,14 @@ export default function CreateCarouselPage() {
     ]);
   }
 
-  const handleSubmit = async (e) => {
+  function onChangeCategories(e) {
+    const values = Array.from(e.target.selectedOptions).map((o) =>
+      parseInt(o.value, 10)
+    );
+    setSelectedCategoryIds(values);
+  }
+
+  async function handleSubmit(e) {
     e.preventDefault();
 
     const res = await fetch("/api/carousels", {
@@ -63,11 +79,12 @@ export default function CreateCarouselPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        title: titleES, // ✅ Aquí estás enviando el campo requerido
+        title: titleES, // requerido por tu API
         titleES,
         titleDE,
-        beitragstypId,
-        regionId: regionId || null,
+        beitragstypId: beitragstypId ? parseInt(beitragstypId, 10) : null,
+        regionId: regionId ? parseInt(regionId, 10) : null,
+        categoryIds: selectedCategoryIds, // 👈 ahora se envían las categorías
         limit,
       }),
     });
@@ -75,13 +92,15 @@ export default function CreateCarouselPage() {
     if (res.ok) {
       router.push("/dashboard/carousels");
     } else {
-      alert("Error al crear carrusel");
+      const msg = await res.text();
+      alert(`Error al crear carrusel: ${msg}`);
     }
-  };
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-4">Crear nuevo carrusel</h1>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
@@ -91,6 +110,7 @@ export default function CreateCarouselPage() {
           onChange={(e) => setName(e.target.value)}
           required
         />
+
         <input
           type="text"
           placeholder="Título en español"
@@ -98,6 +118,7 @@ export default function CreateCarouselPage() {
           value={titleES}
           onChange={(e) => setTitleES(e.target.value)}
         />
+
         <input
           type="text"
           placeholder="Título en alemán"
@@ -105,6 +126,8 @@ export default function CreateCarouselPage() {
           value={titleDE}
           onChange={(e) => setTitleDE(e.target.value)}
         />
+
+        {/* Tipo de contenido */}
         <select
           className="w-full border p-2 rounded"
           value={beitragstypId}
@@ -114,10 +137,12 @@ export default function CreateCarouselPage() {
           <option value="">Seleccionar tipo de contenido</option>
           {types.map((t) => (
             <option key={t.id} value={t.id}>
-              {locale === "es" ? t.nameES : t.name}
+              {locale === "es" && t.nameES ? t.nameES : t.name}
             </option>
           ))}
         </select>
+
+        {/* Región (opcional) */}
         <select
           className="w-full border p-2 rounded"
           value={regionId}
@@ -126,6 +151,29 @@ export default function CreateCarouselPage() {
           <option value="">Sin región (opcional)</option>
           {renderRegionOptions(regions)}
         </select>
+
+        {/* Categorías (multi-select) */}
+        <div>
+          <label className="block mb-1 font-medium">
+            Categorías (opcional)
+          </label>
+          <select
+            multiple
+            className="w-full border p-2 rounded h-40"
+            value={selectedCategoryIds.map(String)}
+            onChange={onChangeCategories}
+          >
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {locale === "es" && c.nameES ? c.nameES : c.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500 mt-1">
+            Mantén pulsado Ctrl/Cmd para seleccionar varias.
+          </p>
+        </div>
+
         <input
           type="number"
           min={1}
@@ -135,6 +183,7 @@ export default function CreateCarouselPage() {
           value={limit}
           onChange={(e) => setLimit(Number(e.target.value))}
         />
+
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
@@ -142,6 +191,7 @@ export default function CreateCarouselPage() {
           Crear carrusel
         </button>
       </form>
+
       {filteredArticles.length > 0 && (
         <div className="mt-8 border-t pt-4">
           <h2 className="text-lg font-bold mb-3">Vista previa de artículos</h2>

@@ -31,24 +31,40 @@ export default function LatestEditionWithArticles() {
     async function fetchAllEditions() {
       try {
         const res = await fetch("/api/editions?sort=desc");
-        const data = await res.json();
+        if (!res.ok) {
+          const msg = await res.text();
+          throw new Error(`API /api/editions fallo: ${res.status} ${msg}`);
+        }
 
-        // ✅ ordena SIEMPRE por edition.number DESC (fallback si el API no lo hace)
+        const raw = await res.json();
+        // Acepta tanto [...] como { editions: [...] }
+        const data = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.editions)
+            ? raw.editions
+            : [];
+
+        if (!Array.isArray(data)) {
+          throw new Error("API /api/editions no devolvió un array.");
+        }
+
+        // Ordena SIEMPRE por number DESC (fallback)
         const byNumberDesc = [...data].sort((a, b) => {
-          const an = typeof a.number === "number" ? a.number : -Infinity;
-          const bn = typeof b.number === "number" ? b.number : -Infinity;
+          const an = typeof a?.number === "number" ? a.number : -Infinity;
+          const bn = typeof b?.number === "number" ? b.number : -Infinity;
           return bn - an;
         });
 
         setEditions(byNumberDesc);
 
         if (byNumberDesc.length) {
-          fetchArticles(byNumberDesc[0].id);
-          fetchEditionsCount(byNumberDesc[0]);
+          await fetchArticles(byNumberDesc[0].id);
+          await fetchEditionsCount(byNumberDesc[0]);
           setCurrentEditionIndex(0);
         }
       } catch (e) {
-        console.error("Error cargando ediciones", e);
+        console.error("Error cargando ediciones:", e);
+        setEditions([]);
       }
     }
 

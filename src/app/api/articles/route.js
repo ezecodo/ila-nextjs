@@ -1,4 +1,5 @@
 import cloudinary from "cloudinary";
+import slugify from "@/lib/slugify";
 
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
@@ -99,6 +100,8 @@ export async function POST(request) {
 
     const title = formData.get("title");
     const subtitle = formData.get("subtitle");
+    const previewText = formData.get("previewText");
+    const additionalInfo = formData.get("additionalInfo");
     const content = formData.get("content");
     const beitragstypId = formData.get("beitragstypId");
     const isPrinted = formData.get("isPrinted") === "true";
@@ -120,12 +123,50 @@ export async function POST(request) {
       );
     }
 
+    // ---------- legacyPath (SEO) SIN locale ----------
+    const slug = slugify(title);
+
+    let legacyPath;
+    if (isPrinted && editionId) {
+      // obtener número de edición para la URL
+      const ed = await prisma.edition.findUnique({
+        where: { id: parseInt(editionId, 10) },
+        select: { number: true },
+      });
+      if (!ed) {
+        return new Response(
+          JSON.stringify({ error: "La edición especificada no existe." }),
+          { status: 400 }
+        );
+      }
+      // ✅ SIN "de/" ni "es/"
+      legacyPath = `/ausgaben/${ed.number}/${slug}`;
+    } else {
+      // Artículo online (sin edición)
+      // ✅ SIN "de/" ni "es/"
+      legacyPath = `/online/${slug}`;
+    }
+
+    // Asegurar unicidad del legacyPath (por si existe mismo slug)
+    let finalLegacyPath = legacyPath;
+    const existing = await prisma.article.findUnique({
+      where: { legacyPath: finalLegacyPath },
+    });
+    if (existing) {
+      // sufijo corto para diferenciar
+      finalLegacyPath = `${legacyPath}-${Date.now().toString(36).slice(-4)}`;
+    }
+    // --------------------------------------
+
     // **1️⃣ Crear el artículo primero**
     const article = await prisma.article.create({
       data: {
         title,
         subtitle,
         content,
+        previewText: previewText || null, // 👈 NUEVO
+        additionalInfo: additionalInfo || null,
+        legacyPath: finalLegacyPath, // 👈 guardamos la URL SEO
         beitragstypId: parseInt(beitragstypId, 10),
         isInPrintEdition: isPrinted,
         editionId: isPrinted ? parseInt(editionId, 10) : null,
