@@ -175,6 +175,8 @@
       "subtitle": "Subtítulo",
       "subtitlePlaceholder": "Ingrese el subtítulo",
       "previewToggle": "¿Agregar texto introductivo",
+      "typeLabel": "Tipo de artículo",
+      "typePlaceholder": "Selecciona un tipo",
       "categoryLabel": "Categorías",
       "regionLabel": "Región/es:",
       "topicLabel": "Tema/s:",
@@ -200,7 +202,46 @@
       "firstName": "Primer Nombre",
       "lastName": "Apellido",
       "birthYear": "Año de Nacimiento",
-      "deathYear": "Año de Defunción"
+      "deathYear": "Año de Defunción",
+      "editionPlaceholder": "Seleccione una edición",
+      "startPagePlaceholder": "Página de inicio",
+      "endPagePlaceholder": "Página de fin",
+
+      "regionPlaceholder": "Escriba para buscar regiones",
+      "topicPlaceholder": "Escriba para buscar o agregar temas",
+
+      "imageTitleLabel": "Título de la foto",
+      "imageTitlePlaceholder": "Ej.: Manifestación frente al hospital Bonaparte",
+      "imageAltLabel": "Créditos de la foto / Alt",
+      "imageAltPlaceholder": "Ej.: Foto: Alix Arnold",
+
+      "useCustomDate": "Editar fecha del artículo (pasado o futuro)",
+      "articleDate": "Fecha del artículo",
+
+      "createTopicPrefix": "Crear tema",
+      "photoTitle": "Título de la foto",
+      "photoTitlePlaceholder": "Ej.: Manifestación frente al hospital Bonaparte",
+      "photoCredits": "Créditos de la foto / Alt",
+      "photoCreditsPlaceholder": "Ej.: Foto: Alix Arnold",
+
+      "bookDetailsTitle": "Detalles del libro",
+
+      "bookTitlePlaceholder": "Ingrese el título completo del libro",
+
+      "firstNamePlaceholder": "Ingrese el primer nombre",
+
+      "lastNamePlaceholder": "Ingrese el apellido",
+
+      "birthYearPlaceholder": "Ingrese el año (ej.: 1990)",
+
+      "deathYearPlaceholder": "Ingrese el año (ej.: 2020)",
+
+      "subtypeLabel": "Subtipo de artículo",
+      "subtypePlaceholder": "Seleccione un subtipo",
+
+      "authorPlaceholder": "Seleccione un autor",
+
+      "intervieweePlaceholder": "Seleccione un entrevistado"
     },
     "modals": {
       "addAuthorTitle": "Agregar Nuevo Autor",

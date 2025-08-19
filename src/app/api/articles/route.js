@@ -113,6 +113,8 @@ export async function POST(request) {
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
     const articleImage = formData.get("articleImage");
+    const imageTitle = formData.get("imageTitle") || null; // String o null
+    const imageAlt = formData.get("imageAlt") || null; // String o null
 
     if (!title || !content || !beitragstypId) {
       return new Response(
@@ -219,7 +221,8 @@ export async function POST(request) {
             contentType: "ARTICLE",
             contentId: article.id, // Relación con el artículo
             url: imageUrl,
-            title: title,
+            title: imageTitle, // ✅ Título de la foto (no el título del artículo)
+            alt: imageAlt,
           },
         });
 

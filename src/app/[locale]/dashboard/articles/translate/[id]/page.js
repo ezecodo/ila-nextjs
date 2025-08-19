@@ -16,6 +16,9 @@ const TranslateArticlePage = () => {
     additionalInfoES: "",
   });
   const [isReviewMode, setIsReviewMode] = useState(false);
+  const [deepl, setDeepl] = useState(null); // { titleES, subtitleES, previewTextES, contentES, additionalInfoES }
+  const [deeplLoading, setDeeplLoading] = useState(false);
+  const [deeplError, setDeeplError] = useState("");
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -80,13 +83,82 @@ const TranslateArticlePage = () => {
       console.log("📋 Copiado al portapapeles:", text);
     });
   };
+  // Llama a tu endpoint backend y cachea el resultado en estado
+  const fetchDeepl = async () => {
+    if (deepl) return deepl; // ya cargado
+    try {
+      setDeeplLoading(true);
+      setDeeplError("");
+      const res = await fetch("/api/translate/deepl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ articleId: id }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || res.statusText);
+      }
+      const data = await res.json(); // { translations: {...} }
+      setDeepl(data.translations);
+      return data.translations;
+    } catch (e) {
+      setDeeplError(e.message || "DeepL error");
+      alert(`❌ DeepL: ${e.message || "Error desconocido"}`);
+      return null;
+    } finally {
+      setDeeplLoading(false);
+    }
+  };
+
+  // Rellena TODO el formulario con lo de DeepL (solo vacíos, no pisa lo escrito)
+  const fillAllFromDeepl = async () => {
+    const tr = await fetchDeepl();
+    if (!tr) return;
+    setTranslations((prev) => ({
+      ...prev,
+      titleES: prev.titleES || tr.titleES || "",
+      subtitleES: prev.subtitleES || tr.subtitleES || "",
+      // ojo: tu state usa previewES; el backend devuelve previewTextES
+      previewES: prev.previewES || tr.previewTextES || "",
+      contentES: prev.contentES || tr.contentES || "",
+      additionalInfoES: prev.additionalInfoES || tr.additionalInfoES || "",
+    }));
+  };
+
+  // Rellena solo un campo concreto (opcionalmente forzar pisado)
+  const fillFieldFromDeepl = async (
+    stateKey,
+    deeplKey,
+    { force = false } = {}
+  ) => {
+    const tr = await fetchDeepl();
+    if (!tr) return;
+    setTranslations((prev) => {
+      if (!force && prev[stateKey]) return prev; // no pisar si ya hay texto
+      return { ...prev, [stateKey]: tr[deeplKey] || "" };
+    });
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6 text-red-600">
         🌐 Traducir artículo al español
       </h1>
+      <div className="mb-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={fillAllFromDeepl}
+          disabled={deeplLoading}
+          className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
+          title="Autotraducir todos los campos (no pisa lo ya escrito)"
+        >
+          ⚡ Autotraducir con DeepL
+        </button>
 
+        {deeplError && (
+          <span className="text-red-600 text-sm">DeepL: {deeplError}</span>
+        )}
+      </div>
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 text-sm">
         {/* Título */}
         <div>
@@ -122,6 +194,14 @@ const TranslateArticlePage = () => {
               title="Pegar desde portapapeles"
             >
               📥
+            </button>
+            <button
+              type="button"
+              onClick={() => fillFieldFromDeepl("titleES", "titleES")}
+              className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded hover:bg-purple-200"
+              title="Rellenar con DeepL"
+            >
+              ⚡
             </button>
           </div>
         </div>
@@ -163,6 +243,14 @@ const TranslateArticlePage = () => {
             >
               📥
             </button>
+            <button
+              type="button"
+              onClick={() => fillFieldFromDeepl("subtitleES", "subtitleES")}
+              className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded hover:bg-purple-200"
+              title="Rellenar con DeepL"
+            >
+              ⚡
+            </button>
           </div>
         </div>
 
@@ -203,6 +291,14 @@ const TranslateArticlePage = () => {
             >
               📥
             </button>
+            <button
+              type="button"
+              onClick={() => fillFieldFromDeepl("previewES", "previewTextES")}
+              className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded hover:bg-purple-200 h-fit mt-1"
+              title="Rellenar con DeepL"
+            >
+              ⚡
+            </button>
           </div>
         </div>
 
@@ -242,6 +338,14 @@ const TranslateArticlePage = () => {
               title="Pegar desde portapapeles"
             >
               📥
+            </button>
+            <button
+              type="button"
+              onClick={() => fillFieldFromDeepl("contentES", "contentES")}
+              className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded hover:bg-purple-200 h-fit mt-1"
+              title="Rellenar con DeepL"
+            >
+              ⚡
             </button>
           </div>
         </div>
@@ -285,6 +389,16 @@ const TranslateArticlePage = () => {
               title="Pegar desde portapapeles"
             >
               📥
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                fillFieldFromDeepl("additionalInfoES", "additionalInfoES")
+              }
+              className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded hover:bg-purple-200 h-fit mt-1"
+              title="Rellenar con DeepL"
+            >
+              ⚡
             </button>
           </div>
         </div>

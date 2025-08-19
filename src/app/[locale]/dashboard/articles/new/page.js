@@ -11,8 +11,9 @@ import SubmitButton from "../../../components/Articles/NewArticle/SubmitButton";
 import Modal from "../../../components/Articles/NewArticle/Modal";
 import styles from "../../../../styles/global.module.css";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
-import AsyncSelect from "react-select/async";
+
 import dynamic from "next/dynamic";
+const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 const QuillEditor = dynamic(
   () => import("../../../components/QuillEditor/QuillEditor"),
   {
@@ -53,6 +54,7 @@ export default function NewArticlePage() {
   const [isPublished, setIsPublished] = useState(false); // Toggle para "Publicar Ahora"
   const [schedulePublish, setSchedulePublish] = useState(false); // Toggle para "Programar Publicación"
   const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
+  const [useCustomDate, setUseCustomDate] = useState(false);
   const [deceasedFirstName, setDeceasedFirstName] = useState("");
   const [deceasedLastName, setDeceasedLastName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -68,6 +70,8 @@ export default function NewArticlePage() {
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
   const [bookImage, setBookImage] = useState(null); // Imagen del libro
   const [mediaTitle, setMediaTitle] = useState(""); // Título completo del libro
+  const [imageTitle, setImageTitle] = useState(""); // Título de la foto
+  const [imageAlt, setImageAlt] = useState(""); // Créditos / Alt
 
   const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
 
@@ -101,7 +105,7 @@ export default function NewArticlePage() {
 
       // Agrega la opción "Crear tema"
       return [
-        { value: "new", label: `Crear tema: "${inputValue}"` },
+        { value: "new", label: `${t("createTopicPrefix")}: "${inputValue}"` },
         ...flattenedTopics,
       ];
     } catch (error) {
@@ -320,6 +324,23 @@ export default function NewArticlePage() {
 
     fetchCategories();
   }, []);
+  // 5. Opciones localizadas
+  const beitragstypOptions = beitragstypen.map((typ) => ({
+    id: typ.id,
+    name: locale === "es" && typ.nameES ? typ.nameES : typ.name,
+  }));
+
+  const subtypOptions = subtypen.map((s) => ({
+    id: s.id,
+    name: locale === "es" && s.nameES ? s.nameES : s.name,
+  }));
+
+  const authorOptions = authors;
+
+  const intervieweeOptions = interviewees.map((int) => ({
+    id: int.id,
+    name: int.name,
+  }));
 
   // Manejar selección de categorías
   const handleCategoryChange = (categoryId) => {
@@ -345,6 +366,9 @@ export default function NewArticlePage() {
     if (articleImage) {
       formData.append("articleImage", articleImage);
     }
+    if (typeof imageTitle === "string")
+      formData.append("imageTitle", imageTitle);
+    if (typeof imageAlt === "string") formData.append("imageAlt", imageAlt);
 
     // Manejo de Autores
     formData.append("authorId", selectedAuthor || null);
@@ -395,7 +419,7 @@ export default function NewArticlePage() {
 
     formData.append("isPublished", isPublished);
     formData.append("schedulePublish", schedulePublish);
-    if (schedulePublish) {
+    if (publicationDate) {
       formData.append("publicationDate", publicationDate.toISOString());
     }
 
@@ -448,6 +472,8 @@ export default function NewArticlePage() {
     setPreviewText("");
     setIsPublished(false);
     setSchedulePublish(false);
+    setUseCustomDate(false);
+    setPublicationDate(null);
     setAdditionalInfo("");
     setAdditionalInfoEnabled(false);
     setSelectedCategories([]);
@@ -456,6 +482,8 @@ export default function NewArticlePage() {
     setArticleImage(null);
     setMediaTitle("");
     setBookImage(null);
+    setImageTitle("");
+    setImageAlt("");
   };
 
   const handleAddAuthor = async () => {
@@ -562,14 +590,7 @@ export default function NewArticlePage() {
           onChange={(e) => setSubtitle(e.target.value)}
           placeholder={t("subtitlePlaceholder")}
         />
-        <SelectField
-          id="beitragstyp"
-          label="Tipo de Artículo"
-          options={beitragstypen}
-          value={selectedBeitragstyp}
-          onChange={(e) => setSelectedBeitragstyp(e.target.value)}
-          placeholder="Seleccione un tipo"
-        />
+
         <ToggleSwitch
           id="enablePreviewText"
           label={t("previewToggle")} //Agregar Texto de vista previa
@@ -593,36 +614,37 @@ export default function NewArticlePage() {
         )}
         <ToggleSwitch
           id="isPrinted"
-          label="¿Está en la versión impresa?"
+          label={t("printedToggle")}
           checked={isPrinted}
           onChange={(e) => setIsPrinted(e.target.checked)}
         />
+
         {isPrinted && (
           <>
             <SelectField
               id="edition"
-              label="Edición de la revista"
+              label={t("edition")}
               options={editions.map((edition) => ({
                 id: edition.id,
                 name: `${edition.number} - ${edition.title}`,
               }))}
               value={selectedEdition}
               onChange={(e) => setSelectedEdition(e.target.value)}
-              placeholder="Seleccione una edición"
+              placeholder={t("editionPlaceholder")}
             />
             <InputField
               id="startPage"
-              label="Página de inicio"
+              label={t("startPage")}
               value={startPage}
               onChange={(e) => setStartPage(e.target.value)}
-              placeholder="Página de inicio"
+              placeholder={t("startPagePlaceholder")}
             />
             <InputField
               id="endPage"
-              label="Página de fin"
+              label={t("endPage")}
               value={endPage}
               onChange={(e) => setEndPage(e.target.value)}
-              placeholder="Página de fin"
+              placeholder={t("endPagePlaceholder")}
             />
           </>
         )}
@@ -643,31 +665,37 @@ export default function NewArticlePage() {
           ))}
         </div>
         <div className={styles.formGroup}>
-          <label htmlFor="region" className={styles.formLabel}>
+          <label htmlFor="region-select" className={styles.formLabel}>
             {t("regionLabel")}
           </label>
           <AsyncSelect
+            instanceId="region" // 👈 id estable para SSR/CSR
+            inputId="region-select" // 👈 vincula el <label> con el control
             isMulti
             cacheOptions
             defaultOptions
             loadOptions={loadRegions}
             onChange={(selectedOptions) => setRegions(selectedOptions || [])}
             value={regions}
-            placeholder="Escriba para buscar regiones"
+            placeholder={t("regionPlaceholder")}
+            key={locale} // 👈 (opcional) re-monta al cambiar idioma
           />
         </div>
         <div className={styles.formGroup}>
-          <label htmlFor="topic" className={styles.formLabel}>
-            {t("topicLabel")} {/* Topics del articulo */}
+          <label htmlFor="topic-select" className={styles.formLabel}>
+            {t("topicLabel")}
           </label>
           <AsyncSelect
+            instanceId="topic" // 👈 id estable
+            inputId="topic-select" // 👈 vincula el <label>
             isMulti
             cacheOptions
             defaultOptions
             loadOptions={loadTopics}
             onChange={handleTopicChange}
-            value={topics} // Temas seleccionados
-            placeholder="Escriba para buscar o agregar temas"
+            value={topics}
+            placeholder={t("topicPlaceholder")}
+            key={locale}
           />
         </div>
         <QuillEditor
@@ -682,10 +710,30 @@ export default function NewArticlePage() {
             type="file"
             id="articleImage"
             ref={fileInputRef}
-            onChange={(e) => setArticleImage(e.target.files[0])} // Guardar el archivo seleccionado
+            onChange={(e) => setArticleImage(e.target.files[0])}
             className={styles.input}
             accept="image/*"
           />
+
+          <div className={styles.formGroup}>
+            <InputField
+              id="imageTitle"
+              label={t("photoTitle")}
+              value={imageTitle}
+              onChange={(e) => setImageTitle(e.target.value)}
+              placeholder={t("photoTitlePlaceholder")}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <InputField
+              id="imageAlt"
+              label={t("photoCredits")}
+              value={imageAlt}
+              onChange={(e) => setImageAlt(e.target.value)}
+              placeholder={t("photoCreditsPlaceholder")}
+            />
+          </div>
         </div>
         <ToggleSwitch
           id="additionalInfoToggle"
@@ -703,134 +751,137 @@ export default function NewArticlePage() {
           />
         )}
 
+        {/* TIPO DE ARTÍCULO */}
         <SelectField
           id="beitragstyp"
-          label="Tipo de Artículo"
-          options={beitragstypen}
+          label={t("typeLabel")}
+          options={beitragstypOptions}
           value={selectedBeitragstyp}
           onChange={(e) => setSelectedBeitragstyp(e.target.value)}
-          placeholder="Seleccione un tipo"
+          placeholder={t("typePlaceholder")}
         />
+
+        {/* BUCHBESPRECHUNG (Detalles de libro) */}
         {isBuchBesprechung && (
           <div>
-            <h3>Detalles del Libro</h3>
+            <h3>{t("bookDetailsTitle")}</h3>
             <InputField
               id="mediaTitle"
-              label="Título del libro"
+              label={t("bookTitle")}
               value={mediaTitle}
               onChange={(e) => setMediaTitle(e.target.value)}
-              placeholder="Ingrese el título completo del libro"
+              placeholder={t("bookTitlePlaceholder")}
             />
             <div className={styles.formGroup}>
               <label htmlFor="bookImage" className={styles.formLabel}>
-                Imagen del libro
+                {t("bookImage")}
               </label>
               <input
                 type="file"
                 id="bookImage"
                 accept="image/*"
-                onChange={(e) => setBookImage(e.target.files[0])} // Actualiza el estado con el archivo
+                onChange={(e) => setBookImage(e.target.files[0])}
               />
             </div>
           </div>
         )}
 
+        {/* NACHRUF (Necrológica) */}
         {isNachruf && (
           <div>
-            <h3>Detalles de la necrología</h3>
+            <h3>{t("nachrufTitle")}</h3>
             <InputField
               id="deceasedFirstName"
-              label="Primer Nombre"
+              label={t("firstName")}
               value={deceasedFirstName}
               onChange={(e) => setDeceasedFirstName(e.target.value)}
-              placeholder="Ingrese el primer nombre"
+              placeholder={t("firstNamePlaceholder")}
             />
             <InputField
               id="deceasedLastName"
-              label="Apellido"
+              label={t("lastName")}
               value={deceasedLastName}
               onChange={(e) => setDeceasedLastName(e.target.value)}
-              placeholder="Ingrese el apellido"
+              placeholder={t("lastNamePlaceholder")}
             />
             <InputField
               id="dateOfBirth"
-              label="Año de Nacimiento"
+              label={t("birthYear")}
               value={dateOfBirth || ""}
               onChange={(e) => {
                 const value = e.target.value;
-                if (/^\d{0,4}$/.test(value)) {
-                  setDateOfBirth(value); // Permite solo hasta 4 dígitos
-                }
+                if (/^\d{0,4}$/.test(value)) setDateOfBirth(value);
               }}
-              placeholder="Ingrese el año (ejemplo: 1990)"
+              placeholder={t("birthYearPlaceholder")}
             />
             <InputField
               id="dateOfDeath"
-              label="Año de Defunción"
+              label={t("deathYear")}
               value={dateOfDeath || ""}
               onChange={(e) => {
                 const value = e.target.value;
-                if (/^\d{0,4}$/.test(value)) {
-                  setDateOfDeath(value); // Permite solo hasta 4 dígitos
-                }
+                if (/^\d{0,4}$/.test(value)) setDateOfDeath(value);
               }}
-              placeholder="Ingrese el año (ejemplo: 2020)"
+              placeholder={t("deathYearPlaceholder")}
             />
           </div>
         )}
+
+        {/* SUBTIPO (si existen) */}
         {subtypen.length > 0 && (
           <SelectField
             id="subtyp"
-            label="Subtipo de Artículo"
-            options={subtypen}
+            label={t("subtypeLabel")}
+            options={subtypOptions}
             value={selectedSubtyp}
             onChange={(e) => setSelectedSubtyp(e.target.value)}
-            placeholder="Seleccione un subtipo"
+            placeholder={t("subtypePlaceholder")}
           />
         )}
 
+        {/* AUTOR */}
         <div className={styles.authorSection}>
           <SelectField
             id="author"
-            label="Autor"
-            options={authors}
+            label={t("author")}
+            options={authorOptions}
             value={selectedAuthor}
             onChange={(e) => setSelectedAuthor(e.target.value)}
-            placeholder="Seleccione un autor"
+            placeholder={t("authorPlaceholder")}
           />
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
             className={styles.addAuthorButton}
           >
-            ¿Es un autor nuevo?
+            {t("newAuthor")}
           </button>
         </div>
+
+        {/* ENTREVISTA */}
         <ToggleSwitch
           id="isInterview"
-          label="¿Es una entrevista?"
+          label={t("interviewToggle")}
           checked={isInterview}
           onChange={(e) => setIsInterview(e.target.checked)}
         />
+
         {isInterview && (
           <>
             <SelectField
               id="interviewee"
-              label="Entrevistado"
-              options={interviewees.map((int) => ({
-                id: int.id,
-                name: int.name,
-              }))}
+              label={t("interviewee")}
+              options={intervieweeOptions}
               value={selectedInterviewee}
               onChange={(e) => setSelectedInterviewee(e.target.value)}
-              placeholder="Seleccione un entrevistado"
+              placeholder={t("intervieweePlaceholder")}
             />
             <button
               type="button"
               onClick={() => setIsIntervieweeModalOpen(true)}
               className={styles.addAuthorButton}
             >
-              ¿Es un entrevistado nuevo?
+              {t("newInterviewee")}
             </button>
           </>
         )}
@@ -847,17 +898,24 @@ export default function NewArticlePage() {
 
         <ToggleSwitch
           id="schedulePublish"
-          label="Programar Publicación"
+          label="Programar Publicación (futuro)"
           checked={schedulePublish}
           onChange={(e) => {
             setSchedulePublish(e.target.checked);
-            if (e.target.checked) setIsPublished(false); // Desactiva "Publicar ahora" si está activo
+            if (e.target.checked) setIsPublished(false);
           }}
         />
 
-        {schedulePublish && (
+        <ToggleSwitch
+          id="useCustomDate"
+          label="Editar fecha del artículo (pasado o futuro)"
+          checked={useCustomDate}
+          onChange={(e) => setUseCustomDate(e.target.checked)}
+        />
+
+        {(useCustomDate || schedulePublish) && (
           <div>
-            <label>Fecha de Publicación</label>
+            <label>Fecha del artículo</label>
             <input
               type="datetime-local"
               value={

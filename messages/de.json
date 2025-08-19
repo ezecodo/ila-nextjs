@@ -173,6 +173,8 @@
       "subtitle": "Untertitel",
       "subtitlePlaceholder": "Geben Sie den Untertitel ein",
       "previewToggle": "Vorspann hinzufügen?",
+      "typeLabel": "Beitragstyp",
+      "typePlaceholder": "Typ auswählen",
       "categoryLabel": "Kategorien",
       "regionLabel": "Region(en):",
       "topicLabel": "Thema/Themen:",
@@ -198,7 +200,46 @@
       "firstName": "Vorname",
       "lastName": "Nachname",
       "birthYear": "Geburtsjahr",
-      "deathYear": "Todesjahr"
+      "deathYear": "Todesjahr",
+      "editionPlaceholder": "Ausgabe auswählen",
+      "startPagePlaceholder": "Startseite",
+      "endPagePlaceholder": "Endseite",
+
+      "regionPlaceholder": "Regionen suchen…",
+      "topicPlaceholder": "Themen suchen oder hinzufügen…",
+
+      "imageTitleLabel": "Fototitel",
+      "imageTitlePlaceholder": "z. B.: Kundgebung vor dem Bonaparte‑Krankenhaus",
+      "imageAltLabel": "Fotocredits / Alt‑Text",
+      "imageAltPlaceholder": "z. B.: Foto: Alix Arnold",
+
+      "useCustomDate": "Artikeldatum bearbeiten (Vergangenheit/Zukunft)",
+      "articleDate": "Artikeldatum",
+
+      "createTopicPrefix": "Thema erstellen",
+      "photoTitle": "Fototitel",
+      "photoTitlePlaceholder": "Z. B.: Demonstration vor dem Bonaparte-Krankenhaus",
+      "photoCredits": "Fotocredits / Alt",
+      "photoCreditsPlaceholder": "Z. B.: Foto: Alix Arnold",
+
+      "bookDetailsTitle": "Buchdetails",
+
+      "bookTitlePlaceholder": "Geben Sie den vollständigen Buchtitel ein",
+
+      "firstNamePlaceholder": "Vornamen eingeben",
+
+      "lastNamePlaceholder": "Nachnamen eingeben",
+
+      "birthYearPlaceholder": "Jahr eingeben (z. B. 1990)",
+
+      "deathYearPlaceholder": "Jahr eingeben (z. B. 2020)",
+
+      "subtypeLabel": "Artikeluntertyp",
+      "subtypePlaceholder": "Untertyp wählen",
+
+      "authorPlaceholder": "Autor/in wählen",
+
+      "intervieweePlaceholder": "Interviewpartner/in wählen"
     },
     "modals": {
       "addAuthorTitle": "Neue/r Autor/in hinzufügen",
