@@ -71,7 +71,7 @@
     ]
   },
   "author": {
-    "by": "Von: {name}",
+    "by": "von  {name}",
     "loadingAuthor": "Informationen über den Autor werden geladen...",
     "loadingArticles": "Artikel werden geladen...",
     "noArticles": "Es gibt keine Artikel von diesem Autor.",
@@ -90,7 +90,7 @@
     "articles": "Artikel",
     "loadingArticles": "Fehler beim Laden der Artikel",
     "loadingArticlesError": "Fehler beim Laden der Artikel",
-    "by": "Von:",
+    "by": "von",
     "loading": "Artikel wird geladen..."
   },
   "dossiers": {

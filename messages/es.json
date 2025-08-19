@@ -89,7 +89,7 @@
     "articles": "Artículos",
     "loadingArticles": "Error al cargar los Artículos",
     "loadingArticlesError": "Error al cargar los artículos",
-    "by": "Por:",
+    "by": "",
     "loading": "Cargando artículo..."
   },
   "dossiers": {
