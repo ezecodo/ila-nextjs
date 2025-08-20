@@ -54,7 +54,7 @@ export default function DashboardLayout({
     },
     {
       key: "carousels",
-      label: "Carruseles",
+      label: t("menu.carousels"),
       href: "/dashboard/carousels",
       icon: <FaSlidersH />,
     },

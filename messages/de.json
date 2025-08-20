@@ -128,9 +128,10 @@
     "menu": {
       "inicio": "Startseite",
       "articles": "Artikel eingeben",
-      "editions": "Dossier eingeben",
+      "editions": "Ausgabe eingeben",
       "account": "Kontoeinstellungen",
-      "events": "Veranstaltung erstellen"
+      "events": "Veranstaltung eingeben",
+      "carousels": "Karussells erstellen"
     },
 
     "openMenu": "Menü öffnen ☰",
@@ -138,20 +139,52 @@
     "errorStats": "Fehler beim Laden der Statistiken",
     "welcome": "Willkommen im Admin-Dashboard",
     "Carousels": {
+      "title": "Neues Karussell erstellen",
       "editTitle": "Karussell bearbeiten",
-      "selectType": "Inhaltstyp auswählen",
-      "saveChanges": "Änderungen speichern",
-      "loading": "Wird geladen...",
+
+      "nameLabel": "Interner Name",
+      "namePlaceholder": "Interner Name",
+
+      "titleESLabel": "Titel auf Spanisch",
+      "titleESPlaceholder": "Z. B. Nachrichten",
+
+      "titleDELabel": "Titel auf Deutsch",
+      "titleDEPlaceholder": "Z. B. Aktuell",
+
+      "typeLabelOption": "Inhaltstyp (optional)",
+      "noTypeOption": "Ohne Typ (optional)",
+      "typePlaceholder": "Inhaltstyp auswählen",
+
+      "regionLabelOption": "Region (optional)",
+      "regionNone": "Ohne Region (optional)",
       "noRegion": "Ohne Region (optional)",
+
+      "categoriesLabel": "Kategorien (optional)",
+      "categoriesHint": "Strg/Cmd gedrückt halten, um mehrere auszuwählen.",
+
+      "limitLabel": "Anzahl der Artikel",
+      "limitPlaceholder": "Anzahl der Artikel",
+
+      "createButton": "Karussell erstellen",
+      "saveChanges": "Änderungen speichern",
+
+      "previewTitle": "Artikel‑Vorschau",
+      "noSummary": "Keine Zusammenfassung verfügbar",
+
+      "createError": "Fehler beim Erstellen des Karussells",
+      "errorDeleting": "Fehler beim Löschen",
+
+      "loading": "Wird geladen...",
       "loadingCarousels": "Karussells werden geladen...",
       "activeCarousels": "Aktive Karussells",
+
       "createNew": "Neues Karussell erstellen",
       "type": "Typ",
       "articles": "Artikel",
+
       "edit": "Bearbeiten",
       "delete": "Löschen",
-      "confirmDelete": "Dieses Karussell löschen?",
-      "errorDeleting": "Fehler beim Löschen"
+      "confirmDelete": "Dieses Karussell löschen?"
     }
   },
   "stats": {

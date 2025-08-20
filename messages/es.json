@@ -132,27 +132,62 @@
       "articles": "Ingresar Artículo",
       "editions": "Ingresar Edición",
       "account": "Configuración de Cuenta",
-      "events": "Crear Eventos"
+      "events": "Crear Eventos",
+      "carousels": "Crear Carruseles"
     },
     "openMenu": "Abrir Menú ☰",
     "closeMenu": "Cerrar Menú ☰",
     "errorStats": "Error al cargar estadísticas",
     "welcome": "Bienvenido al Dashboard Admin",
     "Carousels": {
+      "title": "Crear nuevo carrusel",
       "editTitle": "Editar carrusel",
-      "selectType": "Seleccionar tipo de contenido",
-      "saveChanges": "Guardar cambios",
+
+      "nameLabel": "Nombre interno",
+      "namePlaceholder": "Nombre interno",
+
+      "titleESLabel": "Título en español",
+      "titleESPlaceholder": "Ej. Noticias",
+
+      "titleDELabel": "Título en alemán",
+      "titleDEPlaceholder": "Ej. Aktuell",
+
+      "typeLabel": "Tipo de contenido",
+      "noTypeOption": "Sin tipo (opcional)",
+      "typePlaceholder": "Seleccionar tipo de contenido",
+      "typeLabelOption": "Tipo de contenido (opcional)",
+      "regionLabelOption": "Región (opcional)",
+
+      "regionLabel": "Región",
+      "regionNone": "Sin región (opcional)",
       "noRegion": "Sin región (opcional)",
+
+      "categoriesLabel": "Categorías (opcional)",
+      "categoriesHint": "Mantén pulsado Ctrl/Cmd para seleccionar varias.",
+
+      "limitLabel": "Cantidad de artículos",
+      "limitPlaceholder": "Cantidad de artículos",
+
+      "createButton": "Crear carrusel",
+      "saveChanges": "Guardar cambios",
+
+      "previewTitle": "Vista previa de artículos",
+      "noSummary": "Sin resumen disponible",
+
+      "createError": "Error al crear carrusel",
+      "errorDeleting": "Error al eliminar",
+
       "loading": "Cargando...",
       "loadingCarousels": "Cargando carruseles...",
       "activeCarousels": "Carruseles activos",
+
       "createNew": "Crear nuevo carrusel",
       "type": "Tipo",
       "articles": "artículos",
+
       "edit": "Editar",
       "delete": "Eliminar",
-      "confirmDelete": "¿Eliminar este carrusel?",
-      "errorDeleting": "Error al eliminar"
+      "confirmDelete": "¿Eliminar este carrusel?"
     }
   },
 

@@ -324,7 +324,6 @@ carousel    Carousel? @relation("CarouselToActivityLogs", fields: [carouselId], 
 
 model Carousel {
   id             String   @id @default(cuid())
-  name           String   // 👈 Agregado
   title          String
   titleES        String?
   titleDE        String?

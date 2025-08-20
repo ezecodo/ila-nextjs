@@ -5,18 +5,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    const {
-      name,
-      title,
-      titleES,
-      titleDE,
-      beitragstypId,
-      limit,
-      orderBy,
-      regionId,
-    } = body;
+    const { title, titleES, titleDE, beitragstypId, limit, orderBy, regionId } =
+      body;
 
-    if (!name || !title || !titleES || !titleDE || !beitragstypId) {
+    if (!title || !titleES || !titleDE) {
       return NextResponse.json(
         { error: "Campos obligatorios faltantes" },
         { status: 400 }
@@ -25,7 +17,6 @@ export async function POST(request: NextRequest) {
 
     const carousel = await prisma.carousel.create({
       data: {
-        name,
         title,
         titleES,
         titleDE,
@@ -52,7 +43,6 @@ export async function GET() {
       orderBy: { position: "asc" },
       select: {
         id: true,
-        name: true,
         title: true,
         titleES: true,
         titleDE: true,
@@ -65,6 +55,7 @@ export async function GET() {
           select: {
             id: true,
             name: true, // Esto es suficiente por ahora
+            nameES: true,
           },
         },
         beitragstyp: {
