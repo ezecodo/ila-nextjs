@@ -333,7 +333,11 @@
     "email": "Compartir por Email",
     "copyLink": "Copiar enlace",
     "copied": "¡Copiado!",
-    "copyError": "No se pudo copiar el enlace."
+    "copyError": "No se pudo copiar el enlace.",
+
+    "print": "Imprimir",
+    "printTooltip": "Ver versión optimizada para impresión",
+    "printAria": "Imprimir este artículo"
   },
   "Footer": {
     "tagline": "La revista de Latinoamérica"

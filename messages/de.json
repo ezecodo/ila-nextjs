@@ -329,7 +329,10 @@
     "email": "Per E‑Mail teilen",
     "copyLink": "Link kopieren",
     "copied": "Kopiert!",
-    "copyError": "Der Link konnte nicht kopiert werden."
+    "copyError": "Der Link konnte nicht kopiert werden.",
+    "print": "Drucken",
+    "printTooltip": "Druckoptimierte Version dieser Seite anzeigen",
+    "printAria": "Diesen Artikel drucken"
   },
   "Footer": {
     "tagline": "Das Lateinamerika-Magazin"

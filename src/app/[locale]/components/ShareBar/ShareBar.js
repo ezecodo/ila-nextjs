@@ -6,6 +6,7 @@ import {
   FaTelegramPlane,
   FaEnvelope,
   FaLink,
+  FaPrint, // 👈 NUEVO
 } from "react-icons/fa";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { useTranslations } from "next-intl";
@@ -98,15 +99,19 @@ export default function ShareBar({
     }
   };
 
+  const handlePrint = () => {
+    if (typeof window !== "undefined") window.print();
+  };
+
   return (
     <>
       {/* Desktop */}
       <div
-        className={`hidden md:flex fixed z-40 flex-col items-center gap-2 ${className}`}
+        className={`hidden md:flex fixed z-40 flex-col items-center gap-2 print:hidden ${className}`}
         style={{ top: computedTop, left }}
         aria-label={t("ariaShare")}
       >
-        {/* Favorito (ahora en modo icon para que herede estilos del wrapper) */}
+        {/* Favorito */}
         {articleId != null && (
           <ShareItem label={t("favorite")} title={t("favorite")}>
             <FavoriteButton articleId={articleId} variant="icon" />
@@ -156,11 +161,18 @@ export default function ShareBar({
             <FaLink size={20} />
           </ShareItem>
         </button>
+
+        {/* Imprimir */}
+        <button onClick={handlePrint} className="hidden md:block">
+          <ShareItem label={t("print")} title={t("printTooltip")}>
+            <FaPrint size={20} />
+          </ShareItem>
+        </button>
       </div>
 
       {/* Aviso “copiado” (desktop) */}
       <div
-        className={`hidden md:block fixed z-40 text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity ${
+        className={`hidden md:block fixed z-40 text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity print:hidden ${
           copied ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         style={{ top: computedTop, left: `calc(${left} + 0px)` }}
@@ -170,7 +182,7 @@ export default function ShareBar({
       </div>
 
       {/* Mobile */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t z-50 md:hidden">
+      <div className="fixed bottom-0 left-0 w-full bg-white border-t z-50 md:hidden print:hidden">
         <div className="flex justify-around items-center px-4 py-2">
           {articleId != null && (
             <div className="bg-white border border-red-500 text-red-600 p-2 rounded">
@@ -216,6 +228,16 @@ export default function ShareBar({
             aria-label={t("copyLink")}
           >
             <FaLink size={20} />
+          </button>
+
+          {/* Imprimir (mobile) */}
+          <button
+            onClick={handlePrint}
+            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            title={t("printTooltip")}
+            aria-label={t("printAria")}
+          >
+            <FaPrint size={20} />
           </button>
         </div>
       </div>
