@@ -12,12 +12,19 @@ export default function MiniArticleCardGrid({ article }) {
   const isES = locale === "es" && article.isTranslatedES;
   const firstImage = article.images?.[0];
 
-  const formattedDate = article.publicationDate
-    ? new Date(article.publicationDate).toLocaleDateString(
-        locale === "es" ? "es-ES" : "de-DE",
-        { year: "numeric", month: "numeric" }
-      )
-    : null;
+  // Nuevo cálculo de fecha/número edición
+  let formattedDate = null;
+  if (article.edition?.number) {
+    const year = article.edition?.datePublished
+      ? new Date(article.edition.datePublished).getFullYear()
+      : new Date(article.publicationDate).getFullYear();
+    formattedDate = `${article.edition.number}/${year}`;
+  } else if (article.publicationDate) {
+    formattedDate = new Date(article.publicationDate).toLocaleDateString(
+      locale === "es" ? "es-ES" : "de-DE",
+      { year: "numeric", month: "numeric" }
+    );
+  }
 
   return (
     <div className="bg-white border shadow-sm w-full">

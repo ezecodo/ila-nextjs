@@ -165,7 +165,7 @@ export default function LegacyArticlePage() {
           />
         </div>
 
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:gap-6 text-sm text-gray-700 dark:text-gray-300 italic">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:gap-6 text-sm text-gray-700 dark:text-gray-300">
           {/* EDICIÓN */}
           {article.edition && article.edition.id && (
             <div>
@@ -241,7 +241,9 @@ export default function LegacyArticlePage() {
               itemScope
               itemType="https://schema.org/Person"
             >
-              <span className="text-gray-500 mr-1 not-italic">Von:</span>
+              {locale === "de" && (
+                <span className="text-gray-500 mr-1">Von:</span>
+              )}
               {article.authors.map((author, i) => (
                 <span key={author.id}>
                   <HoverInfo

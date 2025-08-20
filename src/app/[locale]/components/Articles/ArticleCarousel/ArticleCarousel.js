@@ -167,19 +167,21 @@ export default function FilteredArticlesCarousel(props) {
                     {article.authors?.length > 0 && (
                       <>
                         <span className="opacity-60">|</span>
-                        <span>by</span>
-                        {article.authors.map((author) => (
-                          <LocaleLink
-                            key={author.id}
-                            href={`/authors/${author.id}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            <HoverInfo
-                              id={author.id}
-                              name={author.name}
-                              entityType="authors"
-                            />
-                          </LocaleLink>
+                        {locale === "de" && <span>Von:</span>}
+                        {article.authors.map((author, i) => (
+                          <span key={author.id} className="flex gap-1">
+                            <LocaleLink
+                              href={`/authors/${author.id}`}
+                              className="text-blue-600 hover:underline"
+                            >
+                              <HoverInfo
+                                id={author.id}
+                                name={author.name}
+                                entityType="authors"
+                              />
+                            </LocaleLink>
+                            {i < article.authors.length - 1 && <span>,</span>}
+                          </span>
                         ))}
                       </>
                     )}
