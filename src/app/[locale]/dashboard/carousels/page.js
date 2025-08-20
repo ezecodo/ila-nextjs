@@ -49,7 +49,6 @@ export default function CarouselsDashboardPage() {
 
       <div className="grid gap-6 mt-6">
         {carousels.map((carousel, index) => {
-          const isDE = String(locale).toLowerCase().startsWith("de");
           return (
             <div
               key={carousel.id}
