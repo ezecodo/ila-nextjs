@@ -1,10 +1,10 @@
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import EntityBadges from "../EntityBadges/EntityBadges";
 import HoverInfo from "../HoverInfo/HoverInfo";
 import PreviewHover from "../PreviewHover/PreviewHover";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import ArticleLink from "../Articles/ArticleLink/ArticleLink";
+import SmartImage from "../SmartImage/SmartImage"; // 👈 NUEVO
 
 export default function MiniArticleCardGrid({ article }) {
   const locale = useLocale();
@@ -12,7 +12,7 @@ export default function MiniArticleCardGrid({ article }) {
   const isES = locale === "es" && article.isTranslatedES;
   const firstImage = article.images?.[0];
 
-  // Nuevo cálculo de fecha/número edición
+  // fecha/edición
   let formattedDate = null;
   if (article.edition?.number) {
     const year = article.edition?.datePublished
@@ -30,19 +30,16 @@ export default function MiniArticleCardGrid({ article }) {
     <div className="bg-white border shadow-sm w-full">
       {/* Imagen */}
       {firstImage && (
-        <div className="relative w-full h-48">
-          <Image
-            src={firstImage.url}
-            alt={firstImage.alt || "Imagen del artículo"}
-            fill
-            className="object-cover"
-          />
-        </div>
+        <SmartImage
+          src={firstImage.url}
+          alt={firstImage.alt || "Imagen del artículo"}
+          className="rounded-t" // opcional
+          faceTopBias // sesgo hacia arriba para no cortar caras
+        />
       )}
 
       {/* Contenido */}
       <div className="p-4 flex flex-col gap-1">
-        {/* Título */}
         <h3 className="text-xl font-extrabold font-serif leading-snug flex items-center gap-2">
           <PreviewHover
             preview={
@@ -55,7 +52,6 @@ export default function MiniArticleCardGrid({ article }) {
               </span>
             </ArticleLink>
           </PreviewHover>
-
           {isES && (
             <span className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded-full border border-green-300">
               ES
@@ -63,14 +59,12 @@ export default function MiniArticleCardGrid({ article }) {
           )}
         </h3>
 
-        {/* Subtítulo (sin cursiva) */}
         {(isES ? article.subtitleES : article.subtitle) && (
           <p className="text-sm text-gray-700 leading-tight mb-1">
             {isES ? article.subtitleES : article.subtitle}
           </p>
         )}
 
-        {/* Autores + Fecha EN LA MISMA LÍNEA */}
         {(article.authors?.length > 0 || formattedDate) && (
           <div className="text-sm text-gray-600 mt-0.5 flex flex-wrap items-center gap-1">
             {article.authors?.length > 0 && (
@@ -93,7 +87,6 @@ export default function MiniArticleCardGrid({ article }) {
                 ))}
               </>
             )}
-
             {formattedDate && (
               <>
                 {article.authors?.length > 0 && (
@@ -105,7 +98,6 @@ export default function MiniArticleCardGrid({ article }) {
           </div>
         )}
 
-        {/* Badges al final */}
         <div className="mt-2">
           <EntityBadges
             categories={article.categories}
