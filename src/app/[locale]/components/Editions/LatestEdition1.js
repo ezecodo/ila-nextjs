@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog } from "@headlessui/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
 import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
+import { useRouter } from "next/navigation"; // ✅
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -22,8 +23,18 @@ export default function LatestEditionWithArticles() {
   const [editionsCount, setEditionsCount] = useState({});
   const [popupImage, setPopupImage] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [pickerValue, setPickerValue] = useState("");
+  const [highlightedIndex, setHighlightedIndex] = useState(null);
+  const listRef = useRef(null);
+
   const locale = useLocale();
   const t = useTranslations("dossiers");
+  const router = useRouter(); // ✅
+
+  // ✅ UI del picker
+  const [showNumberPicker, setShowNumberPicker] = useState(false);
+  const inputRef = useRef(null);
+  const popoverRef = useRef(null);
 
   const currentEdition = editions[currentEditionIndex];
 
@@ -35,26 +46,15 @@ export default function LatestEditionWithArticles() {
           const msg = await res.text();
           throw new Error(`API /api/editions fallo: ${res.status} ${msg}`);
         }
-
         const raw = await res.json();
-        // Acepta tanto [...] como { editions: [...] }
         const data = Array.isArray(raw)
           ? raw
           : Array.isArray(raw?.editions)
             ? raw.editions
             : [];
-
-        if (!Array.isArray(data)) {
-          throw new Error("API /api/editions no devolvió un array.");
-        }
-
-        // Ordena SIEMPRE por number DESC (fallback)
-        const byNumberDesc = [...data].sort((a, b) => {
-          const an = typeof a?.number === "number" ? a.number : -Infinity;
-          const bn = typeof b?.number === "number" ? b.number : -Infinity;
-          return bn - an;
-        });
-
+        const byNumberDesc = [...data].sort(
+          (a, b) => (b?.number ?? -Infinity) - (a?.number ?? -Infinity)
+        );
         setEditions(byNumberDesc);
 
         if (byNumberDesc.length) {
@@ -67,7 +67,6 @@ export default function LatestEditionWithArticles() {
         setEditions([]);
       }
     }
-
     fetchAllEditions();
   }, []);
 
@@ -127,6 +126,20 @@ export default function LatestEditionWithArticles() {
     nextArrow: <NextArrow />,
   };
 
+  // ✅ helpers del picker
+  const focusInputSoon = () => setTimeout(() => inputRef.current?.focus(), 0);
+
+  // cerrar popover al click fuera
+  useEffect(() => {
+    if (!showNumberPicker) return;
+    const onClick = (e) => {
+      if (!popoverRef.current) return;
+      if (!popoverRef.current.contains(e.target)) setShowNumberPicker(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [showNumberPicker]);
+
   return (
     <>
       <div className="max-w-7xl mx-auto px-0 sm:px-6 pb-16">
@@ -137,7 +150,6 @@ export default function LatestEditionWithArticles() {
                 {/* Título + flechas */}
                 <div className="relative w-full">
                   <div className="flex items-center justify-center">
-                    {/* Flecha IZQUIERDA → ediciones más antiguas */}
                     <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
                       {currentEditionIndex < editions.length - 1 && (
                         <PrevArrow
@@ -148,11 +160,26 @@ export default function LatestEditionWithArticles() {
 
                     {/* Centro: número y datos de la edición */}
                     <div className="text-center mx-10 flex flex-col items-center space-y-1">
-                      {/* línea: ila + número + fecha (súper compacta) */}
-                      <div className="flex items-baseline justify-center gap-3 leading-none">
-                        <span className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none">
+                      <div className="flex items-baseline justify-center gap-3 leading-none relative">
+                        {/* ✅ botón “ila NNN” que abre el picker */}
+                        <button
+                          type="button"
+                          className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none hover:text-red-700"
+                          title="Cambiar dossier (Enter para ir)"
+                          onClick={() => {
+                            setShowNumberPicker((v) => !v);
+                            // inicializa el input con el número actual
+                            setPickerValue(String(currentEdition.number ?? ""));
+                            // resalta la edición actual
+                            const idx = editions.findIndex(
+                              (e) => e.id === currentEdition.id
+                            );
+                            setHighlightedIndex(idx >= 0 ? idx : null);
+                            focusInputSoon();
+                          }}
+                        >
                           ila {currentEdition.number}
-                        </span>
+                        </button>
 
                         {currentEdition.datePublished && (
                           <span className="font-bold text-xs md:text-sm text-black dark:text-white leading-none">
@@ -168,6 +195,155 @@ export default function LatestEditionWithArticles() {
                               .replace(/^\w/, (c) => c.toUpperCase())}
                           </span>
                         )}
+
+                        {/* ✅ popover del picker */}
+                        {showNumberPicker && (
+                          <div
+                            ref={popoverRef}
+                            className="absolute z-30 top-full mt-2 left-1/2 -translate-x-1/2 bg-white border rounded-lg shadow-lg w-56 p-2"
+                          >
+                            <label className="block text-xs text-gray-500 mb-1">
+                              Ir a edición por número
+                            </label>
+                            <input
+                              ref={inputRef}
+                              type="number"
+                              value={pickerValue}
+                              className="w-full border rounded px-2 py-1 text-sm"
+                              placeholder="Ej: 481"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setPickerValue(val);
+
+                                if (!val) {
+                                  setHighlightedIndex(null);
+                                  return;
+                                }
+                                // busca la primera edición cuyo number empieza por lo tecleado
+                                const idx = editions.findIndex((ed) =>
+                                  String(ed.number ?? "").startsWith(val)
+                                );
+                                setHighlightedIndex(idx >= 0 ? idx : null);
+
+                                // scroll hasta la fila resaltada
+                                if (idx >= 0) {
+                                  const el = listRef.current?.querySelector(
+                                    `[data-idx="${idx}"]`
+                                  );
+                                  el?.scrollIntoView({ block: "nearest" });
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  // usa la resaltada o busca match exacto por número
+                                  let targetIdx = highlightedIndex;
+                                  if (targetIdx == null && pickerValue) {
+                                    targetIdx = editions.findIndex(
+                                      (ed) =>
+                                        Number(ed.number) ===
+                                        Number(pickerValue)
+                                    );
+                                  }
+                                  if (targetIdx != null && targetIdx >= 0) {
+                                    setCurrentEditionIndex(targetIdx);
+                                    router.push(
+                                      `/editions/${editions[targetIdx].id}`
+                                    );
+                                    setShowNumberPicker(false);
+                                  }
+                                } else if (e.key === "ArrowDown") {
+                                  e.preventDefault();
+                                  setHighlightedIndex((i) => {
+                                    const next = Math.min(
+                                      (i ?? -1) + 1,
+                                      editions.length - 1
+                                    );
+                                    const el = listRef.current?.querySelector(
+                                      `[data-idx="${next}"]`
+                                    );
+                                    el?.scrollIntoView({ block: "nearest" });
+                                    return next;
+                                  });
+                                } else if (e.key === "ArrowUp") {
+                                  e.preventDefault();
+                                  setHighlightedIndex((i) => {
+                                    const next = Math.max(
+                                      (i ?? editions.length) - 1,
+                                      0
+                                    );
+                                    const el = listRef.current?.querySelector(
+                                      `[data-idx="${next}"]`
+                                    );
+                                    el?.scrollIntoView({ block: "nearest" });
+                                    return next;
+                                  });
+                                } else if (e.key === "Escape") {
+                                  setShowNumberPicker(false);
+                                }
+                              }}
+                            />
+
+                            <div
+                              ref={listRef}
+                              className="mt-2 max-h-48 overflow-auto border-t pt-2"
+                            >
+                              {editions.map((ed, idx) => {
+                                const isActive = idx === currentEditionIndex;
+                                const isHighlighted = idx === highlightedIndex;
+
+                                return (
+                                  <button
+                                    key={ed.id}
+                                    type="button"
+                                    data-idx={idx}
+                                    className={[
+                                      "w-full text-left px-2 py-1 rounded text-sm hover:bg-red-50",
+                                      isHighlighted
+                                        ? "bg-red-100 ring-1 ring-red-300"
+                                        : "",
+                                      !isHighlighted && isActive
+                                        ? "bg-red-100/60"
+                                        : "",
+                                    ].join(" ")}
+                                    onClick={() => {
+                                      setCurrentEditionIndex(idx);
+                                      setShowNumberPicker(false);
+                                    }}
+                                    title={
+                                      (locale === "es" && ed.titleES
+                                        ? ed.titleES
+                                        : ed.title) || undefined
+                                    }
+                                  >
+                                    ila {ed.number} —{" "}
+                                    {locale === "es" && ed.titleES
+                                      ? ed.titleES
+                                      : ed.title}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            <div className="mt-2 flex justify-end gap-2">
+                              <button
+                                type="button"
+                                className="text-sm text-gray-600 hover:underline"
+                                onClick={() => setShowNumberPicker(false)}
+                              >
+                                Cerrar
+                              </button>
+                              <button
+                                type="button"
+                                className="text-sm text-blue-700 hover:underline"
+                                onClick={() =>
+                                  router.push(`/editions/${currentEdition.id}`)
+                                }
+                              >
+                                Ver edición
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* título del dossier */}
@@ -178,7 +354,6 @@ export default function LatestEditionWithArticles() {
                       </div>
                     </div>
 
-                    {/* Flecha DERECHA → ediciones más nuevas */}
                     <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
                       {currentEditionIndex > 0 && (
                         <NextArrow
@@ -189,7 +364,7 @@ export default function LatestEditionWithArticles() {
                   </div>
                 </div>
 
-                {/* Imagen de portada */}
+                {/* Portada */}
                 <div
                   className="relative w-full cursor-pointer"
                   onClick={() => {
@@ -230,7 +405,6 @@ export default function LatestEditionWithArticles() {
                   {t("editorialButton")}
                 </Link>
 
-                {/* Solo escritorio */}
                 <div className="hidden lg:flex flex-col gap-4 w-full">
                   <DonationBanner />
                   <Events />
@@ -253,8 +427,6 @@ export default function LatestEditionWithArticles() {
               </div>
 
               {/* Artículos en móvil */}
-              {/* Franja de conexión visual */}
-              {/* Franja de conexión visual mejorada */}
               <div className="block lg:hidden w-full bg-red-50 text-center py-3 rounded-t shadow-sm border-t border-b border-red-200">
                 <span className="text-sm text-red-800 font-semibold tracking-wide">
                   ⬇ {t("articlesFromDossier")}{" "}
@@ -277,7 +449,6 @@ export default function LatestEditionWithArticles() {
                 )}
               </div>
 
-              {/* Banner y eventos en móvil */}
               <div className="block lg:hidden w-full mt-6 space-y-4">
                 <DonationBanner />
                 <Events />
