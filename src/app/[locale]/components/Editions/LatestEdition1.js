@@ -11,7 +11,7 @@ import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
 import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
-import { useRouter } from "next/navigation"; // ✅
+import { useRouter } from "next/navigation";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -29,7 +29,7 @@ export default function LatestEditionWithArticles() {
 
   const locale = useLocale();
   const t = useTranslations("dossiers");
-  const router = useRouter(); // ✅
+  const router = useRouter();
 
   // ✅ UI del picker
   const [showNumberPicker, setShowNumberPicker] = useState(false);
@@ -113,12 +113,31 @@ export default function LatestEditionWithArticles() {
       ? articles.filter((a) => a.isTranslatedES && !a.needsReviewES)
       : articles;
 
+  // 👉 helper: ¿la 1ª imagen es vertical?
+  const isVertical = (img) =>
+    img?.width && img?.height && Number(img.height) > Number(img.width);
+
+  // 👉 1ª imagen de cada artículo (puede venir como images[0] o como image simple)
+  const firstImg = (a) => a?.images?.[0] || a?.image || null;
+
+  // 👉 separa verticales vs no-verticales por la 1ª imagen
+  const verticalArticles = filteredArticles.filter((a) =>
+    isVertical(firstImg(a))
+  );
+  const nonVerticalArticles = filteredArticles.filter(
+    (a) => !isVertical(firstImg(a))
+  );
+
+  // 👉 orden final: no-verticales primero, verticales al final
+  const orderedArticles = [...nonVerticalArticles, ...verticalArticles];
+
+  // 👇 usa el nuevo orden
   const mobileCarouselSettings = {
-    infinite: filteredArticles.length > 1,
+    infinite: orderedArticles.length > 1,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: filteredArticles.length > 1,
+    arrows: orderedArticles.length > 1,
     dots: true,
     swipe: true,
     swipeToSlide: true,
@@ -161,16 +180,14 @@ export default function LatestEditionWithArticles() {
                     {/* Centro: número y datos de la edición */}
                     <div className="text-center mx-10 flex flex-col items-center space-y-1">
                       <div className="flex items-baseline justify-center gap-3 leading-none relative">
-                        {/* ✅ botón “ila NNN” que abre el picker */}
+                        {/* ✅ botón "ila NNN" que abre el picker */}
                         <button
                           type="button"
                           className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none hover:text-red-700"
                           title="Cambiar dossier (Enter para ir)"
                           onClick={() => {
                             setShowNumberPicker((v) => !v);
-                            // inicializa el input con el número actual
                             setPickerValue(String(currentEdition.number ?? ""));
-                            // resalta la edición actual
                             const idx = editions.findIndex(
                               (e) => e.id === currentEdition.id
                             );
@@ -219,13 +236,11 @@ export default function LatestEditionWithArticles() {
                                   setHighlightedIndex(null);
                                   return;
                                 }
-                                // busca la primera edición cuyo number empieza por lo tecleado
                                 const idx = editions.findIndex((ed) =>
                                   String(ed.number ?? "").startsWith(val)
                                 );
                                 setHighlightedIndex(idx >= 0 ? idx : null);
 
-                                // scroll hasta la fila resaltada
                                 if (idx >= 0) {
                                   const el = listRef.current?.querySelector(
                                     `[data-idx="${idx}"]`
@@ -235,7 +250,6 @@ export default function LatestEditionWithArticles() {
                               }}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                  // usa la resaltada o busca match exacto por número
                                   let targetIdx = highlightedIndex;
                                   if (targetIdx == null && pickerValue) {
                                     targetIdx = editions.findIndex(
@@ -415,8 +429,8 @@ export default function LatestEditionWithArticles() {
             <div className="w-full lg:w-2/3 flex flex-col gap-6">
               {/* Artículos en escritorio */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
-                {filteredArticles.length > 0 ? (
-                  filteredArticles.map((article) => (
+                {orderedArticles.length > 0 ? (
+                  orderedArticles.map((article) => (
                     <MiniArticleCardGrid key={article.id} article={article} />
                   ))
                 ) : (
@@ -435,10 +449,11 @@ export default function LatestEditionWithArticles() {
                   </span>
                 </span>
               </div>
+
               <div className="block lg:hidden w-full mt-0">
-                {filteredArticles.length > 0 ? (
+                {orderedArticles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
-                    {filteredArticles.map((article) => (
+                    {orderedArticles.map((article) => (
                       <div key={article.id} className="w-full">
                         <MiniArticleCardGrid article={article} />
                       </div>

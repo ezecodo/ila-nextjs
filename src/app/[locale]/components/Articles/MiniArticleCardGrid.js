@@ -11,42 +11,102 @@ export default function MiniArticleCardGrid({ article }) {
   const t = useTranslations("article");
   const isES = locale === "es" && article.isTranslatedES;
   const firstImage = article.images?.[0];
+  const hasImage = Boolean(firstImage?.url);
 
-  // Año de la edición (si existe), con fallback al publicationDate solo para el año
+  const subtitle = isES ? article.subtitleES : article.subtitle;
+  const previewText =
+    (isES ? article.previewTextES : article.previewText) ||
+    (isES ? article.subtitleES : article.subtitle) ||
+    "";
+
   const editionYear = article.edition?.datePublished
     ? new Date(article.edition.datePublished).getFullYear()
     : article.publicationDate
       ? new Date(article.publicationDate).getFullYear()
       : null;
 
+  const MetaInfo = () =>
+    (article.authors?.length > 0 ||
+      article.categories?.length > 0 ||
+      article.edition?.number) && (
+      <div className="text-sm text-gray-600 mt-1 flex flex-wrap items-center gap-1">
+        {/* Autores */}
+        {article.authors?.length > 0 && (
+          <>
+            <span>{t("by")}</span>
+            {article.authors.map((author, i) => (
+              <span key={author.id} className="flex gap-1">
+                <LocaleLink
+                  href={`/authors/${author.id}`}
+                  className="text-blue-600 hover:underline"
+                >
+                  <HoverInfo
+                    id={author.id}
+                    name={author.name}
+                    entityType="authors"
+                  />
+                </LocaleLink>
+                {i < article.authors.length - 1 && <span>,</span>}
+              </span>
+            ))}
+          </>
+        )}
+
+        {/* Separador si hay autores y categorías */}
+        {article.authors?.length > 0 && article.categories?.length > 0 && (
+          <span className="opacity-60">|</span>
+        )}
+
+        {/* Categorías (localizadas) */}
+        {article.categories?.length > 0 && (
+          <span className="text-gray-700">
+            {article.categories.map((cat, i) => (
+              <span key={cat.id}>
+                {locale === "es" && cat.nameES ? cat.nameES : cat.name}
+                {i < article.categories.length - 1 && ", "}
+              </span>
+            ))}
+          </span>
+        )}
+
+        {/* Separador antes de edición */}
+        {(article.authors?.length > 0 || article.categories?.length > 0) &&
+          article.edition?.number && <span className="opacity-60">|</span>}
+
+        {/* Nº/Año edición */}
+        {article.edition?.number && editionYear && (
+          <span className="text-gray-700">
+            {article.edition.number}/{editionYear}
+          </span>
+        )}
+      </div>
+    );
+
   return (
-    <div className="bg-white border shadow-sm w-full">
+    <div className="bg-white border shadow-sm w-full rounded-2xl overflow-hidden">
       {/* Imagen */}
-      {firstImage && (
-        <SmartImage
-          src={firstImage.url}
-          alt={firstImage.alt || "Imagen del artículo"}
-          className="rounded-t"
-          faceTopBias
-        />
+      {hasImage && (
+        <div className="w-full aspect-[16/9]">
+          <SmartImage
+            src={firstImage.url}
+            alt={firstImage.alt || "Imagen del artículo"}
+            className="rounded-t w-full h-full object-cover"
+            faceTopBias
+          />
+        </div>
       )}
 
       {/* Contenido */}
-      <div className="p-4 flex flex-col gap-1">
+      <div className="p-4 flex flex-col gap-2">
         {/* Título */}
         <h3 className="text-xl font-extrabold font-serif leading-snug flex items-center gap-2">
-          <PreviewHover
-            preview={
-              isES ? article.previewTextES || "—" : article.previewText || "—"
-            }
-          >
+          <PreviewHover preview={previewText || "—"}>
             <ArticleLink article={article}>
               <span className="hover:underline">
                 {isES ? article.titleES : article.title}
               </span>
             </ArticleLink>
           </PreviewHover>
-
           {isES && (
             <span className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded-full border border-green-300">
               ES
@@ -54,82 +114,47 @@ export default function MiniArticleCardGrid({ article }) {
           )}
         </h3>
 
-        {/* Subtítulo */}
-        {(isES ? article.subtitleES : article.subtitle) && (
-          <p className="text-sm text-gray-700 leading-tight mb-1">
-            {isES ? article.subtitleES : article.subtitle}
-          </p>
+        {/* ---- ORDEN CONDICIONAL ---- */}
+        {hasImage ? (
+          <>
+            {/* Con imagen: subtítulo → meta → tags (sin vorspann) */}
+            {subtitle && (
+              <p className="text-sm text-gray-700 leading-tight">{subtitle}</p>
+            )}
+            <MetaInfo />
+            <div className="mt-2">
+              <EntityBadges
+                categories={article.categories}
+                regions={article.regions}
+                topics={article.topics}
+                context="articles"
+                locale={locale}
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* SIN imagen: subtítulo → meta → VORSPANN → tags */}
+            {subtitle && (
+              <p className="text-sm text-gray-700 leading-tight">{subtitle}</p>
+            )}
+            <MetaInfo />
+            {previewText && (
+              <p className="text-sm text-gray-600 line-clamp-4">
+                {previewText}
+              </p>
+            )}
+            <div className="mt-2">
+              <EntityBadges
+                categories={article.categories}
+                regions={article.regions}
+                topics={article.topics}
+                context="articles"
+                locale={locale}
+              />
+            </div>
+          </>
         )}
-
-        {/* Autores · Categorías · Nº/Año edición */}
-        {(article.authors?.length > 0 ||
-          article.categories?.length > 0 ||
-          article.edition?.number) && (
-          <div className="text-sm text-gray-600 mt-0.5 flex flex-wrap items-center gap-1">
-            {/* Autores */}
-            {article.authors?.length > 0 && (
-              <>
-                <span>{t("by")}</span>
-                {article.authors.map((author, i) => (
-                  <span key={author.id} className="flex gap-1">
-                    <LocaleLink
-                      href={`/authors/${author.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      <HoverInfo
-                        id={author.id}
-                        name={author.name}
-                        entityType="authors"
-                      />
-                    </LocaleLink>
-                    {i < article.authors.length - 1 && <span>,</span>}
-                  </span>
-                ))}
-              </>
-            )}
-
-            {/* Separador si hay autores y categorías */}
-            {article.authors?.length > 0 && article.categories?.length > 0 && (
-              <span className="opacity-60">|</span>
-            )}
-
-            {/* Categorías (localizadas) */}
-            {article.categories?.length > 0 && (
-              <span className="text-gray-700">
-                {article.categories.map((cat, i) => (
-                  <span key={cat.id}>
-                    {locale === "es" && cat.nameES ? cat.nameES : cat.name}
-                    {i < article.categories.length - 1 && ", "}
-                  </span>
-                ))}
-              </span>
-            )}
-
-            {/* Separador antes de edición */}
-            {(article.authors?.length > 0 || article.categories?.length > 0) &&
-              article.edition?.number && <span className="opacity-60">|</span>}
-
-            {/* Nº/Año edición — sin “Dossier” hardcoded */}
-            {/* Nº/Año edición — sin bold */}
-            {/* Nº/Año edición — mismo estilo que categories */}
-            {article.edition?.number && editionYear && (
-              <span className="text-gray-700">
-                {article.edition.number}/{editionYear}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Badges al final */}
-        <div className="mt-2">
-          <EntityBadges
-            categories={article.categories}
-            regions={article.regions}
-            topics={article.topics}
-            context="articles"
-            locale={locale}
-          />
-        </div>
       </div>
     </div>
   );

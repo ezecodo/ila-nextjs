@@ -263,6 +263,8 @@ model Image {
   id            Int      @id @default(autoincrement())
   contentType   String
   contentId     Int
+   width         Int?
+  height        Int?
   url           String
   title         String?  @db.VarChar(750)
   alt           String?

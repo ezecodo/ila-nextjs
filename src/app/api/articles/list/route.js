@@ -78,12 +78,22 @@ export async function GET(req) {
                 contentType: "ARTICLE",
                 contentId: contentIdToUse,
               },
+              select: {
+                id: true,
+                url: true,
+                width: true,
+                height: true,
+              },
             })
           : [];
 
+        // 🚩 si hay más de una imagen, tomamos la primera como principal
+        const image = images.length > 0 ? images[0] : null;
+
         return {
           ...article,
-          images,
+          image, // 👈 principal (para filtros de vertical/horizontal)
+          images, // 👈 todas las imágenes, por si necesitas más adelante
         };
       })
     );
