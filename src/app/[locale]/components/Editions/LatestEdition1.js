@@ -163,7 +163,7 @@ export default function LatestEditionWithArticles() {
     <>
       <div className="max-w-7xl mx-auto px-0 sm:px-6 pb-16">
         {currentEdition && (
-          <div className="flex flex-col lg:flex-row gap-10 items-start">
+          <div className="flex flex-col lg:flex-row gap-2 items-start">
             <div className="relative w-full lg:w-1/3 flex items-start justify-center">
               <div className="bg-white shadow-lg p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm">
                 {/* Título + flechas */}
