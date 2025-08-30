@@ -249,6 +249,7 @@ model ObituaryDetails {
   deceasedLastName  String
   dateOfBirth       Int
   dateOfDeath       Int
+  notes             String? 
   article           Article @relation(fields: [articleId], references: [id])
 }
 
