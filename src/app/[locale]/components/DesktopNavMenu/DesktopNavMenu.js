@@ -144,24 +144,44 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
       <div className="flex items-center justify-center gap-8">
         {navSections.map((sec) => (
           <div key={sec.labelKey} className="relative group">
-            <Link
-              href={sec.href || "#"}
-              className="font-semibold hover:text-red-600 transition-colors"
-            >
+            <span className="font-semibold hover:text-red-600 transition-colors cursor-pointer">
               {t(sec.labelKey)}
-            </Link>
+            </span>
+
             {sec.items && (
-              <ul className="absolute left-0 top-full w-48 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity">
-                {sec.items.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className="block px-4 py-2 hover:bg-gray-100"
-                    >
-                      {t(item.labelKey)}
-                    </Link>
-                  </li>
-                ))}
+              <ul className="absolute left-0 top-full w-56 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity">
+                {sec.items.map((item) =>
+                  item.items ? (
+                    // 👉 Submenú "Service"
+                    <li key={item.labelKey} className="relative group/item">
+                      <span className="block px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer">
+                        {t(item.labelKey)}
+                      </span>
+                      <ul className="absolute left-full top-0 min-w-[16rem] bg-white rounded shadow-lg opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-opacity whitespace-normal">
+                        {item.items.map((sub) => (
+                          <li key={sub.href}>
+                            <Link
+                              href={sub.href}
+                              className="block px-4 py-2 hover:bg-gray-100"
+                            >
+                              {t(sub.labelKey)}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ) : (
+                    // 👉 Item normal
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className="block px-4 py-2 hover:bg-gray-100"
+                      >
+                        {t(item.labelKey)}
+                      </Link>
+                    </li>
+                  )
+                )}
               </ul>
             )}
           </div>

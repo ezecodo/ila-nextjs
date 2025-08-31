@@ -19,7 +19,7 @@ export const navSections = [
   {
     labelKey: "orderSubscribe",
     items: [
-      { labelKey: "subscription", href: "/subscribe/subscription" },
+      { labelKey: "subscription", href: "/order/subscribe" },
       { labelKey: "singleIssue", href: "/subscribe/single-issue" },
     ],
   },
@@ -27,7 +27,7 @@ export const navSections = [
     labelKey: "aboutUs",
     items: [
       { labelKey: "history", href: "/about/history" },
-      { labelKey: "editorialTeam", href: "/about/editorial-team" },
+      { labelKey: "editorialTeam", href: "/about/editorial" },
       { labelKey: "speakers", href: "/about/speakers" },
       { labelKey: "network", href: "/about/network" },
       { labelKey: "contact", href: "/about/contact" },
@@ -38,10 +38,21 @@ export const navSections = [
   },
   {
     labelKey: "supportIla",
+    labelKey: "supportIla",
     items: [
-      { labelKey: "donate", href: "/donar" },
-      { labelKey: "getInvolved", href: "/support/get-involved" },
-      { labelKey: "advertise", href: "/support/advertise" },
+      { labelKey: "donate", href: "/support/donations" },
+      { labelKey: "getInvolved", href: "/support/participate" },
+      {
+        labelKey: "service",
+        items: [
+          { labelKey: "advertise", href: "/support/service/ads" },
+          { labelKey: "referents", href: "/support/service/referent-service" },
+          {
+            labelKey: "translations",
+            href: "/support/service/translation-service",
+          },
+        ],
+      },
     ],
   },
 ];

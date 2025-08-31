@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography"; // 👈 importar bien
 
-export default {
+const config: Config = {
   darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -25,5 +26,7 @@ export default {
       },
     },
   },
-  plugins: [],
-} satisfies Config;
+  plugins: [typography], // 👈 usar importado arriba
+};
+
+export default config;

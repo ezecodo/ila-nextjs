@@ -30,7 +30,8 @@
     ".next/types/**/*.ts",
     "src/components/ClientLayout.js",
     "src/app/[locale]/components/Editions/EditionFlipCard/EditionFlipCard.js",
-    "src/app/[locale]/components/Editions/EditionsCarouselFlip/EditionsCarouselFlip.js"
+    "src/app/[locale]/components/Editions/EditionsCarouselFlip/EditionsCarouselFlip.js",
+    "src/lib/slugify.js"
   ],
   "exclude": ["node_modules"]
 }

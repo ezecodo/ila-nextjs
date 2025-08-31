@@ -1,0 +1,39 @@
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 300px; /* ajusta al espacio que quieras */
+  background: white;
+}
+
+.text {
+  font-family: "Futura", sans-serif;
+  font-size: 100px;
+  font-weight: bold;
+
+  background: linear-gradient(
+    to top,
+    #e63946 0%,
+    #e63946 50%,
+    transparent 50%,
+    transparent 100%
+  );
+
+  -webkit-background-clip: text; /* Chrome, Safari */
+  background-clip: text; /* Firefox */
+  -webkit-text-fill-color: transparent; /* Necesario en Safari */
+  color: transparent; /* fallback */
+
+  background-size: 100% 200%;
+  background-position: bottom;
+  animation: fillText 1s linear infinite alternate;
+}
+
+@keyframes fillText {
+  from {
+    background-position: bottom;
+  }
+  to {
+    background-position: top;
+  }
+}

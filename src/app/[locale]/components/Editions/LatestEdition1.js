@@ -12,6 +12,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
 import { useRouter } from "next/navigation";
+import IlaLoader from "../../components/IlaLoader/IlaLoader";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -434,9 +435,9 @@ export default function LatestEditionWithArticles() {
                     <MiniArticleCardGrid key={article.id} article={article} />
                   ))
                 ) : (
-                  <p className="text-gray-500 col-span-full">
-                    {t("noArticlesInEdition")}
-                  </p>
+                  <div className="flex items-center justify-center col-span-full h-[400px]">
+                    <IlaLoader />
+                  </div>
                 )}
               </div>
 
