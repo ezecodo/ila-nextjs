@@ -1,4 +1,4 @@
-// app/[locale]/agb/page.tsx
+// app/[locale]/about/agb/page.tsx
 export default function AgbPage() {
   return (
     <div className="prose prose-lg max-w-4xl mx-auto py-10">
@@ -72,8 +72,8 @@ export default function AgbPage() {
           mitzuteilen.
         </li>
         <li>
-          <strong>Zustellung.</strong> Die Zustellung der „ila" erfolgt mit der
-          Post. Zustellmängel sind unverzüglich anzuzeigen. Für
+          <strong>Zustellung.</strong> Die Zustellung der &quot;ila&quot;
+          erfolgt mit der Post. Zustellmängel sind unverzüglich anzuzeigen. Für
           Nichtlieferungen, verspätete Lieferungen oder Sachschäden im Zuge der
           Auslieferung haftet die Informationsstelle Lateinamerika e.V. nur für
           Vorsatz oder grobe Fahrlässigkeit ihrerseits. Für im Ausland verspätet
@@ -129,7 +129,7 @@ export default function AgbPage() {
       <h2>2. Verweise und Links</h2>
       <p>
         Bei direkten oder indirekten Verweisen auf fremde Webseiten
-        (Hyperlinks), die außerhalb des Verantwortungsbereiches der
+        (&quot;Hyperlinks&quot;), die außerhalb des Verantwortungsbereiches der
         Informationsstelle Lateinamerika e.V. liegen, würde eine
         Haftungsverpflichtung ausschließlich in dem Fall in Kraft treten, in dem
         die Informationsstelle Lateinamerika e.V. von den Inhalten Kenntnis hat
