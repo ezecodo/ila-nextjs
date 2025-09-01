@@ -139,16 +139,17 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
   }
 
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
+  // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   return (
     <nav className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-lg shadow-md">
       <div className="flex items-center justify-center gap-8">
-        {navSections.map((sec) => (
-          <div key={sec.labelKey} className="relative group">
-            <span className="font-semibold hover:text-red-600 transition-colors cursor-pointer">
-              {t(sec.labelKey)}
-            </span>
+        {navSections.map((sec) =>
+          sec.items ? (
+            <div key={sec.labelKey} className="relative group">
+              <span className="font-semibold hover:text-red-600 transition-colors cursor-pointer">
+                {t(sec.labelKey)}
+              </span>
 
-            {sec.items && (
               <ul className="absolute left-0 top-full w-56 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity">
                 {sec.items.map((item) =>
                   item.items ? (
@@ -183,9 +184,18 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                   )
                 )}
               </ul>
-            )}
-          </div>
-        ))}
+            </div>
+          ) : (
+            // 👉 Caso "Home" (sin items)
+            <Link
+              key={sec.labelKey}
+              href={sec.href}
+              className="font-semibold hover:text-red-600 transition-colors"
+            >
+              {t(sec.labelKey)}
+            </Link>
+          )
+        )}
 
         {/* SearchBar al final, mismo look */}
         <div className="ml-8 w-64">
