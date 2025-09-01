@@ -113,6 +113,33 @@ export default function LegacyArticlePage() {
             </p>
           </div>
         )}
+        {/* AUTOR justo debajo del Vorspann */}
+        {article.authors?.length > 0 && (
+          <div
+            className="text-gray-500 italic mb-6 text-right"
+            itemProp="author"
+            itemScope
+            itemType="https://schema.org/Person"
+          >
+            {article.authors.map((author, i) => (
+              <span key={author.id}>
+                <HoverInfo
+                  id={author.id}
+                  name={
+                    <Link
+                      href={`/authors/${author.id}`}
+                      className="hover:underline"
+                    >
+                      <span itemProp="name">{author.name}</span>
+                    </Link>
+                  }
+                  entityType="authors"
+                />
+                {i < article.authors.length - 1 && <span>, </span>}
+              </span>
+            ))}
+          </div>
+        )}
         {isAdmin && isES && article.isTranslatedES && (
           <div className="text-center mb-6">
             <Link href={`/dashboard/articles/translate/${article.id}`}>

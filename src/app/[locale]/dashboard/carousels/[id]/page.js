@@ -28,13 +28,17 @@ export default function EditCarouselPage() {
       .then((data) => {
         setCarousel({
           ...data,
-          // normalizamos por si viniera undefined
           titleES: data.titleES || "",
           titleDE: data.titleDE || "",
           beitragstypId: data.beitragstypId ?? "",
-          regionId: data.regionId ?? "",
+          regionId: data.regionId ? Number(data.regionId) : null,
           limit: data.limit ?? 6,
         });
+
+        // 👇 aquí inicializamos categorías seleccionadas
+        if (Array.isArray(data.categories)) {
+          setSelectedCategoryIds(data.categories.map((c) => c.id));
+        }
       });
 
     fetch("/api/beitragstypen")
@@ -92,13 +96,13 @@ export default function EditCarouselPage() {
     e.preventDefault();
     // Enviamos sólo lo que importa (sin name)
     const payload = {
-      title: carousel.titleES, // tu API lo requiere
       titleES: carousel.titleES,
       titleDE: carousel.titleDE,
       beitragstypId: carousel.beitragstypId
         ? Number(carousel.beitragstypId)
         : null,
       regionId: carousel.regionId ? Number(carousel.regionId) : null,
+      categoryIds: selectedCategoryIds,
       // Si quieres persistir categorías, agrega aquí categoryIds: selectedCategoryIds
       limit: Number(carousel.limit) || 6,
     };

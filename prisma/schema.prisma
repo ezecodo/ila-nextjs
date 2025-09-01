@@ -258,6 +258,7 @@ model Category {
   name              String            @unique
   nameES    String?
   articles           Article[]         @relation("ArticleCategories")
+   carousels Carousel[] @relation("CarouselCategories")
 }
 
 model Image {
@@ -327,17 +328,14 @@ carousel    Carousel? @relation("CarouselToActivityLogs", fields: [carouselId], 
 
 model Carousel {
   id             String   @id @default(cuid())
-  title          String
   titleES        String?
   titleDE        String?
  beitragstypId  Int?           
   beitragstyp    Beitragstyp?   @relation(fields: [beitragstypId], references: [id])
-  
-  
   topic          String?         // también opcional
   regionId       Int?      // 👉 NUEVO campo
   region         Region?   @relation(fields: [regionId], references: [id]) // 👉 RELACIÓN REAL        
-  category       String?
+   categories     Category[] @relation("CarouselCategories")
   limit          Int      @default(10)
   orderBy        String   @default("date_desc") // o "date_asc", "title", etc.
    position     Int       @default(0) 

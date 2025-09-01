@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; //
+import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
+// 🔹 GET: obtener un carrusel por ID
+export async function GET(nextRequest: NextRequest) {
+  const url = new URL(nextRequest.url);
   const id = url.pathname.split("/").pop();
 
   if (!id) {
@@ -14,16 +15,24 @@ export async function GET(request: NextRequest) {
       where: { id },
       select: {
         id: true,
-        name: true,
-        title: true,
         titleES: true,
         titleDE: true,
         beitragstypId: true,
         regionId: true,
         limit: true,
+        orderBy: true,
+        position: true,
         createdAt: true,
         updatedAt: true,
-        beitragstyp: true,
+        beitragstyp: {
+          select: { id: true, name: true, nameES: true },
+        },
+        region: {
+          select: { id: true, name: true, nameES: true },
+        },
+        categories: {
+          select: { id: true, name: true, nameES: true },
+        },
       },
     });
 
@@ -34,18 +43,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      ...carousel,
-      regionId: carousel.regionId ?? null, // 👈 pasa explícitamente el regionId al frontend
-    });
+    return NextResponse.json(carousel, { status: 200 });
   } catch (error) {
-    console.error("Error obteniendo carrusel:", error);
+    console.error("❌ Error obteniendo carrusel:", error);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
-// PUT /api/carousels/[id]
-export async function PUT(request: NextRequest) {
-  const url = new URL(request.url);
+
+// 🔹 PUT: actualizar un carrusel
+export async function PUT(nextRequest: NextRequest) {
+  const url = new URL(nextRequest.url);
   const id = url.pathname.split("/").pop();
 
   if (!id) {
@@ -53,9 +60,8 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const body = await nextRequest.json();
     const {
-      name,
       titleES,
       titleDE,
       beitragstypId,
@@ -63,34 +69,41 @@ export async function PUT(request: NextRequest) {
       orderBy,
       regionId,
       position,
+      categoryIds, // 👈 ahora usamos array de IDs
     } = body;
 
     const updated = await prisma.carousel.update({
       where: { id },
       data: {
-        name,
         titleES,
         titleDE,
-        beitragstypId,
+        beitragstypId: beitragstypId || null,
         limit,
         orderBy,
-        regionId: regionId || null, // 👈 necesario para que se guarde correctamente
+        regionId: regionId || null,
         position,
+        categories: categoryIds
+          ? {
+              set: categoryIds.map((cid: string) => ({ id: cid })),
+            }
+          : undefined,
+      },
+      include: {
+        categories: { select: { id: true, name: true, nameES: true } },
       },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(updated, { status: 200 });
   } catch (error) {
-    console.error("Error actualizando carrusel:", error);
+    console.error("❌ Error actualizando carrusel:", error);
     return NextResponse.json({ error: "Error del servidor" }, { status: 500 });
   }
 }
 
-// DELETE /api/carousels/[id]
-
-export async function DELETE(req: NextRequest) {
-  const url = new URL(req.url);
-  const id = url.pathname.split("/").pop(); // Extraer ID desde URL
+// 🔹 DELETE: eliminar un carrusel
+export async function DELETE(nextRequest: NextRequest) {
+  const url = new URL(nextRequest.url);
+  const id = url.pathname.split("/").pop();
 
   if (!id) {
     return NextResponse.json({ error: "ID no proporcionado" }, { status: 400 });

@@ -77,7 +77,6 @@ export default function CreateCarouselPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title: titleES, // requerido por tu API
         titleES,
         titleDE,
         beitragstypId: beitragstypId ? parseInt(beitragstypId, 10) : null,

@@ -1,35 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // asegúrate de tener esto configurado
+import { prisma } from "@/lib/prisma";
 
+// 🔹 Crear un carrusel
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
-    const { title, titleES, titleDE, beitragstypId, limit, orderBy, regionId } =
-      body;
-
-    if (!title || !titleES || !titleDE) {
-      return NextResponse.json(
-        { error: "Campos obligatorios faltantes" },
-        { status: 400 }
-      );
-    }
+    const {
+      titleES,
+      titleDE,
+      beitragstypId,
+      limit,
+      orderBy,
+      regionId,
+      categoryIds,
+    } = body;
 
     const carousel = await prisma.carousel.create({
       data: {
-        title,
-        titleES,
-        titleDE,
-        beitragstypId: parseInt(beitragstypId, 10),
+        titleES: titleES || null,
+        titleDE: titleDE || null,
+        beitragstypId: beitragstypId ? Number(beitragstypId) : null,
         limit: limit || 10,
-        orderBy: orderBy || "desc",
-        regionId: regionId ? parseInt(regionId, 10) : null,
+        orderBy: orderBy || "date_desc",
+        regionId: regionId ? Number(regionId) : null,
+        categories: categoryIds
+          ? {
+              connect: categoryIds.map((id: number) => ({ id })),
+            }
+          : undefined,
+      },
+      include: {
+        categories: { select: { id: true, name: true, nameES: true } },
+        beitragstyp: { select: { id: true, name: true, nameES: true } },
+        region: { select: { id: true, name: true, nameES: true } },
       },
     });
 
     return NextResponse.json(carousel, { status: 201 });
   } catch (error) {
-    console.error("Error creando carrusel:", error);
+    console.error("❌ Error creando carrusel:", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
       { status: 500 }
@@ -37,40 +46,28 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// 🔹 Listar todos los carruseles
 export async function GET() {
   try {
     const carousels = await prisma.carousel.findMany({
       orderBy: { position: "asc" },
       select: {
         id: true,
-        title: true,
         titleES: true,
         titleDE: true,
         limit: true,
-
         position: true,
         beitragstypId: true,
         regionId: true,
-        region: {
-          select: {
-            id: true,
-            name: true, // Esto es suficiente por ahora
-            nameES: true,
-          },
-        },
-        beitragstyp: {
-          select: {
-            id: true,
-            name: true,
-            nameES: true,
-          },
-        },
+        region: { select: { id: true, name: true, nameES: true } },
+        beitragstyp: { select: { id: true, name: true, nameES: true } },
+        categories: { select: { id: true, name: true, nameES: true } },
       },
     });
 
     return NextResponse.json(carousels, { status: 200 });
   } catch (error) {
-    console.error("Error obteniendo carruseles:", error);
+    console.error("❌ Error obteniendo carruseles:", error);
     return NextResponse.json(
       { error: "Error interno del servidor" },
       { status: 500 }
