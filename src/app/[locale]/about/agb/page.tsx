@@ -1,7 +1,163 @@
 // app/[locale]/about/agb/page.tsx
+"use client";
+
+import { useLocale } from "next-intl";
+
 export default function AgbPage() {
-  return (
-    <div className="prose prose-lg max-w-4xl mx-auto py-10">
+  const locale = useLocale();
+  // 🎯 Versión en Español
+  const contentEs = (
+    <>
+      <h1 className="text-3xl font-bold text-red-700 mb-6">
+        Condiciones Generales de Contratación y Entrega
+      </h1>
+      <h2>de la Oficina de Información sobre América Latina (ILA) e.V.</h2>
+
+      <ol className="list-decimal pl-6 space-y-2">
+        <li>
+          <strong>Inicio de la entrega.</strong> Salvo acuerdo en contrario, el
+          inicio de la entrega será siempre el número actual publicado en el
+          momento de la recepción del pedido.
+        </li>
+        <li>
+          <strong>Facturación.</strong> El primer número se entregará con la
+          factura adjunta. La factura incluirá las ediciones que deban
+          facturarse en el año en curso. Al comienzo del año siguiente se
+          reanuda la facturación anual. Los abonos de prueba se facturan
+          independientemente del año natural.
+        </li>
+        <li>
+          <strong>Contrato de suscripción.</strong> Con la confirmación de la
+          suscripción o su entrega, el contrato de suscripción se convierte en
+          vinculante para ambas partes.
+        </li>
+        <li>
+          <strong>Derecho de desistimiento.</strong> Los pedidos pueden
+          cancelarse por escrito (carta, fax o correo electrónico) en un plazo
+          de dos semanas sin necesidad de indicar motivos.
+        </li>
+        <li>
+          <strong>Prórroga y cancelación.</strong> La suscripción es válida al
+          menos hasta fin de año natural. Después se renueva automáticamente por
+          un año más, salvo cancelación escrita a fin de año.
+        </li>
+        <li>
+          <strong>Cuotas de suscripción.</strong> Las cuotas son siempre
+          pagaderas por adelantado. Si durante la vigencia del contrato se
+          produce un aumento del precio de suscripción, deberá abonarse el
+          precio vigente desde el momento del aumento. El precio ya pagado por
+          adelantado está garantizado para el periodo de prepago y no puede
+          aumentarse. Los aumentos de precio se anunciarán en la revista antes
+          de su entrada en vigor.
+        </li>
+        <li>
+          <strong>Suscripción de prueba.</strong> La suscripción de prueba
+          incluye los tres siguientes números tras el pedido. Se convierte en
+          suscripción regular si en un plazo de tres semanas tras recibir el
+          último número no se recibe una cancelación escrita.
+        </li>
+        <li>
+          <strong>Pagos.</strong> Los pagos pueden realizarse por transferencia
+          bancaria, en efectivo o mediante domiciliación.
+        </li>
+        <li>
+          <strong>Cambios.</strong> Los cambios en la suscripción, método de
+          pago, banco o dirección de entrega solo podrán garantizarse si se
+          comunican al menos 10 días antes. En caso de mudanza es obligatorio
+          comunicar la nueva dirección.
+        </li>
+        <li>
+          <strong>Entrega.</strong> La entrega de la revista “ila” se realiza
+          por correo. Los defectos en la entrega deben notificarse de inmediato.
+          La ILA solo se hace responsable por dolo o negligencia grave. No se
+          hace responsable de entregas tardías al extranjero.
+        </li>
+        <li>
+          <strong>Interrupciones de entrega.</strong> Son posibles. Los reenvíos
+          dentro de Alemania no tienen coste adicional; al extranjero se
+          aplicarán los costes de envío correspondientes.
+        </li>
+        <li>
+          <strong>Protección de datos.</strong> Los datos de los abonados se
+          tratan conforme a la normativa de protección de datos vigente.
+        </li>
+        <li>
+          <strong>Sede.</strong> La sede de la ILA es Bonn. En caso de litigio
+          con comerciantes, personas jurídicas de derecho público o patrimonios
+          de derecho público, el fuero competente es Bonn. Para el resto de
+          casos, el fuero será el domicilio del suscriptor.
+        </li>
+      </ol>
+
+      <p className="mt-6 font-semibold">Bonn, septiembre de 2012</p>
+
+      <h1 className="text-3xl font-bold text-red-700 mt-12 mb-6">
+        Condiciones de uso del servicio online
+      </h1>
+
+      <h2>1. Contenido de la oferta online</h2>
+      <p>
+        La ILA no asume ninguna garantía sobre la actualidad, corrección,
+        integridad o calidad de la información proporcionada. Se excluye toda
+        responsabilidad por daños materiales o morales derivados del uso o no
+        uso de la información ofrecida, salvo en casos de dolo o negligencia
+        grave.
+      </p>
+
+      <h2>2. Referencias y enlaces</h2>
+      <p>
+        En caso de enlaces directos o indirectos a páginas externas, la ILA solo
+        será responsable si tiene conocimiento de contenidos ilegales y le fuera
+        técnicamente posible impedir su uso. En el momento de crear los enlaces
+        no había indicios de contenido ilegal. La ILA no tiene influencia en el
+        diseño actual o futuro de las páginas enlazadas y, por ello, se
+        distancia expresamente de todos sus contenidos modificados después de la
+        creación del enlace.
+      </p>
+
+      <h2>3. Derechos de autor y marcas</h2>
+      <p>
+        La ILA procura respetar siempre los derechos de autor de gráficos,
+        audios, vídeos y textos, utilizar material propio o recurrir a material
+        libre de licencia. Todas las marcas mencionadas en la web están
+        protegidas por los derechos de sus respectivos propietarios. El
+        copyright de los contenidos creados por la ILA pertenece a la propia
+        ILA. No está permitida su reproducción sin autorización expresa.
+      </p>
+
+      <h2>4. Protección de datos</h2>
+      <p>
+        La introducción de datos personales (emails, nombres, direcciones) es
+        voluntaria. El uso de los servicios es posible, en la medida de lo
+        técnicamente viable, también sin estos datos o con datos
+        anónimos/pseudónimos. El uso de los datos de contacto publicados en el
+        marco del aviso legal por terceros para enviar información no solicitada
+        está prohibido.
+      </p>
+
+      <h2>5. Validez jurídica</h2>
+      <p>
+        Este descargo de responsabilidad forma parte de la oferta online. Si
+        partes del texto no cumplen la normativa vigente, las demás cláusulas
+        seguirán siendo válidas.
+      </p>
+
+      <p className="mt-6 font-semibold">
+        Bonn, septiembre de 2012 <br />
+        Informationsstelle Lateinamerika e.V., Heerstr. 205, 53111 Bonn <br />
+        Tel.: 0228/65 86 13 <br />
+        E-Mail:{" "}
+        <a href="mailto:ila-bonn@t-online.de" className="text-red-600">
+          ila-bonn@t-online.de
+        </a>
+      </p>
+    </>
+  );
+
+  // 🎯 Versión en Alemán
+  const contentDe = (
+    <>
+      {/* 🎯 German Text */}
       <h1 className="text-3xl font-bold text-red-700 mb-6">
         Allgemeine Geschäfts- und Lieferbedingungen
       </h1>
@@ -213,6 +369,12 @@ export default function AgbPage() {
           ila-bonn@t-online.de
         </a>
       </p>
+    </>
+  );
+
+  return (
+    <div className="prose prose-lg max-w-4xl mx-auto py-10">
+      {locale === "es" ? contentEs : contentDe}
     </div>
   );
 }

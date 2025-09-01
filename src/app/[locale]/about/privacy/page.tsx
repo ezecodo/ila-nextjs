@@ -1,7 +1,13 @@
-// app/[locale]/datenschutz/page.tsx
+// app/[locale]/about/datenschutz/page.tsx
+"use client";
+
+import { useLocale } from "next-intl";
+
 export default function DatenschutzPage() {
-  return (
-    <div className="prose prose-lg max-w-4xl mx-auto py-10">
+  const locale = useLocale();
+
+  const contentDe = (
+    <>
       <h1 className="text-3xl font-bold text-red-700 mb-6">
         Hinweise zum Datenschutz nach Art. 13 DSGVO
       </h1>
@@ -19,12 +25,7 @@ export default function DatenschutzPage() {
       <p>
         Wir benutzen aus Sicherheitsgründen und zum Schutz der Übertragung
         vertraulicher Inhalte, wie zum Beispiel Anfragen, die Sie an uns als
-        Seitenbetreiber senden, eine SSL-bzw. TLS-Verschlüsselung. Eine
-        verschlüsselte Verbindung erkennen Sie daran, dass die Adresszeile des
-        Browsers “https://” anzeigt und an dem Schloss-Symbol in Ihrer
-        Browserzeile. Wenn die SSL- bzw. TLS-Verschlüsselung aktiviert ist,
-        können die Daten, die Sie an uns übermitteln, nicht von Dritten
-        mitgelesen werden.
+        Seitenbetreiber senden, eine SSL- bzw. TLS-Verschlüsselung.
       </p>
       <p>
         Bei der Kommunikation per E-Mail kann die vollständige Datensicherheit
@@ -34,141 +35,209 @@ export default function DatenschutzPage() {
 
       <h2>Verantwortliche Stelle</h2>
       <p>
-        Verantwortlich für die Verarbeitung Ihrer personenbezogenen Daten ist
-        die Informationsstelle Lateinamerika (ila) e.V., Oscar-Romero-Haus,
-        Heerstr. 205, 53111 Bonn, Telefon (0228) 65 86 13, Fax (0228) 63 12 26,
+        Informationsstelle Lateinamerika (ila) e.V., Oscar-Romero-Haus, Heerstr.
+        205, 53111 Bonn <br />
+        Telefon: (0228) 65 86 13 – Fax: (0228) 63 12 26 <br />
         E-Mail:{" "}
         <a href="mailto:ila-bonn@t-online.de" className="text-red-600">
           ila-bonn@t-online.de
         </a>
       </p>
+
+      <h2>Verarbeiten von Daten</h2>
       <p>
-        Die Benennung eines Datenschutzbeauftragten nach Art. 37 DSGVO ist in
-        unserem Fall nicht verpflichtend, sollten Sie Fragen zu der Speicherung
-        und Verwendung Ihrer Daten haben, können Sie sich jederzeit an die
-        Informationsstelle Lateinamerika (ila) e.V. bzw. an Gert Eisenbürger
-        wenden.
+        Grundlage für die Datenverarbeitung ist Art. 6 Abs. 1 lit. b DSGVO. Die
+        Angaben des Nutzers werden zwecks Bearbeitung der Anfrage sowie für den
+        Fall, dass Anschlussfragen entstehen, gespeichert.
       </p>
 
-      <h2>Verarbeiten von Daten (Kunden- und Vertragsdaten)</h2>
+      <h2>Dauer der Speicherung</h2>
       <p>
-        Grundlage für die Datenverarbeitung ist Art. 6 Abs. 1 lit. b DSGVO, der
-        die Verarbeitung von Daten zur Erfüllung eines Vertrags oder
-        vorvertraglicher Maßnahmen gestattet. Sofern innerhalb des Angebotes die
-        Möglichkeit zur Eingabe persönlicher oder geschäftlicher Daten
-        (E-Mail-Adressen, Namen, Anschriften) besteht, so erfolgt die Preisgabe
-        dieser Daten seitens des Nutzers ausschließlich auf Grundlage seiner
-        Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Die Angaben des Nutzers
-        werden zwecks Bearbeitung der Anfrage sowie für den Fall, dass
-        Anschlussfragen entstehen, gespeichert.
-      </p>
-      <p>
-        Die Inanspruchnahme und Bezahlung aller angebotenen Dienste ist – soweit
-        technisch möglich und sachlich zumutbar – auch ohne Angabe solcher Daten
-        bzw. durch Angabe anonymisierter Daten oder eines Pseudonyms gestattet.
-      </p>
-      <p>
-        Wir übermitteln personenbezogene Daten an Dritte nur dann, wenn dies im
-        Rahmen der Vertragsabwicklung notwendig ist, etwa an das mit der
-        Zahlungsabwicklung beauftragte Kreditinstitut. Eine weitergehende
-        Übermittlung der Daten erfolgt nicht bzw. nur dann, wenn Sie der
-        Übermittlung ausdrücklich zugestimmt haben.
-      </p>
-
-      <h2>Dauer der Speicherung und Löschung der Daten</h2>
-      <p>
-        Ihre Daten werden nur solange gespeichert, wie es für die vorgenannten
-        Zwecke erforderlich ist oder gesetzliche Aufbewahrungsfristen uns zur
-        Speicherung verpflichten. Sofern Sie Waren bei uns bestellt oder bei uns
-        gespendet haben, löschen wir Ihre personenbezogenen Daten, nachdem das
-        Vertragsverhältnis beendet ist und sämtliche Ansprüche beiderseits
-        verjährt sind und auch keine gesetzlichen Aufbewahrungspflichten mehr
-        bestehen.
+        Ihre Daten werden nur solange gespeichert, wie es für die Zwecke
+        erforderlich ist oder gesetzliche Aufbewahrungsfristen bestehen.
       </p>
 
       <h2>Zugriffsdaten / Server-Logfiles</h2>
       <p>
-        Wir (bzw. unser Webspace-Provider) erheben Daten über jeden Zugriff auf
-        das Angebot (sog. Serverlogfiles). Dazu gehören: URL der aufgerufenen
-        Website oder Datei, Datum und Uhrzeit des Abrufs, übertragene
-        Datenmenge, Meldungen über Erfolg/Nichterfolg, Browserdaten,
-        Betriebssystem, Referrer-URL, IP-Adresse und Provider. Diese Daten sind
-        nicht bestimmten Personen zuordenbar. Eine Zusammenführung mit anderen
-        Datenquellen wird nicht vorgenommen.
+        Wir erheben Daten über jeden Zugriff (Serverlogfiles). Dazu gehören:
+        URL, Datum, Uhrzeit, Browserdaten, Referrer, IP-Adresse, Provider.
       </p>
 
-      <h2>Einbindung von Diensten und Inhalten Dritter</h2>
+      <h2>Einbindung von Dritten</h2>
       <p>
-        Es kann vorkommen, dass innerhalb dieses Onlineangebotes Inhalte Dritter
-        eingebunden werden (z.B. YouTube-Videos, Google-Maps, RSS-Feeds). Dies
-        setzt voraus, dass die Anbieter dieser Inhalte die IP-Adresse der Nutzer
-        wahrnehmen. Wir haben keinen Einfluss darauf, falls Drittanbieter die
-        IP-Adresse z.B. für statistische Zwecke speichern.
+        Inhalte Dritter (YouTube, Google Maps, etc.) können eingebunden sein,
+        dabei wird die IP-Adresse der Nutzer übermittelt.
       </p>
 
       <h2>AddToAny – Bookmark & Share</h2>
       <p>
-        Über den Service AddToAny können Inhalte in sozialen Diensten geteilt
-        werden. Daten werden nur dann erhoben, wenn ein sozialer Dienst vom
-        Nutzer selbst aufgerufen wird. Wir erhalten keine Daten von AddToAny
-        oder aus der Nutzung der Share-Buttons.
+        Über AddToAny können Inhalte geteilt werden. Wir erhalten keine Daten.
       </p>
 
       <h2>Typekit Web Fonts</h2>
       <p>
-        Im Angebot sind externe Schriften von Typekit (Adobe) eingebunden. Die
-        Einbindung dieser Web-Fonts erfolgt durch einen Serveraufruf bei Adobe
-        (USA). Nach unserer Kenntnis speichert Adobe zumindest die IP-Adresse
-        des Nutzers. Mehr Infos:{" "}
+        Externe Schriften von Adobe Typekit sind eingebunden. Mehr Infos:{" "}
         <a
           href="http://www.adobe.com/privacy/typekit.html"
           target="_blank"
           rel="noopener noreferrer"
           className="text-red-600"
         >
-          Datenschutzhinweise von Typekit
+          Datenschutzhinweise
         </a>
-        .
       </p>
 
       <h2>Cookies</h2>
       <p>
-        Diese Website verwendet Cookies, um Informationen auf dem Gerät des
-        Nutzers zu speichern, z.B. zur Wiedererkennung angemeldeter Benutzer
-        oder zur statistischen Auswertung. Wer keine Cookies speichern möchte,
-        kann dies im Browser deaktivieren, allerdings sind dann Funktionen ggf.
-        eingeschränkt.
+        Diese Website verwendet Cookies. Sie können das im Browser deaktivieren,
+        aber dann sind ggf. Funktionen eingeschränkt.
       </p>
 
-      <h2>Nutzeranalyse mit Matomo (Piwik)</h2>
+      <h2>Nutzeranalyse mit Matomo</h2>
       <p>
-        Dieses Angebot verwendet Matomo zur statistischen Auswertung der
-        Nutzerzugriffe. Die Daten werden auf unserem Server in Deutschland
-        gespeichert und die IP-Adresse anonymisiert. Nutzer können die Cookies
-        deaktivieren; ggf. sind dann nicht alle Funktionen verfügbar.
+        Wir nutzen Matomo zur Analyse. Daten werden anonymisiert in Deutschland
+        gespeichert.
       </p>
 
       <h2>Ihre Rechte</h2>
       <ul>
-        <li>Auskunft, Berichtigung oder Löschung Ihrer Daten</li>
+        <li>Auskunft, Berichtigung oder Löschung</li>
         <li>Einschränkung der Verarbeitung</li>
         <li>Datenübertragbarkeit</li>
-        <li>Widerspruchsrecht gegen Direktmarketing</li>
+        <li>Widerspruch gegen Direktmarketing</li>
         <li>Widerrufsrecht bei Einwilligungen</li>
       </ul>
 
       <h2>Beschwerderecht</h2>
       <p>
-        Sie können sich jederzeit an die zuständige Datenschutzaufsichtsbehörde
-        wenden: Landesbeauftragte für Datenschutz und Informationsfreiheit
-        Nordrhein-Westfalen, Kavalleriestraße 2-4, 40213 Düsseldorf. <br />
-        Telefon: 02 11 / 384 24-0 <br />
-        Fax: 02 11 / 384 24-10 <br />
+        Sie können sich an die Datenschutzaufsicht NRW wenden: <br />
+        Landesbeauftragte für Datenschutz NRW, Kavalleriestraße 2-4, 40213
+        Düsseldorf <br />
         E-Mail:{" "}
         <a href="mailto:poststelle@ldi.nrw.de" className="text-red-600">
           poststelle@ldi.nrw.de
         </a>
       </p>
+    </>
+  );
+
+  const contentEs = (
+    <>
+      <h1 className="text-3xl font-bold text-red-700 mb-6">
+        Avisos de protección de datos según el Art. 13 RGPD
+      </h1>
+
+      <h2>Indicaciones generales</h2>
+      <p>
+        El Reglamento General de Protección de Datos (RGPD), en vigor desde el
+        25 de mayo de 2018, regula el tratamiento de datos personales en la
+        Unión Europea. Como la protección de sus datos y de su privacidad es muy
+        importante para nosotros, en la ila tratamos sus datos exclusivamente de
+        acuerdo con lo dispuesto en la normativa vigente.
+      </p>
+      <p>
+        Por motivos de seguridad y para proteger la transmisión de contenidos
+        confidenciales, utilizamos en nuestra web cifrado SSL/TLS.
+      </p>
+      <p>
+        En la comunicación por correo electrónico no puede garantizarse
+        completamente la seguridad, por lo que recomendamos el uso del correo
+        postal para información confidencial.
+      </p>
+
+      <h2>Responsable</h2>
+      <p>
+        Informationsstelle Lateinamerika (ila) e.V. <br />
+        Oscar-Romero-Haus, Heerstr. 205, 53111 Bonn <br />
+        Tel.: (0228) 65 86 13 – Fax: (0228) 63 12 26 <br />
+        Correo:{" "}
+        <a href="mailto:ila-bonn@t-online.de" className="text-red-600">
+          ila-bonn@t-online.de
+        </a>
+      </p>
+
+      <h2>Tratamiento de datos</h2>
+      <p>
+        La base legal es el Art. 6, apdo. 1, letra b del RGPD. Los datos
+        facilitados se almacenan con el fin de tramitar consultas y posibles
+        preguntas posteriores.
+      </p>
+
+      <h2>Duración del almacenamiento</h2>
+      <p>
+        Sus datos se almacenan solo mientras sea necesario para los fines
+        indicados o mientras existan obligaciones legales de conservación.
+      </p>
+
+      <h2>Acceso y registros del servidor</h2>
+      <p>
+        Recogemos datos de cada acceso (archivos de registro del servidor): URL,
+        fecha, hora, datos del navegador, referrer, dirección IP, proveedor.
+      </p>
+
+      <h2>Contenido de terceros</h2>
+      <p>
+        Pueden integrarse contenidos de terceros (YouTube, Google Maps, etc.),
+        lo que implica la transmisión de la dirección IP del usuario.
+      </p>
+
+      <h2>AddToAny – Compartir</h2>
+      <p>
+        A través de AddToAny se pueden compartir contenidos. La ila no recibe
+        datos personales en este proceso.
+      </p>
+
+      <h2>Fuentes web de Typekit</h2>
+      <p>
+        Se integran fuentes externas de Adobe Typekit (EE. UU.). Más
+        información:{" "}
+        <a
+          href="http://www.adobe.com/privacy/typekit.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-red-600"
+        >
+          Política de privacidad de Typekit
+        </a>
+      </p>
+
+      <h2>Cookies</h2>
+      <p>
+        Este sitio utiliza cookies. Puede desactivarlas en su navegador, aunque
+        ello puede limitar algunas funciones.
+      </p>
+
+      <h2>Análisis con Matomo</h2>
+      <p>
+        Utilizamos Matomo para el análisis estadístico de visitas. Los datos se
+        almacenan de forma anónima en Alemania.
+      </p>
+
+      <h2>Sus derechos</h2>
+      <ul>
+        <li>Acceso, rectificación o eliminación de sus datos</li>
+        <li>Limitación del tratamiento</li>
+        <li>Portabilidad de los datos</li>
+        <li>Oposición al marketing directo</li>
+        <li>Derecho a retirar su consentimiento</li>
+      </ul>
+
+      <h2>Derecho de reclamación</h2>
+      <p>
+        Puede dirigirse a la autoridad de control competente en NRW: <br />
+        Autoridad de Protección de Datos de Renania del Norte-Westfalia <br />
+        Kavalleriestraße 2-4, 40213 Düsseldorf <br />
+        Correo:{" "}
+        <a href="mailto:poststelle@ldi.nrw.de" className="text-red-600">
+          poststelle@ldi.nrw.de
+        </a>
+      </p>
+    </>
+  );
+
+  return (
+    <div className="prose prose-lg max-w-4xl mx-auto py-10">
+      {locale === "es" ? contentEs : contentDe}
     </div>
   );
 }

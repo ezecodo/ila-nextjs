@@ -1,5 +1,12 @@
+// app/[locale]/about/network/page.tsx
+"use client";
+
+import { useLocale } from "next-intl";
+
 export default function NetworkPage() {
-  const partners = [
+  const locale = useLocale();
+
+  const partnersDe = [
     {
       name: "ACS Copy Service",
       desc: "Solidarischer Copy Shop in Bonn",
@@ -123,7 +130,7 @@ export default function NetworkPage() {
     },
     { name: "Radio Matraca", url: "https://www.npla.de/matraca" },
     { name: "Radio Onda", url: "https://www.npla.de/onda" },
-    { name: "Ojalá", desc: "Revista en la diáspora", url: "https://ojal.de" },
+    { name: "Ojalá", desc: "Revista en der Diaspora", url: "https://ojal.de" },
     {
       name: "Ökubüro",
       desc: "Ökumenisches Büro für Frieden und Gerechtigkeit",
@@ -152,12 +159,116 @@ export default function NetworkPage() {
     },
   ];
 
+  const partnersEs = partnersDe.map((p) => ({
+    ...p,
+    // 👇 traducciones rápidas para "desc"
+    desc: p.desc
+      ? p.desc
+          .replace(
+            "Solidarischer Copy Shop in Bonn",
+            "Copistería solidaria en Bonn"
+          )
+          .replace("Interkulturelles Zentrum", "Centro intercultural")
+          .replace(
+            "Nachrichten und Analysen aus Lateinamerika",
+            "Noticias y análisis desde América Latina"
+          )
+          .replace(
+            "Buchladen für Internationale Literatur, Politik & Geschichte",
+            "Librería de literatura internacional, política e historia"
+          )
+          .replace(
+            "Bundeskoordination Internationalismus",
+            "Coordinación federal de internacionalismo"
+          )
+          .replace(
+            "Christliche Initiative Romero – Stimme für Gerechtigkeit",
+            "Iniciativa Cristiana Romero – Voz por la justicia"
+          )
+          .replace("Frieden für Kolumbien", "Paz para Colombia")
+          .replace(
+            "Deutsch Jamaikanische Gesellschaft",
+            "Asociación Germano-Jamaiquina"
+          )
+          .replace(
+            "Forschungs- und Dokumentationszentrum Chile-Lateinamerika",
+            "Centro de investigación y documentación Chile-América Latina"
+          )
+          .replace(
+            "Food First Information and Action Network – Mit Menschenrechten gegen den Hunger",
+            "Food First Information and Action Network – Con los derechos humanos contra el hambre"
+          )
+          .replace(
+            "Institut für Theologie und Politik",
+            "Instituto de Teología y Política"
+          )
+          .replace(
+            "Informationszentrum 3. Welt",
+            "Centro de Información del Tercer Mundo"
+          )
+          .replace("Kooperation Brasilien", "Cooperación Brasil")
+          .replace("Kolumbienkoordination", "Coordinación Colombia")
+          .replace("Iberoamerikanische Buchhandlung", "Librería iberoamericana")
+          .replace(
+            "Treffpunkt für Ungehorsame, mit und ohne Job, gesellschaftskritisch",
+            "Punto de encuentro para los desobedientes, con o sin trabajo, crítico con la sociedad"
+          )
+          .replace(
+            "Österreichs Zeitschrift für Lateinamerika und die Karibik",
+            "Revista austríaca sobre América Latina y el Caribe"
+          )
+          .replace(
+            "Archiv für übersetzte Literatur aus Lateinamerika und der Karibik",
+            "Archivo de literatura traducida de América Latina y el Caribe"
+          )
+          .replace(
+            "Solidarische, kritische und unabhängige Berichterstattung über Lateinamerika",
+            "Cobertura solidaria, crítica e independiente sobre América Latina"
+          )
+          .replace(
+            "Gesunde Nahrung geht uns alle an",
+            "La alimentación saludable nos concierne a todos"
+          )
+          .replace(
+            "Medizinische Versorgung für Menschen ohne Papiere",
+            "Atención médica para personas sin papeles"
+          )
+          .replace(
+            "Nachrichtenpool Lateinamerika",
+            "Red de noticias sobre América Latina"
+          )
+          .replace("Revista en der Diaspora", "Revista en la diáspora")
+          .replace(
+            "Ökumenisches Büro für Frieden und Gerechtigkeit",
+            "Oficina ecuménica por la paz y la justicia"
+          )
+          .replace(
+            "Politik und Kultur in Lateinamerika",
+            "Política y cultura en América Latina"
+          )
+          .replace(
+            "Gesellschaft für Karibikforschung",
+            "Sociedad para la investigación del Caribe"
+          )
+          .replace(
+            "Filmfestival in Frankfurt a.M.",
+            "Festival de cine en Fráncfort del Meno"
+          )
+          .replace(
+            "Netzwerk für Solidarität und Rebellion",
+            "Red por la solidaridad y la rebeldía"
+          )
+      : undefined,
+  }));
+
   return (
     <div className="prose prose-lg max-w-4xl mx-auto py-10">
-      <h1 className="text-3xl font-bold text-red-700 mb-8">Netzwerk</h1>
+      <h1 className="text-3xl font-bold text-red-700 mb-8">
+        {locale === "es" ? "Red de colaboración" : "Netzwerk"}
+      </h1>
 
       <ul className="space-y-4">
-        {partners.map((p) => (
+        {(locale === "es" ? partnersEs : partnersDe).map((p) => (
           <li key={p.name}>
             <p className="font-semibold">{p.name}</p>
             {p.desc && <p className="text-gray-700">{p.desc}</p>}

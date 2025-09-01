@@ -1,6 +1,11 @@
-// app/[locale]/service/ads/page.tsx
+"use client";
+
+import { useLocale } from "next-intl";
+
 export default function AdsPage() {
-  return (
+  const locale = useLocale();
+
+  const contentDe = (
     <div className="prose prose-lg max-w-3xl mx-auto py-10">
       <h1 className="text-3xl font-bold text-red-700">Anzeigen</h1>
 
@@ -134,4 +139,135 @@ export default function AdsPage() {
       </address>
     </div>
   );
+
+  const contentEs = (
+    <div className="prose prose-lg max-w-3xl mx-auto py-10">
+      <h1 className="text-3xl font-bold text-red-700">Anuncios</h1>
+
+      <p>
+        Con un anuncio o un encarte en la <strong>ila</strong> llegas a un
+        público lector interesado y cualificado. El público objetivo de la ila
+        son personas interesadas en América Latina y sus culturas. Son lectoras
+        y lectores comprometidos, activos en iniciativas e instituciones de
+        desarrollo, organizaciones de derechos humanos, grupos estudiantiles y
+        de solidaridad, sindicatos, iglesias o la política. Personas que se
+        interesan por la literatura, la música o el cine de América Latina, o
+        que buscan ampliar horizontes viajando. Son multiplicadores: trabajan en
+        medios de comunicación, universidades, institutos de investigación,
+        escuelas y educación de adultos. También responsables políticos,
+        económicos, de ONG y de la cooperación alemana y europea leen la ila.
+      </p>
+
+      <h2>Edición impresa de la ila</h2>
+      <h3>Tiraje y distribución</h3>
+      <p>
+        La ila aparece diez veces al año, a mediados de mes, con 48 páginas
+        (incluida la portada) en formato DIN A4 (en enero y agosto no se
+        publica). Cada número incluye un dossier con temas que abarcan desde
+        política, economía y cultura hasta derechos humanos, movimientos
+        sociales, feminismo, ecología, literatura, música, teatro, cine,
+        sexualidad, turismo, gastronomía y mucho más.
+      </p>
+      <p>
+        La ila tiene una tirada de 1.100 ejemplares, aunque algunos números
+        especiales tienen mayor circulación. El 90% se distribuye por
+        suscripción en Alemania, Austria, Suiza y Luxemburgo. El resto se vende
+        en librerías, por pedido individual o en eventos políticos y culturales.
+        El precio por ejemplar es actualmente de 7,- euros.
+      </p>
+      <p>
+        Podemos encargarnos del diseño de tu anuncio si lo deseas. Si te
+        interesa publicar un anuncio o encarte, ponte en contacto con nosotras:
+        <a href="mailto:ila-bonn@t-online.de" className="text-red-600">
+          {" "}
+          ila-bonn@t-online.de
+        </a>
+      </p>
+
+      <h3>Formatos y precios</h3>
+      <table className="table-auto border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 px-3 py-2 text-left">
+              Formato
+            </th>
+            <th className="border border-gray-300 px-3 py-2 text-left">
+              Medidas (mm)
+            </th>
+            <th className="border border-gray-300 px-3 py-2 text-left">
+              Precio (€)
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="border border-gray-300 px-3 py-2">
+              Página completa
+            </td>
+            <td className="border border-gray-300 px-3 py-2">176 x 251</td>
+            <td className="border border-gray-300 px-3 py-2">350,-</td>
+          </tr>
+          <tr>
+            <td className="border border-gray-300 px-3 py-2">Contraportada</td>
+            <td className="border border-gray-300 px-3 py-2">190 x 230</td>
+            <td className="border border-gray-300 px-3 py-2">450,-</td>
+          </tr>
+          <tr>
+            <td className="border border-gray-300 px-3 py-2">
+              1/2 página (columna)
+            </td>
+            <td className="border border-gray-300 px-3 py-2">85 x 251</td>
+            <td className="border border-gray-300 px-3 py-2">150,-</td>
+          </tr>
+          <tr>
+            <td className="border border-gray-300 px-3 py-2">1/2 columna</td>
+            <td className="border border-gray-300 px-3 py-2">85 x 125</td>
+            <td className="border border-gray-300 px-3 py-2">100,-</td>
+          </tr>
+          <tr>
+            <td className="border border-gray-300 px-3 py-2">1/4 columna</td>
+            <td className="border border-gray-300 px-3 py-2">85 x 63</td>
+            <td className="border border-gray-300 px-3 py-2">50,-</td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="mt-2 text-sm italic">
+        (Portada y contraportada a color, interior en blanco y negro. Todos los
+        precios más IVA.)
+      </p>
+
+      <h3>Encartes</h3>
+      <ul>
+        <li>hasta 20 g: 225,- € por cada mil</li>
+        <li>hasta 40 g: 300,- € por cada mil</li>
+      </ul>
+      <p>
+        Ofrecemos descuento del 10% a partir de tres anuncios. Condiciones
+        especiales a convenir. El diseño puede realizarse con pequeño recargo o
+        gratis si se contratan varias inserciones.
+      </p>
+      <p>
+        La fecha límite de entrega es el día 25 del mes anterior. Para entonces
+        deben recibirse los archivos listos para imprimir, preferiblemente por
+        correo electrónico (EPS o PDF con tipografías incrustadas) a:{" "}
+        <a href="mailto:ila-bonn@t-online.de" className="text-red-600">
+          ila-bonn@t-online.de
+        </a>
+        . Más detalles técnicos bajo consulta. Teléfono: 0228 / 65 86 13.
+      </p>
+
+      <h3>Contacto</h3>
+      <address className="not-italic">
+        Informationsstelle Lateinamerika e.V. <br />
+        Oscar-Romero-Haus <br />
+        Heerstr. 205 <br />
+        53111 Bonn <br />
+        <a href="mailto:ila-bonn@t-online.de" className="text-red-600">
+          ila-bonn@t-online.de
+        </a>
+      </address>
+    </div>
+  );
+
+  return <>{locale === "es" ? contentEs : contentDe}</>;
 }

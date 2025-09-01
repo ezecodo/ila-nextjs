@@ -1,6 +1,11 @@
-// app/[locale]/support/participate/page.tsx
+"use client";
+
+import { useLocale } from "next-intl";
+
 export default function ParticipatePage() {
-  return (
+  const locale = useLocale();
+
+  const contentDe = (
     <article className="prose prose-lg max-w-3xl mx-auto py-10 prose-headings:text-red-700 prose-a:text-red-600">
       <h1>Mitmachen</h1>
 
@@ -121,4 +126,108 @@ export default function ParticipatePage() {
       </p>
     </article>
   );
+
+  const contentEs = (
+    <article className="prose prose-lg max-w-3xl mx-auto py-10 prose-headings:text-red-700 prose-a:text-red-600">
+      <h1>Participar</h1>
+
+      <p>
+        ¿Quieres unirte a nosotras y nosotros? Entonces eres siempre bienvenid@.
+        Ya sea como practicante, experta en redes sociales, cabeza creativa en
+        la redacción, heroína del backstage de la web o simplemente curioseando
+        en nuestras reuniones mensuales, escríbenos y acércate. Participar se
+        puede desde cualquier lugar del mundo. la ila ofrece espacio para la
+        creatividad, el intercambio crítico y el compromiso activo. Como
+        organización con pocos recursos dependemos de personas solidarias. Tu
+        participación puede tomar muchas formas:
+      </p>
+
+      <h2>Analista y pluma creativa</h2>
+      <p>
+        ¿Te interesa el trabajo periodístico? ¿Quieres analizar críticamente los
+        procesos políticos y sociales en América Latina? ¿Quieres entrevistar a
+        personas activas en movimientos sociales o con saberes especializados?
+        ¡Entonces escribe para nosotras! Siempre buscamos buenos artículos e
+        entrevistas para nuestro dossier mensual y las secciones de Actualidad y
+        Cultura.
+      </p>
+
+      <h2>Practicant@ todoterreno</h2>
+      <p>
+        Como practicante puedes ver de todo un poco. Ofrecemos tanto prácticas
+        voluntarias como obligatorias de 6 semanas a 3 meses. Puedes participar
+        en la producción de nuestras ediciones, coorganizar eventos, gestionar
+        redes sociales, debatir sobre política y pensar con nosotras estrategias
+        para el futuro de la ila. No es imprescindible tener experiencia
+        periodística o idiomas. Como casi todo nuestro trabajo es voluntario, no
+        podemos pagar las prácticas, pero sí entregamos un certificado. Si te
+        interesa, mándanos un correo contándonos quién eres, cuándo y por qué
+        quieres hacer tu práctica.
+      </p>
+
+      <blockquote>
+        “Descubrí una pasión. Fue una experiencia increíble darme cuenta de lo
+        bien que me iba en un trabajo que me interesaba. Ayudé, por ejemplo, en
+        la redacción y el diseño. Leí mucho y aprendí un montón. Britt y Mia
+        confiaron en mí y me dieron espacio para llevar a cabo mis ideas. No fue
+        un entorno jerárquico, lo cual me hizo sentir cómoda y abierta. Me sentí
+        tomada en serio. Me impresionó la cantidad de personas detrás de la ila,
+        sin obtener beneficio alguno. Lo hacemos de corazón, porque creemos que
+        es importante que exista un periodismo independiente y de izquierda.”
+        <footer>— Ximena Juárez Villalpando, ex practicante de la ila</footer>
+      </blockquote>
+
+      <h2>Corazón de la redacción</h2>
+      <p>
+        ¿Quieres comprometerte a largo plazo? Ven a una reunión de redacción y
+        conócenos. Son el primer o segundo martes del mes a las 19h. Escríbenos
+        un correo y te mandamos la fecha exacta. Puedes participar en Bonn o de
+        forma virtual desde cualquier lugar.
+      </p>
+
+      <h2>Heroín@ del backstage web</h2>
+      <p>
+        Una web bonita no se mantiene sola: necesitamos héroes y heroínas
+        discretos que la alimenten con información, artículos y eventos. ¡Únete
+        al pequeño equipo detrás de la pantalla!
+      </p>
+
+      <h2>Geni@ de los idiomas</h2>
+      <p>
+        Recibimos artículos de gran calidad en español, portugués, inglés,
+        francés y neerlandés que deben traducirse al alemán. Y muchos artículos
+        de la ila se traducen al español. ¿Quieres ayudar a preparar textos para
+        nuestro público germanohablante e hispanohablante? ¡Perfecto! Siempre
+        necesitamos apoyo en el equipo de traducción. Así funciona:
+      </p>
+      <p>
+        <strong>Traducciones al alemán:</strong> Tenemos una lista de correo
+        para traductoras y traductores. Anunciamos allí los textos y quien
+        quiera se apunta. A veces hay dos semanas para traducir, a veces solo
+        uno o dos días.
+      </p>
+      <p>
+        <strong>Traducciones al español:</strong> Se hacen desde nuestra
+        redacción web en español de manera semiautomatizada y luego corregidas.
+        Siempre del último sábado del mes al miércoles siguiente.
+      </p>
+
+      <h2>Expert@ en marketing</h2>
+      <p>
+        La ila no tiene presupuesto publicitario. Dependemos de nuestra
+        comunidad para conseguir nuevas suscripciones. Puedes difundir la ila,
+        repartir volantes o ejemplares de muestra en lugares como librerías,
+        parroquias, centros culturales, universidades o bares. Al inicio del
+        semestre, las universidades son ideales. Si quieres materiales, te los
+        enviamos. También ofrecemos descuento a revendedores.
+      </p>
+
+      <p className="mt-6 font-semibold">
+        ¿Te interesa? Escríbenos:{" "}
+        <a href="mailto:ila-bonn@t-online.de">ila-bonn@t-online.de</a>
+      </p>
+    </article>
+  );
+
+  return <>{locale === "es" ? contentEs : contentDe}</>;
 }

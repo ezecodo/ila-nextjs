@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { useLocale } from "next-intl";
 
 export default function DonatePage() {
+  const locale = useLocale();
+
   useEffect(() => {
     const id = "_" + Math.random().toString(36).substr(2, 9);
     const container = document.createElement("div");
@@ -22,8 +25,8 @@ export default function DonatePage() {
     }
   }, []);
 
-  return (
-    <div className="prose prose-lg max-w-3xl mx-auto py-10">
+  const contentDe = (
+    <>
       <h1 className="text-3xl font-bold text-red-700">Spenden</h1>
 
       <p>
@@ -77,6 +80,71 @@ export default function DonatePage() {
         Lateinamerika und Europa zu connecten. Nebenbei erhalten wir gemeinsam
         50 Jahre Bewegungsgedächtnis lebendig.
       </p>
+    </>
+  );
+
+  const contentEs = (
+    <>
+      <h1 className="text-3xl font-bold text-red-700">Donaciones</h1>
+
+      <p>
+        Un medio impreso sin grandes patrocinadores ni dinero del Estado – eso
+        es la ila. Solo gracias a nuestra comunidad somos desde 1976 un medio
+        independiente. Casi todo nuestro trabajo es voluntario. Nadie recibe
+        honorarios por viajar a encuentros de redes o por entrevistar a
+        campesinas y cineastas.
+      </p>
+
+      <p>Tus donaciones financian nuestro trabajo cotidiano:</p>
+      <ul>
+        <li>
+          El modesto alquiler de nuestra acogedora oficina en un histórico
+          proyecto sociopolítico en el centro de Bonn
+        </li>
+        <li>Papel, bolígrafos, cartuchos de impresión, material de oficina</li>
+        <li>Nuestros servicios de asesoría fiscal</li>
+        <li>Dos medias jornadas de trabajo administrativo</li>
+        <li>El café para las personas voluntarias ❤️</li>
+      </ul>
+
+      <p>
+        La forma más sostenible de apoyar nuestro trabajo es hacerse miembro del
+        círculo de apoyo y contribuir con una donación mensual. ¿1 euro? ¿100
+        euros? ¿1000 euros? Cada persona tiene diferentes posibilidades, ¡pero
+        todo ayuda! Opciones de donación:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Donaciones periódicas</strong> – por orden permanente, tarjeta
+          de crédito o Paypal (pronto también con domiciliación SEPA).
+        </li>
+        <li>
+          <strong>Donaciones únicas</strong> – por transferencia bancaria,
+          tarjeta, Paypal o incluso en sobre
+        </li>
+        <li>
+          <strong>Donaciones en especie</strong> – por ejemplo, café y otras
+          bebidas para la oficina
+        </li>
+      </ul>
+
+      <p>
+        Como asociación sin fines de lucro podemos emitir certificados de
+        donación.
+      </p>
+      <p>
+        Con tu apoyo ayudas a conectar activistas, investigadoras e
+        investigadores y periodistas de América Latina y Europa. Y al mismo
+        tiempo mantenemos vivo un archivo de 50 años de memoria de los
+        movimientos.
+      </p>
+    </>
+  );
+
+  return (
+    <div className="prose prose-lg max-w-3xl mx-auto py-10">
+      {locale === "es" ? contentEs : contentDe}
 
       {/* Widget Twingle */}
       <div id="twingle-container" className="mt-10" />
