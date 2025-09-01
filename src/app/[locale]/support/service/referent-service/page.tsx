@@ -47,16 +47,15 @@ export default function ReferentServicePage() {
       </h1>
 
       <p>
-        Para eventos sobre América Latina podemos poner a disposición ponentes o
-        participantes en paneles adecuados. Agradecemos las solicitudes con
-        antelación, pero también intentamos atender peticiones de último momento
-        siempre que sea posible. Integrantes de nuestra redacción pueden dar
-        charlas sobre desarrollos políticos y sociales en distintos países de
-        América Latina (entre otros Argentina, Ecuador, El Salvador, Guatemala,
-        Colombia, México, Perú, Uruguay) o de manera regional sobre movimientos
-        sociales, derechos humanos, migración, clima y transición energética,
-        LGBTIQ+, exilio político, políticas de la memoria, música, literatura y
-        cine.
+        Para eventos sobre América Latina podemos poner a disposición ponentxs
+        en paneles adecuados. Agradecemos las solicitudes con antelación, pero
+        también intentamos atender peticiones de último momento siempre que sea
+        posible. Integrantes de nuestra redacción pueden dar charlas sobre
+        desarrollos políticos y sociales en distintos países de América Latina
+        (entre otros Argentina, Ecuador, El Salvador, Guatemala, Colombia,
+        México, Perú, Uruguay) o de manera regional sobre movimientos sociales,
+        derechos humanos, migración, clima y transición energética, LGBTIQ+,
+        exilio político, políticas de la memoria, música, literatura y cine.
       </p>
 
       <p>

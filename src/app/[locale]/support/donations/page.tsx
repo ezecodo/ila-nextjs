@@ -108,7 +108,7 @@ export default function DonatePage() {
       </ul>
 
       <p>
-        La forma más sostenible de apoyar nuestro trabajo es hacerse miembro del
+        La forma más sostenible de apoyar nuestro trabajo es hacerse miembrx del
         círculo de apoyo y contribuir con una donación mensual. ¿1 euro? ¿100
         euros? ¿1000 euros? Cada persona tiene diferentes posibilidades, ¡pero
         todo ayuda! Opciones de donación:
@@ -134,8 +134,8 @@ export default function DonatePage() {
         donación.
       </p>
       <p>
-        Con tu apoyo ayudas a conectar activistas, investigadoras e
-        investigadores y periodistas de América Latina y Europa. Y al mismo
+        Con tu apoyo ayudas a conectar activistas, investigadorxs e
+        investigadorxs y periodistas de América Latina y Europa. Y al mismo
         tiempo mantenemos vivo un archivo de 50 años de memoria de los
         movimientos.
       </p>

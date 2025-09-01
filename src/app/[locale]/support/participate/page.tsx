@@ -132,11 +132,11 @@ export default function ParticipatePage() {
       <h1>Participar</h1>
 
       <p>
-        ¿Quieres unirte a nosotras y nosotros? Entonces eres siempre bienvenid@.
-        Ya sea como practicante, experta en redes sociales, cabeza creativa en
-        la redacción, heroína del backstage de la web o simplemente curioseando
-        en nuestras reuniones mensuales, escríbenos y acércate. Participar se
-        puede desde cualquier lugar del mundo. la ila ofrece espacio para la
+        ¿Quieres unirte a nosotrxs? Entonces eres siempre bienvenidx. Ya sea
+        como practicante, expertx en redes sociales, cabeza creativa en la
+        redacción, heroínx del backstage de la web o simplemente curioseando en
+        nuestras reuniones mensuales, escríbenos y acércate. Participar se puede
+        desde cualquier lugar del mundo. la ila ofrece espacio para la
         creatividad, el intercambio crítico y el compromiso activo. Como
         organización con pocos recursos dependemos de personas solidarias. Tu
         participación puede tomar muchas formas:
@@ -152,9 +152,9 @@ export default function ParticipatePage() {
         Cultura.
       </p>
 
-      <h2>Practicant@ todoterreno</h2>
+      <h2>Practicantx todoterreno</h2>
       <p>
-        Como practicante puedes ver de todo un poco. Ofrecemos tanto prácticas
+        Como practicantx puedes ver de todo un poco. Ofrecemos tanto prácticas
         voluntarias como obligatorias de 6 semanas a 3 meses. Puedes participar
         en la producción de nuestras ediciones, coorganizar eventos, gestionar
         redes sociales, debatir sobre política y pensar con nosotras estrategias
@@ -185,14 +185,14 @@ export default function ParticipatePage() {
         forma virtual desde cualquier lugar.
       </p>
 
-      <h2>Heroín@ del backstage web</h2>
+      <h2>Heroínx del backstage web</h2>
       <p>
         Una web bonita no se mantiene sola: necesitamos héroes y heroínas
         discretos que la alimenten con información, artículos y eventos. ¡Únete
         al pequeño equipo detrás de la pantalla!
       </p>
 
-      <h2>Geni@ de los idiomas</h2>
+      <h2>Genix de los idiomas</h2>
       <p>
         Recibimos artículos de gran calidad en español, portugués, inglés,
         francés y neerlandés que deben traducirse al alemán. Y muchos artículos
@@ -212,7 +212,7 @@ export default function ParticipatePage() {
         Siempre del último sábado del mes al miércoles siguiente.
       </p>
 
-      <h2>Expert@ en marketing</h2>
+      <h2>Expertx en marketing</h2>
       <p>
         La ila no tiene presupuesto publicitario. Dependemos de nuestra
         comunidad para conseguir nuevas suscripciones. Puedes difundir la ila,

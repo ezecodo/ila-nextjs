@@ -32,7 +32,7 @@ export default function EditorialPage() {
       <p>
         La ILA está sostenida por un equipo editorial comprometido que prepara
         cada mes la nueva edición. Contamos también con la colaboración de
-        colaboradores permanentes en América Latina, Estados Unidos y Europa.
+        colaboradorxs permanentes en América Latina, Estados Unidos y Europa.
       </p>
 
       <p className="mt-6 font-semibold">
