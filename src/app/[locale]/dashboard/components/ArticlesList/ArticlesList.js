@@ -99,7 +99,11 @@ const ArticlesList = () => {
                 <td className="p-1.5 border">{article.id}</td>
                 <td className="p-1.5 border">
                   <Link
-                    href={`/${locale}/articles/${article.id}`}
+                    href={
+                      article.legacyPath
+                        ? `/${locale}${article.legacyPath}`
+                        : `/${locale}/articles/${article.id}`
+                    }
                     className="text-blue-600 hover:underline"
                     target="_blank"
                   >

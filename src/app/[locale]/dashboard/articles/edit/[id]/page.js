@@ -1,27 +1,28 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import InputField from "../../../components/Articles/NewArticle/InputField";
+import InputField from "../../../../components/Articles/NewArticle/InputField";
 import { useLocale, useTranslations } from "next-intl";
+import { useParams } from "next/navigation";
 
-import SelectField from "../../../components/Articles/NewArticle/SelectField";
-import ToggleSwitch from "../../../components/Articles/NewArticle/ToggleSwitch";
-import FormMessage from "../../../components/Articles/NewArticle/FormMessage";
-import SubmitButton from "../../../components/Articles/NewArticle/SubmitButton";
-import Modal from "../../../components/Articles/NewArticle/Modal";
-import styles from "../../../../styles/global.module.css";
-import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
+import SelectField from "../../../../components/Articles/NewArticle/SelectField";
+import ToggleSwitch from "../../../../components/Articles/NewArticle/ToggleSwitch";
+import FormMessage from "../../../../components/Articles/NewArticle/FormMessage";
+import SubmitButton from "../../../../components/Articles/NewArticle/SubmitButton";
+import Modal from "../../../../components/Articles/NewArticle/Modal";
+import styles from "../../../../../styles/global.module.css";
+import CheckboxField from "../../../../components/Articles/NewArticle/CheckboxField";
 
 import dynamic from "next/dynamic";
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 const QuillEditor = dynamic(
-  () => import("../../../components/QuillEditor/QuillEditor"),
+  () => import("../../../../components/QuillEditor/QuillEditor"),
   {
     ssr: false,
   }
 );
 
-export default function NewArticlePage() {
+export default function EditArticlePage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
@@ -201,6 +202,55 @@ export default function NewArticlePage() {
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
       ?.name === "Nachruf";
 
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchArticle = async () => {
+      try {
+        const res = await fetch(`/api/articles/${id}`);
+        if (!res.ok) throw new Error("Error al cargar el artículo");
+        const article = await res.json();
+
+        // Rellenar estados
+        setTitle(article.title || "");
+        setSubtitle(article.subtitle || "");
+        setContent(article.content || "");
+        setSelectedBeitragstyp(article.beitragstypId || "");
+        setSelectedSubtyp(article.beitragssubtypId || "");
+        setIsPrinted(article.isInPrintEdition || false);
+        setSelectedEdition(article.editionId || "");
+        setStartPage(article.startPage || "");
+        setEndPage(article.endPage || "");
+        setSelectedAuthor(article.authors?.[0]?.id || "");
+        setSelectedInterviewee(article.intervieweeId || "");
+        setIsInterview(article.isInterview || false);
+        setIsPublished(article.isPublished || false);
+        setSchedulePublish(article.schedulePublish || false);
+        setPublicationDate(
+          article.publicationDate ? new Date(article.publicationDate) : null
+        );
+        setPreviewText(article.previewText || "");
+        setPreviewTextEnabled(!!article.previewText);
+        setAdditionalInfo(article.additionalInfo || "");
+        setAdditionalInfoEnabled(!!article.additionalInfo);
+        setSelectedCategories(article.categories?.map((c) => c.id) || []);
+        setRegions(
+          article.regions?.map((r) => ({ value: r.id, label: r.name })) || []
+        );
+        setTopics(
+          article.topics?.map((t) => ({ value: t.id, label: t.name })) || []
+        );
+        setMediaTitle(article.mediaTitle || "");
+        setImageTitle(article.imageTitle || "");
+        setImageAlt(article.imageAlt || "");
+      } catch (err) {
+        console.error("Error cargando artículo:", err);
+        setMessage("Error cargando el artículo.");
+      }
+    };
+
+    fetchArticle();
+  }, [id]);
   // Fetch Beitragstypen
   useEffect(() => {
     const fetchBeitragstypen = async () => {
@@ -448,7 +498,7 @@ export default function NewArticlePage() {
 
     try {
       const res = await fetch("/api/articles", {
-        method: "POST",
+        method: "PUT",
         body: formData, // Aquí pasamos el FormData
       });
 
@@ -947,7 +997,7 @@ export default function NewArticlePage() {
             />
           </div>
         )}
-        <SubmitButton label="Crear artículo" />
+        <SubmitButton label="Actulizar articulo" />
       </form>
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>

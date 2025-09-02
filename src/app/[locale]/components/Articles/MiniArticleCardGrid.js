@@ -10,8 +10,14 @@ export default function MiniArticleCardGrid({ article }) {
   const locale = useLocale();
   const t = useTranslations("article");
   const isES = locale === "es" && article.isTranslatedES;
-  const firstImage = article.images?.[0];
-  const hasImage = Boolean(firstImage?.url);
+  const primaryImage = article.articleImage // 👈 imagen subida en el artículo
+    ? {
+        url: article.articleImage,
+        alt: article.imageAlt || "Imagen del artículo",
+      }
+    : article.images?.[0]; // fallback a la primera de la relación
+
+  const hasImage = Boolean(primaryImage?.url);
 
   const subtitle = isES ? article.subtitleES : article.subtitle;
   const previewText =
@@ -88,8 +94,8 @@ export default function MiniArticleCardGrid({ article }) {
       {hasImage && (
         <div className="w-full aspect-[16/9]">
           <SmartImage
-            src={firstImage.url}
-            alt={firstImage.alt || "Imagen del artículo"}
+            src={primaryImage.url}
+            alt={primaryImage.alt || "Imagen del artículo"}
             className="rounded-t w-full h-full object-cover"
             faceTopBias
           />
