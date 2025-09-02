@@ -26,7 +26,7 @@ export default function EditArticlePage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
-  const [resetTrigger, setResetTrigger] = useState(false);
+
   const t = useTranslations("newArticle.form");
   const locale = useLocale();
 
@@ -677,8 +677,8 @@ export default function EditArticlePage() {
         {previewTextEnabled && (
           <div key={previewTextEnabled ? "editor-enabled" : "editor-disabled"}>
             <QuillEditor
+              value={previewText}
               onChange={(value) => setPreviewText(value)} // Actualiza el contenido
-              resetTrigger={resetTrigger} // Reinicia el editor
             />
           </div>
         )}
@@ -769,8 +769,8 @@ export default function EditArticlePage() {
           />
         </div>
         <QuillEditor
+          value={content}
           onChange={(value) => setContent(value)} // Actualiza el contenido
-          resetTrigger={resetTrigger} // Reinicia el editor
         />
         <div className={styles.formGroup}>
           <label htmlFor="articleImage" className={styles.formLabel}>

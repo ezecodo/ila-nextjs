@@ -3,13 +3,13 @@ import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { useTranslations } from "next-intl";
 
-const QuillEditor = ({ onChange, resetTrigger }) => {
+const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
   const editorRef = useRef(null);
   const quillRef = useRef(null);
   const t = useTranslations("quilleditor");
 
+  // Inicialización de Quill
   useEffect(() => {
-    // Inicialización de Quill
     if (!quillRef.current) {
       quillRef.current = new Quill(editorRef.current, {
         theme: "snow",
@@ -21,19 +21,26 @@ const QuillEditor = ({ onChange, resetTrigger }) => {
             ["link", "image"],
           ],
         },
-        placeholder: t("writeHere"), // Escriba Aquí!
+        placeholder: t("writeHere"),
       });
 
       // Escuchar cambios en Quill
       quillRef.current.on("text-change", () => {
-        const plainText = quillRef.current.getText().trim(); // Obtiene solo texto limpio
-        onChange(plainText); // Envía texto limpio al formulario
+        const plainText = quillRef.current.getText().trim();
+        if (onChange) onChange(plainText);
       });
     }
-  }, [onChange]);
+  }, [onChange, t]);
 
+  // Si `value` cambia desde fuera → actualizamos contenido del editor
   useEffect(() => {
-    // Reiniciar contenido del editor cuando cambia `resetTrigger`
+    if (quillRef.current && value !== quillRef.current.root.innerHTML) {
+      quillRef.current.root.innerHTML = value || "";
+    }
+  }, [value]);
+
+  // Reset con resetTrigger
+  useEffect(() => {
     if (quillRef.current && resetTrigger) {
       quillRef.current.root.innerHTML = "";
     }
