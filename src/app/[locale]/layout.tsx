@@ -38,6 +38,7 @@ export async function generateMetadata() {
   return {
     title: "ILA | Informationstelle Lateinamerika",
     description: "Das Lateinamerika-Magazin",
+    icon: "/favicon.ico",
   };
 }
 
