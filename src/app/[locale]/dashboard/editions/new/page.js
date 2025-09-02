@@ -35,11 +35,9 @@ export default function NewEditionForm() {
   const [tableOfContents, setTableOfContents] = useState("");
   const [isCurrent, setIsCurrent] = useState(false);
   const [coverImage, setCoverImage] = useState(null);
-  const [backgroundImage, setBackgroundImage] = useState(null);
   const [regions, setRegions] = useState([]); // Cambia el estado a un array
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
   const coverImageRef = useRef(null); // Crea una referencia para el input de archivo
-  const backgroundImageRef = useRef(null); // Crea una referencia para el input de archivo
 
   const [message, setMessage] = useState("");
 
@@ -166,8 +164,8 @@ export default function NewEditionForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!coverImage || !backgroundImage) {
-      setMessage("Por favor, sube ambas imágenes.");
+    if (!coverImage) {
+      setMessage("Por favor, sube una portada.");
       return;
     }
 
@@ -194,7 +192,6 @@ export default function NewEditionForm() {
     formData.append("tableOfContents", tableOfContents);
     formData.append("isCurrent", isCurrent);
     formData.append("coverImage", coverImage);
-    formData.append("backgroundImage", backgroundImage);
     formData.append("regions", JSON.stringify(regionIds));
     formData.append("topics", JSON.stringify(topicIds));
 
@@ -217,7 +214,6 @@ export default function NewEditionForm() {
         setTableOfContents("");
         setIsCurrent(false);
         setCoverImage(null);
-        setBackgroundImage(null);
         setRegions([]);
         setTopics([]);
       } else {
@@ -231,9 +227,6 @@ export default function NewEditionForm() {
     }
     if (coverImageRef.current) {
       coverImageRef.current.value = ""; // Resetea el valor del input file
-    }
-    if (backgroundImageRef.current) {
-      backgroundImageRef.current.value = ""; // Resetea el valor del input file
     }
   };
 

@@ -57,7 +57,6 @@ export async function POST(req) {
     const topics = JSON.parse(formData.get("topics") || "[]");
 
     const coverImageFile = formData.get("coverImage");
-    const backgroundImageFile = formData.get("backgroundImage");
 
     // Validaciones básicas
     if (!number || !title || !summary) {
@@ -107,14 +106,9 @@ export async function POST(req) {
       coverImageFile,
       "coverImage"
     );
-    const backgroundImagePath = await uploadImageToCloudinary(
-      backgroundImageFile,
-      "backgroundImage"
-    );
 
     console.log("URLs de imágenes en Cloudinary:", {
       coverImagePath,
-      backgroundImagePath,
     });
 
     // Crear nueva edición en la base de datos
@@ -129,7 +123,6 @@ export async function POST(req) {
         isCurrent,
         coverImage: coverImagePath, // Guardar URL de Cloudinary
         isAvailableToOrder,
-        backgroundImage: backgroundImagePath, // Guardar URL de Cloudinary
         regions: regions.length
           ? { connect: regions.map((id) => ({ id })) }
           : undefined,
