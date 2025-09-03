@@ -98,13 +98,39 @@ export default function MiniArticleCardGrid({ article }) {
   return (
     <div className="w-full rounded-md">
       {/* Imagen */}
-      {hasImage && (
-        <div className="w-full aspect-[16/9]">
+      {hasImage ? (
+        <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t">
           <SmartImage
             src={primaryImage.url}
             alt={primaryImage.alt || "Imagen del artículo"}
-            className="rounded-t w-full h-full object-cover"
+            className="w-full h-full object-cover"
             faceTopBias
+          />
+
+          {/* Themenetiketten sobre la imagen */}
+          <div
+            className="absolute bottom-0 left-0 w-full px-2 py-1 
+      bg-gradient-to-t from-white/80 via-white/60 to-transparent 
+      dark:from-black/70 dark:via-black/40 backdrop-blur-sm"
+          >
+            <EntityBadges
+              categories={article.categories}
+              regions={article.regions}
+              topics={article.topics}
+              context="articles"
+              disableLinks={true}
+            />
+          </div>
+        </div>
+      ) : (
+        /* Caso sin imagen → Themenetiketten arriba del título */
+        <div className="px-2 pt-2">
+          <EntityBadges
+            categories={article.categories}
+            regions={article.regions}
+            topics={article.topics}
+            context="articles"
+            disableLinks={true}
           />
         </div>
       )}
@@ -137,16 +163,6 @@ export default function MiniArticleCardGrid({ article }) {
 
         {/* Meta info */}
         <MetaInfo />
-
-        <div className="mt-2">
-          <EntityBadges
-            categories={article.categories}
-            regions={article.regions}
-            topics={article.topics}
-            context="articles"
-            locale={locale}
-          />
-        </div>
       </div>
     </div>
   );
