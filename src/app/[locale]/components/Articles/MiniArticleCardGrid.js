@@ -96,7 +96,7 @@ export default function MiniArticleCardGrid({ article }) {
     );
 
   return (
-    <div className="bg-white border shadow-sm w-full rounded-2xl overflow-hidden">
+    <div className="w-full rounded-md">
       {/* Imagen */}
       {hasImage && (
         <div className="w-full aspect-[16/9]">
