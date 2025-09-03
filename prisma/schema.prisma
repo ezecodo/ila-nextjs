@@ -128,10 +128,15 @@ model Beitragssubtyp {
   @@unique([name, beitragstypId])
   @@index([beitragstypId], map: "Beitragssubtyp_beitragstypId_fkey")
 }
-
+enum Role {
+  user
+  admin
+  translator
+}
 model User {
   id            String        @id @default(cuid())
   name          String?
+   role      Role     @default(user) 
   username      String?       @unique
   email         String?       @unique
   emailVerified DateTime?
@@ -139,7 +144,6 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   password      String
-  role          String        @default("user")
   language      String        @default("de")
   accounts      Account?
   activityLogs  ActivityLog[]
