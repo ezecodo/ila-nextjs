@@ -127,7 +127,7 @@ export default function MiniArticleCardGrid({ article }) {
 
         {/* Subtítulo (pegado al título) */}
         {subtitle && (
-          <p className="font-serif text-sm text-gray-600 -mt-2">{subtitle}</p>
+          <p className="font-serif text-sm text-gray-500 -mt-3">{subtitle}</p>
         )}
 
         {/* Vorspann (siempre visible) */}
