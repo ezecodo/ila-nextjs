@@ -235,7 +235,7 @@ export default function Header() {
                 >
                   {locale === "es" ? (
                     <>
-                      Revista de Am
+                      La revista de Am
                       <span
                         style={{
                           position: "relative",
@@ -258,7 +258,7 @@ export default function Header() {
                           }}
                         />
                       </span>
-                      rica Latina & Caribe
+                      rica Latina
                     </>
                   ) : (
                     t("tagline")
