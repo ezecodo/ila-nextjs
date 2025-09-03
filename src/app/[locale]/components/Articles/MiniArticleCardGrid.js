@@ -1,7 +1,6 @@
 import { useLocale, useTranslations } from "next-intl";
 import EntityBadges from "../EntityBadges/EntityBadges";
 import HoverInfo from "../HoverInfo/HoverInfo";
-import PreviewHover from "../PreviewHover/PreviewHover";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import ArticleLink from "../Articles/ArticleLink/ArticleLink";
 import SmartImage from "../SmartImage/SmartImage";
@@ -14,7 +13,7 @@ export default function MiniArticleCardGrid({ article }) {
   // 🔥 Soporte para artículos viejos (images[]) y nuevos (articleImage)
   const primaryImage =
     article.images && article.images.length > 0
-      ? article.images[0] // 👈 API devuelve siempre este array
+      ? article.images[0]
       : article.articleImage
         ? {
             url: article.articleImage,
@@ -25,10 +24,13 @@ export default function MiniArticleCardGrid({ article }) {
   const hasImage = Boolean(primaryImage?.url);
 
   const subtitle = isES ? article.subtitleES : article.subtitle;
-  const previewText =
+
+  // Vorspann fijo (con fallback al contenido limpio)
+  const teaser =
     (isES ? article.previewTextES : article.previewText) ||
-    (isES ? article.subtitleES : article.subtitle) ||
-    "";
+    (article.content
+      ? article.content.replace(/<[^>]+>/g, "").slice(0, 400)
+      : "");
 
   const editionYear = article.edition?.datePublished
     ? new Date(article.edition.datePublished).getFullYear()
@@ -111,13 +113,11 @@ export default function MiniArticleCardGrid({ article }) {
       <div className="p-4 flex flex-col gap-2">
         {/* Título */}
         <h3 className="text-xl font-extrabold font-serif leading-snug flex items-center gap-2">
-          <PreviewHover preview={previewText || "—"}>
-            <ArticleLink article={article}>
-              <span className="hover:underline">
-                {isES ? article.titleES : article.title}
-              </span>
-            </ArticleLink>
-          </PreviewHover>
+          <ArticleLink article={article}>
+            <span className="hover:underline">
+              {isES ? article.titleES : article.title}
+            </span>
+          </ArticleLink>
           {isES && (
             <span className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded-full border border-green-300">
               ES
@@ -125,45 +125,28 @@ export default function MiniArticleCardGrid({ article }) {
           )}
         </h3>
 
-        {/* ---- ORDEN CONDICIONAL ---- */}
-        {hasImage ? (
-          <>
-            {subtitle && (
-              <p className="text-sm text-gray-700 leading-tight">{subtitle}</p>
-            )}
-            <MetaInfo />
-            <div className="mt-2">
-              <EntityBadges
-                categories={article.categories}
-                regions={article.regions}
-                topics={article.topics}
-                context="articles"
-                locale={locale}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            {subtitle && (
-              <p className="text-sm text-gray-700 leading-tight">{subtitle}</p>
-            )}
-            <MetaInfo />
-            {previewText && (
-              <p className="text-sm text-gray-600 line-clamp-4">
-                {previewText}
-              </p>
-            )}
-            <div className="mt-2">
-              <EntityBadges
-                categories={article.categories}
-                regions={article.regions}
-                topics={article.topics}
-                context="articles"
-                locale={locale}
-              />
-            </div>
-          </>
+        {/* Subtítulo (pegado al título) */}
+        {subtitle && (
+          <p className="font-serif text-sm text-gray-600 -mt-2">{subtitle}</p>
         )}
+
+        {/* Vorspann (siempre visible) */}
+        {teaser && (
+          <p className="text-sm text-gray-600 line-clamp-3">{teaser}</p>
+        )}
+
+        {/* Meta info */}
+        <MetaInfo />
+
+        <div className="mt-2">
+          <EntityBadges
+            categories={article.categories}
+            regions={article.regions}
+            topics={article.topics}
+            context="articles"
+            locale={locale}
+          />
+        </div>
       </div>
     </div>
   );
