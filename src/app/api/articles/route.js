@@ -20,41 +20,20 @@ cloudinary.v2.config({
 
 export async function GET(request) {
   try {
-    // 📌 1. Detectar el idioma desde headers
     const locale = request.headers.get("x-locale") || "de";
     const where = locale === "es" ? { isTranslatedES: true } : {};
 
-    // 📌 2. Consulta a la base de datos con inclusión de `nameES`
+    // 1. Consulta artículos base (sin imágenes todavía)
     const articles = await prisma.article.findMany({
       where,
       include: {
-        beitragstyp: {
-          select: {
-            name: true,
-            nameES: true,
-          },
-        },
+        beitragstyp: { select: { name: true, nameES: true } },
         beitragssubtyp: true,
-        edition: {
-          select: {
-            number: true,
-            title: true,
-          },
-        },
-        authors: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
+        edition: { select: { number: true, title: true, datePublished: true } },
+        authors: { select: { id: true, name: true } },
         articleCategories: {
           include: {
-            category: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+            category: { select: { id: true, name: true, nameES: true } },
           },
         },
         regions: true,
@@ -63,15 +42,28 @@ export async function GET(request) {
       orderBy: { id: "desc" },
     });
 
-    // 📌 3. Transformar artículos si es necesario
-    const transformedArticles = articles.map((article) => ({
+    // 2. Resolver imágenes manualmente
+    const articlesWithImages = await Promise.all(
+      articles.map(async (article) => {
+        const images = await prisma.image.findMany({
+          where: {
+            contentType: "ARTICLE",
+            contentId: { in: [article.beitragsId, article.id].filter(Boolean) },
+          },
+        });
+        return { ...article, images };
+      })
+    );
+
+    // 3. Transformar artículos (categorías y traducciones)
+    const transformedArticles = articlesWithImages.map((article) => ({
       ...article,
       categories: article.articleCategories.map((ac) => ({
         id: ac.category.id,
         name: ac.category.name,
+        nameES: ac.category.nameES,
       })),
       articleCategories: undefined,
-      // Campos traducidos explícitamente
       titleES: article.titleES,
       subtitleES: article.subtitleES,
       previewTextES: article.previewTextES,

@@ -70,29 +70,30 @@ export async function GET(req) {
 
     const articlesWithImages = await Promise.all(
       articles.map(async (article) => {
-        const contentIdToUse = article.beitragsId || article.id;
-
-        const images = contentIdToUse
-          ? await prisma.image.findMany({
-              where: {
-                contentType: "ARTICLE",
-                contentId: contentIdToUse,
-              },
-              select: {
-                id: true,
-                url: true,
-                width: true,
-                height: true,
-              },
-            })
-          : [];
-
-        // 🚩 si hay más de una imagen, tomamos la primera como principal
-        const image = images.length > 0 ? images[0] : null;
-
+        const images = await prisma.image.findMany({
+          where: {
+            contentType: "ARTICLE",
+            contentId: {
+              in: [article.beitragsId, article.id].filter(Boolean),
+            },
+          },
+          select: {
+            id: true,
+            url: true,
+            width: true,
+            height: true,
+          },
+        });
+        // 🔍 Log de depuración
+        console.log("DEBUG artículo:", {
+          id: article.id,
+          beitragsId: article.beitragsId,
+          imagesCount: images.length,
+          images: images.map((img) => img.url),
+        });
         return {
           ...article,
-          image, // 👈 principal (para filtros de vertical/horizontal)
+
           images, // 👈 todas las imágenes, por si necesitas más adelante
         };
       })

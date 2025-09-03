@@ -10,12 +10,17 @@ export default function MiniArticleCardGrid({ article }) {
   const locale = useLocale();
   const t = useTranslations("article");
   const isES = locale === "es" && article.isTranslatedES;
-  const primaryImage = article.articleImage // 👈 imagen subida en el artículo
-    ? {
-        url: article.articleImage,
-        alt: article.imageAlt || "Imagen del artículo",
-      }
-    : article.images?.[0]; // fallback a la primera de la relación
+
+  // 🔥 Soporte para artículos viejos (images[]) y nuevos (articleImage)
+  const primaryImage =
+    article.images && article.images.length > 0
+      ? article.images[0] // 👈 API devuelve siempre este array
+      : article.articleImage
+        ? {
+            url: article.articleImage,
+            alt: article.imageAlt || "Imagen del artículo",
+          }
+        : null;
 
   const hasImage = Boolean(primaryImage?.url);
 
@@ -123,7 +128,6 @@ export default function MiniArticleCardGrid({ article }) {
         {/* ---- ORDEN CONDICIONAL ---- */}
         {hasImage ? (
           <>
-            {/* Con imagen: subtítulo → meta → tags (sin vorspann) */}
             {subtitle && (
               <p className="text-sm text-gray-700 leading-tight">{subtitle}</p>
             )}
@@ -140,7 +144,6 @@ export default function MiniArticleCardGrid({ article }) {
           </>
         ) : (
           <>
-            {/* SIN imagen: subtítulo → meta → VORSPANN → tags */}
             {subtitle && (
               <p className="text-sm text-gray-700 leading-tight">{subtitle}</p>
             )}
