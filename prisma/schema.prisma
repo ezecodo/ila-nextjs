@@ -9,53 +9,45 @@ datasource db {
 }
 
 model Article {
-  id                Int               @id @default(autoincrement())
-  title             String
-  content           String            @db.LongText
-  legacyPath        String?           @unique
-  beitragstypId     Int
-  beitragssubtypId  Int?
-  editionId         Int?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  isInPrintEdition  Boolean           @default(false)
-  endPage           Int?
-  startPage         Int?
-  subtitle          String?
-  isPublished       Boolean           @default(false)
-  publicationDate   DateTime?
-  previewText       String?           @db.LongText
-  additionalInfo    String?           @db.Text
-  bookImage         String?
-  mediaTitle        String?           @db.Text
-  articleImage      String?           @db.Text
-  beitragsId        Int?
-  isTranslatedES    Boolean @default(false) // 👈 Nuevo para saber si el articulo esta traducido o no al Espanol
-  needsReviewES     Boolean           @default(false)
-  beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
-  beitragstyp       Beitragstyp       @relation(fields: [beitragstypId], references: [id])
-  edition           Edition?          @relation(fields: [editionId], references: [id])
-  activityLogs ActivityLog[]
-
-
-
-  titleES           String?
-  subtitleES        String?
-  contentES         String?           @db.LongText
-  previewTextES     String?           @db.LongText
-  additionalInfoES  String?           @db.Text
-
-  
-  
-  
-  obituaryDetails   ObituaryDetails?
-  authors           Author[]          @relation("ArticleAuthors")
-  interviewees      Interviewee[]     @relation("ArticleInterviewees")
-  regions           Region[]          @relation("ArticleRegions")
-  topics            Topic[]           @relation("ArticleTopics")
-  categories        Category[]        @relation("ArticleCategories")
-
-   favorites        Favorite[] 
+  id               Int              @id @default(autoincrement())
+  title            String
+  content          String           @db.LongText
+  beitragstypId    Int
+  beitragssubtypId Int?
+  editionId        Int?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  isInPrintEdition Boolean          @default(false)
+  endPage          Int?
+  startPage        Int?
+  subtitle         String?
+  isPublished      Boolean          @default(false)
+  publicationDate  DateTime?
+  previewText      String?          @db.LongText
+  additionalInfo   String?          @db.Text
+  bookImage        String?
+  mediaTitle       String?          @db.Text
+  articleImage     String?          @db.Text
+  beitragsId       Int?
+  isTranslatedES   Boolean          @default(false)
+  additionalInfoES String?          @db.Text
+  contentES        String?          @db.LongText
+  previewTextES    String?          @db.LongText
+  titleES          String?
+  subtitleES       String?
+  needsReviewES    Boolean          @default(false)
+  legacyPath       String?          @unique
+  activityLogs     ActivityLog[]
+  beitragssubtyp   Beitragssubtyp?  @relation(fields: [beitragssubtypId], references: [id])
+  beitragstyp      Beitragstyp      @relation(fields: [beitragstypId], references: [id])
+  edition          Edition?         @relation(fields: [editionId], references: [id])
+  favorites        Favorite[]
+  obituaryDetails  ObituaryDetails?
+  authors          Author[]         @relation("ArticleAuthors")
+  categories       Category[]       @relation("ArticleCategories")
+  interviewees     Interviewee[]    @relation("ArticleInterviewees")
+  regions          Region[]         @relation("ArticleRegions")
+  topics           Topic[]          @relation("ArticleTopics")
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
@@ -72,7 +64,6 @@ model Edition {
   id                 Int       @id @default(autoincrement())
   number             Int       @unique
   title              String
-  titleES            String?
   createdAt          DateTime  @default(now())
   datePublished      DateTime  @default(now())
   subtitle           String?
@@ -83,31 +74,32 @@ model Edition {
   coverImage         String?
   isAvailableToOrder Boolean?
   drupalId           Int?
+  titleES            String?
   articles           Article[]
   regions            Region[]  @relation("EditionRegions")
   topics             Topic[]   @relation("EditionTopics")
 }
 
 model Beitragstyp {
-  id       Int              @id @default(autoincrement())
-  name     String           @unique
-  nameES   String?
-  articles Article[]
-  subtypes Beitragssubtyp[]
-  carousels Carousel[] // 🔁 Relación inversa
+  id        Int              @id @default(autoincrement())
+  name      String           @unique
+  nameES    String?
+  articles  Article[]
+  subtypes  Beitragssubtyp[]
+  carousels Carousel[]
 }
 
 model Region {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  nameES   String?
-  parentId Int?
-  parent   Region?   @relation("RegionHierarchy", fields: [parentId], references: [id])
-  children Region[]  @relation("RegionHierarchy")
-  articles Article[] @relation("ArticleRegions")
-  authors  Author[]  @relation("AuthorRegions")
-  editions Edition[] @relation("EditionRegions")
-   carousels Carousel[]
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  parentId  Int?
+  nameES    String?
+  carousels Carousel[]
+  parent    Region?    @relation("RegionHierarchy", fields: [parentId], references: [id])
+  children  Region[]   @relation("RegionHierarchy")
+  articles  Article[]  @relation("ArticleRegions")
+  authors   Author[]   @relation("AuthorRegions")
+  editions  Edition[]  @relation("EditionRegions")
 
   @@index([parentId], map: "Region_parentId_fkey")
 }
@@ -115,8 +107,8 @@ model Region {
 model Topic {
   id       Int       @id @default(autoincrement())
   name     String    @unique
-  nameES   String?
   parentId Int?
+  nameES   String?
   parent   Topic?    @relation("TopicHierarchy", fields: [parentId], references: [id])
   children Topic[]   @relation("TopicHierarchy")
   articles Article[] @relation("ArticleTopics")
@@ -138,47 +130,41 @@ model Beitragssubtyp {
 }
 
 model User {
-  id            String          @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  username      String?         @unique
-  password      String 
-  email         String?         @unique
+  username      String?       @unique
+  email         String?       @unique
   emailVerified DateTime?
   image         String?
-  accounts      Account[]
-  sessions      Session[]
-  role          String   @default("user") // 🎯 Puede ser "user" o "admin"
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  password      String
+  role          String        @default("user")
+  language      String        @default("de")
+  accounts      Account?
+  activityLogs  ActivityLog[]
   favorites     Favorite[]
-  language  String   @default("de") // "es" o "de"
-  activityLogs ActivityLog[]
-
-
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sessions      Session[]
 }
-  
- 
 
 model Account {
-  id                       String  @id @default(cuid())
-  userId                   String  @unique
+  id                       String   @id @default(cuid())
+  userId                   String   @unique
   type                     String
   provider                 String
   providerAccountId        String
-  refresh_token            String? @db.Text
-  access_token             String? @db.Text
+  refresh_token            String?  @db.Text
+  access_token             String?  @db.Text
   expires_at               Int?
   token_type               String?
   scope                    String?
-  id_token                 String? @db.Text
+  id_token                 String?  @db.Text
   session_state            String?
   refresh_token_expires_in Int?
-  user                     User?   @relation(fields: [userId], references: [id])
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
- 
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  user                     User     @relation(fields: [userId], references: [id])
+
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
@@ -188,18 +174,18 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id])
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
- 
+
   @@index([userId])
 }
+
 model VerificationToken {
   identifier String
   token      String
   expires    DateTime
- 
+
   @@unique([identifier, token])
 }
 
@@ -210,10 +196,6 @@ model InvitationToken {
   expires   DateTime
   createdAt DateTime @default(now())
 }
-
-
-
-
 
 model Author {
   id               Int             @id @default(autoincrement())
@@ -249,52 +231,90 @@ model ObituaryDetails {
   deceasedLastName  String
   dateOfBirth       Int
   dateOfDeath       Int
-  notes             String? 
+  notes             String?
   article           Article @relation(fields: [articleId], references: [id])
 }
 
 model Category {
-  id                Int               @id @default(autoincrement())
-  name              String            @unique
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
   nameES    String?
-  articles           Article[]         @relation("ArticleCategories")
-   carousels Carousel[] @relation("CarouselCategories")
+  articles  Article[]  @relation("ArticleCategories")
+  carousels Carousel[] @relation("CarouselCategories")
 }
 
 model Image {
-  id            Int      @id @default(autoincrement())
-  contentType   String
-  contentId     Int
-   width         Int?
-  height        Int?
-  url           String
-  title         String?  @db.VarChar(750)
-  alt           String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  contentType String
+  contentId   Int
+  url         String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  alt         String?
+  title       String?  @db.VarChar(750)
+  height      Int?
+  width       Int?
 
-  // Índice opcional para filtrar rápidamente por contentType y contentId
   @@index([contentType, contentId])
 }
 
 model Favorite {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        Int     @id @default(autoincrement())
   userId    String
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId Int
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, articleId]) // Evita que un usuario marque un mismo artículo más de una vez
+  @@unique([userId, articleId])
+  @@index([articleId], map: "Favorite_articleId_fkey")
 }
 
 model Event {
-  id           String   @id @default(uuid())
-  title        String
-  description  String
-  date         DateTime
-  location     String
-  image        String   // URL del flyer
-  createdAt    DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  image       String
+  createdAt   DateTime @default(now())
+}
+
+model ActivityLog {
+  id         Int            @id @default(autoincrement())
+  userId     String
+  articleId  Int?
+  action     ActivityAction
+  createdAt  DateTime       @default(now())
+  carouselId String?
+  metadata   String?        @db.LongText
+  article    Article?       @relation(fields: [articleId], references: [id])
+  carousel   Carousel?      @relation("CarouselToActivityLogs", fields: [carouselId], references: [id])
+  user       User           @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([articleId])
+  @@index([carouselId])
+}
+
+model Carousel {
+  id            String        @id @default(cuid())
+  beitragstypId Int?
+  topic         String?
+  limit         Int           @default(10)
+  orderBy       String        @default("date_desc")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  titleDE       String?
+  titleES       String?
+  regionId      Int?
+  position      Int           @default(0)
+  activityLogs  ActivityLog[] @relation("CarouselToActivityLogs")
+  beitragstyp   Beitragstyp?  @relation(fields: [beitragstypId], references: [id])
+  region        Region?       @relation(fields: [regionId], references: [id])
+  categories    Category[]    @relation("CarouselCategories")
+
+  @@index([beitragstypId], map: "Carousel_beitragstypId_fkey")
+  @@index([regionId], map: "Carousel_regionId_fkey")
 }
 
 enum ActivityAction {
@@ -305,42 +325,6 @@ enum ActivityAction {
   CREATE_EDITION
   CREATE_EVENT
   REVIEW_TRANSLATION
-  CREATE_CAROUSEL 
-   DELETE_CAROUSEL 
+  CREATE_CAROUSEL
+  DELETE_CAROUSEL
 }
-
-model ActivityLog {
-  id         Int             @id @default(autoincrement())
-  userId     String
-  user       User            @relation(fields: [userId], references: [id])
-  articleId  Int?
-  article    Article?        @relation(fields: [articleId], references: [id])
-  action     ActivityAction
-  createdAt  DateTime        @default(now())
-  carouselId  String? 
-carousel    Carousel? @relation("CarouselToActivityLogs", fields: [carouselId], references: [id], onDelete: SetNull)
-  metadata Json?
-
-  @@index([userId])
-  @@index([articleId])
-   @@index([carouselId]) 
-}
-
-model Carousel {
-  id             String   @id @default(cuid())
-  titleES        String?
-  titleDE        String?
- beitragstypId  Int?           
-  beitragstyp    Beitragstyp?   @relation(fields: [beitragstypId], references: [id])
-  topic          String?         // también opcional
-  regionId       Int?      // 👉 NUEVO campo
-  region         Region?   @relation(fields: [regionId], references: [id]) // 👉 RELACIÓN REAL        
-   categories     Category[] @relation("CarouselCategories")
-  limit          Int      @default(10)
-  orderBy        String   @default("date_desc") // o "date_asc", "title", etc.
-   position     Int       @default(0) 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  activityLogs ActivityLog[] @relation("CarouselToActivityLogs")
-}
-

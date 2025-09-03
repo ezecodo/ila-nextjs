@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `Region` ADD COLUMN `nameES` VARCHAR(191) NULL;

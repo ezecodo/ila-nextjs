@@ -1,5 +1,0 @@
--- AlterTable
-ALTER TABLE `Article` ADD COLUMN `additionalInfoES` TEXT NULL,
-    ADD COLUMN `contentES` LONGTEXT NULL,
-    ADD COLUMN `previewTextES` LONGTEXT NULL,
-    ADD COLUMN `titleES` VARCHAR(191) NULL;

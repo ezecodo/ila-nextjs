@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE `Carousel` ADD COLUMN `titleDE` VARCHAR(191) NULL,
-    ADD COLUMN `titleES` VARCHAR(191) NULL;

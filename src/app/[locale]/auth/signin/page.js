@@ -31,9 +31,11 @@ export default function SignInPage() {
       const session = await res.json();
 
       if (session?.user?.role === "admin") {
-        router.push("/dashboard"); // 🔥 Si es admin, va al dashboard
+        router.push("/dashboard");
+      } else if (session?.user?.role === "translator") {
+        router.push("/dashboard/translators"); // 🔥 ruta nueva
       } else {
-        router.push("/"); // 🔥 Si es usuario normal, va a home
+        router.push("/");
       }
     }
   };
