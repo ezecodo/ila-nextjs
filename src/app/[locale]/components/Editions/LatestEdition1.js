@@ -121,16 +121,21 @@ export default function LatestEditionWithArticles() {
   // 👉 1ª imagen de cada artículo (puede venir como images[0] o como image simple)
   const firstImg = (a) => a?.images?.[0] || a?.image || null;
 
-  // 👉 separa verticales vs no-verticales por la 1ª imagen
-  const verticalArticles = filteredArticles.filter((a) =>
-    isVertical(firstImg(a))
+  // 👉 separar en tres grupos
+  const horizontalArticles = filteredArticles.filter(
+    (a) => firstImg(a) && !isVertical(firstImg(a))
   );
-  const nonVerticalArticles = filteredArticles.filter(
-    (a) => !isVertical(firstImg(a))
+  const verticalArticles = filteredArticles.filter(
+    (a) => firstImg(a) && isVertical(firstImg(a))
   );
+  const withoutImage = filteredArticles.filter((a) => !firstImg(a));
 
-  // 👉 orden final: no-verticales primero, verticales al final
-  const orderedArticles = [...nonVerticalArticles, ...verticalArticles];
+  // 👉 orden final: horizontales → verticales → sin imagen
+  const orderedArticles = [
+    ...horizontalArticles,
+    ...verticalArticles,
+    ...withoutImage,
+  ];
 
   // 👇 usa el nuevo orden
   const mobileCarouselSettings = {
