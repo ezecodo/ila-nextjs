@@ -205,6 +205,7 @@
   "newArticle": {
     "form": {
       "formTitle": "Neuen Artikel erstellen",
+      "editArticle": "Artikel bearbeiten",
       "title": "Titel",
       "titlePlaceholder": "Geben Sie den Titel ein",
       "subtitle": "Untertitel",

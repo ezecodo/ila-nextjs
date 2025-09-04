@@ -208,6 +208,7 @@
   "newArticle": {
     "form": {
       "formTitle": "Crear un nuevo artículo",
+      "editArticle": "Editar artículo",
       "title": "Título del Artículo",
       "titlePlaceholder": "Ingrese el título",
       "subtitle": "Subtítulo",

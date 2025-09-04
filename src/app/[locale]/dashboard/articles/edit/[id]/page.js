@@ -44,14 +44,14 @@ export default function EditArticlePage() {
   const [startPage, setStartPage] = useState("");
   const [endPage, setEndPage] = useState("");
   const [message, setMessage] = useState("");
-  const [authors, setAuthors] = useState([]);
-  const [selectedAuthor, setSelectedAuthor] = useState("");
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAuthorName, setNewAuthorName] = useState("");
   const [newAuthorEmail, setNewAuthorEmail] = useState("");
   const [isInterview, setIsInterview] = useState(false); // Toggle para entrevistas
-  const [interviewees, setInterviewees] = useState([]); // Lista de entrevistados
-  const [selectedInterviewee, setSelectedInterviewee] = useState(""); // Entrevistado seleccionado
+  const [authors, setAuthors] = useState([]);
+
+  const [selectedInterviewees, setSelectedInterviewees] = useState([]); // Entrevistado seleccionado
   const [isIntervieweeModalOpen, setIsIntervieweeModalOpen] = useState(false);
   const [newIntervieweeName, setNewIntervieweeName] = useState("");
   const [isPublished, setIsPublished] = useState(false); // Toggle para "Publicar Ahora"
@@ -114,6 +114,49 @@ export default function EditArticlePage() {
       ];
     } catch (error) {
       console.error("Error al cargar los temas:", error);
+      return [];
+    }
+  };
+  const loadInterviewees = async (inputValue) => {
+    try {
+      const res = await fetch("/api/interviewees");
+      if (!res.ok) return [];
+
+      const data = await res.json();
+
+      // Filtra según lo que escribe el usuario
+      const filtered = data.filter((int) =>
+        int.name.toLowerCase().includes(inputValue.toLowerCase())
+      );
+
+      // Devuelve en formato que AsyncSelect entiende
+      return filtered.map((int) => ({
+        value: int.id,
+        label: int.name,
+      }));
+    } catch (error) {
+      console.error("Error cargando entrevistados:", error);
+      return [];
+    }
+  };
+  const loadAuthors = async (inputValue) => {
+    try {
+      const res = await fetch("/api/authors");
+      if (!res.ok) return [];
+
+      const data = await res.json();
+
+      // Filtra según lo que escribe el usuario
+      const filtered = data.filter((a) =>
+        a.name.toLowerCase().includes(inputValue.toLowerCase())
+      );
+
+      return filtered.map((a) => ({
+        value: a.id,
+        label: a.name,
+      }));
+    } catch (error) {
+      console.error("Error cargando autores:", error);
       return [];
     }
   };
@@ -182,7 +225,7 @@ export default function EditArticlePage() {
       }
     } catch (error) {
       console.error("Error al conectar con el servidor:", error);
-      setMessage("Error al conectar con el servidor.");
+      setMessage("Error al conectar con el servidor(creado).");
       return null;
     }
   };
@@ -224,8 +267,13 @@ export default function EditArticlePage() {
         setSelectedEdition(article.editionId || "");
         setStartPage(article.startPage || "");
         setEndPage(article.endPage || "");
-        setSelectedAuthor(article.authors?.[0]?.id || "");
-        setSelectedInterviewee(article.intervieweeId || "");
+        setSelectedAuthors(
+          article.authors?.map((a) => ({ value: a.id, label: a.name })) || []
+        );
+        setSelectedInterviewees(
+          article.interviewees?.map((i) => ({ value: i.id, label: i.name })) ||
+            []
+        );
         setIsInterview(article.isInterview || false);
         setIsPublished(article.isPublished || false);
         setSchedulePublish(article.schedulePublish || false);
@@ -244,6 +292,10 @@ export default function EditArticlePage() {
           article.topics?.map((t) => ({ value: t.id, label: t.name })) || []
         );
         setMediaTitle(article.mediaTitle || "");
+
+        if (article.interviewees && article.interviewees.length > 0) {
+          setIsInterview(true);
+        }
 
         // 👇 NUEVO BLOQUE: manejar imágenes
         if (article.images && article.images.length > 0) {
@@ -276,7 +328,7 @@ export default function EditArticlePage() {
           setMessage("Error al cargar los tipos de artículo.");
         }
       } catch {
-        setMessage("Error al conectar con el servidor.");
+        setMessage("Error al conectar con el servidor.(articulo)");
       }
     };
 
@@ -334,30 +386,11 @@ export default function EditArticlePage() {
           setMessage("Error al cargar los autores.");
         }
       } catch {
-        setMessage("Error al conectar con el servidor.");
+        setMessage("Error al conectar con el servidor.(autores");
       }
     };
 
     fetchAuthors();
-  }, []);
-
-  // Fetch Interviewees
-  useEffect(() => {
-    const fetchInterviewees = async () => {
-      try {
-        const res = await fetch("/api/interviewees");
-        if (res.ok) {
-          const data = await res.json();
-          setInterviewees(data);
-        } else {
-          setMessage("Error al cargar los entrevistados.");
-        }
-      } catch {
-        setMessage("Error al conectar con el servidor.");
-      }
-    };
-
-    fetchInterviewees();
   }, []);
 
   // Update subtypes based on selected beitragstyp
@@ -388,7 +421,7 @@ export default function EditArticlePage() {
           setMessage("Error al cargar las ediciones.");
         }
       } catch {
-        setMessage("Error al conectar con el servidor.");
+        setMessage("Error al conectar con el servidor. (Ediciones)");
       }
     };
 
@@ -416,13 +449,6 @@ export default function EditArticlePage() {
   const subtypOptions = subtypen.map((s) => ({
     id: s.id,
     name: locale === "es" && s.nameES ? s.nameES : s.name,
-  }));
-
-  const authorOptions = authors;
-
-  const intervieweeOptions = interviewees.map((int) => ({
-    id: int.id,
-    name: int.name,
   }));
 
   // Manejar selección de categorías
@@ -454,7 +480,10 @@ export default function EditArticlePage() {
     if (typeof imageAlt === "string") formData.append("imageAlt", imageAlt);
 
     // Manejo de Autores
-    formData.append("authorId", selectedAuthor || null);
+    formData.append(
+      "authors",
+      JSON.stringify(selectedAuthors.map((a) => a.value))
+    );
     // Manejo de regiones y temas como JSON
     formData.append(
       "regions",
@@ -482,7 +511,10 @@ export default function EditArticlePage() {
 
     if (isInterview) {
       formData.append("isInterview", isInterview);
-      formData.append("intervieweeId", selectedInterviewee);
+      formData.append(
+        "interviewees",
+        JSON.stringify(selectedInterviewees.map((i) => i.value))
+      );
     }
 
     if (isNachruf) {
@@ -510,13 +542,14 @@ export default function EditArticlePage() {
     formData.append("categories", JSON.stringify(selectedCategories));
 
     try {
-      const res = await fetch("/api/articles", {
+      console.log("Editando artículo con id:", id);
+      const res = await fetch(`/api/articles/${id}`, {
         method: "PUT",
         body: formData, // Aquí pasamos el FormData
       });
 
       if (res.ok) {
-        setMessage("Artículo creado con éxito.");
+        setMessage("Artículo editado con éxito.");
         resetForm();
       } else {
         const errorText = await res.text();
@@ -535,17 +568,14 @@ export default function EditArticlePage() {
     setTitle("");
     setSubtitle("");
     setContent("");
-
-    setResetTrigger((prev) => !prev); // Reset temporal para permitir reutilización
-
     setSelectedBeitragstyp("");
     setSelectedSubtyp("");
     setIsPrinted(false);
     setSelectedEdition("");
     setStartPage("");
     setEndPage("");
-    setSelectedAuthor("");
-    setSelectedInterviewee("");
+    setSelectedAuthors([]);
+    setSelectedInterviewees([]);
     setIsInterview(false);
     setDeceasedFirstName("");
     setDeceasedLastName("");
@@ -597,7 +627,10 @@ export default function EditArticlePage() {
           ...prev,
           { id: newAuthor.id, name: newAuthor.name },
         ]);
-        setSelectedAuthor(newAuthor.id);
+        setSelectedAuthors((prev) => [
+          ...prev,
+          { value: newAuthor.id, label: newAuthor.name },
+        ]);
         setMessage("Autor agregado con éxito.");
         setIsModalOpen(false);
         setNewAuthorName("");
@@ -641,8 +674,14 @@ export default function EditArticlePage() {
 
       if (res.ok) {
         const newInterviewee = await res.json();
-        setInterviewees((prev) => [...prev, newInterviewee]);
-        setSelectedInterviewee(newInterviewee.id);
+
+        // Añadir al listado de seleccionados
+        setSelectedInterviewees((prev) => [
+          ...prev,
+          { value: newInterviewee.id, label: newInterviewee.name },
+        ]);
+
+        // Mensajes y reset modal
         setMessage("Entrevistado agregado con éxito.");
         setIsIntervieweeModalOpen(false);
         setNewIntervieweeName("");
@@ -650,13 +689,15 @@ export default function EditArticlePage() {
         setMessage("Error al agregar el entrevistado.");
       }
     } catch {
-      setMessage("Error al conectar con el servidor.");
+      setMessage("Error al conectar con el servidor(entrevistado).");
     }
   };
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.formTitle}>{t("formTitle")}</h1>
+      <h1 className={styles.formTitle}>
+        {t("editArticle")}: {title || "…"}
+      </h1>
       {message && <FormMessage message={message} />}
       <form onSubmit={handleSubmit} className={styles.form}>
         <InputField
@@ -856,13 +897,13 @@ export default function EditArticlePage() {
           onChange={(e) => setAdditionalInfoEnabled(e.target.checked)}
         />
         {additionalInfoEnabled && (
-          <InputField
-            id="additionalInfo"
-            label={t("additionalInfo")} // Información adicional
-            value={additionalInfo}
-            onChange={(e) => setAdditionalInfo(e.target.value)}
-            placeholder="Ingrese información adicional"
-          />
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t("additionalInfo")}</label>
+            <QuillEditor
+              value={additionalInfo}
+              onChange={(value) => setAdditionalInfo(value)} // 👈 recibe texto enriquecido
+            />
+          </div>
         )}
 
         {/* TIPO DE ARTÍCULO */}
@@ -955,14 +996,22 @@ export default function EditArticlePage() {
 
         {/* AUTOR */}
         <div className={styles.authorSection}>
-          <SelectField
-            id="author"
-            label={t("author")}
-            options={authorOptions}
-            value={selectedAuthor}
-            onChange={(e) => setSelectedAuthor(e.target.value)}
+          <label className={styles.formLabel}>{t("author")}</label>
+          <AsyncSelect
+            instanceId="authors"
+            inputId="author-select"
+            isMulti
+            cacheOptions
+            defaultOptions={authors.map((a) => ({
+              value: a.id,
+              label: a.name,
+            }))}
+            loadOptions={loadAuthors} // 👈 ahora usa la función separada
+            value={selectedAuthors}
+            onChange={(selected) => setSelectedAuthors(selected || [])}
             placeholder={t("authorPlaceholder")}
           />
+
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
@@ -982,12 +1031,16 @@ export default function EditArticlePage() {
 
         {isInterview && (
           <>
-            <SelectField
-              id="interviewee"
-              label={t("interviewee")}
-              options={intervieweeOptions}
-              value={selectedInterviewee}
-              onChange={(e) => setSelectedInterviewee(e.target.value)}
+            <label className={styles.formLabel}>{t("interviewee")}</label>
+            <AsyncSelect
+              instanceId="interviewees"
+              inputId="interviewee-select"
+              isMulti
+              cacheOptions
+              defaultOptions
+              loadOptions={loadInterviewees} // 👈 ahora usa búsqueda dinámica
+              value={selectedInterviewees}
+              onChange={(selected) => setSelectedInterviewees(selected || [])}
               placeholder={t("intervieweePlaceholder")}
             />
             <button

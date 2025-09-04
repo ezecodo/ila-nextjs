@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 // Manejo del método GET
-export async function GET() {
+export async function GET(req) {
   try {
+    const { searchParams } = new URL(req.url);
+    const search = searchParams.get("search") || "";
+
     const interviewees = await prisma.interviewee.findMany({
+      where: search ? { name: { contains: search, mode: "insensitive" } } : {},
       select: {
         id: true,
         name: true,
@@ -14,7 +18,10 @@ export async function GET() {
           },
         },
       },
+      take: 20, // 👈 límite de resultados para evitar sobrecarga
+      orderBy: { name: "asc" },
     });
+
     return new Response(JSON.stringify(interviewees), { status: 200 });
   } catch (error) {
     console.error("Error al obtener los entrevistados:", error);
