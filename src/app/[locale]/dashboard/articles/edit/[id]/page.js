@@ -12,6 +12,7 @@ import SubmitButton from "../../../../components/Articles/NewArticle/SubmitButto
 import Modal from "../../../../components/Articles/NewArticle/Modal";
 import styles from "../../../../../styles/global.module.css";
 import CheckboxField from "../../../../components/Articles/NewArticle/CheckboxField";
+import Image from "next/image";
 
 import dynamic from "next/dynamic";
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
@@ -26,6 +27,7 @@ export default function EditArticlePage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
+  const [isDeleteImageModalOpen, setIsDeleteImageModalOpen] = useState(false);
 
   const t = useTranslations("newArticle.form");
   const locale = useLocale();
@@ -73,6 +75,7 @@ export default function EditArticlePage() {
   const [mediaTitle, setMediaTitle] = useState(""); // Título completo del libro
   const [imageTitle, setImageTitle] = useState(""); // Título de la foto
   const [imageAlt, setImageAlt] = useState(""); // Créditos / Alt
+  const [articleImageUrl, setArticleImageUrl] = useState(null);
 
   const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
 
@@ -211,7 +214,7 @@ export default function EditArticlePage() {
         if (!res.ok) throw new Error("Error al cargar el artículo");
         const article = await res.json();
 
-        // Rellenar estados
+        // Rellenar estados básicos
         setTitle(article.title || "");
         setSubtitle(article.subtitle || "");
         setContent(article.content || "");
@@ -241,8 +244,18 @@ export default function EditArticlePage() {
           article.topics?.map((t) => ({ value: t.id, label: t.name })) || []
         );
         setMediaTitle(article.mediaTitle || "");
-        setImageTitle(article.imageTitle || "");
-        setImageAlt(article.imageAlt || "");
+
+        // 👇 NUEVO BLOQUE: manejar imágenes
+        if (article.images && article.images.length > 0) {
+          const image = article.images[0]; // usamos la primera
+          setArticleImageUrl(image.url); // preview
+          setImageTitle(image.title || "");
+          setImageAlt(image.alt || "");
+        } else {
+          setArticleImageUrl(null);
+          setImageTitle("");
+          setImageAlt("");
+        }
       } catch (err) {
         console.error("Error cargando artículo:", err);
         setMessage("Error cargando el artículo.");
@@ -785,6 +798,37 @@ export default function EditArticlePage() {
             accept="image/*"
           />
 
+          {/* 👇 Preview si hay imagen guardada */}
+          {/* 👇 Preview si hay imagen guardada */}
+          {articleImageUrl && (
+            <div className="mt-2 inline-block">
+              <div className="relative inline-block">
+                {/* Imagen */}
+                <Image
+                  src={articleImageUrl}
+                  alt={imageAlt || "Vista previa"}
+                  width={200}
+                  height={100}
+                  className="rounded border object-contain"
+                />
+
+                {/* Botón eliminar pegado a la esquina de la imagen */}
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteImageModalOpen(true)}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Texto debajo */}
+              {imageTitle && (
+                <p className="text-sm text-gray-600 mt-1">{imageTitle}</p>
+              )}
+            </div>
+          )}
+
           <div className={styles.formGroup}>
             <InputField
               id="imageTitle"
@@ -1037,6 +1081,35 @@ export default function EditArticlePage() {
           >
             Agregar Entrevistado
           </button>
+        </Modal>
+      )}
+      {isDeleteImageModalOpen && (
+        <Modal onClose={() => setIsDeleteImageModalOpen(false)}>
+          <h2 className="text-lg font-bold mb-2">¿Eliminar foto?</h2>
+          <p className="mb-4">
+            ¿Seguro que quieres eliminar esta foto del artículo?
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setIsDeleteImageModalOpen(false)}
+              className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                setArticleImageUrl(null);
+                setImageTitle("");
+                setImageAlt("");
+                setArticleImage(null);
+                if (fileInputRef.current) fileInputRef.current.value = "";
+                setIsDeleteImageModalOpen(false);
+              }}
+              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Eliminar
+            </button>
+          </div>
         </Modal>
       )}
     </div>
