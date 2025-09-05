@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import InputField from "../../../components/Articles/NewArticle/InputField";
 import { useLocale, useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 
 import SelectField from "../../../components/Articles/NewArticle/SelectField";
 import ToggleSwitch from "../../../components/Articles/NewArticle/ToggleSwitch";
@@ -22,6 +23,7 @@ const QuillEditor = dynamic(
 );
 
 export default function NewArticlePage() {
+  const { data: session } = useSession();
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
@@ -43,14 +45,13 @@ export default function NewArticlePage() {
   const [message, setMessage] = useState("");
   const [authors, setAuthors] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState("");
+  const [selectedInterviewees, setSelectedInterviewees] = useState([]); // ✅ igual que en Edit
+  const [isIntervieweeModalOpen, setIsIntervieweeModalOpen] = useState(false);
+  const [newIntervieweeName, setNewIntervieweeName] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newAuthorName, setNewAuthorName] = useState("");
   const [newAuthorEmail, setNewAuthorEmail] = useState("");
   const [isInterview, setIsInterview] = useState(false); // Toggle para entrevistas
-  const [interviewees, setInterviewees] = useState([]); // Lista de entrevistados
-  const [selectedInterviewee, setSelectedInterviewee] = useState(""); // Entrevistado seleccionado
-  const [isIntervieweeModalOpen, setIsIntervieweeModalOpen] = useState(false);
-  const [newIntervieweeName, setNewIntervieweeName] = useState("");
   const [isPublished, setIsPublished] = useState(false); // Toggle para "Publicar Ahora"
   const [schedulePublish, setSchedulePublish] = useState(false); // Toggle para "Programar Publicación"
   const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
@@ -113,7 +114,26 @@ export default function NewArticlePage() {
       return [];
     }
   };
+  const loadInterviewees = async (inputValue) => {
+    try {
+      const res = await fetch("/api/interviewees");
+      if (!res.ok) return [];
 
+      const data = await res.json();
+
+      const filtered = data.filter((int) =>
+        int.name.toLowerCase().includes(inputValue.toLowerCase())
+      );
+
+      return filtered.map((int) => ({
+        value: int.id,
+        label: int.name,
+      }));
+    } catch (error) {
+      console.error("Error cargando entrevistados:", error);
+      return [];
+    }
+  };
   // Maneja las Regiones del aritulo
   const flattenRegions = (regions, parentName = "") => {
     const options = [];
@@ -278,25 +298,6 @@ export default function NewArticlePage() {
     fetchAuthors();
   }, []);
 
-  // Fetch Interviewees
-  useEffect(() => {
-    const fetchInterviewees = async () => {
-      try {
-        const res = await fetch("/api/interviewees");
-        if (res.ok) {
-          const data = await res.json();
-          setInterviewees(data);
-        } else {
-          setMessage("Error al cargar los entrevistados.");
-        }
-      } catch {
-        setMessage("Error al conectar con el servidor.");
-      }
-    };
-
-    fetchInterviewees();
-  }, []);
-
   // Update subtypes based on selected beitragstyp
   useEffect(() => {
     if (selectedBeitragstyp) {
@@ -357,11 +358,6 @@ export default function NewArticlePage() {
 
   const authorOptions = authors;
 
-  const intervieweeOptions = interviewees.map((int) => ({
-    id: int.id,
-    name: int.name,
-  }));
-
   // Manejar selección de categorías
   const handleCategoryChange = (categoryId) => {
     setSelectedCategories(
@@ -382,6 +378,9 @@ export default function NewArticlePage() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
+    if (session?.user?.id) {
+      formData.append("userId", session.user.id);
+    }
     //Manejo de Imagen de articulo
     if (articleImage) {
       formData.append("articleImage", articleImage);
@@ -419,7 +418,10 @@ export default function NewArticlePage() {
 
     if (isInterview) {
       formData.append("isInterview", isInterview);
-      formData.append("intervieweeId", selectedInterviewee);
+      formData.append(
+        "interviewees",
+        JSON.stringify(selectedInterviewees.map((i) => i.value))
+      );
     }
 
     if (isNachruf) {
@@ -482,7 +484,7 @@ export default function NewArticlePage() {
     setStartPage("");
     setEndPage("");
     setSelectedAuthor("");
-    setSelectedInterviewee("");
+    setSelectedInterviewees([]);
     setIsInterview(false);
     setDeceasedFirstName("");
     setDeceasedLastName("");
@@ -578,8 +580,10 @@ export default function NewArticlePage() {
 
       if (res.ok) {
         const newInterviewee = await res.json();
-        setInterviewees((prev) => [...prev, newInterviewee]);
-        setSelectedInterviewee(newInterviewee.id);
+        setSelectedInterviewees((prev) => [
+          ...prev,
+          { value: newInterviewee.id, label: newInterviewee.name },
+        ]);
         setMessage("Entrevistado agregado con éxito.");
         setIsIntervieweeModalOpen(false);
         setNewIntervieweeName("");
@@ -888,12 +892,16 @@ export default function NewArticlePage() {
 
         {isInterview && (
           <>
-            <SelectField
-              id="interviewee"
-              label={t("interviewee")}
-              options={intervieweeOptions}
-              value={selectedInterviewee}
-              onChange={(e) => setSelectedInterviewee(e.target.value)}
+            <label className={styles.formLabel}>{t("interviewee")}</label>
+            <AsyncSelect
+              instanceId="interviewees"
+              inputId="interviewee-select"
+              isMulti
+              cacheOptions
+              defaultOptions
+              loadOptions={loadInterviewees}
+              value={selectedInterviewees}
+              onChange={(selected) => setSelectedInterviewees(selected || [])}
               placeholder={t("intervieweePlaceholder")}
             />
             <button

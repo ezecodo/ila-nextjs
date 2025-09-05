@@ -323,7 +323,8 @@
     "translatedArticle": "hat den Artikel übersetzt",
     "reviewedTranslation": "hat die Übersetzung des Artikels überprüft",
     "default": "führte eine Aktion aus –",
-    "untitled": "ohne Titel"
+    "untitled": "ohne Titel",
+    "inEdition": "in Dossier"
   },
   "ShareBar": {
     "defaultShareTitle": "Schau dir diesen ILA-Artikel an:",

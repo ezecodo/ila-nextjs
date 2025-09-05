@@ -13,8 +13,15 @@ export default function ActivityFeed() {
     fetch("/api/activity-log")
       .then((res) => res.json())
       .then((data) => {
-        console.log("🧾 Logs recibidos:", data.logs);
-        setLogs(data.logs || []);
+        const parsedLogs = (data.logs || []).map((log) => ({
+          ...log,
+          metadata:
+            typeof log.metadata === "string"
+              ? JSON.parse(log.metadata)
+              : log.metadata,
+        }));
+        console.log("🧾 Logs parseados:", parsedLogs);
+        setLogs(parsedLogs);
       })
       .catch((error) => {
         console.error("❌ Error al cargar logs:", error);
@@ -109,17 +116,35 @@ export default function ActivityFeed() {
               ) : log.action === "CREATE_ARTICLE" ? (
                 <>
                   {t("createdArticle")}{" "}
-                  <Link
-                    href={`/dashboard/articles/${log.articleId}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    “
-                    {log.article?.title ||
-                      log.metadata?.titleDE ||
-                      log.metadata?.titleES ||
-                      t("untitled")}
-                    ”
-                  </Link>
+                  {log.metadata?.legacyPath ? (
+                    <Link
+                      href={log.metadata?.legacyPath || "#"} // 👈 fallback seguro
+                      className="text-blue-600 hover:underline"
+                    >
+                      “
+                      {log.metadata?.title ||
+                        log.article?.title ||
+                        t("untitled")}
+                      ”
+                    </Link>
+                  ) : (
+                    <span className="italic text-gray-500">
+                      “
+                      {log.metadata?.title ||
+                        log.article?.title ||
+                        t("untitled")}
+                      ”
+                    </span>
+                  )}
+                  {log.metadata?.edition && (
+                    <span className="ml-1 text-gray-600">
+                      ({t("inEdition")}{" "}
+                      <span className="font-semibold">
+                        {log.metadata.edition.number}
+                      </span>{" "}
+                      – {log.metadata.edition.title})
+                    </span>
+                  )}
                 </>
               ) : log.action === "TRANSLATE_ARTICLE" ? (
                 <>

@@ -326,7 +326,8 @@
     "translatedArticle": "tradujo el artículo",
     "reviewedTranslation": "revisó la traducción del artículo",
     "default": "realizó una acción –",
-    "untitled": "sin título"
+    "untitled": "sin título",
+    "inEdition": "en la edición"
   },
   "ShareBar": {
     "defaultShareTitle": "Mirá este artículo de ILA:",

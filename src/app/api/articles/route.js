@@ -99,7 +99,10 @@ export async function POST(request) {
     const isPrinted = formData.get("isPrinted") === "true";
     const editionId = formData.get("editionId");
     const authorId = formData.get("authorId");
+    const interviewees = JSON.parse(formData.get("interviewees") || "[]");
     const isPublished = formData.get("isPublished") === "true";
+    const startPage = formData.get("startPage");
+    const endPage = formData.get("endPage");
     const publicationDate = formData.get("publicationDate");
     const categories = JSON.parse(formData.get("categories") || "[]");
     const regions = JSON.parse(formData.get("regions") || "[]");
@@ -168,9 +171,15 @@ export async function POST(request) {
         publicationDate: publicationDate
           ? new Date(publicationDate)
           : new Date(),
-
+        startPage: startPage ? parseInt(startPage, 10) : null,
+        endPage: endPage ? parseInt(endPage, 10) : null,
         authors: authorId
           ? { connect: { id: parseInt(authorId, 10) } }
+          : undefined,
+        interviewees: interviewees.length
+          ? {
+              connect: interviewees.map((id) => ({ id: parseInt(id, 10) })),
+            }
           : undefined,
         categories: categories.length
           ? {
@@ -187,6 +196,33 @@ export async function POST(request) {
     });
 
     console.log("✅ Artículo creado:", article.id);
+    // Log de actividad
+    // **2️⃣ Log de actividad ahora que sí existe el artículo**
+    if (formData.get("userId")) {
+      // Obtener datos de edición si existe
+      let editionData = null;
+      if (article.editionId) {
+        const ed = await prisma.edition.findUnique({
+          where: { id: article.editionId },
+          select: { number: true, title: true },
+        });
+        editionData = ed ? { number: ed.number, title: ed.title } : null;
+      }
+
+      await prisma.activityLog.create({
+        data: {
+          userId: formData.get("userId"),
+          articleId: article.id,
+          action: "CREATE_ARTICLE",
+          metadata: JSON.stringify({
+            title: article.title,
+            legacyPath: article.legacyPath,
+            edition: editionData,
+            createdAt: new Date().toISOString(),
+          }),
+        },
+      });
+    }
 
     let imageUrl = null;
 
