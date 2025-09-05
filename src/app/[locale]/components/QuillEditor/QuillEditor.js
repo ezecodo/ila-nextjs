@@ -24,14 +24,10 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         placeholder: t("writeHere"),
       });
 
-      // 👇 forzar left-to-right
-      quillRef.current.root.setAttribute("dir", "ltr");
-      quillRef.current.root.style.textAlign = "left";
-
       // Escuchar cambios en Quill
       quillRef.current.on("text-change", () => {
-        const html = quillRef.current.root.innerHTML;
-        if (onChange) onChange(html);
+        const plainText = quillRef.current.getText().trim();
+        if (onChange) onChange(plainText);
       });
     }
   }, [onChange, t]);
