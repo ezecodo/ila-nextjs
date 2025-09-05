@@ -321,7 +321,11 @@ export default function NewArticlePage() {
         const res = await fetch("/api/editions");
         if (res.ok) {
           const data = await res.json();
-          setEditions(data);
+
+          // Ordenar de mayor a menor por número
+          const sorted = data.sort((a, b) => b.number - a.number);
+
+          setEditions(sorted);
         } else {
           setMessage("Error al cargar las ediciones.");
         }
