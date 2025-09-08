@@ -7,14 +7,43 @@ export async function GET(req) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
+
     const showFavorites = searchParams.get("favorites") === "true";
     const editionId = searchParams.get("editionId");
     const locale = searchParams.get("locale");
     const beitragstypId = searchParams.get("beitragstypId");
+    const reviewerMode = searchParams.get("reviewer") === "true";
+    const unassignedMode = searchParams.get("unassigned") === "true";
+    const translatorId = searchParams.get("translatorId");
 
     let whereCondition = { isPublished: true };
 
-    // 🔥 Filtrar por edición si se proporciona
+    if (translatorId) {
+      whereCondition.translatorId = translatorId;
+    }
+
+    if (reviewerMode) {
+      const session = await auth();
+      if (!session || !session.user) {
+        return new Response(JSON.stringify({ message: "No autorizado" }), {
+          status: 401,
+        });
+      }
+      whereCondition = {
+        ...whereCondition,
+        reviewerId: session.user.id,
+        translatorId: { not: null },
+        translationStatus: { in: ["in_progress", "submitted"] },
+      };
+    }
+
+    if (unassignedMode) {
+      whereCondition = {
+        ...whereCondition,
+        isTranslatedES: false,
+      };
+    }
+
     if (editionId) {
       whereCondition.editionId = parseInt(editionId, 10);
     }
@@ -27,17 +56,15 @@ export async function GET(req) {
         });
       }
       whereCondition = {
-        favorites: {
-          some: { userId: session.user.id },
-        },
+        favorites: { some: { userId: session.user.id } },
       };
     }
 
-    // 🔥 Si el idioma es español, mostrar solo artículos traducidos y revisados
     if (locale === "es") {
       whereCondition.isTranslatedES = true;
       whereCondition.needsReviewES = false;
     }
+
     if (beitragstypId) {
       whereCondition.beitragstypId = parseInt(beitragstypId, 10);
     }
@@ -50,21 +77,11 @@ export async function GET(req) {
       include: {
         regions: true,
         topics: true,
-        authors: {
-          select: { id: true, name: true },
-        },
+        authors: { select: { id: true, name: true } },
         categories: true,
-        beitragstyp: {
-          select: {
-            id: true,
-            name: true,
-            nameES: true, // ✅ incluir la traducción
-          },
-        },
-
-        edition: {
-          select: { id: true, title: true, number: true },
-        },
+        beitragstyp: { select: { id: true, name: true, nameES: true } },
+        edition: { select: { id: true, title: true, number: true } },
+        translator: { select: { id: true, name: true, email: true } },
       },
     });
 
@@ -73,29 +90,12 @@ export async function GET(req) {
         const images = await prisma.image.findMany({
           where: {
             contentType: "ARTICLE",
-            contentId: {
-              in: [article.beitragsId, article.id].filter(Boolean),
-            },
+            contentId: { in: [article.beitragsId, article.id].filter(Boolean) },
           },
-          select: {
-            id: true,
-            url: true,
-            width: true,
-            height: true,
-          },
+          select: { id: true, url: true, width: true, height: true },
         });
-        // 🔍 Log de depuración
-        console.log("DEBUG artículo:", {
-          id: article.id,
-          beitragsId: article.beitragsId,
-          imagesCount: images.length,
-          images: images.map((img) => img.url),
-        });
-        return {
-          ...article,
 
-          images, // 👈 todas las imágenes, por si necesitas más adelante
-        };
+        return { ...article, images };
       })
     );
 

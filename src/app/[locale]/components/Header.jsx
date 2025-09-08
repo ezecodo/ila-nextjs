@@ -70,9 +70,13 @@ export default function Header() {
     await signOut({ redirect: false });
     router.push("/");
   };
+  let dashboardRoute = "/dashboard-users"; // por defecto
 
-  const dashboardRoute =
-    session?.user?.role === "admin" ? "/dashboard" : "/dashboard-users";
+  if (session?.user?.role === "admin") {
+    dashboardRoute = "/dashboard";
+  } else if (session?.user?.role === "translator") {
+    dashboardRoute = "/dashboard/translators";
+  }
 
   return (
     <header className={`${styles.header} ${isCompact ? styles.compact : ""}`}>

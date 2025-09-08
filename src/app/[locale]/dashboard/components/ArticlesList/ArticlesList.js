@@ -1,9 +1,18 @@
+"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { Check } from "lucide-react";
+import AssignTranslatorCell from "./AssignTranslatorCell";
+import { useSession } from "next-auth/react";
 
-const ArticlesList = () => {
+/**
+ * Props:
+ * - mode: "admin" | "reviewer" (por defecto "admin")
+ *   - admin  -> tu lista actual sin cambios
+ *   - reviewer -> filtra por artículos asignados al revisor y muestra acciones Aprobar/Rechazar
+ */
+const ArticlesList = ({ mode = "admin" }) => {
   const [articles, setArticles] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -11,13 +20,22 @@ const ArticlesList = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const limit = 20;
   const locale = useLocale();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch(
-          `/api/articles/list?page=${page}&limit=${limit}&sortField=${sortField}&sortOrder=${sortOrder}`
-        );
+        const base = `/api/articles/list`;
+        const params =
+          mode === "reviewer"
+            ? `reviewer=true&page=${page}&limit=${limit}`
+            : mode === "assign"
+              ? `unassigned=true&page=${page}&limit=${limit}`
+              : mode === "translator"
+                ? `translatorId=${session?.user?.id}&page=${page}&limit=${limit}`
+                : `page=${page}&limit=${limit}&sortField=${sortField}&sortOrder=${sortOrder}`;
+
+        const response = await fetch(`${base}?${params}`);
         if (!response.ok) throw new Error("Error al obtener artículos");
         const data = await response.json();
         setArticles(data.articles);
@@ -28,19 +46,92 @@ const ArticlesList = () => {
     };
 
     fetchArticles();
-  }, [page, sortField, sortOrder]);
+  }, [page, sortField, sortOrder, mode]);
 
   const handleSort = (field) => {
+    // En modo reviewer puedes seguir ordenando si tu API lo soporta; si no, puedes early-return aquí.
     setSortOrder(
       sortField === field ? (sortOrder === "asc" ? "desc" : "asc") : "asc"
     );
     setSortField(field);
   };
 
+  // Acciones para el reviewer
+  const handleApprove = async (id) => {
+    try {
+      const res = await fetch(`/api/articles/${id}/approve`, { method: "PUT" });
+      if (!res.ok) throw new Error("No se pudo aprobar");
+      // Saco de la lista para que desaparezca del tablero del reviewer
+      setArticles((prev) => prev.filter((a) => a.id !== id));
+    } catch (e) {
+      console.error(e);
+      alert("Error aprobando la traducción");
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      const res = await fetch(`/api/articles/${id}/reject`, { method: "PUT" });
+      if (!res.ok) throw new Error("No se pudo rechazar");
+      // También lo retiro de la lista (o podrías dejarlo y marcar estado)
+      setArticles((prev) => prev.filter((a) => a.id !== id));
+    } catch (e) {
+      console.error(e);
+      alert("Error rechazando la traducción");
+    }
+  };
+  const handleUnassign = async (id) => {
+    // estado previo por si hace falta revertir
+    const prev = articles;
+
+    // ✅ Optimistic UI
+    setArticles((old) =>
+      old.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              translator: null,
+              assignedAt: null,
+              translationStatus: "in_progress",
+            }
+          : a
+      )
+    );
+
+    try {
+      const res = await fetch(`/api/articles/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unassignTranslator: true }),
+      });
+
+      if (!res.ok) {
+        const msg = await res
+          .text()
+          .catch(() => "No se pudo quitar la asignación");
+        throw new Error(msg);
+      }
+
+      const updated = await res.json();
+
+      // Aseguramos que lo que quede en estado es lo que devuelve el backend
+      setArticles((old) =>
+        old.map((a) => (a.id === updated.id ? { ...a, ...updated } : a))
+      );
+    } catch (e) {
+      console.error(e);
+      alert("❌ Error al quitar traductor");
+      // ⏪ Revertir
+      setArticles(prev);
+    }
+  };
+
   return (
     <div className="mt-6 bg-white p-4 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4 text-center text-red-600">
         📄 Lista de Artículos
+        {mode === "reviewer" && " — Para Revisar"}
+        {mode === "assign" && " — Sin Traductor"}
       </h2>
 
       <div className="overflow-x-auto">
@@ -59,35 +150,51 @@ const ArticlesList = () => {
               >
                 Título ⬍
               </th>
-              <th
-                className="p-1.5 border cursor-pointer text-left"
-                onClick={() => handleSort("authors")}
-              >
-                Autor ⬍
+              {mode === "reviewer" && (
+                <th className="p-1.5 border text-left">Traductor</th>
+              )}
+              {mode === "reviewer" && (
+                <th className="p-1.5 border text-left">Estado</th>
+              )}
+
+              {/* Columnas solo para admin (tu lista original) */}
+              {mode === "admin" && (
+                <>
+                  <th
+                    className="p-1.5 border cursor-pointer text-left"
+                    onClick={() => handleSort("authors")}
+                  >
+                    Autor ⬍
+                  </th>
+                  <th
+                    className="p-1.5 border cursor-pointer text-left"
+                    onClick={() => handleSort("categories")}
+                  >
+                    Categoría ⬍
+                  </th>
+                  <th
+                    className="p-1.5 border cursor-pointer text-left"
+                    onClick={() => handleSort("publicationDate")}
+                  >
+                    📅 Publicación ⬍
+                  </th>
+                  <th
+                    className="p-1.5 border cursor-pointer text-left"
+                    onClick={() => handleSort("edition")}
+                  >
+                    📚 Edición ⬍
+                  </th>
+                  <th className="p-1.5 border text-left">📷 Imagen</th>
+                  <th className="p-1.5 border text-left">✏️ Editar</th>
+                </>
+              )}
+
+              <th className="p-1.5 border text-left">
+                {mode === "reviewer" ? "Acciones" : "🌐 Tra"}
               </th>
-              <th
-                className="p-1.5 border cursor-pointer text-left"
-                onClick={() => handleSort("categories")}
-              >
-                Categoría ⬍
-              </th>
-              <th
-                className="p-1.5 border cursor-pointer text-left"
-                onClick={() => handleSort("publicationDate")}
-              >
-                📅 Publicación ⬍
-              </th>
-              <th
-                className="p-1.5 border cursor-pointer text-left"
-                onClick={() => handleSort("edition")}
-              >
-                📚 Edición ⬍
-              </th>
-              <th className="p-1.5 border text-left">📷 Imagen</th>
-              <th className="p-1.5 border text-left">✏️ Editar</th>
-              <th className="p-1.5 border text-left">🌐 Tra</th>
             </tr>
           </thead>
+
           <tbody>
             {articles.map((article, index) => (
               <tr
@@ -97,6 +204,7 @@ const ArticlesList = () => {
                 } hover:bg-red-100`}
               >
                 <td className="p-1.5 border">{article.id}</td>
+
                 <td className="p-1.5 border">
                   <Link
                     href={
@@ -112,46 +220,147 @@ const ArticlesList = () => {
                       : article.title}
                   </Link>
                 </td>
+                {mode === "reviewer" && (
+                  <td className="p-1.5 border text-center text-xs">
+                    {article.translator ? (
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                        {article.translator.name || article.translator.email}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 italic">
+                        Sin traductor
+                      </span>
+                    )}
+                  </td>
+                )}
+                {mode === "reviewer" && (
+                  <td className="p-1.5 border text-center text-xs">
+                    {article.translationStatus === "submitted" ? (
+                      <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
+                        Enviado
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">
+                        En progreso
+                      </span>
+                    )}
+                  </td>
+                )}
+                {/* 👇 Aquí añadimos la celda de traductor, solo en modo reviewer */}
 
-                <td className="p-1.5 border">
-                  {article.authors.map((a) => a.name).join(", ")}
-                </td>
-                <td className="p-1.5 border">
-                  {article.categories.map((c) => c.name).join(", ")}
-                </td>
-                <td className="p-1.5 border">
-                  {article.publicationDate
-                    ? new Date(article.publicationDate).toLocaleDateString(
-                        "es-ES"
-                      )
-                    : "Sin fecha"}
-                </td>
-                <td className="p-1.5 border">
-                  {article.edition
-                    ? `${article.edition.title} (N° ${article.edition.number})`
-                    : "Sin edición"}
-                </td>
+                {mode === "admin" && (
+                  <>
+                    <td className="p-1.5 border">
+                      {article.authors.map((a) => a.name).join(", ")}
+                    </td>
+                    <td className="p-1.5 border">
+                      {article.categories.map((c) => c.name).join(", ")}
+                    </td>
+                    <td className="p-1.5 border">
+                      {article.publicationDate
+                        ? new Date(article.publicationDate).toLocaleDateString(
+                            "es-ES"
+                          )
+                        : "Sin fecha"}
+                    </td>
+                    <td className="p-1.5 border">
+                      {article.edition
+                        ? `${article.edition.title} (N° ${article.edition.number})`
+                        : "Sin edición"}
+                    </td>
+                    <td className="p-1.5 border text-center">
+                      {article.images && article.images.length > 0
+                        ? "✔️"
+                        : "❌"}
+                    </td>
+                    <td className="p-1.5 border text-center">
+                      <Link href={`/dashboard/articles/edit/${article.id}`}>
+                        <button className="text-blue-600 hover:underline">
+                          ✏️ Editar
+                        </button>
+                      </Link>
+                    </td>
+                  </>
+                )}
+
                 <td className="p-1.5 border text-center">
-                  {article.images && article.images.length > 0 ? "✔️" : "❌"}
-                </td>
-                <td className="p-1.5 border text-center">
-                  <Link href={`/dashboard/articles/edit/${article.id}`}>
-                    <button className="text-blue-600 hover:underline">
-                      ✏️ Editar
-                    </button>
-                  </Link>
-                </td>
-                <td className="p-1.5 border text-center">
-                  {article.isTranslatedES ? (
+                  {mode === "assign" ? (
+                    article.translator ? (
+                      <div className="flex items-center justify-center gap-2 text-xs">
+                        <span className="px-2 py-0.5 bg-gray-200 rounded-full text-gray-800">
+                          {article.translator.name || article.translator.email}
+                        </span>
+                        {article.assignedAt && (
+                          <span className="text-gray-500 text-[11px]">
+                            {new Date(article.assignedAt).toLocaleDateString(
+                              "es-ES"
+                            )}
+                          </span>
+                        )}
+
+                        <AssignTranslatorCell
+                          article={article}
+                          onAssigned={(updated) => {
+                            setArticles((prev) =>
+                              prev.map((a) =>
+                                a.id === updated.id
+                                  ? {
+                                      ...a,
+                                      translator: updated.translator,
+                                      assignedAt: updated.assignedAt,
+                                    }
+                                  : a
+                              )
+                            );
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <AssignTranslatorCell
+                        article={article}
+                        onAssigned={(updated) => {
+                          setArticles((prev) =>
+                            prev.map((a) =>
+                              a.id === updated.id
+                                ? {
+                                    ...a,
+                                    translator: updated.translator,
+                                    assignedAt: updated.assignedAt,
+                                  }
+                                : a
+                            )
+                          );
+                        }}
+                      />
+                    )
+                  ) : mode === "reviewer" ? (
+                    article.translationStatus === "submitted" ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Link
+                          href={`/dashboard/articles/translate/${article.id}?mode=review`}
+                          className="px-2 py-1 text-xs border rounded hover:bg-gray-100"
+                        >
+                          👁️ Revisar
+                        </Link>
+                      </div>
+                    ) : article.translationStatus === "approved" ? (
+                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                        ✅ Revisado
+                      </span>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="px-2 py-1 text-xs border rounded bg-gray-100 text-gray-600">
+                          👁️ En progreso
+                        </span>
+                      </div>
+                    )
+                  ) : article.isTranslatedES ? (
                     <div className="flex flex-col items-center justify-center gap-0.5">
-                      {/* ✅ Traducido */}
                       <Check
                         className="w-4 h-4 text-green-600"
                         title="Traducido"
                       />
-
                       {article.needsReviewES ? (
-                        // Enlace para revisar si aún no fue revisado
                         <Link
                           href={`/dashboard/articles/translate/${article.id}?mode=review`}
                           className="text-yellow-500 text-[10px] hover:underline"
@@ -159,13 +368,26 @@ const ArticlesList = () => {
                           Revisión
                         </Link>
                       ) : (
-                        // ✅ en amarillo si ya fue revisado
                         <Check
                           className="w-4 h-4 text-yellow-500"
                           title="Revisado"
                         />
                       )}
                     </div>
+                  ) : article.translationStatus === "in_progress" ? (
+                    mode === "translator" ? (
+                      <Link
+                        href={`/dashboard/articles/translate/${article.id}`}
+                      >
+                        <button className="text-green-600 hover:underline text-sm">
+                          🌐 Traducir
+                        </button>
+                      </Link>
+                    ) : (
+                      <span className="text-gray-400" title="En traducción">
+                        🌐
+                      </span>
+                    )
                   ) : (
                     <Link href={`/dashboard/articles/translate/${article.id}`}>
                       <button className="text-green-600 hover:underline text-sm">

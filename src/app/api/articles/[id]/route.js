@@ -115,9 +115,22 @@ export async function PUT(req, context) {
 
   try {
     if (contentType.includes("application/json")) {
-      // 🟢 Caso: Traducción
       const body = await req.json();
 
+      // 🟢 Caso: quitar traductor
+      if (body.unassignTranslator) {
+        const updatedArticle = await prisma.article.update({
+          where: { id: parseInt(id) },
+          data: {
+            translator: { disconnect: true },
+            assignedAt: null,
+            translationStatus: "in_progress", // o null si prefieres
+          },
+        });
+        return Response.json(updatedArticle, { status: 200 });
+      }
+
+      // 🟢 Caso: Traducción (lo que ya tenías)
       const updatedArticle = await prisma.article.update({
         where: { id: parseInt(id) },
         data: {
@@ -126,9 +139,18 @@ export async function PUT(req, context) {
           contentES: body.contentES,
           previewTextES: body.previewES,
           additionalInfoES: body.additionalInfoES,
-          isTranslatedES: true,
+          translationStatus: body.translationStatus,
+          isTranslatedES:
+            body.translationStatus === "submitted" ||
+            body.translationStatus === "approved"
+              ? true
+              : false,
           needsReviewES:
-            typeof body.needsReviewES === "boolean" ? body.needsReviewES : true,
+            body.translationStatus === "submitted"
+              ? true
+              : body.translationStatus === "approved"
+                ? false
+                : undefined,
         },
       });
 

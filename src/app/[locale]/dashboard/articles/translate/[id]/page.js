@@ -47,34 +47,6 @@ const TranslateArticlePage = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Paso 1: Guardar la traducción
-    const res = await fetch(`/api/articles/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...translations }),
-    });
-
-    if (res.ok) {
-      // Paso 2: Registrar la actividad (log)
-      await fetch("/api/activity-log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          articleId: id,
-          action: "TRANSLATE_ARTICLE",
-        }),
-      });
-
-      // Paso 3: Confirmar y redirigir
-      alert("✅ Traducción guardada");
-      router.push("/dashboard/articles");
-    } else {
-      alert("❌ Error al guardar");
-    }
-  };
   if (!article) {
     return <div className="p-6 text-gray-600">⏳ Cargando artículo...</div>;
   }
@@ -159,7 +131,7 @@ const TranslateArticlePage = () => {
           <span className="text-red-600 text-sm">DeepL: {deeplError}</span>
         )}
       </div>
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6 text-sm">
+      <form className="grid grid-cols-2 gap-6 text-sm">
         {/* Título */}
         <div>
           <div className="flex items-center gap-2">
@@ -419,7 +391,7 @@ const TranslateArticlePage = () => {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     ...translations,
-                    needsReviewES: false,
+                    translationStatus: "approved",
                   }),
                 });
 
@@ -444,12 +416,56 @@ const TranslateArticlePage = () => {
               ✅ Aprobar traducción
             </button>
           ) : (
-            <button
-              type="submit"
-              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-            >
-              💾 Guardar traducción
-            </button>
+            <div className="flex gap-3">
+              {/* Guardar borrador */}
+              <button
+                type="button"
+                onClick={async () => {
+                  const res = await fetch(`/api/articles/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      ...translations,
+                      translationStatus: "in_progress",
+                    }),
+                  });
+
+                  if (res.ok) {
+                    alert("💾 Traducción guardada como borrador");
+                  } else {
+                    alert("❌ Error al guardar borrador");
+                  }
+                }}
+                className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
+              >
+                💾 Guardar borrador
+              </button>
+
+              {/* Enviar traducción */}
+              <button
+                type="button"
+                onClick={async () => {
+                  const res = await fetch(`/api/articles/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      ...translations,
+                      translationStatus: "submitted",
+                    }),
+                  });
+
+                  if (res.ok) {
+                    alert("📤 Traducción enviada para revisión");
+                    router.push("/dashboard/articles");
+                  } else {
+                    alert("❌ Error al enviar traducción");
+                  }
+                }}
+                className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+              >
+                📤 Enviar traducción
+              </button>
+            </div>
           )}
         </div>
       </form>

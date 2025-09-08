@@ -23,6 +23,7 @@ model Article {
   subtitle         String?
   isPublished      Boolean          @default(false)
   publicationDate  DateTime?
+  assignedAt     DateTime?   // fecha en la que se asigna el traductor
   previewText      String?          @db.LongText
   additionalInfo   String?          @db.Text
   bookImage        String?
@@ -30,6 +31,7 @@ model Article {
   articleImage     String?          @db.Text
   beitragsId       Int?
   isTranslatedES   Boolean          @default(false)
+  translationStatus   String   @default("in_progress") 
   additionalInfoES String?          @db.Text
   contentES        String?          @db.LongText
   previewTextES    String?          @db.LongText
@@ -48,6 +50,12 @@ model Article {
   interviewees     Interviewee[]    @relation("ArticleInterviewees")
   regions          Region[]         @relation("ArticleRegions")
   topics           Topic[]          @relation("ArticleTopics")
+  translatorId    String?
+  translator      User?    @relation("ArticleTranslator", fields: [translatorId], references: [id])
+
+  reviewerId      String?
+  reviewer        User?    @relation("ArticleReviewer", fields: [reviewerId], references: [id])
+
 
   @@index([beitragssubtypId], map: "Article_beitragssubtypId_fkey")
   @@index([beitragstypId], map: "Article_beitragstypId_fkey")
@@ -132,6 +140,7 @@ enum Role {
   user
   admin
   translator
+  reviewer
 }
 model User {
   id            String        @id @default(cuid())
@@ -149,6 +158,9 @@ model User {
   activityLogs  ActivityLog[]
   favorites     Favorite[]
   sessions      Session[]
+
+    translationsAssigned Article[] @relation("ArticleTranslator")
+  reviewsAssigned      Article[] @relation("ArticleReviewer")
 }
 
 model Account {

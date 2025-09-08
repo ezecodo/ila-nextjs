@@ -14,6 +14,7 @@ import {
 } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
+import { useSession } from "next-auth/react";
 
 export default function DashboardLayout({
   children,
@@ -25,8 +26,11 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const locale = useLocale();
   const isDashboard = pathname?.startsWith("/dashboard");
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string })?.role || "user";
 
-  const menuItems = [
+  // 🔥 definimos menús
+  const adminMenu = [
     {
       key: "inicio",
       label: t("menu.inicio"),
@@ -45,7 +49,6 @@ export default function DashboardLayout({
       href: "/dashboard/editions/new",
       icon: <FaBook />,
     },
-
     {
       key: "events",
       label: t("menu.events"),
@@ -59,6 +62,18 @@ export default function DashboardLayout({
       icon: <FaSlidersH />,
     },
     {
+      key: "assignTranslations",
+      label: "Asignar traducciones",
+      href: "/dashboard/reviewer/assign",
+      icon: <FaFileAlt />,
+    },
+    {
+      key: "reviewTranslations",
+      label: "Revisar traducciones",
+      href: "/dashboard/reviewer/review",
+      icon: <FaFileAlt />,
+    },
+    {
       key: "account",
       label: t("menu.account"),
       href: "/dashboard/account",
@@ -66,12 +81,59 @@ export default function DashboardLayout({
     },
   ];
 
+  const translatorMenu = [
+    {
+      key: "inicio",
+      label: t("menu.inicio"),
+      href: "/dashboard/translators",
+      icon: <FaHome />,
+    },
+    {
+      key: "assignments",
+      label: "Mis Asignaciones",
+      href: "/dashboard/translators/assignments",
+      icon: <FaFileAlt />,
+    },
+    {
+      key: "account",
+      label: t("menu.account"),
+      href: "/dashboard/account",
+      icon: <FaUserCog />,
+    },
+  ];
+
+  const userMenu = [
+    {
+      key: "inicio",
+      label: t("menu.inicio"),
+      href: "/dashboard",
+      icon: <FaHome />,
+    },
+    {
+      key: "account",
+      label: t("menu.account"),
+      href: "/dashboard/account",
+      icon: <FaUserCog />,
+    },
+  ];
+
+  // 🔥 elegimos según el rol
+  const menuItems =
+    role === "admin"
+      ? adminMenu
+      : role === "translator"
+        ? translatorMenu
+        : userMenu;
+
   return (
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Barra superior de estadísticas */}
-      <div className="bg-white border-b shadow py-2">
-        <DashboardStats />
-      </div>
+      {/* Barra superior de estadísticas SOLO para admin */}
+      {role === "admin" && (
+        <div className="bg-white border-b shadow py-2">
+          <DashboardStats />
+        </div>
+      )}
 
       {/* Estructura principal */}
       <div className="flex flex-1 overflow-hidden min-w-0 bg-gray-50">
@@ -89,7 +151,13 @@ export default function DashboardLayout({
             menuOpen ? "block" : "hidden"
           }`}
         >
-          <h2 className="text-xl font-semibold mb-6">{t("title")}</h2>
+          <h2 className="text-xl font-semibold mb-6">
+            {role === "admin"
+              ? "Admin-Dashboard"
+              : role === "translator"
+                ? "Traducción Dashboard"
+                : "User Dashboard"}
+          </h2>
           <ul>
             {menuItems.map((item) => {
               const fullHref = `/${locale}${item.href}`;
