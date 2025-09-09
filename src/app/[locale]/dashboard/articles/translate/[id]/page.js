@@ -406,7 +406,7 @@ const TranslateArticlePage = () => {
                   });
 
                   alert("✅ Traducción revisada y aprobada");
-                  router.push("/dashboard/articles");
+                  router.replace("/dashboard/articles?mode=reviewer");
                 } else {
                   alert("❌ Error al aprobar la traducción");
                 }
@@ -456,7 +456,7 @@ const TranslateArticlePage = () => {
 
                   if (res.ok) {
                     alert("📤 Traducción enviada para revisión");
-                    router.push("/dashboard/articles");
+                    router.replace("/dashboard/translators/assignments");
                   } else {
                     alert("❌ Error al enviar traducción");
                   }

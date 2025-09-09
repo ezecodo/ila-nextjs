@@ -33,7 +33,7 @@ export async function GET(req) {
         ...whereCondition,
         reviewerId: session.user.id,
         translatorId: { not: null },
-        translationStatus: { in: ["in_progress", "submitted"] },
+        translationStatus: { in: ["in_progress", "submitted", "approved"] },
       };
     }
 

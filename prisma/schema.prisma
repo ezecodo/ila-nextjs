@@ -37,6 +37,7 @@ model Article {
   previewTextES    String?          @db.LongText
   titleES          String?
   subtitleES       String?
+   reviewedAt        DateTime? 
   needsReviewES    Boolean          @default(false)
   legacyPath       String?          @unique
   activityLogs     ActivityLog[]

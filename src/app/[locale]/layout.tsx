@@ -36,7 +36,7 @@ type Props = {
 
 export async function generateMetadata() {
   return {
-    title: "ILA | Informationsstelle Lateinamerika",
+    title: "ila | Informationsstelle Lateinamerika",
     description: "Das Lateinamerika-Magazin",
     icon: "/favicon.ico",
   };

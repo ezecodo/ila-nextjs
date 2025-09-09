@@ -12,6 +12,14 @@ import { useSession } from "next-auth/react";
  *   - admin  -> tu lista actual sin cambios
  *   - reviewer -> filtra por artículos asignados al revisor y muestra acciones Aprobar/Rechazar
  */
+const formatDateTime = (value) =>
+  value
+    ? new Date(value).toLocaleString("es-ES", {
+        dateStyle: "short",
+        timeStyle: "short",
+      })
+    : "";
+
 const ArticlesList = ({ mode = "admin" }) => {
   const [articles, setArticles] = useState([]);
   const [page, setPage] = useState(1);
@@ -239,6 +247,13 @@ const ArticlesList = ({ mode = "admin" }) => {
                       <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
                         Enviado
                       </span>
+                    ) : article.translationStatus === "approved" ? (
+                      <span className="px-2 py-0.5 bg-green-200 text-green-900 rounded-full">
+                        Revisado
+                        {article.reviewedAt
+                          ? ` — ${formatDateTime(article.reviewedAt)}`
+                          : ""}
+                      </span>
                     ) : (
                       <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">
                         En progreso
@@ -339,20 +354,39 @@ const ArticlesList = ({ mode = "admin" }) => {
                         <Link
                           href={`/dashboard/articles/translate/${article.id}?mode=review`}
                           className="px-2 py-1 text-xs border rounded hover:bg-gray-100"
+                          title="Revisar traducción"
                         >
                           👁️ Revisar
                         </Link>
+                        <button
+                          onClick={() => handleApprove(article.id)}
+                          className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                          title="Aprobar traducción"
+                        >
+                          ✅ Aprobar
+                        </button>
+                        <button
+                          onClick={() => handleReject(article.id)}
+                          className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                          title="Rechazar traducción"
+                        >
+                          ❌ Rechazar
+                        </button>
                       </div>
                     ) : article.translationStatus === "approved" ? (
-                      <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                        ✅ Revisado
-                      </span>
-                    ) : (
                       <div className="flex items-center justify-center gap-2">
-                        <span className="px-2 py-1 text-xs border rounded bg-gray-100 text-gray-600">
-                          👁️ En progreso
-                        </span>
+                        <Link
+                          href={`/dashboard/articles/translate/${article.id}?mode=review`}
+                          className="px-2 py-1 text-xs border rounded hover:bg-gray-100"
+                          title="Revisar nuevamente"
+                        >
+                          🔁 Volver a revisar
+                        </Link>
                       </div>
+                    ) : (
+                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                        En progreso
+                      </span>
                     )
                   ) : article.isTranslatedES ? (
                     <div className="flex flex-col items-center justify-center gap-0.5">
@@ -361,12 +395,15 @@ const ArticlesList = ({ mode = "admin" }) => {
                         title="Traducido"
                       />
                       {article.needsReviewES ? (
-                        <Link
-                          href={`/dashboard/articles/translate/${article.id}?mode=review`}
-                          className="text-yellow-500 text-[10px] hover:underline"
-                        >
-                          Revisión
-                        </Link>
+                        // 👇 Ocultar "Revisión" para traductor
+                        mode === "translator" ? null : (
+                          <Link
+                            href={`/dashboard/articles/translate/${article.id}?mode=review`}
+                            className="text-yellow-500 text-[10px] hover:underline"
+                          >
+                            Revisión
+                          </Link>
+                        )
                       ) : (
                         <Check
                           className="w-4 h-4 text-yellow-500"
