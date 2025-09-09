@@ -14,7 +14,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import CookieConsent from "./components/CookieConsent/CookieConsent";
 
-import { locales, type Locale } from "../../../i18n"; // ✅ Importamos locales válidos
+import { locales, type Locale } from "../../../i18n";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
@@ -29,9 +29,8 @@ const geistMono = localFont({
 
 type Props = {
   children: ReactNode;
-  params: {
-    locale: string;
-  };
+  // 👇 Next 15: params en layouts async es una Promise
+  params: Promise<{ locale: string }>;
 };
 
 export async function generateMetadata() {
@@ -42,11 +41,10 @@ export async function generateMetadata() {
   };
 }
 
-export default async function LocaleLayout({
-  children,
-  params: { locale },
-}: Props) {
-  // 🔐 Validamos que el idioma sea uno de los definidos
+export default async function LocaleLayout({ children, params }: Props) {
+  // 👇 desestructuramos esperando la Promise
+  const { locale } = await params;
+
   if (!locales.includes(locale as Locale)) {
     notFound();
   }
