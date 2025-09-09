@@ -117,41 +117,54 @@ export async function PUT(req, context) {
     if (contentType.includes("application/json")) {
       const body = await req.json();
 
-      // 🟢 Caso: quitar traductor
+      // 🟢 Caso: quitar traductor — limpiamos reviewedAt también
       if (body.unassignTranslator) {
         const updatedArticle = await prisma.article.update({
-          where: { id: parseInt(id) },
+          where: { id: parseInt(id, 10) },
           data: {
             translator: { disconnect: true },
             assignedAt: null,
-            translationStatus: "in_progress", // o null si prefieres
+            translationStatus: "in_progress",
+            reviewedAt: null, // al desasignar no hay revisión válida
           },
         });
         return Response.json(updatedArticle, { status: 200 });
       }
 
-      // 🟢 Caso: Traducción (lo que ya tenías)
+      // 🧠 Construimos el objeto de actualización
+      const dataToUpdate = {
+        titleES: body.titleES,
+        subtitleES: body.subtitleES,
+        contentES: body.contentES,
+        previewTextES: body.previewES,
+        additionalInfoES: body.additionalInfoES,
+        translationStatus: body.translationStatus,
+        isTranslatedES:
+          body.translationStatus === "submitted" ||
+          body.translationStatus === "approved",
+        needsReviewES:
+          body.translationStatus === "submitted"
+            ? true
+            : body.translationStatus === "approved"
+              ? false
+              : undefined,
+      };
+
+      // ✅ reviewedAt SOLO cuando se aprueba
+      if (body.translationStatus === "approved") {
+        dataToUpdate.reviewedAt = new Date();
+      } else if (
+        body.translationStatus === "submitted" ||
+        body.translationStatus === "in_progress"
+      ) {
+        // Enviado / En progreso ⇒ no hay revisión válida
+        dataToUpdate.reviewedAt = null;
+        // (si prefieres no tocar reviewedAt en estos estados, borra la línea anterior)
+      }
+
       const updatedArticle = await prisma.article.update({
-        where: { id: parseInt(id) },
-        data: {
-          titleES: body.titleES,
-          subtitleES: body.subtitleES,
-          contentES: body.contentES,
-          previewTextES: body.previewES,
-          additionalInfoES: body.additionalInfoES,
-          translationStatus: body.translationStatus,
-          isTranslatedES:
-            body.translationStatus === "submitted" ||
-            body.translationStatus === "approved"
-              ? true
-              : false,
-          needsReviewES:
-            body.translationStatus === "submitted"
-              ? true
-              : body.translationStatus === "approved"
-                ? false
-                : undefined,
-        },
+        where: { id: parseInt(id, 10) },
+        data: dataToUpdate,
       });
 
       return Response.json(updatedArticle, { status: 200 });

@@ -52,9 +52,9 @@ const ArticlesList = ({ mode = "admin" }) => {
         console.error("Error cargando artículos:", error);
       }
     };
-
+    if (mode === "translator" && !session?.user?.id) return;
     fetchArticles();
-  }, [page, sortField, sortOrder, mode]);
+  }, [page, sortField, sortOrder, mode, session?.user?.id]);
 
   const handleSort = (field) => {
     // En modo reviewer puedes seguir ordenando si tu API lo soporta; si no, puedes early-return aquí.
@@ -67,10 +67,20 @@ const ArticlesList = ({ mode = "admin" }) => {
   // Acciones para el reviewer
   const handleApprove = async (id) => {
     try {
-      const res = await fetch(`/api/articles/${id}/approve`, { method: "PUT" });
+      const res = await fetch(`/api/articles/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          translationStatus: "approved",
+        }),
+      });
       if (!res.ok) throw new Error("No se pudo aprobar");
-      // Saco de la lista para que desaparezca del tablero del reviewer
+
+      const updated = await res.json();
+      // Si quieres que desaparezca de la lista (pendientes), lo quitamos:
       setArticles((prev) => prev.filter((a) => a.id !== id));
+      // Si prefieres que quede en lista “Revisado”, en vez de filtrar, haz:
+      // setArticles((prev) => prev.map(a => a.id === id ? { ...a, ...updated } : a));
     } catch (e) {
       console.error(e);
       alert("Error aprobando la traducción");
@@ -79,10 +89,20 @@ const ArticlesList = ({ mode = "admin" }) => {
 
   const handleReject = async (id) => {
     try {
-      const res = await fetch(`/api/articles/${id}/reject`, { method: "PUT" });
+      const res = await fetch(`/api/articles/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          translationStatus: "in_progress", // vuelve al traductor
+        }),
+      });
       if (!res.ok) throw new Error("No se pudo rechazar");
-      // También lo retiro de la lista (o podrías dejarlo y marcar estado)
+
+      const updated = await res.json();
+      // Puedes sacarlo de la lista del revisor (si la lista es sólo “enviados”)
       setArticles((prev) => prev.filter((a) => a.id !== id));
+      // O actualizar en sitio si mantienes aprobados/en-progreso juntos:
+      // setArticles((prev) => prev.map(a => a.id === id ? { ...a, ...updated } : a));
     } catch (e) {
       console.error(e);
       alert("Error rechazando la traducción");
@@ -358,20 +378,6 @@ const ArticlesList = ({ mode = "admin" }) => {
                         >
                           👁️ Revisar
                         </Link>
-                        <button
-                          onClick={() => handleApprove(article.id)}
-                          className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
-                          title="Aprobar traducción"
-                        >
-                          ✅ Aprobar
-                        </button>
-                        <button
-                          onClick={() => handleReject(article.id)}
-                          className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700"
-                          title="Rechazar traducción"
-                        >
-                          ❌ Rechazar
-                        </button>
                       </div>
                     ) : article.translationStatus === "approved" ? (
                       <div className="flex items-center justify-center gap-2">
