@@ -96,23 +96,42 @@ export default function NewArticlePage() {
     return options;
   };
 
+  // 👇 sustituye tu loadTopics por este
   const loadTopics = async (inputValue) => {
-    if (!inputValue) return [];
+    const q = (inputValue || "").trim();
+    if (!q) return [];
     try {
-      const response = await fetch(`/api/topics?search=${inputValue}`);
-      const data = await response.json();
+      const res = await fetch(`/api/topics?search=${encodeURIComponent(q)}`);
+      const data = await res.json();
 
-      const flattenedTopics = flattenTopics(data);
+      const flat = flattenTopics(data); // [{ value, label }, ...]
+      const norm = (s) => (s || "").trim().toLowerCase();
+      const nq = norm(q);
 
-      // Agrega la opción "Crear tema"
-      return [
-        {
-          value: "new",
-          label: `${t("createTopicPrefix")}: "${inputValue}"`,
-          __inputValue: inputValue,
-        },
-        ...flattenedTopics,
-      ];
+      // prioridad: exacto → empieza con → contiene
+      const exact = flat.filter((o) => norm(o.label) === nq);
+      const starts = flat.filter(
+        (o) => norm(o.label).startsWith(nq) && norm(o.label) !== nq
+      );
+      const includes = flat.filter(
+        (o) => norm(o.label).includes(nq) && !norm(o.label).startsWith(nq)
+      );
+
+      const ordered = [...exact, ...starts, ...includes];
+
+      // Solo mostrar "Crear tema" si NO hay match exacto
+      const maybeCreate =
+        exact.length === 0
+          ? [
+              {
+                value: "new",
+                label: `${t("createTopicPrefix")}: "${q}"`,
+                __inputValue: q, // 👈 clave para NO romper tu handleTopicChange
+              },
+            ]
+          : [];
+
+      return [...maybeCreate, ...ordered];
     } catch (error) {
       console.error("Error al cargar los temas:", error);
       return [];

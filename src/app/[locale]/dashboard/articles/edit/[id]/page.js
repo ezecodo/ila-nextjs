@@ -102,18 +102,39 @@ export default function EditArticlePage() {
   };
 
   const loadTopics = async (inputValue) => {
-    if (!inputValue) return [];
+    const q = (inputValue || "").trim();
+    if (!q) return [];
     try {
-      const response = await fetch(`/api/topics?search=${inputValue}`);
-      const data = await response.json();
+      const res = await fetch(`/api/topics?search=${encodeURIComponent(q)}`);
+      const data = await res.json();
 
-      const flattenedTopics = flattenTopics(data);
+      const flat = flattenTopics(data); // [{ value, label }, ...]
+      const nq = norm(q);
 
-      // Agrega la opción "Crear tema"
-      return [
-        { value: "new", label: `${t("createTopicPrefix")}: "${inputValue}"` },
-        ...flattenedTopics,
-      ];
+      // prioridad: exacto → empieza con → contiene
+      const exact = flat.filter((o) => norm(o.label) === nq);
+      const starts = flat.filter(
+        (o) => norm(o.label).startsWith(nq) && norm(o.label) !== nq
+      );
+      const includes = flat.filter(
+        (o) => norm(o.label).includes(nq) && !norm(o.label).startsWith(nq)
+      );
+
+      const ordered = [...exact, ...starts, ...includes];
+
+      // Solo mostrar "Crear tema" si NO hay match exacto
+      const maybeCreate =
+        exact.length === 0
+          ? [
+              {
+                value: "new",
+                label: `${t("createTopicPrefix")}: "${q}"`,
+                __inputValue: q, // 👈 clave para handleTopicChange
+              },
+            ]
+          : [];
+
+      return [...maybeCreate, ...ordered];
     } catch (error) {
       console.error("Error al cargar los temas:", error);
       return [];
@@ -184,23 +205,24 @@ export default function EditArticlePage() {
   };
 
   const handleTopicChange = async (selectedOptions) => {
-    const CREATE_PREFIX = t("createTopicPrefix"); // ej: "Crear tema"
     const lastOption = selectedOptions?.[selectedOptions.length - 1];
 
     if (lastOption?.value === "new") {
-      // Quitar el prefijo localizado + comillas del label mostrado en el AsyncSelect
-      // Ej: 'Crear tema: "Clima"' -> 'Clima'
-      const inputValue = lastOption.label
-        .replace(`${CREATE_PREFIX}: "`, "")
-        .replace(/"$/, "");
+      // 👇 Usamos el valor crudo que enviamos en loadTopics
+      const raw =
+        lastOption.__inputValue ??
+        lastOption.label
+          .replace(`${t("createTopicPrefix")}: "`, "")
+          .replace(/"$/, "");
 
-      const newTopic = await createNewTopic(inputValue);
+      const newTopic = await createNewTopic(raw);
       if (newTopic) {
         setTopics((prev) => [...prev, newTopic]);
       }
-    } else {
-      setTopics(selectedOptions || []);
+      return; // 👈 importante: no sigas abajo
     }
+
+    setTopics(selectedOptions || []);
   };
 
   const createNewTopic = async (inputValue) => {
