@@ -15,6 +15,8 @@ import CheckboxField from "../../../../components/Articles/NewArticle/CheckboxFi
 import Image from "next/image";
 
 import dynamic from "next/dynamic";
+
+const norm = (s) => (s ?? "").trim().toLowerCase();
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 const QuillEditor = dynamic(
   () => import("../../../../components/QuillEditor/QuillEditor"),
@@ -182,13 +184,17 @@ export default function EditArticlePage() {
   };
 
   const handleTopicChange = async (selectedOptions) => {
-    const lastOption = selectedOptions[selectedOptions.length - 1];
+    const CREATE_PREFIX = t("createTopicPrefix"); // ej: "Crear tema"
+    const lastOption = selectedOptions?.[selectedOptions.length - 1];
 
     if (lastOption?.value === "new") {
-      const newTopic = await createNewTopic(
-        lastOption.label.replace('Crear tema: "', "").replace('"', "")
-      );
+      // Quitar el prefijo localizado + comillas del label mostrado en el AsyncSelect
+      // Ej: 'Crear tema: "Clima"' -> 'Clima'
+      const inputValue = lastOption.label
+        .replace(`${CREATE_PREFIX}: "`, "")
+        .replace(/"$/, "");
 
+      const newTopic = await createNewTopic(inputValue);
       if (newTopic) {
         setTopics((prev) => [...prev, newTopic]);
       }
@@ -199,8 +205,9 @@ export default function EditArticlePage() {
 
   const createNewTopic = async (inputValue) => {
     // Verificar si el tema ya existe
+
     const exists = topics.some(
-      (topic) => topic.label.toLowerCase() === inputValue.toLowerCase()
+      (topic) => norm(topic.label) === norm(inputValue)
     );
 
     if (exists) {

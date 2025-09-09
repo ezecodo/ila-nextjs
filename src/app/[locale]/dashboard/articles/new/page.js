@@ -106,7 +106,11 @@ export default function NewArticlePage() {
 
       // Agrega la opción "Crear tema"
       return [
-        { value: "new", label: `${t("createTopicPrefix")}: "${inputValue}"` },
+        {
+          value: "new",
+          label: `${t("createTopicPrefix")}: "${inputValue}"`,
+          __inputValue: inputValue,
+        },
         ...flattenedTopics,
       ];
     } catch (error) {
@@ -158,12 +162,12 @@ export default function NewArticlePage() {
     const lastOption = selectedOptions[selectedOptions.length - 1];
 
     if (lastOption?.value === "new") {
-      const newTopic = await createNewTopic(
-        lastOption.label.replace('Crear tema: "', "").replace('"', "")
-      );
+      const rawName = lastOption.__inputValue || lastOption.label;
+      const newTopic = await createNewTopic(rawName);
 
       if (newTopic) {
-        setTopics((prev) => [...prev, newTopic]);
+        // reemplaza la última opción "new" por el tema creado
+        setTopics([...selectedOptions.slice(0, -1), newTopic]);
       }
     } else {
       setTopics(selectedOptions || []);
@@ -171,10 +175,9 @@ export default function NewArticlePage() {
   };
 
   const createNewTopic = async (inputValue) => {
-    // Verificar si el tema ya existe
-    const exists = topics.some(
-      (topic) => topic.label.toLowerCase() === inputValue.toLowerCase()
-    );
+    // Verificar si el tema ya existe (normalizado)
+    const norm = (s) => s?.trim().toLowerCase();
+    const exists = topics.some((t) => norm(t.label) === norm(inputValue));
 
     if (exists) {
       setMessage(`El tema "${inputValue}" ya existe.`);
