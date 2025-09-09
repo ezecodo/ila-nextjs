@@ -42,6 +42,7 @@ export default function LatestEditionWithArticles() {
   useEffect(() => {
     async function fetchAllEditions() {
       try {
+        console.time("LatestEdition1:editions");
         const res = await fetch("/api/editions?sort=desc");
         if (!res.ok) {
           const msg = await res.text();
@@ -57,12 +58,8 @@ export default function LatestEditionWithArticles() {
           (a, b) => (b?.number ?? -Infinity) - (a?.number ?? -Infinity)
         );
         setEditions(byNumberDesc);
-
-        if (byNumberDesc.length) {
-          await fetchArticles(byNumberDesc[0].id);
-          await fetchEditionsCount(byNumberDesc[0]);
-          setCurrentEditionIndex(0);
-        }
+        if (byNumberDesc.length) setCurrentEditionIndex(0); // 👈 solo setear índice
+        console.timeEnd("LatestEdition1:editions");
       } catch (e) {
         console.error("Error cargando ediciones:", e);
         setEditions([]);
@@ -72,11 +69,15 @@ export default function LatestEditionWithArticles() {
   }, []);
 
   useEffect(() => {
-    if (editions[currentEditionIndex]) {
-      fetchArticles(editions[currentEditionIndex].id);
-      fetchEditionsCount(editions[currentEditionIndex]);
-    }
-  }, [currentEditionIndex]);
+    const ed = editions[currentEditionIndex];
+    if (!ed) return;
+
+    fetchArticles(ed.id);
+
+    // diferir contadores para después del paint
+    const id = setTimeout(() => fetchEditionsCount(ed), 0);
+    return () => clearTimeout(id);
+  }, [currentEditionIndex, editions]);
 
   async function fetchArticles(editionId) {
     const res = await fetch(`/api/articles/list?editionId=${editionId}`);
@@ -85,28 +86,38 @@ export default function LatestEditionWithArticles() {
   }
 
   async function fetchEditionsCount(edition) {
-    const regions = await Promise.all(
-      edition.regions.map(async (region) => {
-        const res = await fetch(
-          `/api/count/regions/${region.id}?context=editions`
-        );
-        const data = await res.json();
-        return { id: region.id, count: data.count };
-      })
-    );
-    const topics = await Promise.all(
-      edition.topics.map(async (topic) => {
-        const res = await fetch(
-          `/api/count/topics/${topic.id}?context=editions`
-        );
-        const data = await res.json();
-        return { id: topic.id, count: data.count };
-      })
-    );
+    if (!edition) return;
+
+    console.time("LatestEdition1:counts");
+
+    // corre regiones y topics en paralelo
+    const [regions, topics] = await Promise.all([
+      Promise.all(
+        (edition.regions || []).map(async (region) => {
+          const res = await fetch(
+            `/api/count/regions/${region.id}?context=editions`
+          );
+          const data = await res.json();
+          return { id: region.id, count: data.count };
+        })
+      ),
+      Promise.all(
+        (edition.topics || []).map(async (topic) => {
+          const res = await fetch(
+            `/api/count/topics/${topic.id}?context=editions`
+          );
+          const data = await res.json();
+          return { id: topic.id, count: data.count };
+        })
+      ),
+    ]);
+
     setEditionsCount({
       regions: Object.fromEntries(regions.map(({ id, count }) => [id, count])),
       topics: Object.fromEntries(topics.map(({ id, count }) => [id, count])),
     });
+
+    console.timeEnd("LatestEdition1:counts");
   }
 
   const filteredArticles =
