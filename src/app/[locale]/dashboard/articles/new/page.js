@@ -74,12 +74,6 @@ export default function NewArticlePage() {
   // Galería de imágenes adicionales (opcional)
   const [gallery, setGallery] = useState([]); // cada item: { file, title, alt, isCover, order }
 
-  // Formulario temporal para “agregar a galería”
-  const [newImgFile, setNewImgFile] = useState(null);
-  const [newImgTitle, setNewImgTitle] = useState("");
-  const [newImgAlt, setNewImgAlt] = useState("");
-  const [newImgIsCover, setNewImgIsCover] = useState(false);
-
   const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
 
   // Maneja los Temas del articulo
