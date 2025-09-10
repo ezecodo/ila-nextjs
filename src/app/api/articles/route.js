@@ -107,9 +107,6 @@ export async function POST(request) {
     const categories = JSON.parse(formData.get("categories") || "[]");
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
-    const articleImage = formData.get("articleImage");
-    const imageTitle = formData.get("imageTitle") || null; // String o null
-    const imageAlt = formData.get("imageAlt") || null; // String o null
 
     if (!title || !content || !beitragstypId) {
       return new Response(
@@ -224,53 +221,71 @@ export async function POST(request) {
       });
     }
 
-    let imageUrl = null;
-
-    // **2️⃣ Subir la imagen del artículo a Cloudinary**
-    if (articleImage) {
-      try {
-        const buffer = Buffer.from(await articleImage.arrayBuffer());
-
-        const uploadResult = await cloudinary.v2.uploader.upload(
-          `data:image/jpeg;base64,${buffer.toString("base64")}`,
-          {
-            folder: "ila/articles",
-            public_id: `article_${article.id}`,
-            overwrite: true,
-          }
-        );
-
-        imageUrl = uploadResult.secure_url;
-        console.log("✅ Imagen del artículo subida a Cloudinary:", imageUrl);
-
-        // **3️⃣ Guardar la imagen en la tabla `Image` con la relación `articleId = article.id`**
-        await prisma.image.create({
-          data: {
-            contentType: "ARTICLE",
-            contentId: article.id, // Relación con el artículo
-            url: imageUrl,
-            title: imageTitle, // ✅ Título de la foto (no el título del artículo)
-            alt: imageAlt,
-          },
-        });
-
-        console.log(
-          "✅ Imagen del artículo guardada en la BD con articleId:",
-          article.id
-        );
-      } catch (error) {
-        console.error(
-          "❌ Error al subir la imagen del artículo a Cloudinary:",
-          error.message
-        );
+    // **2️⃣ Procesar galería de imágenes** (N imágenes)
+    try {
+      // Detectar índices de gallery presentes en el FormData: gallery[0][file], gallery[0][title], etc.
+      const galleryIndices = new Set();
+      for (const key of formData.keys()) {
+        const m = key.match(/^gallery\[(\d+)\]\[(file|title|alt|isCover)\]$/);
+        if (m) galleryIndices.add(parseInt(m[1], 10));
       }
+
+      const sortedIdx = Array.from(galleryIndices).sort((a, b) => a - b);
+      let imagesUploaded = 0;
+
+      for (const idx of sortedIdx) {
+        const file = formData.get(`gallery[${idx}][file]`);
+        const title = formData.get(`gallery[${idx}][title]`) || null;
+        const alt = formData.get(`gallery[${idx}][alt]`) || null;
+
+        if (!file || !file.name) continue;
+
+        try {
+          // Subir a Cloudinary
+          const buffer = Buffer.from(await file.arrayBuffer());
+          const uploadResult = await cloudinary.v2.uploader.upload(
+            `data:${file.type};base64,${buffer.toString("base64")}`,
+            {
+              folder: "ila/articles",
+              public_id: `article_${article.id}_${Date.now()}_${idx}`,
+              overwrite: false,
+            }
+          );
+
+          // Guardar en BD
+          await prisma.image.create({
+            data: {
+              contentType: "ARTICLE",
+              contentId: article.id,
+              url: uploadResult.secure_url,
+              title,
+              alt,
+            },
+          });
+
+          imagesUploaded += 1;
+        } catch (imgErr) {
+          console.error(
+            `❌ Error subiendo/guardando imagen idx=${idx}:`,
+            imgErr
+          );
+        }
+      }
+
+      console.log(`✅ Galería procesada. Imágenes subidas: ${imagesUploaded}`);
+    } catch (galErr) {
+      console.error("❌ Error procesando la galería:", galErr);
     }
 
-    // **4️⃣ Retornar el artículo con la URL de la imagen**
+    // **4️⃣ Retornar el artículo con sus imágenes**
+    const images = await prisma.image.findMany({
+      where: { contentType: "ARTICLE", contentId: article.id },
+    });
+
     return new Response(
       JSON.stringify({
         ...article,
-        articleImageUrl: imageUrl,
+        images, // 👈 todas las imágenes subidas
       }),
       { status: 201 }
     );

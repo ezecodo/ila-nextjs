@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import InputField from "../../../../components/Articles/NewArticle/InputField";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
+import ImageGalleryManager from "../../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
 
 import SelectField from "../../../../components/Articles/NewArticle/SelectField";
 import ToggleSwitch from "../../../../components/Articles/NewArticle/ToggleSwitch";
@@ -12,7 +13,6 @@ import SubmitButton from "../../../../components/Articles/NewArticle/SubmitButto
 import Modal from "../../../../components/Articles/NewArticle/Modal";
 import styles from "../../../../../styles/global.module.css";
 import CheckboxField from "../../../../components/Articles/NewArticle/CheckboxField";
-import Image from "next/image";
 
 import dynamic from "next/dynamic";
 
@@ -29,12 +29,9 @@ export default function EditArticlePage() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
-  const [isDeleteImageModalOpen, setIsDeleteImageModalOpen] = useState(false);
 
   const t = useTranslations("newArticle.form");
   const locale = useLocale();
-
-  const [articleImage, setArticleImage] = useState(null); // Manejar la imagen del artículo
 
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
@@ -75,9 +72,8 @@ export default function EditArticlePage() {
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
   const [bookImage, setBookImage] = useState(null); // Imagen del libro
   const [mediaTitle, setMediaTitle] = useState(""); // Título completo del libro
-  const [imageTitle, setImageTitle] = useState(""); // Título de la foto
-  const [imageAlt, setImageAlt] = useState(""); // Créditos / Alt
-  const [articleImageUrl, setArticleImageUrl] = useState(null);
+
+  const [gallery, setGallery] = useState([]);
 
   const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
 
@@ -326,16 +322,19 @@ export default function EditArticlePage() {
           setIsInterview(true);
         }
 
-        // 👇 NUEVO BLOQUE: manejar imágenes
         if (article.images && article.images.length > 0) {
-          const image = article.images[0]; // usamos la primera
-          setArticleImageUrl(image.url); // preview
-          setImageTitle(image.title || "");
-          setImageAlt(image.alt || "");
+          setGallery(
+            article.images.map((img, index) => ({
+              id: img.id,
+              url: img.url,
+              title: img.title || "",
+              alt: img.alt || "",
+              isCover: index === 0, // 👈 opcional: marcamos la primera como portada
+              order: index + 1,
+            }))
+          );
         } else {
-          setArticleImageUrl(null);
-          setImageTitle("");
-          setImageAlt("");
+          setGallery([]);
         }
       } catch (err) {
         console.error("Error cargando artículo:", err);
@@ -500,13 +499,6 @@ export default function EditArticlePage() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
-    //Manejo de Imagen de articulo
-    if (articleImage) {
-      formData.append("articleImage", articleImage);
-    }
-    if (typeof imageTitle === "string")
-      formData.append("imageTitle", imageTitle);
-    if (typeof imageAlt === "string") formData.append("imageAlt", imageAlt);
 
     // Manejo de Autores
     formData.append(
@@ -569,7 +561,21 @@ export default function EditArticlePage() {
 
     // Agregar categorías seleccionadas
     formData.append("categories", JSON.stringify(selectedCategories));
-
+    // 📸 Añadir imágenes de la galería
+    gallery.forEach((img, idx) => {
+      if (img.file) {
+        formData.append(`gallery[${idx}][file]`, img.file);
+      }
+      formData.append(`gallery[${idx}][title]`, img.title || "");
+      formData.append(`gallery[${idx}][alt]`, img.alt || "");
+      formData.append(
+        `gallery[${idx}][isCover]`,
+        img.isCover ? "true" : "false"
+      );
+    });
+    // 📌 Añadir keepImages al FormData
+    const keepIds = gallery.filter((img) => img.id).map((img) => img.id);
+    formData.append("keepImages", JSON.stringify(keepIds));
     try {
       console.log("Editando artículo con id:", id);
       const res = await fetch(`/api/articles/${id}`, {
@@ -621,11 +627,11 @@ export default function EditArticlePage() {
     setSelectedCategories([]);
     setRegions([]);
     setTopics([]);
-    setArticleImage(null);
+
     setMediaTitle("");
     setBookImage(null);
-    setImageTitle("");
-    setImageAlt("");
+
+    setGallery([]);
   };
 
   const handleAddAuthor = async () => {
@@ -855,70 +861,7 @@ export default function EditArticlePage() {
           value={content}
           onChange={(value) => setContent(value)} // Actualiza el contenido
         />
-        <div className={styles.formGroup}>
-          <label htmlFor="articleImage" className={styles.formLabel}>
-            {t("imageLabel")} {/* Imagen del artículo */}
-          </label>
-          <input
-            type="file"
-            id="articleImage"
-            ref={fileInputRef}
-            onChange={(e) => setArticleImage(e.target.files[0])}
-            className={styles.input}
-            accept="image/*"
-          />
-
-          {/* 👇 Preview si hay imagen guardada */}
-          {/* 👇 Preview si hay imagen guardada */}
-          {articleImageUrl && (
-            <div className="mt-2 inline-block">
-              <div className="relative inline-block">
-                {/* Imagen */}
-                <Image
-                  src={articleImageUrl}
-                  alt={imageAlt || "Vista previa"}
-                  width={200}
-                  height={100}
-                  className="rounded border object-contain"
-                />
-
-                {/* Botón eliminar pegado a la esquina de la imagen */}
-                <button
-                  type="button"
-                  onClick={() => setIsDeleteImageModalOpen(true)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Texto debajo */}
-              {imageTitle && (
-                <p className="text-sm text-gray-600 mt-1">{imageTitle}</p>
-              )}
-            </div>
-          )}
-
-          <div className={styles.formGroup}>
-            <InputField
-              id="imageTitle"
-              label={t("photoTitle")}
-              value={imageTitle}
-              onChange={(e) => setImageTitle(e.target.value)}
-              placeholder={t("photoTitlePlaceholder")}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <InputField
-              id="imageAlt"
-              label={t("photoCredits")}
-              value={imageAlt}
-              onChange={(e) => setImageAlt(e.target.value)}
-              placeholder={t("photoCreditsPlaceholder")}
-            />
-          </div>
-        </div>
+        <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
         <ToggleSwitch
           id="additionalInfoToggle"
           label={t("additionalInfoToggle")} // Información adicional toogle
@@ -1163,35 +1106,6 @@ export default function EditArticlePage() {
           >
             Agregar Entrevistado
           </button>
-        </Modal>
-      )}
-      {isDeleteImageModalOpen && (
-        <Modal onClose={() => setIsDeleteImageModalOpen(false)}>
-          <h2 className="text-lg font-bold mb-2">¿Eliminar foto?</h2>
-          <p className="mb-4">
-            ¿Seguro que quieres eliminar esta foto del artículo?
-          </p>
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setIsDeleteImageModalOpen(false)}
-              className="px-3 py-1 bg-gray-300 rounded hover:bg-gray-400"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={() => {
-                setArticleImageUrl(null);
-                setImageTitle("");
-                setImageAlt("");
-                setArticleImage(null);
-                if (fileInputRef.current) fileInputRef.current.value = "";
-                setIsDeleteImageModalOpen(false);
-              }}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Eliminar
-            </button>
-          </div>
         </Modal>
       )}
     </div>

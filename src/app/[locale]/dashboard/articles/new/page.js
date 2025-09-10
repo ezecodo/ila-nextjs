@@ -12,6 +12,7 @@ import SubmitButton from "../../../components/Articles/NewArticle/SubmitButton";
 import Modal from "../../../components/Articles/NewArticle/Modal";
 import styles from "../../../../styles/global.module.css";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
+import ImageGalleryManager from "../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
 
 import dynamic from "next/dynamic";
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
@@ -30,8 +31,6 @@ export default function NewArticlePage() {
   const [resetTrigger, setResetTrigger] = useState(false);
   const t = useTranslations("newArticle.form");
   const locale = useLocale();
-
-  const [articleImage, setArticleImage] = useState(null); // Manejar la imagen del artículo
 
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
@@ -71,8 +70,15 @@ export default function NewArticlePage() {
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
   const [bookImage, setBookImage] = useState(null); // Imagen del libro
   const [mediaTitle, setMediaTitle] = useState(""); // Título completo del libro
-  const [imageTitle, setImageTitle] = useState(""); // Título de la foto
-  const [imageAlt, setImageAlt] = useState(""); // Créditos / Alt
+
+  // Galería de imágenes adicionales (opcional)
+  const [gallery, setGallery] = useState([]); // cada item: { file, title, alt, isCover, order }
+
+  // Formulario temporal para “agregar a galería”
+  const [newImgFile, setNewImgFile] = useState(null);
+  const [newImgTitle, setNewImgTitle] = useState("");
+  const [newImgAlt, setNewImgAlt] = useState("");
+  const [newImgIsCover, setNewImgIsCover] = useState(false);
 
   const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
 
@@ -404,16 +410,19 @@ export default function NewArticlePage() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
+    // 🔽 Agregar todas las imágenes de la galería
+    gallery.forEach((img, idx) => {
+      if (img.file) formData.append(`gallery[${idx}][file]`, img.file);
+      formData.append(`gallery[${idx}][title]`, img.title || "");
+      formData.append(`gallery[${idx}][alt]`, img.alt || "");
+      formData.append(
+        `gallery[${idx}][isCover]`,
+        img.isCover ? "true" : "false"
+      );
+    });
     if (session?.user?.id) {
       formData.append("userId", session.user.id);
     }
-    //Manejo de Imagen de articulo
-    if (articleImage) {
-      formData.append("articleImage", articleImage);
-    }
-    if (typeof imageTitle === "string")
-      formData.append("imageTitle", imageTitle);
-    if (typeof imageAlt === "string") formData.append("imageAlt", imageAlt);
 
     // Manejo de Autores
     formData.append("authorId", selectedAuthor || null);
@@ -527,11 +536,11 @@ export default function NewArticlePage() {
     setSelectedCategories([]);
     setRegions([]);
     setTopics([]);
-    setArticleImage(null);
+
     setMediaTitle("");
     setBookImage(null);
-    setImageTitle("");
-    setImageAlt("");
+
+    setGallery([]); // 🔽 limpia la galería de imágenes
   };
 
   const handleAddAuthor = async () => {
@@ -731,6 +740,9 @@ export default function NewArticlePage() {
             key={locale} // 👈 (opcional) re-monta al cambiar idioma
           />
         </div>
+        {/* 🔽 Galería de imágenes adicionales */}
+        <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+
         <div className={styles.formGroup}>
           <label htmlFor="topic-select" className={styles.formLabel}>
             {t("topicLabel")}
@@ -752,39 +764,7 @@ export default function NewArticlePage() {
           onChange={(value) => setContent(value)} // Actualiza el contenido
           resetTrigger={resetTrigger} // Reinicia el editor
         />
-        <div className={styles.formGroup}>
-          <label htmlFor="articleImage" className={styles.formLabel}>
-            {t("imageLabel")} {/* Imagen del artículo */}
-          </label>
-          <input
-            type="file"
-            id="articleImage"
-            ref={fileInputRef}
-            onChange={(e) => setArticleImage(e.target.files[0])}
-            className={styles.input}
-            accept="image/*"
-          />
 
-          <div className={styles.formGroup}>
-            <InputField
-              id="imageTitle"
-              label={t("photoTitle")}
-              value={imageTitle}
-              onChange={(e) => setImageTitle(e.target.value)}
-              placeholder={t("photoTitlePlaceholder")}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <InputField
-              id="imageAlt"
-              label={t("photoCredits")}
-              value={imageAlt}
-              onChange={(e) => setImageAlt(e.target.value)}
-              placeholder={t("photoCreditsPlaceholder")}
-            />
-          </div>
-        </div>
         <ToggleSwitch
           id="additionalInfoToggle"
           label={t("additionalInfoToggle")} // Información adicional toogle

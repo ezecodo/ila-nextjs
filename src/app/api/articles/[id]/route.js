@@ -1,4 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import cloudinary from "cloudinary";
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function GET(req, context) {
   const params = await context.params;
@@ -173,6 +180,17 @@ export async function PUT(req, context) {
     if (contentType.includes("multipart/form-data")) {
       // 🟠 Caso: Edición con imágenes
       const formData = await req.formData();
+      // IDs de imágenes que se mantienen
+      const keepImages = (() => {
+        try {
+          return formData.get("keepImages")
+            ? JSON.parse(formData.get("keepImages"))
+            : [];
+        } catch (e) {
+          console.error("Error parseando keepImages:", e);
+          return [];
+        }
+      })();
 
       const title = formData.get("title");
       const subtitle = formData.get("subtitle");
@@ -233,7 +251,94 @@ export async function PUT(req, context) {
         }
       })();
 
-      // ⚡️ TODO: procesar file (articleImage) y subir a Cloudinary si existe
+      // ⚡️ TODO: procesar file (articleImage) y subir a Cloudinary si
+      // 🗑️ Eliminar imágenes no incluidas en keepImages
+      // ⚡️ Si keepImages está definido (aunque sea vacío), lo usamos
+      if (Array.isArray(keepImages)) {
+        await prisma.image.deleteMany({
+          where: {
+            contentType: "ARTICLE",
+            contentId: parseInt(id, 10),
+            // 👇 solo borrar si hay keepIds
+            ...(keepImages.length > 0
+              ? { id: { notIn: keepImages.map((n) => parseInt(n, 10)) } }
+              : {}),
+          },
+        });
+      }
+      // 📤 Procesar nuevas imágenes de la galería
+      const galleryIndices = new Set();
+      for (const key of formData.keys()) {
+        const m = key.match(/^gallery\[(\d+)\]\[(file|title|alt|isCover)\]$/);
+        if (m) galleryIndices.add(parseInt(m[1], 10));
+      }
+
+      const sortedIdx = Array.from(galleryIndices).sort((a, b) => a - b);
+
+      for (const idx of sortedIdx) {
+        const file = formData.get(`gallery[${idx}][file]`);
+        const title = formData.get(`gallery[${idx}][title]`) || null;
+        const alt = formData.get(`gallery[${idx}][alt]`) || null;
+
+        if (file && file.name) {
+          const buffer = Buffer.from(await file.arrayBuffer());
+          const uploadResult = await cloudinary.v2.uploader.upload(
+            `data:${file.type};base64,${buffer.toString("base64")}`,
+            {
+              folder: "ila/articles",
+              public_id: `article_${id}_${Date.now()}_${idx}`,
+              overwrite: false,
+            }
+          );
+
+          await prisma.image.create({
+            data: {
+              contentType: "ARTICLE",
+              contentId: parseInt(id, 10),
+              url: uploadResult.secure_url,
+              title,
+              alt,
+            },
+          });
+        }
+      }
+      // 📤 Procesar nuevas imágenes subidas
+      const files = formData.getAll("articleImages"); // 👈 clave plural
+      for (const file of files) {
+        if (file && file.name) {
+          const buffer = Buffer.from(await file.arrayBuffer());
+
+          // Subir a Cloudinary
+          const uploadResult = await cloudinary.v2.uploader.upload(
+            `data:${file.type};base64,${buffer.toString("base64")}`,
+            {
+              folder: "ila/articles",
+              public_id: `article_${id}_${Date.now()}`, // nombre único
+              overwrite: false,
+            }
+          );
+
+          // Buscar metadatos de esta imagen
+          const metaRaw = formData.get(`imageMeta_${file.name}`);
+          let meta = {};
+          try {
+            meta = metaRaw ? JSON.parse(metaRaw.toString()) : {};
+          } catch (e) {
+            console.error("⚠️ Error parseando metadatos de imagen", e);
+          }
+
+          // Guardar en BD
+          await prisma.image.create({
+            data: {
+              contentType: "ARTICLE",
+              contentId: parseInt(id, 10),
+              url: uploadResult.secure_url,
+              title: meta.title || null,
+              alt: meta.alt || null,
+            },
+          });
+        }
+      }
 
       const updatedArticle = await prisma.article.update({
         where: { id: parseInt(id) },
@@ -271,8 +376,17 @@ export async function PUT(req, context) {
           // …añadir otros campos
         },
       });
+      const images = await prisma.image.findMany({
+        where: { contentType: "ARTICLE", contentId: parseInt(id, 10) },
+      });
 
-      return Response.json(updatedArticle, { status: 200 });
+      return Response.json(
+        {
+          ...updatedArticle,
+          images,
+        },
+        { status: 200 }
+      );
     }
 
     return new Response(
