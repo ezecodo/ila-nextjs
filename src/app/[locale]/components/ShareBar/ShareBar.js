@@ -6,10 +6,13 @@ import {
   FaTelegramPlane,
   FaEnvelope,
   FaLink,
-  FaPrint, // 👈 NUEVO
+  FaPrint,
+  FaEdit, // 👈 NUEVO
 } from "react-icons/fa";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 /** Item con tooltip (solo desktop) */
 function ShareItem({ children, label, title }) {
@@ -48,6 +51,8 @@ export default function ShareBar({
   const [copied, setCopied] = useState(false);
   const [left, setLeft] = useState("8px");
   const [computedTop, setComputedTop] = useState(stickyTop);
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
 
   useEffect(() => {
     if (typeof window !== "undefined") setUrl(window.location.href);
@@ -168,7 +173,18 @@ export default function ShareBar({
             <FaPrint size={20} />
           </ShareItem>
         </button>
+        {isAdmin && articleId != null && (
+          <Link
+            href={`/dashboard/articles/edit/${articleId}`}
+            className="hidden md:block"
+          >
+            <ShareItem label="Editar" title="Editar artículo">
+              <FaEdit size={20} />
+            </ShareItem>
+          </Link>
+        )}
       </div>
+      {/* Editar artículo (solo admin) */}
 
       {/* Aviso “copiado” (desktop) */}
       <div
@@ -239,6 +255,16 @@ export default function ShareBar({
           >
             <FaPrint size={20} />
           </button>
+          {isAdmin && articleId != null && (
+            <Link
+              href={`/dashboard/articles/edit/${articleId}`}
+              className="bg-white border border-red-500 text-red-600 p-2 rounded"
+              title="Editar artículo"
+              aria-label="Editar artículo"
+            >
+              <FaEdit size={20} />
+            </Link>
+          )}
         </div>
       </div>
     </>
