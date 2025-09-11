@@ -346,6 +346,7 @@
 
   "insertDossier": {
     "formTitle": "Erstelle eine neue Ausgabe",
+    "editFormTitle": "Ausgabe bearbeiten",
     "numberLabel": "ila Nr",
     "numberPh": "ila-Nummer eingeben",
     "titleLabel": "Titel",
@@ -366,6 +367,7 @@
     "regionsPh": "Zum Suchen tippen",
     "coverLabel": "Titelbild:",
     "bgLabel": "Hintergrundbild:",
-    "submit": "Ausgabe erstellen"
+    "submit": "Ausgabe erstellen",
+    "updateButton": "Änderungen speichern"
   }
 }

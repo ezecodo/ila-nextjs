@@ -141,6 +141,7 @@ export default function DashboardLayout({
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="md:hidden bg-blue-500 text-white p-3 text-center w-full"
+          suppressHydrationWarning
         >
           {menuOpen ? t("closeMenu") : t("openMenu")}
         </button>

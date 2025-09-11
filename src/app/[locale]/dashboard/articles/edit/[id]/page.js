@@ -1066,7 +1066,7 @@ export default function EditArticlePage() {
             />
           </div>
         )}
-        <SubmitButton label="Actulizar articulo" />
+        <SubmitButton label="Actualizar artículo" />
       </form>
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>

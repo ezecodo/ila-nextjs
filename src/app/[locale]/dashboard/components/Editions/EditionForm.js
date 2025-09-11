@@ -7,10 +7,14 @@ import TextAreaField from "../../../components/Articles/NewArticle/TextAreaField
 import ToggleSwitch from "../../../components/Articles/NewArticle/ToggleSwitch";
 import SubmitButton from "../../../components/Articles/NewArticle/SubmitButton";
 import FormMessage from "../../../components/Articles/NewArticle/FormMessage";
-import AsyncSelect from "react-select/async";
+
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "../../../../styles/global.module.css";
 import { useTranslations } from "next-intl";
+
+const AsyncSelectNoSSR = dynamic(() => import("react-select/async"), {
+  ssr: false,
+});
 
 // Importación dinámica del editor de texto
 const QuillEditor = dynamic(
@@ -292,7 +296,7 @@ export default function EditionForm({ edition = null }) {
           <label className={styles.formLabel}>{t("editorialLabel")}</label>
           <QuillEditor
             value={summary}
-            onChange={(newSummary) => setSummary(newSummary)}
+            onChange={setSummary}
             resetTrigger={resetTrigger}
           />
         </div>
@@ -319,7 +323,7 @@ export default function EditionForm({ edition = null }) {
           <label htmlFor="topic" className={styles.formLabel}>
             {t("topicsLabel")}
           </label>
-          <AsyncSelect
+          <AsyncSelectNoSSR
             isMulti
             cacheOptions
             defaultOptions
@@ -333,7 +337,7 @@ export default function EditionForm({ edition = null }) {
           <label htmlFor="region" className={styles.formLabel}>
             {t("regionsLabel")}
           </label>
-          <AsyncSelect
+          <AsyncSelectNoSSR
             isMulti
             cacheOptions
             defaultOptions

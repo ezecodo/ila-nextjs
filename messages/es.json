@@ -349,6 +349,7 @@
   },
   "insertDossier": {
     "formTitle": "Crear una nueva edición",
+    "editFormTitle": "Editar edición",
     "numberLabel": "Número de Edición",
     "numberPh": "Ingrese el número de la edición",
     "titleLabel": "Título",
@@ -369,6 +370,7 @@
     "regionsPh": "Escriba para buscar regiones",
     "coverLabel": "Imagen de Portada:",
     "bgLabel": "Imagen de Fondo:",
-    "submit": "Crear Edición"
+    "submit": "Crear Edición",
+    "updateButton": "Guardar Cambios"
   }
 }
