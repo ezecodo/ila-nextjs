@@ -80,7 +80,9 @@ export default function LatestEditionWithArticles() {
   }, [currentEditionIndex, editions]);
 
   async function fetchArticles(editionId) {
-    const res = await fetch(`/api/articles/list?editionId=${editionId}`);
+    const res = await fetch(
+      `/api/articles/list?editionId=${editionId}&limit=200`
+    );
     const data = await res.json();
     setArticles(data.articles || []);
   }
@@ -120,10 +122,31 @@ export default function LatestEditionWithArticles() {
     console.timeEnd("LatestEdition1:counts");
   }
 
-  const filteredArticles =
-    locale === "es"
-      ? articles.filter((a) => a.isTranslatedES && !a.needsReviewES)
-      : articles;
+  let filteredArticles;
+  if (locale === "es") {
+    // 👉 Paso 1: tomar los 10 primeros (base DE)
+    const base = articles.slice(0, 10);
+
+    // 👉 Paso 2: filtrar traducidos de esos 10
+    let traducidos = base.filter((a) => a.isTranslatedES && !a.needsReviewES);
+
+    // 👉 Paso 3: si no llegamos a 10, buscar en el resto
+    if (traducidos.length < 10) {
+      const resto = articles.slice(10); // del 11 en adelante
+      const extraTraducidos = resto.filter(
+        (a) => a.isTranslatedES && !a.needsReviewES
+      );
+      traducidos = [
+        ...traducidos,
+        ...extraTraducidos.slice(0, 10 - traducidos.length),
+      ];
+    }
+
+    filteredArticles = traducidos;
+  } else {
+    // 👉 En alemán, simplemente mostramos los 10 primeros
+    filteredArticles = articles.slice(0, 10);
+  }
 
   // 👉 helper: ¿la 1ª imagen es vertical?
   const isVertical = (img) =>

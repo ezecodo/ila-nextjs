@@ -5,12 +5,17 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const limit = parseInt(searchParams.get("limit") || "200");
     const offset = (page - 1) * limit;
+    // 👇 Si está en español, levantamos más artículos para no quedarnos cortos
+    const locale = searchParams.get("locale");
+    if (locale === "es") {
+      limit = 100; // pedimos hasta 100
+    }
 
     const showFavorites = searchParams.get("favorites") === "true";
     const editionId = searchParams.get("editionId");
-    const locale = searchParams.get("locale");
+
     const beitragstypId = searchParams.get("beitragstypId");
     const reviewerMode = searchParams.get("reviewer") === "true";
     const unassignedMode = searchParams.get("unassigned") === "true";
