@@ -32,6 +32,7 @@ export async function GET(req, context) {
       select: {
         id: true,
         title: true,
+        legacyPath: true,
       },
     });
 

@@ -59,7 +59,7 @@ export default function EditionDetails() {
           >
             {isLinked ? (
               <Link
-                href={`/articles/${matchedArticle.id}`}
+                href={matchedArticle.legacyPath}
                 className="flex items-center gap-2 hover:underline"
               >
                 <span>{line}</span>
