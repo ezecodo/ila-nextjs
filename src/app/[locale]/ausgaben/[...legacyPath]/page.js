@@ -170,10 +170,14 @@ export default function LegacyArticlePage() {
                 </div>
 
                 {/* Título y autor de la foto */}
+                {/* Información de la imagen */}
                 <div className="text-center mt-3">
+                  {/* Título accesible solo para screen readers */}
                   {image.title && (
-                    <p className="text-base font-semibold">{image.title}</p>
+                    <span className="sr-only">{image.title}</span>
                   )}
+
+                  {/* Créditos visibles */}
                   {image.alt && (
                     <p className="text-sm italic text-gray-600">{image.alt}</p>
                   )}

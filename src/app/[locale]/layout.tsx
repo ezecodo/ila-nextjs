@@ -26,6 +26,32 @@ const geistMono = localFont({
   variable: "--font-geist-mono",
   weight: "100 900",
 });
+const futura = localFont({
+  src: [
+    {
+      path: "../../fonts/FuturaCyrillicBook.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../../fonts/FuturaCyrillicMedium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../../fonts/FuturaCyrillicBold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../fonts/FuturaCyrillicExtraBold.ttf",
+      weight: "800",
+      style: "normal",
+    },
+  ],
+  variable: "--font-futura",
+  display: "swap",
+});
 
 type Props = {
   children: ReactNode;
@@ -59,7 +85,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
+        className={`${geistSans.variable} ${geistMono.variable} ${futura.variable} antialiased flex flex-col min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SessionProvider>

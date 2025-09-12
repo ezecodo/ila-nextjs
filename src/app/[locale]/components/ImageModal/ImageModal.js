@@ -29,7 +29,10 @@ export default function ImageModal({
             />
             {/* Título y Alt */}
             <div className={styles.imageCaption}>
-              {title && <h3 className={styles.imageTitle}>{title}</h3>}
+              {/* Título accesible solo para screen readers */}
+              {title && <span className="sr-only">{title}</span>}
+
+              {/* Créditos visibles */}
               {alt && <p className={styles.imageAlt}>{alt}</p>}
             </div>
           </>
