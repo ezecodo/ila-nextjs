@@ -43,7 +43,7 @@ export default function NewArticlePage() {
   const [endPage, setEndPage] = useState("");
   const [message, setMessage] = useState("");
   const [authors, setAuthors] = useState([]);
-  const [selectedAuthor, setSelectedAuthor] = useState("");
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
   const [selectedInterviewees, setSelectedInterviewees] = useState([]); // ✅ igual que en Edit
   const [isIntervieweeModalOpen, setIsIntervieweeModalOpen] = useState(false);
   const [newIntervieweeName, setNewIntervieweeName] = useState("");
@@ -154,6 +154,28 @@ export default function NewArticlePage() {
       }));
     } catch (error) {
       console.error("Error cargando entrevistados:", error);
+      return [];
+    }
+  };
+
+  // ⬇️ AQUI INSERTA LA NUEVA FUNCIÓN
+  const loadAuthors = async (inputValue) => {
+    try {
+      const res = await fetch("/api/authors");
+      if (!res.ok) return [];
+
+      const data = await res.json();
+
+      const filtered = data.filter((a) =>
+        a.name.toLowerCase().includes(inputValue.toLowerCase())
+      );
+
+      return filtered.map((a) => ({
+        value: a.id,
+        label: a.name,
+      }));
+    } catch (error) {
+      console.error("Error cargando autores:", error);
       return [];
     }
   };
@@ -382,8 +404,6 @@ export default function NewArticlePage() {
     name: locale === "es" && s.nameES ? s.nameES : s.name,
   }));
 
-  const authorOptions = authors;
-
   // Manejar selección de categorías
   const handleCategoryChange = (categoryId) => {
     setSelectedCategories(
@@ -419,7 +439,10 @@ export default function NewArticlePage() {
     }
 
     // Manejo de Autores
-    formData.append("authorId", selectedAuthor || null);
+    formData.append(
+      "authors",
+      JSON.stringify(selectedAuthors.map((a) => a.value))
+    );
     // Manejo de regiones y temas como JSON
     formData.append(
       "regions",
@@ -512,7 +535,7 @@ export default function NewArticlePage() {
     setSelectedEdition("");
     setStartPage("");
     setEndPage("");
-    setSelectedAuthor("");
+    setSelectedAuthors([]);
     setSelectedInterviewees([]);
     setIsInterview(false);
     setDeceasedFirstName("");
@@ -863,14 +886,21 @@ export default function NewArticlePage() {
           />
         )}
 
-        {/* AUTOR */}
+        {/* AUTORES */}
         <div className={styles.authorSection}>
-          <SelectField
-            id="author"
-            label={t("author")}
-            options={authorOptions}
-            value={selectedAuthor}
-            onChange={(e) => setSelectedAuthor(e.target.value)}
+          <label className={styles.formLabel}>{t("author")}</label>
+          <AsyncSelect
+            instanceId="authors"
+            inputId="author-select"
+            isMulti
+            cacheOptions
+            defaultOptions={authors.map((a) => ({
+              value: a.id,
+              label: a.name,
+            }))}
+            loadOptions={loadAuthors}
+            value={selectedAuthors}
+            onChange={(selected) => setSelectedAuthors(selected || [])}
             placeholder={t("authorPlaceholder")}
           />
           <button

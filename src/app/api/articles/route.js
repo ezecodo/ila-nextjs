@@ -98,7 +98,15 @@ export async function POST(request) {
     const beitragstypId = formData.get("beitragstypId");
     const isPrinted = formData.get("isPrinted") === "true";
     const editionId = formData.get("editionId");
-    const authorId = formData.get("authorId");
+    let authors = [];
+    try {
+      const rawAuthors = formData.get("authors");
+      if (rawAuthors) {
+        authors = JSON.parse(rawAuthors.toString());
+      }
+    } catch (e) {
+      console.error("❌ Error parseando autores:", e);
+    }
     const interviewees = JSON.parse(formData.get("interviewees") || "[]");
     const isPublished = formData.get("isPublished") === "true";
     const startPage = formData.get("startPage");
@@ -170,8 +178,8 @@ export async function POST(request) {
           : new Date(),
         startPage: startPage ? parseInt(startPage, 10) : null,
         endPage: endPage ? parseInt(endPage, 10) : null,
-        authors: authorId
-          ? { connect: { id: parseInt(authorId, 10) } }
+        authors: authors.length
+          ? { connect: authors.map((id) => ({ id: parseInt(id, 10) })) }
           : undefined,
         interviewees: interviewees.length
           ? {
