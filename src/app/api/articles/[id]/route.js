@@ -401,3 +401,81 @@ export async function PUT(req, context) {
     );
   }
 }
+// Eliminar artículo
+export async function DELETE(req, { params }) {
+  const { id } = params;
+
+  if (!id || isNaN(parseInt(id))) {
+    return new Response(JSON.stringify({ error: "ID no válido" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const articleId = parseInt(id, 10);
+
+    // 1️⃣ Verificar que el artículo existe
+    const existing = await prisma.article.findUnique({
+      where: { id: articleId },
+    });
+
+    if (!existing) {
+      return new Response(JSON.stringify({ error: "Artículo no encontrado" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // 2️⃣ Obtener imágenes asociadas (como en tu GET)
+    const images = await prisma.image.findMany({
+      where: {
+        contentType: "ARTICLE",
+        contentId: articleId,
+      },
+    });
+
+    // 3️⃣ Eliminar imágenes en Cloudinary (ignorar errores si falla alguna)
+    for (const image of images) {
+      try {
+        const match = image.url.match(/\/upload\/(?:v\d+\/)?([^\.]+)/);
+        if (match) {
+          await cloudinary.v2.uploader.destroy(match[1]);
+        }
+      } catch (e) {
+        console.warn("⚠️ Error eliminando imagen en Cloudinary:", e);
+      }
+    }
+
+    // 4️⃣ Desvincular relaciones M:N
+    await prisma.article.update({
+      where: { id: articleId },
+      data: {
+        authors: { set: [] },
+        categories: { set: [] },
+        regions: { set: [] },
+        topics: { set: [] },
+        interviewees: { set: [] },
+      },
+    });
+
+    // 5️⃣ Eliminar imágenes de la BD
+    await prisma.image.deleteMany({
+      where: { contentType: "ARTICLE", contentId: articleId },
+    });
+
+    // 6️⃣ Finalmente borrar el artículo
+    await prisma.article.delete({ where: { id: articleId } });
+
+    return new Response(JSON.stringify({ ok: true, id: articleId }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("❌ Error en DELETE /api/articles/[id]:", error);
+    return new Response(
+      JSON.stringify({ error: "Error interno", details: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}

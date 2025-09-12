@@ -29,6 +29,8 @@ const ArticlesList = ({ mode = "admin" }) => {
   const limit = 20;
   const locale = useLocale();
   const { data: session } = useSession();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [articleToDelete, setArticleToDelete] = useState(null);
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -124,6 +126,7 @@ const ArticlesList = ({ mode = "admin" }) => {
                   </th>
                   <th className="p-1.5 border text-left">📷 Imagen</th>
                   <th className="p-1.5 border text-left">✏️ Editar</th>
+                  <th className="p-1.5 border text-left">🗑️ </th>
                 </>
               )}
 
@@ -224,6 +227,18 @@ const ArticlesList = ({ mode = "admin" }) => {
                           ✏️ Editar
                         </button>
                       </Link>
+                    </td>
+                    <td className="p-1.5 border text-center">
+                      <button
+                        onClick={() => {
+                          setArticleToDelete(article);
+                          setIsDeleteOpen(true);
+                        }}
+                        className="text-red-600 hover:text-red-800 font-bold"
+                        title="Eliminar artículo"
+                      >
+                        ❌
+                      </button>
                     </td>
                   </>
                 )}
@@ -374,6 +389,61 @@ const ArticlesList = ({ mode = "admin" }) => {
           Siguiente ➡️
         </button>
       </div>
+      {/* 👇 Modal de confirmación */}
+      {isDeleteOpen && articleToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md">
+            <h3 className="text-lg font-bold mb-4 text-red-600">
+              ¿De veras quieres eliminar este artículo?
+            </h3>
+            <p className="mb-4 text-sm text-gray-700">
+              <span className="block">
+                <strong>Título:</strong> {articleToDelete.title}
+              </span>
+              <span className="block">
+                <strong>ID:</strong> {articleToDelete.id}
+              </span>
+              {articleToDelete.edition && (
+                <span className="block">
+                  <strong>Dossier:</strong> {articleToDelete.edition.number}
+                </span>
+              )}
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setIsDeleteOpen(false)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(
+                      `/api/articles/${articleToDelete.id}`,
+                      {
+                        method: "DELETE",
+                      }
+                    );
+                    if (!res.ok) throw new Error("Error al eliminar");
+                    setArticles((prev) =>
+                      prev.filter((a) => a.id !== articleToDelete.id)
+                    );
+                    setIsDeleteOpen(false);
+                    setArticleToDelete(null);
+                  } catch (err) {
+                    console.error(err);
+                    alert("Error al eliminar artículo");
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
