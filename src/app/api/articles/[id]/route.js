@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import cloudinary from "cloudinary";
+import { auth } from "../../../auth";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -110,6 +111,8 @@ export async function GET(req, context) {
 // Guardar traducción en campos ES
 export async function PUT(req, context) {
   const { id } = await context.params;
+  const session = await auth();
+  const userId = session?.user?.id || "system"; // fallback
 
   if (!id || isNaN(parseInt(id))) {
     return new Response(JSON.stringify({ error: "ID no válido" }), {
@@ -172,6 +175,17 @@ export async function PUT(req, context) {
       const updatedArticle = await prisma.article.update({
         where: { id: parseInt(id, 10) },
         data: dataToUpdate,
+      });
+      await prisma.activityLog.create({
+        data: {
+          userId,
+          articleId: updatedArticle.id,
+          action: "UPDATE_ARTICLE",
+          metadata: JSON.stringify({
+            title: updatedArticle.title,
+            legacyPath: updatedArticle.legacyPath,
+          }),
+        },
       });
 
       return Response.json(updatedArticle, { status: 200 });
@@ -374,6 +388,17 @@ export async function PUT(req, context) {
             set: topics.map((id) => ({ id: parseInt(id, 10) })),
           },
           // …añadir otros campos
+        },
+      });
+      await prisma.activityLog.create({
+        data: {
+          userId,
+          articleId: updatedArticle.id,
+          action: "UPDATE_ARTICLE",
+          metadata: JSON.stringify({
+            title: updatedArticle.title,
+            legacyPath: updatedArticle.legacyPath,
+          }),
         },
       });
       const images = await prisma.image.findMany({

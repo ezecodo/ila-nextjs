@@ -172,6 +172,33 @@ export default function ActivityFeed() {
                     </span>
                   )}
                 </>
+              ) : log.action === "UPDATE_ARTICLE" ? (
+                <>
+                  {t("updatedArticle")}{" "}
+                  {log.metadata?.legacyPath ? (
+                    <Link
+                      href={log.metadata.legacyPath}
+                      className="text-blue-600 hover:underline"
+                    >
+                      “
+                      {log.metadata?.title ||
+                        log.article?.title ||
+                        t("untitled")}
+                      ”
+                    </Link>
+                  ) : log.article?.legacyPath ? (
+                    <Link
+                      href={log.article.legacyPath}
+                      className="text-blue-600 hover:underline"
+                    >
+                      “{log.article?.title || t("untitled")}”
+                    </Link>
+                  ) : (
+                    <span className="italic text-gray-500">
+                      “{log.article?.title || t("untitled")}”
+                    </span>
+                  )}
+                </>
               ) : (
                 t("default")
               )}
