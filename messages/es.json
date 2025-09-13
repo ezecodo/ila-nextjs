@@ -343,7 +343,8 @@
 
     "print": "Imprimir",
     "printTooltip": "Ver versión optimizada para impresión",
-    "printAria": "Imprimir este artículo"
+    "printAria": "Imprimir este artículo",
+    "editLink": "Editar artículo"
   },
   "Footer": {
     "tagline": "La revista de Latinoamérica"

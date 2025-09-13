@@ -178,7 +178,7 @@ export default function ShareBar({
             href={`/dashboard/articles/edit/${articleId}`}
             className="hidden md:block"
           >
-            <ShareItem label="Editar" title="Editar artículo">
+            <ShareItem label={t("editLink")} title="Editar artículo">
               <FaEdit size={20} />
             </ShareItem>
           </Link>

@@ -5,6 +5,7 @@ import InputField from "../../../../components/Articles/NewArticle/InputField";
 import { useLocale, useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import ImageGalleryManager from "../../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
+import { useRouter } from "next/navigation";
 
 import SelectField from "../../../../components/Articles/NewArticle/SelectField";
 import ToggleSwitch from "../../../../components/Articles/NewArticle/ToggleSwitch";
@@ -26,6 +27,7 @@ const QuillEditor = dynamic(
 );
 
 export default function EditArticlePage() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
@@ -584,11 +586,17 @@ export default function EditArticlePage() {
       });
 
       if (res.ok) {
-        setMessage("Artículo editado con éxito.");
-        resetForm();
+        const updatedArticle = await res.json();
+
+        // 👇 Redirigir al artículo en alemán usando legacyPath
+        if (updatedArticle.legacyPath) {
+          router.push(`/de${updatedArticle.legacyPath}`);
+        } else {
+          router.push(`/de/articles/${updatedArticle.id}`); // fallback si no hay legacyPath
+        }
       } else {
         const errorText = await res.text();
-        setMessage(`Error al crear el artículo: ${errorText}`);
+        setMessage(`Error al editar el artículo: ${errorText}`);
       }
     } catch (error) {
       console.error("Error al enviar los datos:", error);
@@ -597,41 +605,6 @@ export default function EditArticlePage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = ""; // Resetea el valor del input file
     }
-  };
-  // Función para reiniciar el formulario
-  const resetForm = () => {
-    setTitle("");
-    setSubtitle("");
-    setContent("");
-    setSelectedBeitragstyp("");
-    setSelectedSubtyp("");
-    setIsPrinted(false);
-    setSelectedEdition("");
-    setStartPage("");
-    setEndPage("");
-    setSelectedAuthors([]);
-    setSelectedInterviewees([]);
-    setIsInterview(false);
-    setDeceasedFirstName("");
-    setDeceasedLastName("");
-    setDateOfBirth("");
-    setDateOfDeath("");
-    setPreviewTextEnabled(false);
-    setPreviewText("");
-    setIsPublished(false);
-    setSchedulePublish(false);
-    setUseCustomDate(false);
-    setPublicationDate(null);
-    setAdditionalInfo("");
-    setAdditionalInfoEnabled(false);
-    setSelectedCategories([]);
-    setRegions([]);
-    setTopics([]);
-
-    setMediaTitle("");
-    setBookImage(null);
-
-    setGallery([]);
   };
 
   const handleAddAuthor = async () => {

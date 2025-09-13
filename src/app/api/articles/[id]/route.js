@@ -138,7 +138,13 @@ export async function PUT(req, context) {
             reviewedAt: null, // al desasignar no hay revisión válida
           },
         });
-        return Response.json(updatedArticle, { status: 200 });
+        return Response.json(
+          {
+            ...updatedArticle,
+            legacyPath: updatedArticle.legacyPath, // 👈 aseguramos que llega al cliente
+          },
+          { status: 200 }
+        );
       }
 
       // 🧠 Construimos el objeto de actualización
