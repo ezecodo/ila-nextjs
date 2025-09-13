@@ -323,3 +323,97 @@ html.dark {
 }
 
 /* FIN STILOS FLECHAS */
+
+/* ESTILOS UNIFICADOS PARA ARTICLES */
+.article-content {
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.article-content p {
+  margin-bottom: 1rem;
+}
+
+/* ESTILOS PARA TODOS LOS TIPOS DE TÍTULOS (h2, h3, strong, etc) */
+.article-content h2,
+.article-content h3,
+.article-content .subtitle,
+.article-content strong {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  margin: 2rem 0 1rem 0 !important;
+  color: #1f2937 !important;
+  font-family: sans-serif !important;
+  line-height: 1.3 !important;
+  border-left: 4px solid #dc2626 !important;
+  padding: 1rem !important;
+  background-color: #f9fafb !important;
+  border-radius: 0.5rem !important;
+  display: block !important;
+}
+
+/* Anular estilos inline problemáticos */
+.article-content h2 span,
+.article-content h3 span {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+
+/* Hipervínculos */
+.article-content a {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.article-content a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* Listas */
+.article-content ul,
+.article-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}
+
+/* MODO OSCRO */
+.dark .article-content h2,
+.dark .article-content h3,
+.dark .article-content .subtitle,
+.dark .article-content strong {
+  color: #f3f4f6 !important;
+  background-color: #374151 !important;
+}
+
+.dark .article-content h2 span,
+.dark .article-content h3 span {
+  background-color: transparent !important;
+  color: inherit !important;
+}
+/* ESTILO PARA LÍNEAS QUE PARECEN TÍTULOS */
+.article-content p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+/* Cuando un párrafo está en negrita y parece título */
+.article-content p strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: block;
+  margin: 2rem 0 1rem 0;
+  padding-left: 1rem;
+  border-left: 4px solid #dc2626;
+}
+
+/* Modo oscuro */
+.dark .article-content p strong {
+  color: #f3f4f6;
+}

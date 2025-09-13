@@ -319,3 +319,58 @@ html.dark {
 }
 
 /* FIN STILOS FLECHAS */
+/* Estilos para hipervinculos*/
+/* Agrega esto al final del archivo */
+.article-content a {
+  color: #2563eb; /* Azul */
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.article-content a:hover {
+  color: #1d4ed8; /* Azul más oscuro */
+  text-decoration: underline;
+}
+/* Estilos para el contenido del artículo */
+.article-content {
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.article-content p {
+  margin-bottom: 1rem;
+}
+
+.article-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem 0;
+  color: #374151;
+}
+
+.dark .article-content h3 {
+  color: white;
+}
+
+/* Hipervínculos */
+.article-content a {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.article-content a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* Mantener formato para listas */
+.article-content ul,
+.article-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+}

@@ -107,11 +107,15 @@ export default function LegacyArticlePage() {
         {/* VORSPANN / STANDFIRST */}
         {(isES ? article.previewTextES : article.previewText) && (
           <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
-            <p className="font-serif text-lg md:text-xl leading-relaxed text-gray-800">
-              {isES && article.previewTextES
-                ? article.previewTextES
-                : article.previewText}
-            </p>
+            <div
+              className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800"
+              dangerouslySetInnerHTML={{
+                __html:
+                  isES && article.previewTextES
+                    ? article.previewTextES
+                    : article.previewText,
+              }}
+            />
           </div>
         )}
         {/* AUTOR justo debajo del Vorspann */}
@@ -343,41 +347,24 @@ export default function LegacyArticlePage() {
           )}
         </div>
         <div
-          className="text-gray-700 dark:text-gray-200 mt-6"
+          className="article-content text-gray-700 dark:text-gray-200 mt-6"
           itemProp="articleBody"
-        >
-          {(isES ? article.contentES : article.content)
-            ? (isES ? article.contentES : article.content)
-                .split("\n")
-                .filter((line) => line.trim() !== "")
-                .map((line, i) => {
-                  const trimmed = line.trim();
-                  const isSubheading =
-                    trimmed.length < 100 &&
-                    /^[A-ZÄÖÜ]/.test(trimmed) &&
-                    !trimmed.endsWith(".") &&
-                    trimmed !== trimmed.toUpperCase();
-
-                  return isSubheading ? (
-                    <h3
-                      key={i}
-                      className="text-xl font-semibold my-6 text-gray-800 dark:text-white"
-                    >
-                      {trimmed}
-                    </h3>
-                  ) : (
-                    <p key={i} className="mb-4 leading-relaxed">
-                      {trimmed}
-                    </p>
-                  );
-                })
-            : "Sin contenido"}
-        </div>
+          dangerouslySetInnerHTML={{
+            __html:
+              isES && article.contentES ? article.contentES : article.content,
+          }}
+        />
 
         {((isES && article.additionalInfoES) || article.additionalInfo) && (
-          <div className="mt-6 text-sm text-gray-600 dark:text-gray-400 italic">
-            {isES ? article.additionalInfoES : article.additionalInfo}
-          </div>
+          <div
+            className="article-content mt-6 text-sm text-gray-600 dark:text-gray-400 italic"
+            dangerouslySetInnerHTML={{
+              __html:
+                isES && article.additionalInfoES
+                  ? article.additionalInfoES
+                  : article.additionalInfo,
+            }}
+          />
         )}
       </article>
 
