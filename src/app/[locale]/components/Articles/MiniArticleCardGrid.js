@@ -4,6 +4,14 @@ import HoverInfo from "../HoverInfo/HoverInfo";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import ArticleLink from "../Articles/ArticleLink/ArticleLink";
 import SmartImage from "../SmartImage/SmartImage";
+// 🔥 NUEVA FUNCIÓN: Limpiar HTML
+const stripHTML = (html) => {
+  if (!html) return "";
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
 
 export default function MiniArticleCardGrid({ article }) {
   const locale = useLocale();
@@ -27,10 +35,9 @@ export default function MiniArticleCardGrid({ article }) {
 
   // Vorspann fijo (con fallback al contenido limpio)
   const teaser =
-    (isES ? article.previewTextES : article.previewText) ||
-    (article.content
-      ? article.content.replace(/<[^>]+>/g, "").slice(0, 400)
-      : "");
+    stripHTML(isES ? article.previewTextES : article.previewText) ||
+    stripHTML(article.content)?.slice(0, 400) ||
+    "";
 
   const editionYear = article.edition?.datePublished
     ? new Date(article.edition.datePublished).getFullYear()
