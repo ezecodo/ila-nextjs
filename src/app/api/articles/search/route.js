@@ -17,6 +17,7 @@ export async function GET(req) {
     }
 
     const searchQuery = query.toLowerCase();
+    const terms = searchQuery.split(/\s+/); // dividir en palabras
 
     let whereConditions;
 
@@ -26,20 +27,59 @@ export async function GET(req) {
         isTranslatedES: true,
         needsReviewES: false,
         OR: [
-          { titleES: { contains: searchQuery } },
-          { contentES: { contains: searchQuery } },
+          // cada palabra en título o contenido ES
+          ...terms.map((term) => ({
+            titleES: { contains: term },
+          })),
+          ...terms.map((term) => ({
+            contentES: { contains: term },
+          })),
+          // autores
+          {
+            authors: {
+              some: {
+                name: { contains: searchQuery },
+              },
+            },
+          },
+          // entrevistados
+          {
+            interviewees: {
+              some: {
+                name: { contains: searchQuery },
+              },
+            },
+          },
         ],
       };
     } else {
       whereConditions = {
         isPublished: true,
         OR: [
+          // coincidencia exacta en título/contenido DE
           { title: { contains: searchQuery } },
           { content: { contains: searchQuery } },
+          {
+            authors: {
+              some: { name: { contains: searchQuery } },
+            },
+          },
+          {
+            interviewees: {
+              some: { name: { contains: searchQuery } },
+            },
+          },
+
+          // coincidencia palabra por palabra
+          ...terms.map((term) => ({ title: { contains: term } })),
+          ...terms.map((term) => ({ content: { contains: term } })),
         ],
       };
     }
-
+    console.log(
+      "🔎 whereConditions:",
+      JSON.stringify(whereConditions, null, 2)
+    );
     const articles = await prisma.article.findMany({
       where: whereConditions,
       orderBy: { publicationDate: "desc" },
@@ -49,6 +89,7 @@ export async function GET(req) {
         regions: true,
         topics: true,
         authors: { select: { id: true, name: true } },
+        interviewees: { select: { id: true, name: true } },
         categories: true,
         beitragstyp: { select: { id: true, name: true } },
         edition: { select: { title: true, number: true } },
@@ -60,7 +101,7 @@ export async function GET(req) {
         const images = await prisma.image.findMany({
           where: {
             contentType: "ARTICLE",
-            contentId: article.beitragsId,
+            contentId: article.beitragsId || article.id,
           },
         });
         return { ...article, images };
