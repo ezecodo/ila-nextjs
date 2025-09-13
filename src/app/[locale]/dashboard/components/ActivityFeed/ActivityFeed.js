@@ -159,12 +159,18 @@ export default function ActivityFeed() {
               ) : log.action === "REVIEW_TRANSLATION" ? (
                 <>
                   {t("reviewedTranslation")}{" "}
-                  <Link
-                    href={`/es/articles/${log.articleId}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    “{log.article?.title || t("untitled")}”
-                  </Link>
+                  {log.article?.legacyPath ? (
+                    <Link
+                      href={`/es${log.article.legacyPath}`} // 👈 forzamos siempre a versión ES
+                      className="text-blue-600 hover:underline"
+                    >
+                      “{log.article?.title || t("untitled")}”
+                    </Link>
+                  ) : (
+                    <span className="italic text-gray-500">
+                      “{log.article?.title || t("untitled")}”
+                    </span>
+                  )}
                 </>
               ) : (
                 t("default")

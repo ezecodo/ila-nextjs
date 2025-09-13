@@ -54,7 +54,7 @@ export async function GET() {
         action: true,
         metadata: true, // ✅ NECESARIO para los logs eliminados
         user: { select: { name: true } },
-        article: { select: { title: true } },
+        article: { select: { title: true, legacyPath: true } },
         carousel: {
           select: {
             id: true,
