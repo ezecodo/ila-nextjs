@@ -58,6 +58,7 @@ export default function LegacyArticlePage() {
         );
         if (!res.ok) throw new Error("Artículo no encontrado");
         const data = await res.json();
+        console.log("🟢 Article recibido:", data); // 👈 DEBUG
         setArticle(data);
       } catch (err) {
         setError(err.message);
@@ -265,6 +266,9 @@ export default function LegacyArticlePage() {
           )}
 
           {/* AUTOR */}
+          {/* AUTOR / ENTREVISTA */}
+          {/* AUTOR / ENTREVISTA */}
+          {/* AUTOR / ENTREVISTA */}
           {article.authors?.length > 0 && (
             <div
               className="mt-2 sm:mt-0"
@@ -272,26 +276,69 @@ export default function LegacyArticlePage() {
               itemScope
               itemType="https://schema.org/Person"
             >
-              {locale === "de" && (
-                <span className="text-gray-500 mr-1">Von:</span>
+              {article.beitragstyp &&
+              article.beitragstyp.name.toLowerCase() === "interview" &&
+              article.interviewees?.length > 0 ? (
+                <>
+                  <span className="text-gray-500 mr-1">
+                    {locale === "de" ? "Interview von:" : "Entrevista de:"}
+                  </span>
+                  {article.authors.map((author, i) => (
+                    <span key={author.id}>
+                      <HoverInfo
+                        id={author.id}
+                        name={
+                          <Link
+                            href={`/authors/${author.id}`}
+                            className="text-blue-600 hover:underline font-medium not-italic"
+                          >
+                            <span itemProp="name">{author.name}</span>
+                          </Link>
+                        }
+                        entityType="authors"
+                      />
+                      {i < article.authors.length - 1 && <span>,&nbsp;</span>}
+                    </span>
+                  ))}
+                  <span className="ml-1">
+                    {locale === "de" ? "mit" : "con"}
+                  </span>{" "}
+                  {article.interviewees?.map((int, i) => (
+                    <span
+                      key={int.id}
+                      className="font-medium not-italic text-gray-800 dark:text-gray-200"
+                    >
+                      {int.name}
+                      {i < article.interviewees.length - 1 && (
+                        <span>,&nbsp;</span>
+                      )}
+                    </span>
+                  ))}
+                </>
+              ) : (
+                <>
+                  {locale === "de" && (
+                    <span className="text-gray-500 mr-1">Von:</span>
+                  )}
+                  {article.authors.map((author, i) => (
+                    <span key={author.id}>
+                      <HoverInfo
+                        id={author.id}
+                        name={
+                          <Link
+                            href={`/authors/${author.id}`}
+                            className="text-blue-600 hover:underline font-medium not-italic"
+                          >
+                            <span itemProp="name">{author.name}</span>
+                          </Link>
+                        }
+                        entityType="authors"
+                      />
+                      {i < article.authors.length - 1 && <span>,&nbsp;</span>}
+                    </span>
+                  ))}
+                </>
               )}
-              {article.authors.map((author, i) => (
-                <span key={author.id}>
-                  <HoverInfo
-                    id={author.id}
-                    name={
-                      <Link
-                        href={`/authors/${author.id}`}
-                        className="text-blue-600 hover:underline font-medium not-italic"
-                      >
-                        <span itemProp="name">{author.name}</span>
-                      </Link>
-                    }
-                    entityType="authors"
-                  />
-                  {i < article.authors.length - 1 && <span>,&nbsp;</span>}
-                </span>
-              ))}
             </div>
           )}
         </div>

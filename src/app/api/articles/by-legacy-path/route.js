@@ -35,6 +35,12 @@ export async function GET(req) {
             _count: { select: { articles: true } },
           },
         },
+        interviewees: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         categories: true,
         regions: true,
         topics: true,
@@ -57,10 +63,17 @@ export async function GET(req) {
       },
     });
 
-    return new Response(JSON.stringify({ ...article, images }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        ...article,
+        images,
+        interviewees: article.interviewees || [],
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Error en by-legacy-path:", error);
     return new Response(

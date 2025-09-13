@@ -87,6 +87,7 @@ export async function GET(req, context) {
       JSON.stringify({
         ...article,
         images,
+        interviewees: article.interviewees || [],
       }),
       {
         status: 200,

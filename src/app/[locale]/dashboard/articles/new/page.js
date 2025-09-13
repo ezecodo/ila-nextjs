@@ -348,9 +348,18 @@ export default function NewArticlePage() {
       const selected = beitragstypen.find(
         (typ) => typ.id === parseInt(selectedBeitragstyp, 10)
       );
+
       setSubtypen(selected?.subtypes || []);
+
+      // 👇 aquí forzamos el toggle si es entrevista
+      if (selected?.name === "Interview") {
+        setIsInterview(true);
+      } else {
+        setIsInterview(false);
+      }
     } else {
       setSubtypen([]);
+      setIsInterview(false);
     }
   }, [selectedBeitragstyp, beitragstypen]);
   const isBuchBesprechung =
