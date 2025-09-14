@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import Quill from "quill";
+import Delta from "quill-delta"; // 👈 importante: npm install quill-delta
 import "quill/dist/quill.snow.css";
 import { useTranslations } from "next-intl";
 
@@ -15,9 +16,8 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         theme: "snow",
         modules: {
           toolbar: [
-            [{ header: "1" }, { header: "2" }, { font: [] }],
+            [{ header: "1" }, { header: "2" }],
             [{ list: "ordered" }, { list: "bullet" }],
-            ["bold", "italic", "underline"],
             ["link"], // Hipervínculos
             ["image"],
           ],
@@ -25,7 +25,28 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         placeholder: t("writeHere"),
       });
 
-      // 👇 ENVIAR HTML CON URLs ABSOLUTAS
+      // 🧹 Limpiar pegado: permitir solo párrafos y encabezados
+      quillRef.current.clipboard.addMatcher(Node.ELEMENT_NODE, (node) => {
+        const tag = node.tagName ? node.tagName.toLowerCase() : "";
+
+        // Conservar encabezados
+        if (/^h[1-6]$/.test(tag)) {
+          const level = parseInt(tag[1]);
+          return new Delta().insert(node.innerText || node.textContent || "", {
+            header: level,
+          });
+        }
+
+        // Conservar párrafos
+        if (tag === "p") {
+          return new Delta().insert(node.innerText || node.textContent || "\n");
+        }
+
+        // Todo lo demás → texto plano
+        return new Delta().insert(node.innerText || node.textContent || "");
+      });
+
+      // 👇 ENVIAR HTML
       quillRef.current.on("text-change", () => {
         let htmlContent = quillRef.current.root.innerHTML;
 
@@ -36,7 +57,6 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
             if (url.startsWith("www.")) {
               return `href="https://${url}"`;
             }
-            // Para otras URLs relativas, agregar https://
             return `href="https://${url}"`;
           }
         );
@@ -46,17 +66,14 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
     }
   }, [onChange, t]);
 
-  // 👇 ACTUALIZAR: Sincronizar con HTML en lugar de texto plano
+  // 👇 ACTUALIZAR
   useEffect(() => {
     if (quillRef.current && value !== quillRef.current.root.innerHTML) {
-      // GUARDAR POSICIÓN ACTUAL DEL CURSOR
       const selection = quillRef.current.getSelection();
       const cursorPosition = selection ? selection.index : 0;
 
-      // ACTUALIZAR CONTENIDO CON HTML
       quillRef.current.root.innerHTML = value || "";
 
-      // RESTAURAR POSICIÓN DEL CURSOR
       setTimeout(() => {
         quillRef.current.setSelection(cursorPosition, 0);
       }, 0);
