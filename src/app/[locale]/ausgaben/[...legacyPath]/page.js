@@ -13,6 +13,23 @@ import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
 import { useTranslations } from "next-intl";
+function normalizeContentForRender(text) {
+  if (!text) return "";
+
+  // Si ya tiene etiquetas HTML, no hacemos nada
+  if (/<\/?(p|h[1-6]|br|strong|em)(\s|>)/i.test(text)) {
+    return text;
+  }
+
+  // Dividir por saltos de línea dobles o simples
+  const paragraphs = text
+    .split(/\n+/) // uno o más saltos
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  // Reconstruir en <p>
+  return paragraphs.map((p) => `<p>${p}</p>`).join("");
+}
 
 export default function LegacyArticlePage() {
   const t = useTranslations("article");
@@ -69,6 +86,40 @@ export default function LegacyArticlePage() {
 
   if (error) return <p className="text-red-500">{t("notFound")}</p>;
   if (!article) return <p>{t("loading")}</p>;
+  // ✅ Función auxiliar para detectar títulos en párrafos normales
+  function autoDetectHeadings(html) {
+    if (!html) return "";
+
+    // Si ya hay h2, no tocamos nada
+    if (/<h2\b/i.test(html)) return html;
+
+    return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
+      // quitar <br> y normalizar espacios
+      const text = inner
+        .replace(/<br\s*\/?>/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      // Heurísticas
+      const isShort = text.length > 0 && text.length <= 140; // párrafo corto
+      const startsWithUpper = /^[“"'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text); // mayúscula (con o sin comillas)
+      const endsAsHeading = /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text); // termina en ?, !, : o sin punto final
+      const looksLikeQuestion = /\?\s*$/.test(text); // pregunta
+      const fewSentences = (text.match(/[.!?]/g) || []).length <= 1; // no parece un párrafo largo
+
+      // Regla: preguntas cortas -> h2
+      if (looksLikeQuestion && isShort) {
+        return `<h2>${text}</h2>`;
+      }
+
+      // Regla general para títulos cortos
+      if (isShort && startsWithUpper && endsAsHeading && fewSentences) {
+        return `<h2>${text}</h2>`;
+      }
+
+      return m;
+    });
+  }
 
   function formatDate(dateString, locale) {
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -358,8 +409,14 @@ export default function LegacyArticlePage() {
           className="article-content text-gray-700 dark:text-gray-200 mt-6"
           itemProp="articleBody"
           dangerouslySetInnerHTML={{
-            __html: autoFormatHeadings(
-              isES && article.contentES ? article.contentES : article.content
+            __html: autoDetectHeadings(
+              autoFormatHeadings(
+                normalizeContentForRender(
+                  isES && article.contentES
+                    ? article.contentES
+                    : article.content
+                )
+              )
             ),
           }}
         />

@@ -396,8 +396,8 @@ html.dark {
 }
 /* ESTILO PARA LÍNEAS QUE PARECEN TÍTULOS */
 .article-content p {
-  margin-bottom: 1rem;
-  line-height: 1.6;
+  margin-bottom: 2rem; /* antes estaba 1rem */
+  line-height: 1.7; /* un poco más suelto */
 }
 
 /* Cuando un párrafo está en negrita y parece título */
@@ -410,7 +410,9 @@ html.dark {
   padding-left: 0.75rem;
   border-left: 4px solid #dc2626;
 }
-
+.article-content p + p {
+  margin-top: 2rem; /* salto más grande entre párrafos consecutivos */
+}
 /* Modo oscuro */
 .dark .article-content p strong {
   color: #f3f4f6;
