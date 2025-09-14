@@ -75,7 +75,15 @@ export default function LegacyArticlePage() {
     const localeCode = locale === "es" ? "es-ES" : "de-DE";
     return new Date(dateString).toLocaleDateString(localeCode, options);
   }
+  function autoFormatHeadings(html) {
+    if (!html) return "";
 
+    // Párrafos que solo tienen <strong> → convertirlos en <h2>
+    return html.replace(
+      /<p>\s*<strong>(.*?)<\/strong>\s*<\/p>/gi,
+      "<h2>$1</h2>"
+    );
+  }
   return (
     <main className="max-w-4xl mx-auto p-6">
       <DonationPopUp articleId={article.id} />
@@ -350,8 +358,9 @@ export default function LegacyArticlePage() {
           className="article-content text-gray-700 dark:text-gray-200 mt-6"
           itemProp="articleBody"
           dangerouslySetInnerHTML={{
-            __html:
-              isES && article.contentES ? article.contentES : article.content,
+            __html: autoFormatHeadings(
+              isES && article.contentES ? article.contentES : article.content
+            ),
           }}
         />
 

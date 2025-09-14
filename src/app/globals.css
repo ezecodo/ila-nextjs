@@ -334,29 +334,27 @@ html.dark {
   margin-bottom: 1rem;
 }
 
-/* ESTILOS PARA TODOS LOS TIPOS DE TÍTULOS (h2, h3, strong, etc) */
 .article-content h2,
 .article-content h3,
-.article-content .subtitle,
-.article-content strong {
-  font-size: 1.5rem !important;
+.article-content .subtitle {
   font-weight: 700 !important;
-  margin: 2rem 0 1rem 0 !important;
+  margin: 1.25rem 0 0.5rem 0 !important; /* menos espacio */
   color: #1f2937 !important;
   font-family: sans-serif !important;
   line-height: 1.3 !important;
   border-left: 4px solid #dc2626 !important;
-  padding: 1rem !important;
+  padding: 0.5rem 0.75rem !important; /* menos padding */
   background-color: #f9fafb !important;
-  border-radius: 0.5rem !important;
+  border-radius: 0.375rem !important; /* un pelín más compacto */
   display: block !important;
 }
 
-/* Anular estilos inline problemáticos */
-.article-content h2 span,
-.article-content h3 span {
-  background-color: transparent !important;
-  color: inherit !important;
+/* Tamaños diferenciados */
+.article-content h2 {
+  font-size: 1.5rem !important;
+}
+.article-content h3 {
+  font-size: 1.25rem !important;
 }
 
 /* Hipervínculos */
@@ -408,12 +406,18 @@ html.dark {
   font-weight: 700;
   color: #1f2937;
   display: block;
-  margin: 2rem 0 1rem 0;
-  padding-left: 1rem;
+  margin: 1.25rem 0 0.5rem 0; /* menos hueco */
+  padding-left: 0.75rem;
   border-left: 4px solid #dc2626;
 }
 
 /* Modo oscuro */
 .dark .article-content p strong {
   color: #f3f4f6;
+}
+
+.article-content h2 + p,
+.article-content h3 + p,
+.article-content p strong + p {
+  margin-top: 0 !important;
 }
