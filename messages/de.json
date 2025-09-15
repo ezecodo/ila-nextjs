@@ -40,6 +40,7 @@
     "service": "Service",
     "referents": "Referent*innenservice",
     "translations": "Dolmetsch- und Übersetzungsservice",
+    "testament": "Testament",
 
     "getInvolved": "Mitmachen",
     "advertise": "Anzeigen",

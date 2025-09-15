@@ -29,6 +29,17 @@ export const navSections = [
       { labelKey: "history", href: "/about/history" },
       { labelKey: "editorialTeam", href: "/about/editorial" },
       { labelKey: "speakers", href: "/about/speakers" },
+      {
+        labelKey: "service",
+        items: [
+          { labelKey: "advertise", href: "/support/service/ads" },
+          { labelKey: "referents", href: "/support/service/referent-service" },
+          {
+            labelKey: "translations",
+            href: "/support/service/translation-service",
+          },
+        ],
+      },
       { labelKey: "network", href: "/about/network" },
       { labelKey: "contact", href: "/about/contact" },
       { labelKey: "legalNotice", href: "/about/legal" },
@@ -41,18 +52,8 @@ export const navSections = [
     labelKey: "supportIla",
     items: [
       { labelKey: "donate", href: "/support/donations" },
+      { labelKey: "testament", href: "/support/testament" },
       { labelKey: "getInvolved", href: "/support/participate" },
-      {
-        labelKey: "service",
-        items: [
-          { labelKey: "advertise", href: "/support/service/ads" },
-          { labelKey: "referents", href: "/support/service/referent-service" },
-          {
-            labelKey: "translations",
-            href: "/support/service/translation-service",
-          },
-        ],
-      },
     ],
   },
 ];
