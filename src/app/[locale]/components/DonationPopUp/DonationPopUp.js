@@ -43,13 +43,13 @@ export default function DonationPopup({ articleId }) {
         <p className="text-gray-600 mb-4">{t("description")}</p>
         <div className="flex justify-center gap-4">
           <Link
-            href="/donar"
+            href="/support/donations"
             className="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-800 transition"
           >
             {t("donateButton")}
           </Link>
           <Link
-            href="/suscribirse"
+            href="/order/subscribe"
             className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-800 transition"
           >
             {t("subscribeButton")}
