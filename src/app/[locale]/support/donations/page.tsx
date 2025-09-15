@@ -30,8 +30,21 @@ export default function DonatePage() {
       <h1 className="text-3xl font-bold text-red-700">Spenden</h1>
 
       <p>
-        Ein Printmedium ohne Großsponsoren und Geld vom Staat – das ist die ila.
-        Nur dank unserer Community sind wir seit 1976 ein unabhängiges Medium.
+        Eine Zeitschrift ohne Großsponsoren und Geld vom Staat – das ist die
+        ila. Nur dank unserer Community sind wir seit 1976 ein unabhängiges
+        Medium.
+      </p>
+
+      <p>
+        Die nachhaltigste Unterstützung für unsere Arbeit ist es, Mitglied vom
+        Förderkreis zu werden und uns monatlich zu unterstützen. 1 Euro? 100
+        Euro? 1000 Euro? Alles hilft!
+      </p>
+
+      {/* Widget Twingle */}
+      <div id="twingle-container" className="my-10" />
+
+      <p>
         Fast unsere ganze Arbeit ist ehrenamtlich. Niemand bekommt ein Honorar
         dafür, auf Vernetzungstreffen zu fahren oder Interviews mit
         Kleinbäuerinnen und Filmemachern zu führen.
@@ -47,28 +60,6 @@ export default function DonatePage() {
         <li>Unsere Steuerberatung</li>
         <li>Zwei halbe Bürostellen</li>
         <li>Den Kaffee für die Ehrenamtlichen ❤️</li>
-      </ul>
-
-      <p>
-        Die nachhaltigste Unterstützung für unsere Arbeit ist es, Mitglied vom
-        Förderkreis zu werden und uns monatlich zu unterstützen. 1 Euro? 100
-        Euro? 1000 Euro? Wir haben alle unterschiedliche Möglichkeiten, aber
-        alles hilft! Spendenoptionen:
-      </p>
-
-      <ul>
-        <li>
-          <strong>Dauerspenden</strong> – per Dauerauftrag, Kreditkarte oder
-          Paypal (demnächst auch mit SEPA-Lastschriftmandat).
-        </li>
-        <li>
-          <strong>Einmalspenden</strong> – per Überweisung, Kreditkarte, Paypal
-          oder Briefumschlag
-        </li>
-        <li>
-          <strong>Sachspenden</strong> – z.B. Kaffee und andere Getränke fürs
-          Büro!
-        </li>
       </ul>
 
       <p>
@@ -88,11 +79,23 @@ export default function DonatePage() {
       <h1 className="text-3xl font-bold text-red-700">Donaciones</h1>
 
       <p>
-        Un medio impreso sin grandes patrocinadores ni dinero del Estado – eso
-        es la ila. Solo gracias a nuestra comunidad somos desde 1976 un medio
-        independiente. Casi todo nuestro trabajo es voluntario. Nadie recibe
-        honorarios por viajar a encuentros de redes o por entrevistar a
-        campesinas y cineastas.
+        Una revista sin grandes patrocinadores ni dinero del Estado – eso es la
+        ila. Solo gracias a nuestra comunidad somos desde 1976 un medio
+        independiente.
+      </p>
+
+      <p>
+        La forma más sostenible de apoyar nuestro trabajo es hacerse miembrx del
+        círculo de apoyo y contribuir con una donación mensual. ¿1 euro? ¿100
+        euros? ¿1000 euros? ¡Todo ayuda!
+      </p>
+
+      {/* Widget Twingle */}
+      <div id="twingle-container" className="my-10" />
+
+      <p>
+        Casi todo nuestro trabajo es voluntario. Nadie recibe honorarios por
+        viajar a encuentros de redes o por entrevistar a campesinas y cineastas.
       </p>
 
       <p>Tus donaciones financian nuestro trabajo cotidiano:</p>
@@ -108,36 +111,13 @@ export default function DonatePage() {
       </ul>
 
       <p>
-        La forma más sostenible de apoyar nuestro trabajo es hacerse miembrx del
-        círculo de apoyo y contribuir con una donación mensual. ¿1 euro? ¿100
-        euros? ¿1000 euros? Cada persona tiene diferentes posibilidades, ¡pero
-        todo ayuda! Opciones de donación:
-      </p>
-
-      <ul>
-        <li>
-          <strong>Donaciones periódicas</strong> – por orden permanente, tarjeta
-          de crédito o Paypal (pronto también con domiciliación SEPA).
-        </li>
-        <li>
-          <strong>Donaciones únicas</strong> – por transferencia bancaria,
-          tarjeta, Paypal o incluso en sobre
-        </li>
-        <li>
-          <strong>Donaciones en especie</strong> – por ejemplo, café y otras
-          bebidas para la oficina
-        </li>
-      </ul>
-
-      <p>
         Como asociación sin fines de lucro podemos emitir certificados de
         donación.
       </p>
       <p>
-        Con tu apoyo ayudas a conectar activistas, investigadorxs e
-        investigadorxs y periodistas de América Latina y Europa. Y al mismo
-        tiempo mantenemos vivo un archivo de 50 años de memoria de los
-        movimientos.
+        Con tu apoyo ayudas a conectar activistas, investigadorxs y periodistas
+        de América Latina y Europa. Y al mismo tiempo mantenemos vivo un archivo
+        de 50 años de memoria de los movimientos.
       </p>
     </>
   );
@@ -145,9 +125,6 @@ export default function DonatePage() {
   return (
     <div className="prose prose-lg max-w-3xl mx-auto py-10">
       {locale === "es" ? contentEs : contentDe}
-
-      {/* Widget Twingle */}
-      <div id="twingle-container" className="mt-10" />
     </div>
   );
 }
