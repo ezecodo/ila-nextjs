@@ -423,3 +423,18 @@ html.dark {
 .article-content p strong + p {
   margin-top: 0 !important;
 }
+/* --- FIX para títulos y textos largos en móvil --- */
+.article-content,
+.article-content p,
+.article-content h1,
+.article-content h2,
+.article-content h3,
+.article-content a {
+  word-break: break-word; /* Corta palabras largas si es necesario */
+  overflow-wrap: anywhere; /* Permite cortar en cualquier sitio */
+  hyphens: auto; /* Añade guiones si el idioma lo soporta */
+}
+
+.article-content a {
+  word-break: break-all; /* URLs sin espacios -> que sí se corten */
+}

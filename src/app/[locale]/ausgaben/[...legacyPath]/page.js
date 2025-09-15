@@ -149,7 +149,7 @@ export default function LegacyArticlePage() {
 
           {/* TITULO */}
           <h1
-            className="text-4xl md:text-5xl font-serif font-bold leading-tight text-gray-900 dark:text-white mb-4"
+            className="text-4xl md:text-5xl font-serif font-bold leading-tight text-gray-900 dark:text-white mb-4 break-words"
             itemProp="headline"
           >
             {isES && article.isTranslatedES ? article.titleES : article.title}
