@@ -300,8 +300,10 @@ export async function PUT(req, context) {
         const file = formData.get(`gallery[${idx}][file]`);
         const title = formData.get(`gallery[${idx}][title]`) || null;
         const alt = formData.get(`gallery[${idx}][alt]`) || null;
+        const imgId = formData.get(`gallery[${idx}][id]`);
 
         if (file && file.name) {
+          // caso: imagen nueva → create
           const buffer = Buffer.from(await file.arrayBuffer());
           const uploadResult = await cloudinary.v2.uploader.upload(
             `data:${file.type};base64,${buffer.toString("base64")}`,
@@ -320,6 +322,12 @@ export async function PUT(req, context) {
               title,
               alt,
             },
+          });
+        } else if (imgId) {
+          // caso: imagen existente → update solo title y alt
+          await prisma.image.update({
+            where: { id: parseInt(imgId, 10) },
+            data: { title, alt },
           });
         }
       }

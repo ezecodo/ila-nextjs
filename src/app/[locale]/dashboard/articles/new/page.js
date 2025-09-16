@@ -803,7 +803,7 @@ export default function NewArticlePage() {
             label={t("additionalInfo")} // Información adicional
             value={additionalInfo}
             onChange={(e) => setAdditionalInfo(e.target.value)}
-            placeholder="Ingrese información adicional"
+            placeholder={t("additionalInfoPlaceholder")}
           />
         )}
 
@@ -955,7 +955,7 @@ export default function NewArticlePage() {
 
         <ToggleSwitch
           id="isPublished"
-          label="Publicar Ahora"
+          label={t("publishToggle")}
           checked={isPublished}
           onChange={(e) => {
             setIsPublished(e.target.checked);
@@ -965,7 +965,7 @@ export default function NewArticlePage() {
 
         <ToggleSwitch
           id="schedulePublish"
-          label="Programar Publicación (futuro)"
+          label={t("schedulePublishToggle")}
           checked={schedulePublish}
           onChange={(e) => {
             setSchedulePublish(e.target.checked);
@@ -975,14 +975,14 @@ export default function NewArticlePage() {
 
         <ToggleSwitch
           id="useCustomDate"
-          label="Editar fecha del artículo (pasado o futuro)"
+          label={t("useCustomDateToggle")}
           checked={useCustomDate}
           onChange={(e) => setUseCustomDate(e.target.checked)}
         />
 
         {(useCustomDate || schedulePublish) && (
           <div>
-            <label>Fecha del artículo</label>
+            <label>{t("articleDateLabel")}</label>
             <input
               type="datetime-local"
               value={
@@ -994,27 +994,27 @@ export default function NewArticlePage() {
             />
           </div>
         )}
-        <SubmitButton label="Crear artículo" />
+        <SubmitButton label={t("submitButton")} />
       </form>
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
-          <h2>Agregar Nuevo Autor</h2>
+          <h2>{t("authorModal.title")}</h2>
           <InputField
             id="newAuthorName"
-            label="Nombre del Autor"
+            label={t("authorModal.nameLabel")}
             value={newAuthorName}
             onChange={(e) => setNewAuthorName(e.target.value)}
-            placeholder="Ingrese el nombre del autor"
+            placeholder={t("authorModal.namePlaceholder")}
           />
           <InputField
             id="newAuthorEmail"
-            label="Email del Autor (opcional)"
+            label={t("authorModal.emailLabel")}
             value={newAuthorEmail}
             onChange={(e) => setNewAuthorEmail(e.target.value)}
-            placeholder="Ingrese el email del autor"
+            placeholder={t("authorModal.emailPlaceholder")}
           />
           <button onClick={handleAddAuthor} className={styles.addAuthorButton}>
-            Agregar Autor
+            {t("authorModal.addButton")}
           </button>
         </Modal>
       )}

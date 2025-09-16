@@ -101,13 +101,12 @@ export default function ParticipatePage() {
       <p>
         <strong>Übersetzungen ins Spanische:</strong> Werden von unserer
         Redaktion „web en español“ teilautomatisiert angefertigt und
-        anschließend korrigiert. Immer ab dem letzten Samstag im Monat bis zum
-        darauffolgenden Mittwoch.
+        anschließend korrigiert.
       </p>
 
       <h2>Marketing-Expert*in</h2>
       <p>
-        Die ila hat kein Werbeetat. Daher sind wir bei der Werbung neuer
+        Die ila hat keinen Werbeetat. Daher sind wir bei der Werbung neuer
         Abonnent*innen auf unsere Leser*innen angewiesen – also auf euch. Wir
         freuen uns, wenn ihr die ila weitergebt und die Zeitschrift so bekannter
         wird. Noch besser: Ihr legt unsere Flyer überall dort aus, wo Leute

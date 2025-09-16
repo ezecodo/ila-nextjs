@@ -137,12 +137,17 @@
       "editions": "Ingresar Edición",
       "account": "Configuración de Cuenta",
       "events": "Crear Eventos",
-      "carousels": "Crear Carruseles"
+      "carousels": "Crear Carruseles",
+      "editArticles": "Editar artículos"
     },
     "openMenu": "Abrir Menú ☰",
     "closeMenu": "Cerrar Menú ☰",
     "errorStats": "Error al cargar estadísticas",
     "welcome": "Bienvenido al Dashboard Admin",
+    "k2": {
+      "title": "Panel K2",
+      "description": "Bienvenido al panel K2. Usa el menú lateral para crear, traducir o editar artículos."
+    },
     "Carousels": {
       "title": "Crear nuevo carrusel",
       "editTitle": "Editar carrusel",
@@ -223,7 +228,9 @@
       "imageLabel": "Imagen del Artículo",
       "additionalInfoToggle": "¿Agregar Información Adicional?",
       "additionalInfo": "Información Adicional",
+      "additionalInfoPlaceholder": "Ingrese información adicional",
       "submit": "Crear artículo",
+      "submitButton": "Ingresar artículo",
       "bookTitle": "Título del libro",
       "bookImage": "Imagen del libro",
       "interviewToggle": "¿Es una entrevista?",
@@ -237,6 +244,10 @@
       "endPage": "Página de fin",
       "publishNow": "Publicar Ahora",
       "schedule": "Programar Publicación",
+      "publishToggle": "Publicar ahora",
+      "schedulePublishToggle": "Programar publicación (futuro)",
+      "useCustomDateToggle": "Editar fecha del artículo (pasado o futuro)",
+      "articleDateLabel": "Fecha del artículo",
       "scheduleDate": "Fecha de Publicación",
       "nachrufTitle": "Detalles de la necrología",
       "firstName": "Primer Nombre",
@@ -281,7 +292,15 @@
 
       "authorPlaceholder": "Seleccione un autor",
 
-      "intervieweePlaceholder": "Seleccione un entrevistado"
+      "intervieweePlaceholder": "Seleccione un entrevistado",
+      "authorModal": {
+        "title": "Agregar Nuevo Autor",
+        "nameLabel": "Nombre del Autor",
+        "namePlaceholder": "Ingrese el nombre del autor",
+        "emailLabel": "Email del Autor (opcional)",
+        "emailPlaceholder": "Ingrese el email del autor",
+        "addButton": "Agregar Autor"
+      }
     },
     "modals": {
       "addAuthorTitle": "Agregar Nuevo Autor",
@@ -304,6 +323,23 @@
       "authorError": "Error al agregar el autor.",
       "unknownAuthorError": "Error inesperado: no se recibió un ID de autor."
     }
+  },
+  "galleryManager": {
+    "sectionTitle": "Galería de imágenes",
+    "selectFileFirst": "Selecciona un archivo de imagen primero",
+    "altTextLabel": "Texto alternativo (accesibilidad)",
+    "altTextPlaceholder": "Describe brevemente la imagen para lectores de pantalla",
+    "descriptionCreditsLabel": "Descripción / Créditos",
+    "descriptionCreditsPlaceholder": "Descripción breve. Créditos: Foto: Nombre, Ilustración: Nombre",
+    "useAsCover": "Usar como portada",
+    "addToGallery": "Añadir a galería",
+    "addedImagesTitle": "Imágenes añadidas",
+    "altTextPreviewLabel": "Alternativtext (Barrierefreiheit):",
+    "descriptionCreditsPreviewLabel": "Descripción / Créditos:",
+    "coverBadge": "Portada",
+    "delete": "Eliminar",
+    "noAltText": "Sin alt-text",
+    "noCredits": "Sin créditos"
   },
   "donationPopup": {
     "title": "¡Apoya nuestro trabajo!",

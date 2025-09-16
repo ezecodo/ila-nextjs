@@ -21,7 +21,7 @@ export default function AdminDashboard() {
       </h1>
 
       {/* 👇 Solo admin ve el feed */}
-      {role === "admin" && <ActivityFeed />}
+      {(role === "admin" || role === "k2") && <ActivityFeed />}
     </div>
   );
 }

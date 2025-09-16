@@ -29,7 +29,7 @@ export default function DashboardLayout({
   const { data: session } = useSession();
   const role = (session?.user as { role?: string })?.role || "user";
 
-  // 🔥 definimos menús
+  // ── Menús por rol ─────────────────────────────────────────────────────
   const adminMenu = [
     {
       key: "inicio",
@@ -102,6 +102,34 @@ export default function DashboardLayout({
     },
   ];
 
+  // 🔥 NEW: menú para rol k2 (ingresar, editar, traducir)
+  const k2Menu = [
+    {
+      key: "inicio",
+      label: t("menu.inicio"),
+      href: "/dashboard/k2",
+      icon: <FaHome />,
+    },
+    {
+      key: "articles",
+      label: t("menu.articles"), // ✅ ahora usa traducciones
+      href: "/dashboard/articles/new",
+      icon: <FaFileAlt />,
+    },
+    {
+      key: "editArticles",
+      label: t("menu.editArticles"), // ✅ también traducido
+      href: "/dashboard/articles",
+      icon: <FaFileAlt />,
+    },
+    {
+      key: "account",
+      label: t("menu.account"),
+      href: "/dashboard/account",
+      icon: <FaUserCog />,
+    },
+  ];
+
   const userMenu = [
     {
       key: "inicio",
@@ -117,25 +145,24 @@ export default function DashboardLayout({
     },
   ];
 
-  // 🔥 elegimos según el rol
   const menuItems =
     role === "admin"
       ? adminMenu
       : role === "translator"
         ? translatorMenu
-        : userMenu;
+        : role === "k2"
+          ? k2Menu
+          : userMenu;
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
-      {/* Barra superior de estadísticas */}
-      {/* Barra superior de estadísticas SOLO para admin */}
+      {/* Stats solo admin */}
       {role === "admin" && (
         <div className="bg-white border-b shadow py-2">
           <DashboardStats />
         </div>
       )}
 
-      {/* Estructura principal */}
       <div className="flex flex-1 overflow-hidden min-w-0 bg-gray-50">
         {/* Menú móvil */}
         <button
@@ -157,8 +184,11 @@ export default function DashboardLayout({
               ? "Admin-Dashboard"
               : role === "translator"
                 ? "Traducción Dashboard"
-                : "User Dashboard"}
+                : role === "k2"
+                  ? "K2 Dashboard"
+                  : "User Dashboard"}
           </h2>
+
           <ul>
             {menuItems.map((item) => {
               const fullHref = `/${locale}${item.href}`;

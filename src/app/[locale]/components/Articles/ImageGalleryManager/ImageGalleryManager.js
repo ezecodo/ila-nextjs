@@ -3,16 +3,20 @@
 import { useState } from "react";
 import InputField from "../NewArticle/InputField";
 import styles from "../../../../styles/global.module.css";
+import { useTranslations } from "next-intl";
 
 export default function ImageGalleryManager({ gallery, setGallery }) {
+  const t = useTranslations("galleryManager");
+
+  // Campos temporales para añadir nuevas imágenes
+  const [altText, setAltText] = useState(""); // Alt-Text → DB.title
+  const [descCredits, setDescCredits] = useState(""); // Descripción / Créditos → DB.alt
   const [newImgFile, setNewImgFile] = useState(null);
-  const [newImgTitle, setNewImgTitle] = useState("");
-  const [newImgAlt, setNewImgAlt] = useState("");
   const [newImgIsCover, setNewImgIsCover] = useState(false);
 
   const handleAddImage = () => {
     if (!newImgFile) {
-      alert("Selecciona un archivo de imagen primero");
+      alert(t("selectFileFirst"));
       return;
     }
 
@@ -20,53 +24,66 @@ export default function ImageGalleryManager({ gallery, setGallery }) {
       ...prev,
       {
         file: newImgFile,
-        title: newImgTitle,
-        alt: newImgAlt,
+        title: altText,
+        alt: descCredits,
         isCover: newImgIsCover,
         order: prev.length + 1,
       },
     ]);
 
-    // limpiar formulario temporal
+    // reset campos temporales
     setNewImgFile(null);
-    setNewImgTitle("");
-    setNewImgAlt("");
+    setAltText("");
+    setDescCredits("");
     setNewImgIsCover(false);
+
+    // reset input file
+    const inputEl = document.getElementById("gallery-file-input");
+    if (inputEl) inputEl.value = "";
   };
 
   const handleRemoveImage = (index) => {
     setGallery((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleEdit = (index, field, value) => {
+    setGallery((prev) =>
+      prev.map((img, i) => (i === index ? { ...img, [field]: value } : img))
+    );
+  };
+
   return (
     <div className={styles.formGroup}>
-      <label className={styles.formLabel}>Galería de imágenes</label>
+      <label className={styles.formLabel}>{t("sectionTitle")}</label>
 
-      {/* Input para archivo */}
+      {/* Input archivo */}
       <input
+        id="gallery-file-input"
         type="file"
         accept="image/*"
-        onChange={(e) => setNewImgFile(e.target.files[0])}
+        onChange={(e) => setNewImgFile(e.target.files?.[0] || null)}
         className={styles.input}
       />
 
-      {/* Campos de título y alt */}
+      {/* Alt-Text (accesibilidad) → DB.title */}
       <InputField
-        id="newImgTitle"
-        label="Título de la imagen"
-        value={newImgTitle}
-        onChange={(e) => setNewImgTitle(e.target.value)}
-        placeholder="Ej: Protesta en Buenos Aires"
-      />
-      <InputField
-        id="newImgAlt"
-        label="Texto alternativo / créditos"
-        value={newImgAlt}
-        onChange={(e) => setNewImgAlt(e.target.value)}
-        placeholder="Ej: Foto: Juan Pérez"
+        id="imgAltText"
+        label={t("altTextLabel")}
+        value={altText}
+        onChange={(e) => setAltText(e.target.value)}
+        placeholder={t("altTextPlaceholder")}
       />
 
-      {/* Checkbox para marcar como portada */}
+      {/* Descripción / Créditos → DB.alt */}
+      <InputField
+        id="imgDescCredits"
+        label={t("descriptionCreditsLabel")}
+        value={descCredits}
+        onChange={(e) => setDescCredits(e.target.value)}
+        placeholder={t("descriptionCreditsPlaceholder")}
+      />
+
+      {/* Checkbox portada */}
       <div className="flex items-center gap-2 mt-2">
         <input
           type="checkbox"
@@ -74,62 +91,84 @@ export default function ImageGalleryManager({ gallery, setGallery }) {
           checked={newImgIsCover}
           onChange={(e) => setNewImgIsCover(e.target.checked)}
         />
-        <label htmlFor="newImgIsCover">Usar como portada</label>
+        <label htmlFor="newImgIsCover">{t("useAsCover")}</label>
       </div>
 
-      {/* Botón para añadir la imagen */}
+      {/* Botón añadir */}
       <button
         type="button"
         className={styles.addAuthorButton}
         onClick={handleAddImage}
       >
-        Añadir a galería
+        {t("addToGallery")}
       </button>
 
-      {/* Preview de la galería */}
+      {/* Preview y edición */}
       {gallery.length > 0 && (
         <div className="mt-4">
-          <h4 className="font-semibold mb-2">Imágenes añadidas</h4>
+          <h4 className="font-semibold mb-2">{t("addedImagesTitle")}</h4>
           <ul className="space-y-3">
             {gallery.map((img, index) => {
               const previewUrl = img.file
-                ? URL.createObjectURL(img.file) // imágenes recién añadidas
-                : img.url; // imágenes cargadas desde la BD
+                ? URL.createObjectURL(img.file)
+                : img.url;
 
               return (
                 <li
                   key={index}
-                  className="p-2 border rounded flex items-center gap-4"
+                  className="p-2 border rounded flex items-start gap-4"
                 >
                   {/* Preview */}
                   {previewUrl && (
                     <img
                       src={previewUrl}
-                      alt={img.alt || "preview"}
+                      alt={img.title || t("noAltText")}
                       className="w-20 h-20 object-cover rounded border"
                     />
                   )}
 
-                  {/* Info */}
-                  <div className="flex-1">
-                    <p className="font-medium">{img.title || "Sin título"}</p>
-                    <p className="text-sm text-gray-500">
-                      {img.alt || "Sin créditos"}
-                    </p>
-                    {img.isCover && (
-                      <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
-                        Portada
-                      </span>
-                    )}
+                  {/* Campos editables */}
+                  <div className="flex-1 space-y-2">
+                    <InputField
+                      id={`altText-${index}`}
+                      label={t("altTextLabel")}
+                      value={img.title || ""}
+                      onChange={(e) =>
+                        handleEdit(index, "title", e.target.value)
+                      }
+                      placeholder={t("altTextPlaceholder")}
+                    />
+
+                    <InputField
+                      id={`descCredits-${index}`}
+                      label={t("descriptionCreditsLabel")}
+                      value={img.alt || ""}
+                      onChange={(e) => handleEdit(index, "alt", e.target.value)}
+                      placeholder={t("descriptionCreditsPlaceholder")}
+                    />
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={`isCover-${index}`}
+                        checked={img.isCover || false}
+                        onChange={(e) =>
+                          handleEdit(index, "isCover", e.target.checked)
+                        }
+                      />
+                      <label htmlFor={`isCover-${index}`}>
+                        {t("useAsCover")}
+                      </label>
+                    </div>
                   </div>
 
                   {/* Botón eliminar */}
                   <button
                     type="button"
-                    className="text-red-600 hover:underline"
+                    className="text-red-600 hover:underline ml-2"
                     onClick={() => handleRemoveImage(index)}
                   >
-                    Eliminar
+                    {t("delete")}
                   </button>
                 </li>
               );

@@ -568,12 +568,11 @@ export default function EditArticlePage() {
       if (img.file) {
         formData.append(`gallery[${idx}][file]`, img.file);
       }
+      if (img.id) {
+        formData.append(`gallery[${idx}][id]`, img.id); // 👈 necesario para update
+      }
       formData.append(`gallery[${idx}][title]`, img.title || "");
       formData.append(`gallery[${idx}][alt]`, img.alt || "");
-      formData.append(
-        `gallery[${idx}][isCover]`,
-        img.isCover ? "true" : "false"
-      );
     });
     // 📌 Añadir keepImages al FormData
     const keepIds = gallery.filter((img) => img.id).map((img) => img.id);

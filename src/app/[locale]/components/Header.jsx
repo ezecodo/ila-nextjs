@@ -76,6 +76,8 @@ export default function Header() {
     dashboardRoute = "/dashboard";
   } else if (session?.user?.role === "translator") {
     dashboardRoute = "/dashboard/translators";
+  } else if (session?.user?.role === "k2") {
+    dashboardRoute = "/dashboard/k2";
   }
 
   return (

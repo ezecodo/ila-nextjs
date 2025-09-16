@@ -136,13 +136,18 @@
       "editions": "Ausgabe eingeben",
       "account": "Kontoeinstellungen",
       "events": "Veranstaltung eingeben",
-      "carousels": "Karussells erstellen"
+      "carousels": "Karussells erstellen",
+      "editArticles": "Artikel bearbeiten"
     },
 
     "openMenu": "Menü öffnen ☰",
     "closeMenu": "Menü schließen ☰",
     "errorStats": "Fehler beim Laden der Statistiken",
     "welcome": "Willkommen im Admin-Dashboard",
+    "k2": {
+      "title": "K2-Dashboard",
+      "description": "Willkommen im K2-Panel. Verwenden Sie das Seitenmenü, um Artikel zu erstellen, zu übersetzen oder zu bearbeiten."
+    },
     "Carousels": {
       "title": "Neues Karussell erstellen",
       "editTitle": "Karussell bearbeiten",
@@ -220,7 +225,9 @@
       "imageLabel": "Artikelbild",
       "additionalInfoToggle": "Zusätzliche Informationen hinzufügen?",
       "additionalInfo": "Zusätzliche Informationen",
+      "additionalInfoPlaceholder": "Zusätzliche Informationen eingeben",
       "submit": "Artikel erstellen",
+      "submitButton": "Artikel eingeben",
       "bookTitle": "Buchtitel",
       "bookImage": "Buchbild",
       "interviewToggle": "Ist dies ein Interview?",
@@ -234,6 +241,10 @@
       "endPage": "Endseite",
       "publishNow": "Jetzt veröffentlichen",
       "schedule": "Veröffentlichung planen",
+      "publishToggle": "Jetzt veröffentlichen",
+      "schedulePublishToggle": "Veröffentlichung planen (zukünftig)",
+      "useCustomDateToggle": "Artikeldatum bearbeiten (Vergangenheit oder Zukunft)",
+      "articleDateLabel": "Artikeldatum",
       "scheduleDate": "Veröffentlichungsdatum",
       "nachrufTitle": "Details zum Nachruf",
       "firstName": "Vorname",
@@ -246,7 +257,7 @@
 
       "regionPlaceholder": "Regionen suchen…",
       "topicPlaceholder": "Themen suchen oder hinzufügen…",
-
+      "selectFileFirst": "Bitte zuerst eine Bilddatei auswählen",
       "imageTitleLabel": "Fototitel",
       "imageTitlePlaceholder": "z. B.: Kundgebung vor dem Bonaparte‑Krankenhaus",
       "imageAltLabel": "Fotocredits / Alt‑Text",
@@ -278,7 +289,15 @@
 
       "authorPlaceholder": "Autor/in wählen",
 
-      "intervieweePlaceholder": "Interviewpartner/in wählen"
+      "intervieweePlaceholder": "Interviewpartner/in wählen",
+      "authorModal": {
+        "title": "Neuen Autor hinzufügen",
+        "nameLabel": "Name des Autors",
+        "namePlaceholder": "Autorennamen eingeben",
+        "emailLabel": "E-Mail des Autors (optional)",
+        "emailPlaceholder": "Autor-E-Mail eingeben",
+        "addButton": "Autor hinzufügen"
+      }
     },
     "modals": {
       "addAuthorTitle": "Neue/r Autor/in hinzufügen",
@@ -301,6 +320,23 @@
       "authorError": "Fehler beim Hinzufügen der/des Autors/in.",
       "unknownAuthorError": "Unerwarteter Fehler: Keine Autor-ID empfangen."
     }
+  },
+  "galleryManager": {
+    "sectionTitle": "Bildergalerie",
+    "selectFileFirst": "Bitte zuerst eine Bilddatei auswählen",
+    "altTextLabel": "Alternativtext (Barrierefreiheit)",
+    "altTextPlaceholder": "Bild kurz für Screenreader beschreiben",
+    "descriptionCreditsLabel": "Beschreibung / Credits",
+    "descriptionCreditsPlaceholder": "Kurze Beschreibung. Credits: Foto: Name, Illustration: Name",
+    "useAsCover": "Als Titelbild verwenden",
+    "addToGallery": "Zur Galerie hinzufügen",
+    "addedImagesTitle": "Hinzugefügte Bilder",
+    "altTextPreviewLabel": "Alternativtext (Barrierefreiheit):",
+    "descriptionCreditsPreviewLabel": "Beschreibung / Credits:",
+    "coverBadge": "Titelbild",
+    "delete": "Löschen",
+    "noAltText": "Ohne Alt-Text",
+    "noCredits": "Ohne Credits"
   },
   "donationPopup": {
     "title": "Unterstütze unsere Arbeit!",
