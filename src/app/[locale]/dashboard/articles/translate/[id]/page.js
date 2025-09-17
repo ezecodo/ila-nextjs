@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Copy } from "lucide-react";
+function stripHtml(html) {
+  if (!html) return "";
+  // Sustituir <br> por salto de línea
+  let text = html.replace(/<br\s*\/?>/gi, "\n");
+  // Sustituir </p> por doble salto de línea
+  text = text.replace(/<\/p>/gi, "\n\n");
+  // Eliminar todas las demás etiquetas
+  const doc = new DOMParser().parseFromString(text, "text/html");
+  return doc.body.textContent || "";
+}
 
 const TranslateArticlePage = () => {
   const { id } = useParams();
@@ -91,9 +101,10 @@ const TranslateArticlePage = () => {
       titleES: prev.titleES || tr.titleES || "",
       subtitleES: prev.subtitleES || tr.subtitleES || "",
       // ojo: tu state usa previewES; el backend devuelve previewTextES
-      previewES: prev.previewES || tr.previewTextES || "",
-      contentES: prev.contentES || tr.contentES || "",
-      additionalInfoES: prev.additionalInfoES || tr.additionalInfoES || "",
+      previewES: prev.previewES || stripHtml(tr.previewTextES) || "",
+      contentES: prev.contentES || stripHtml(tr.contentES) || "",
+      additionalInfoES:
+        prev.additionalInfoES || stripHtml(tr.additionalInfoES) || "",
     }));
   };
 
@@ -107,7 +118,7 @@ const TranslateArticlePage = () => {
     if (!tr) return;
     setTranslations((prev) => {
       if (!force && prev[stateKey]) return prev; // no pisar si ya hay texto
-      return { ...prev, [stateKey]: tr[deeplKey] || "" };
+      return { ...prev, [stateKey]: stripHtml(tr[deeplKey]) || "" };
     });
   };
 
@@ -160,7 +171,10 @@ const TranslateArticlePage = () => {
               type="button"
               onClick={async () => {
                 const text = await navigator.clipboard.readText();
-                setTranslations((prev) => ({ ...prev, titleES: text }));
+                setTranslations((prev) => ({
+                  ...prev,
+                  titleES: stripHtml(text),
+                }));
               }}
               className="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300"
               title="Pegar desde portapapeles"
@@ -191,7 +205,7 @@ const TranslateArticlePage = () => {
             <label className="font-bold">Subtítulo (alemán)</label>
           </div>
           <p className="border bg-gray-100 p-2 rounded mt-1">
-            {article.subtitle || "—"}
+            {stripHtml(article.subtitle) || "—"}
           </p>
         </div>
 
@@ -208,7 +222,10 @@ const TranslateArticlePage = () => {
               type="button"
               onClick={async () => {
                 const text = await navigator.clipboard.readText();
-                setTranslations((prev) => ({ ...prev, subtitleES: text }));
+                setTranslations((prev) => ({
+                  ...prev,
+                  subtitleES: stripHtml(text),
+                }));
               }}
               className="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300"
               title="Pegar desde portapapeles"
@@ -240,7 +257,7 @@ const TranslateArticlePage = () => {
             <label className="font-bold">Preview Text (alemán)</label>
           </div>
           <p className="border bg-gray-100 p-2 rounded whitespace-pre-line mt-1">
-            {article.previewText || "—"}
+            {stripHtml(article.previewText) || "—"}
           </p>
         </div>
         <div>
@@ -256,7 +273,10 @@ const TranslateArticlePage = () => {
               type="button"
               onClick={async () => {
                 const text = await navigator.clipboard.readText();
-                setTranslations((prev) => ({ ...prev, previewES: text }));
+                setTranslations((prev) => ({
+                  ...prev,
+                  previewES: stripHtml(text),
+                }));
               }}
               className="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 h-fit mt-1"
               title="Pegar desde portapapeles"
@@ -288,7 +308,7 @@ const TranslateArticlePage = () => {
             <label className="font-bold">Contenido (alemán)</label>
           </div>
           <p className="border bg-gray-100 p-2 rounded whitespace-pre-line h-48 overflow-y-scroll mt-1">
-            {article.content}
+            {stripHtml(article.content) || "—"}
           </p>
         </div>
         <div>
@@ -304,7 +324,10 @@ const TranslateArticlePage = () => {
               type="button"
               onClick={async () => {
                 const text = await navigator.clipboard.readText();
-                setTranslations((prev) => ({ ...prev, contentES: text }));
+                setTranslations((prev) => ({
+                  ...prev,
+                  contentES: stripHtml(text),
+                }));
               }}
               className="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 h-fit mt-1"
               title="Pegar desde portapapeles"
@@ -336,7 +359,7 @@ const TranslateArticlePage = () => {
             <label className="font-bold">Información adicional (alemán)</label>
           </div>
           <p className="border bg-gray-100 p-2 rounded whitespace-pre-line mt-1">
-            {article.additionalInfo || "—"}
+            {stripHtml(article.additionalInfo) || "—"}
           </p>
         </div>
         <div>
@@ -354,7 +377,7 @@ const TranslateArticlePage = () => {
                 const text = await navigator.clipboard.readText();
                 setTranslations((prev) => ({
                   ...prev,
-                  additionalInfoES: text,
+                  additionalInfoES: stripHtml(text),
                 }));
               }}
               className="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 h-fit mt-1"

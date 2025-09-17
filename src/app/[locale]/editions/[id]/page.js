@@ -80,11 +80,16 @@ export default function EditionDetails() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex flex-col items-center mb-6">
-        <h1
-          className="text-3xl font-bold text-gray-800 mb-4 text-center"
-          style={{ fontFamily: "Futura" }}
-        >
-          {`ila ${edition.number}: ${edition.title}`}
+        <h1 className="text-3xl md:text-4xl mb-4 text-center leading-snug flex flex-wrap justify-center items-baseline gap-2">
+          <span
+            style={{ fontFamily: "Futura" }}
+            className="font-bold text-gray-800"
+          >
+            ila {edition.number}
+          </span>
+          <span className="font-serif font-bold text-red-800">
+            {edition.title}
+          </span>
         </h1>
 
         <div className="relative max-w-[550px] mb-4">
