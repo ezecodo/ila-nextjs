@@ -35,6 +35,7 @@ export async function GET(request, context) {
             subtitle: true,
             publicationDate: true,
             beitragsId: true, // Clave para buscar imágenes
+            legacyPath: true, // 👈 NECESARIO para ArticleLink
             edition: { select: { id: true, number: true, title: true } },
             topics: { select: { id: true, name: true } },
             regions: { select: { id: true, name: true } },

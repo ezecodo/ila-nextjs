@@ -6,7 +6,12 @@ import MiniArticleCardGrid from "./MiniArticleCardGrid";
 import Pagination from "../Pagination/Pagination";
 import { useTranslations, useLocale } from "next-intl";
 
-export default function ArticleList({ articlesProp = null, authorId = null }) {
+export default function ArticleList({
+  articlesProp = null,
+  authorId = null,
+  entityType = null,
+  entityId = null,
+}) {
   const [articles, setArticles] = useState(articlesProp || []);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -23,18 +28,23 @@ export default function ArticleList({ articlesProp = null, authorId = null }) {
 
     async function fetchArticles() {
       try {
-        const baseUrl = authorId
-          ? `/api/authors/${authorId}`
-          : `/api/articles/list`;
+        let baseUrl;
+        if (authorId) {
+          baseUrl = `/api/authors/${authorId}`;
+        } else if (entityType && entityId) {
+          baseUrl = `/api/entities/${entityType}/${entityId}`;
+        } else {
+          baseUrl = `/api/articles/list`;
+        }
 
-        const url = `${baseUrl}?page=${currentPage}&limit=3&locale=${locale}`;
+        const url = `${baseUrl}?page=${currentPage}&limit=10&locale=${locale}`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error(t("loadArticles"));
 
         const data = await response.json();
         setArticles(data.articles);
-        setTotalPages(data.totalPages);
+        setTotalPages(data.totalPages || 1);
       } catch (err) {
         setError(err.message);
       }

@@ -35,6 +35,7 @@ export async function GET(request, context) {
           take: pageSize,
           select: {
             id: true,
+            legacyPath: true,
             title: true,
             subtitle: true,
             publicationDate: true,
@@ -113,14 +114,11 @@ export async function GET(request, context) {
         name: region.name || "Región desconocida",
       },
       articles: articlesWithImages,
-      editions: region.editions, // ✅ Ahora también enviamos las ediciones
-      pagination: {
-        totalArticles,
-        totalEditions,
-        page,
-        pageSize,
-        hasMore: skip + pageSize < totalArticles,
-      },
+      editions: region.editions, // ✅ adicional
+      totalArticles,
+      totalEditions,
+      currentPage: page,
+      totalPages: Math.ceil(totalArticles / pageSize),
     };
 
     return new Response(JSON.stringify(responseData), {

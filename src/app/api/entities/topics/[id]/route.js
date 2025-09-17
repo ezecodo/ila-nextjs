@@ -35,6 +35,7 @@ export async function GET(request, context) {
           take: pageSize,
           select: {
             id: true,
+            legacyPath: true,
             title: true,
             subtitle: true,
             publicationDate: true,
@@ -50,6 +51,7 @@ export async function GET(request, context) {
           orderBy: { number: "desc" },
           select: {
             id: true,
+
             number: true,
             title: true,
             subtitle: true,
@@ -113,14 +115,11 @@ export async function GET(request, context) {
         name: topic.name || "Topic desconocido",
       },
       articles: articlesWithImages,
-      editions: topic.editions, // ✅ Ahora también enviamos las ediciones
-      pagination: {
-        totalArticles,
-        totalEditions,
-        page,
-        pageSize,
-        hasMore: skip + pageSize < totalArticles,
-      },
+      editions: topic.editions, // ✅ extra
+      totalArticles,
+      totalEditions,
+      currentPage: page,
+      totalPages: Math.ceil(totalArticles / pageSize),
     };
 
     return new Response(JSON.stringify(responseData), {

@@ -39,6 +39,7 @@ export async function GET(request, context) {
           take: pageSize, // 🔥 Toma `pageSize` artículos
           select: {
             id: true,
+            legacyPath: true,
             title: true,
             subtitle: true,
             publicationDate: true,
@@ -101,12 +102,9 @@ export async function GET(request, context) {
         name: category.name || "Categoría desconocida",
       },
       articles: articlesWithImages,
-      pagination: {
-        total: totalArticles,
-        page,
-        pageSize,
-        hasMore: skip + pageSize < totalArticles, // 🔥 Saber si hay más páginas
-      },
+      totalArticles, // 🔥 total de artículos
+      currentPage: page, // 🔥 página actual
+      totalPages: Math.ceil(totalArticles / pageSize), // 🔥 total de páginas
     };
 
     return new Response(JSON.stringify(responseData), {
