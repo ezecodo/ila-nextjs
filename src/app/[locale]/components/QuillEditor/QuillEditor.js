@@ -43,45 +43,6 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
       });
 
       // 🔧 MANEJADOR DE PEGADO SIMPLIFICADO Y MEJORADO
-      quillRef.current.root.addEventListener("paste", (e) => {
-        e.preventDefault();
-        const clipboardData = e.clipboardData || window.clipboardData;
-        const text = clipboardData.getData("text/plain");
-        const html = clipboardData.getData("text/html");
-
-        // Si hay HTML, procesarlo con el matcher de Quill
-        if (html) {
-          const range = quillRef.current.getSelection(true);
-          quillRef.current.clipboard.dangerouslyPasteHTML(range.index, html);
-          return;
-        }
-
-        // Si solo hay texto plano, procesar los saltos de línea
-        if (text) {
-          const selection = quillRef.current.getSelection();
-          const cursorPosition = selection ? selection.index : 0;
-
-          // Dividir en párrafos basados en dobles saltos de línea
-          const paragraphs = text.split(/\n\s*\n/);
-
-          let newDelta = new Delta().retain(cursorPosition);
-
-          paragraphs.forEach((paragraph, index) => {
-            if (paragraph.trim()) {
-              // Insertar el párrafo
-              newDelta = newDelta.insert(paragraph.trim());
-
-              // Agregar salto de párrafo excepto después del último párrafo
-              if (index < paragraphs.length - 1) {
-                newDelta = newDelta.insert("\n", { block: true });
-              }
-            }
-          });
-
-          quillRef.current.updateContents(newDelta, "user");
-          quillRef.current.setSelection(cursorPosition + text.length, 0);
-        }
-      });
 
       // 🧹 LIMPIAR HTML PEGADO - mantener solo estructura básica
       quillRef.current.clipboard.addMatcher(Node.ELEMENT_NODE, (node) => {
