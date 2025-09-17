@@ -296,25 +296,25 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
                   }}
                   onClick={() => {
                     if (showEditionModal.range) {
-                      const { index, length } = showEditionModal.range;
                       const selectedText = quillRef.current.getText(
-                        index,
-                        length
+                        showEditionModal.range.index,
+                        showEditionModal.range.length
                       );
 
-                      quillRef.current.deleteText(index, length);
+                      // ✅ aquí insertamos el link relativo
+                      const linkHTML = `<a href="/editions/${edition.id}" class="dossier-link">${selectedText}</a>`;
 
-                      quillRef.current.insertText(
-                        index,
-                        selectedText,
-                        "dossier",
-                        {
-                          href: `${window.location.origin}/editions/${edition.id}`,
-                        }
+                      quillRef.current.deleteText(
+                        showEditionModal.range.index,
+                        showEditionModal.range.length
                       );
 
-                      setShowEditionModal({ open: false, range: null });
+                      quillRef.current.clipboard.dangerouslyPasteHTML(
+                        showEditionModal.range.index,
+                        linkHTML
+                      );
                     }
+                    setShowEditionModal({ open: false, range: null });
                   }}
                 >
                   <strong>ila {edition.number}</strong> – {edition.title}
