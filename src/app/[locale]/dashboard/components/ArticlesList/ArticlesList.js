@@ -343,7 +343,7 @@ const ArticlesList = ({ mode = "admin" }) => {
                       )}
                     </div>
                   ) : article.translationStatus === "in_progress" ? (
-                    mode === "translator" ? (
+                    mode === "translator" || mode === "admin" ? (
                       <Link
                         href={`/dashboard/articles/translate/${article.id}`}
                       >
