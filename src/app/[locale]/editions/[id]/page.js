@@ -38,7 +38,18 @@ export default function EditionDetails() {
   function renderTableOfContents() {
     if (!edition?.tableOfContents) return null;
 
-    return edition.tableOfContents.split("\n").map((line, index) => {
+    // 🛠 Normalizar: si no hay saltos de línea, los metemos por número de página
+    let normalized = edition.tableOfContents;
+    if (!normalized.includes("\n")) {
+      normalized = normalized
+        .replace(/\r\n/g, "\n") // convertir CRLF a LF
+        .replace(/\r/g, "\n") // convertir CR a LF
+        .replace(/\u00A0/g, " ") // reemplazar nbsp por espacio normal
+        .replace(/\s{2,}/g, " ") // colapsar espacios múltiples
+        .replace(/(\d{1,3})\s+/g, "\n$1 "); // salto antes de cada número de página
+    }
+
+    return normalized.split("\n").map((line, index) => {
       const matchedArticle = articles.find((article) =>
         line.toLowerCase().includes(article.title.toLowerCase())
       );
