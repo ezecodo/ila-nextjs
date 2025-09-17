@@ -4,6 +4,27 @@ import Delta from "quill-delta";
 
 import "quill/dist/quill.snow.css";
 import { useTranslations } from "next-intl";
+// 🔥 NUEVO: Registrar formato para líneas con puntuación
+const Inline = Quill.import("blots/inline");
+class PunctuatedLineBlot extends Inline {
+  static create() {
+    return super.create();
+  }
+}
+PunctuatedLineBlot.blotName = "punctuated-line";
+PunctuatedLineBlot.tagName = "span";
+PunctuatedLineBlot.className = "punctuated-line";
+Quill.register(PunctuatedLineBlot);
+const Block = Quill.import("blots/block");
+
+class PoemBlot extends Block {}
+PoemBlot.blotName = "poem";
+PoemBlot.tagName = "div";
+PoemBlot.className = "poem";
+
+Quill.register(PoemBlot);
+const icons = Quill.import("ui/icons");
+icons["poem"] = "📜"; // 👈 puede ser emoji o un SVG
 
 const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
   const editorRef = useRef(null);
@@ -21,9 +42,49 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
             [{ list: "ordered" }, { list: "bullet" }],
             ["link"],
             ["image"],
+            ["poem"],
           ],
         },
         placeholder: t("writeHere"),
+      });
+      // Añadir handler para el botón "poem"
+      const toolbar = quillRef.current.getModule("toolbar");
+      toolbar.addHandler("poem", () => {
+        const range = quillRef.current.getSelection();
+        if (range && range.length > 0) {
+          const selectedText = quillRef.current.getText(
+            range.index,
+            range.length
+          );
+          const lines = selectedText.split("\n");
+
+          quillRef.current.deleteText(range.index, range.length);
+
+          let index = range.index;
+
+          lines.forEach((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+
+            const endsWithPunctuation = /[.!?]$/.test(trimmed);
+
+            // 👇 Insertamos solo el texto sin salto manual
+            quillRef.current.insertText(index, trimmed, "poem", true);
+            index += trimmed.length;
+
+            // 👇 Para párrafos que terminan con punto → salto doble
+            if (endsWithPunctuation) {
+              quillRef.current.insertText(index, "\n\n", "poem", true);
+              index += 2;
+            } else if (idx < lines.length - 1) {
+              // 👇 Si no es la última línea, salto simple
+              quillRef.current.insertText(index, "\n", "poem", true);
+              index += 1;
+            }
+          });
+        } else if (range) {
+          quillRef.current.format("poem", true);
+        }
       });
       // 👇 NUEVO: detectar títulos al pegar texto plano
       quillRef.current.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {

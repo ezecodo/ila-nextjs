@@ -438,3 +438,27 @@ html.dark {
 .article-content a {
   word-break: break-all; /* URLs sin espacios -> que sí se corten */
 }
+
+.poem {
+  font-family: inherit;
+  line-height: 1.6;
+  white-space: pre-wrap; /* respeta los saltos que generas */
+  margin: 0; /* 👈 nada de márgenes extra */
+  padding: 0;
+}
+
+.poem p {
+  margin: 0; /* 👈 evita espacio entre párrafos */
+}
+
+.poem br {
+  display: block;
+  margin: 0;
+  height: 0;
+}
+
+/* 👇 solo cuando termina en punto queremos "estirar" */
+.poem .verse-end {
+  display: block;
+  margin-bottom: 1em; /* 👈 espacio entre estrofas */
+}
