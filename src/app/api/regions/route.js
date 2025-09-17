@@ -97,3 +97,30 @@ export async function GET(req) {
     );
   }
 }
+
+// ✅ POST para crear nueva región
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    const { name } = body;
+
+    if (!name || name.trim() === "") {
+      return NextResponse.json(
+        { error: "El nombre de la región es obligatorio" },
+        { status: 400 }
+      );
+    }
+
+    const newRegion = await prisma.region.create({
+      data: { name: name.trim() },
+    });
+
+    return NextResponse.json(newRegion, { status: 201 });
+  } catch (error) {
+    console.error("❌ Error al crear región:", error.message);
+    return NextResponse.json(
+      { error: error.message || "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
+}

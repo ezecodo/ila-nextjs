@@ -248,19 +248,96 @@ export default function NewArticlePage() {
   };
 
   const loadRegions = async (inputValue) => {
-    if (!inputValue) return [];
+    const q = (inputValue || "").trim();
+    if (!q) return [];
     try {
-      const response = await fetch(`/api/regions?search=${inputValue}`);
-      const data = await response.json();
+      const res = await fetch(`/api/regions?search=${encodeURIComponent(q)}`);
+      const data = await res.json();
 
-      // Aplanar la jerarquía para react-select
-      return flattenRegions(data);
+      const flat = flattenRegions(data); // [{ value, label }, ...]
+      const norm = (s) => (s || "").trim().toLowerCase();
+      const nq = norm(q);
+
+      // prioridad: exacto → empieza con → contiene
+      const exact = flat.filter((o) => norm(o.label) === nq);
+      const starts = flat.filter(
+        (o) => norm(o.label).startsWith(nq) && norm(o.label) !== nq
+      );
+      const includes = flat.filter(
+        (o) => norm(o.label).includes(nq) && !norm(o.label).startsWith(nq)
+      );
+
+      const ordered = [...exact, ...starts, ...includes];
+
+      // Solo mostrar "Crear región" si NO hay match exacto
+      const maybeCreate =
+        exact.length === 0
+          ? [
+              {
+                value: "new",
+                label: `${t("createRegionPrefix") || "Región erstellen"}: "${q}"`,
+                __inputValue: q,
+              },
+            ]
+          : [];
+
+      return [...maybeCreate, ...ordered];
     } catch (error) {
       console.error("Error al cargar regiones:", error);
       return [];
     }
   };
+  // ⬇️ AQUI PEGAS ESTA FUNCIÓN
+  const handleRegionChange = async (selectedOptions) => {
+    const lastOption = selectedOptions[selectedOptions.length - 1];
 
+    if (lastOption?.value === "new") {
+      const rawName = lastOption.__inputValue || lastOption.label;
+      const newRegion = await createNewRegion(rawName);
+
+      if (newRegion) {
+        setRegions([...selectedOptions.slice(0, -1), newRegion]);
+      }
+    } else {
+      setRegions(selectedOptions || []);
+    }
+  };
+
+  const createNewRegion = async (inputValue) => {
+    // Verificar si ya existe (normalizado)
+    const norm = (s) => s?.trim().toLowerCase();
+    const exists = regions.some((r) => norm(r.label) === norm(inputValue));
+
+    if (exists) {
+      setMessage(`La región "${inputValue}" ya existe.`);
+      return null;
+    }
+
+    try {
+      const response = await fetch("/api/regions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: inputValue }),
+      });
+
+      if (response.ok) {
+        const newRegion = await response.json();
+
+        // 👇 devuelve en el mismo formato que AsyncSelect espera
+        const option = { value: newRegion.id, label: newRegion.name };
+
+        setMessage(`Región "${newRegion.name}" creada exitosamente.`);
+        return option;
+      } else {
+        setMessage("Error al crear la región.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error al conectar con el servidor:", error);
+      setMessage("Error al conectar con el servidor.");
+      return null;
+    }
+  };
   const isNachruf =
     beitragstypen.find((typ) => typ.id === parseInt(selectedBeitragstyp, 10))
       ?.name === "Nachruf";
@@ -760,7 +837,7 @@ export default function NewArticlePage() {
             cacheOptions
             defaultOptions
             loadOptions={loadRegions}
-            onChange={(selectedOptions) => setRegions(selectedOptions || [])}
+            onChange={handleRegionChange}
             value={regions}
             placeholder={t("regionPlaceholder")}
             key={locale} // 👈 (opcional) re-monta al cambiar idioma
