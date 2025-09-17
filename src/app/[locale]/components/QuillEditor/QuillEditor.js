@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Quill from "quill";
 import Delta from "quill-delta";
 
 import "quill/dist/quill.snow.css";
 import { useTranslations } from "next-intl";
+
 // 🔥 NUEVO: Registrar formato para líneas con puntuación
 const Inline = Quill.import("blots/inline");
 class PunctuatedLineBlot extends Inline {
@@ -23,13 +24,63 @@ PoemBlot.tagName = "div";
 PoemBlot.className = "poem";
 
 Quill.register(PoemBlot);
+
+// 🔥🔥🔥 AÑADE ESTO JUSTO AQUÍ - después de Quill.register(PoemBlot);
+// 🔥 Nuevo blot para enlaces a dossiers
+class DossierBlot extends Inline {
+  static create(value) {
+    let node = super.create();
+    node.setAttribute("href", value.href);
+    node.setAttribute("class", "dossier-link");
+    node.setAttribute("target", "_blank"); // opcional
+    return node;
+  }
+
+  static formats(node) {
+    return {
+      href: node.getAttribute("href"),
+    };
+  }
+}
+DossierBlot.blotName = "dossier";
+DossierBlot.tagName = "a";
+Quill.register(DossierBlot);
+DossierBlot.blotName = "dossier";
+DossierBlot.tagName = "a";
+DossierBlot.className = "dossier-link";
+Quill.register(DossierBlot);
 const icons = Quill.import("ui/icons");
 icons["poem"] = "📜"; // 👈 puede ser emoji o un SVG
+icons["dossier"] = "📕"; //
 
 const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
   const editorRef = useRef(null);
   const quillRef = useRef(null);
   const t = useTranslations("quilleditor");
+
+  // ✅ aquí dentro van tus states
+  const [editions, setEditions] = useState([]);
+  const [showEditionModal, setShowEditionModal] = useState({
+    open: false,
+    range: null,
+  });
+  // ✅ aquí metemos el fetch
+  useEffect(() => {
+    const fetchEditions = async () => {
+      try {
+        const res = await fetch("/api/editions");
+        if (res.ok) {
+          const data = await res.json();
+          const sorted = data.sort((a, b) => b.number - a.number);
+          setEditions(sorted);
+        }
+      } catch (err) {
+        console.error("Error cargando ediciones", err);
+      }
+    };
+
+    fetchEditions();
+  }, []);
 
   // Inicialización de Quill
   useEffect(() => {
@@ -43,6 +94,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
             ["link"],
             ["image"],
             ["poem"],
+            ["dossier"],
           ],
         },
         placeholder: t("writeHere"),
@@ -85,6 +137,20 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         } else if (range) {
           quillRef.current.format("poem", true);
         }
+      });
+
+      // 👉 Handler para Dossier
+      toolbar.addHandler("dossier", () => {
+        console.log("CLICK EN DOSSIER"); // 👈 debug
+        const range = quillRef.current.getSelection();
+        if (!range || range.length === 0) {
+          alert(
+            "Selecciona primero el texto que quieres enlazar a un dossier."
+          );
+          return;
+        }
+
+        setShowEditionModal({ open: true, range });
       });
       // 👇 NUEVO: detectar títulos al pegar texto plano
       quillRef.current.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
@@ -182,7 +248,84 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
     }
   }, [resetTrigger]);
 
-  return <div ref={editorRef} style={{ height: "300px" }}></div>;
+  return (
+    <>
+      <div ref={editorRef} style={{ height: "300px" }}></div>
+
+      {/* ✅ Modal de selección de Dossier */}
+      {showEditionModal.open && (
+        <div
+          style={{
+            position: "fixed",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowEditionModal({ open: false, range: null });
+            }
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "20px",
+              borderRadius: "8px",
+              maxHeight: "400px",
+              overflowY: "auto",
+              minWidth: "300px",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Selecciona un dossier</h3>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {editions.map((edition) => (
+                <li
+                  key={edition.id}
+                  style={{
+                    padding: "8px",
+                    cursor: "pointer",
+                    borderBottom: "1px solid #eee",
+                  }}
+                  onClick={() => {
+                    if (showEditionModal.range) {
+                      const { index, length } = showEditionModal.range;
+                      const selectedText = quillRef.current.getText(
+                        index,
+                        length
+                      );
+
+                      quillRef.current.deleteText(index, length);
+
+                      quillRef.current.insertText(
+                        index,
+                        selectedText,
+                        "dossier",
+                        {
+                          href: `${window.location.origin}/editions/${edition.id}`,
+                        }
+                      );
+
+                      setShowEditionModal({ open: false, range: null });
+                    }
+                  }}
+                >
+                  <strong>ila {edition.number}</strong> – {edition.title}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
 
 export default QuillEditor;

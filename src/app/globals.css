@@ -462,3 +462,8 @@ html.dark {
   display: block;
   margin-bottom: 1em; /* 👈 espacio entre estrofas */
 }
+
+.dossier-link {
+  color: #0066cc;
+  text-decoration: underline;
+}
