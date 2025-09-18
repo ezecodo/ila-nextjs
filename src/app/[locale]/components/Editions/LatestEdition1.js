@@ -467,7 +467,7 @@ export default function LatestEditionWithArticles() {
             </div>
 
             <div className="w-full lg:w-2/3 flex flex-col gap-6">
-              {/* Artículos en escritorio */}
+              {/* Artículos en escritorio → máximo 10 */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
                 {orderedArticles.length > 0 ? (
                   orderedArticles.map((article) => (
@@ -480,20 +480,11 @@ export default function LatestEditionWithArticles() {
                 )}
               </div>
 
-              {/* Artículos en móvil */}
-              <div className="block lg:hidden w-full bg-red-50 text-center py-3 rounded-t shadow-sm border-t border-b border-red-200">
-                <span className="text-sm text-red-800 font-semibold tracking-wide">
-                  ⬇ {t("articlesFromDossier")}{" "}
-                  <span className="italic">
-                    &quot;{currentEdition.title}&quot;
-                  </span>
-                </span>
-              </div>
-
+              {/* Artículos en móvil → todos los artículos */}
               <div className="block lg:hidden w-full mt-0">
-                {orderedArticles.length > 0 ? (
+                {articles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
-                    {orderedArticles.map((article) => (
+                    {articles.map((article) => (
                       <div key={article.id} className="w-full">
                         <MiniArticleCardGrid article={article} />
                       </div>

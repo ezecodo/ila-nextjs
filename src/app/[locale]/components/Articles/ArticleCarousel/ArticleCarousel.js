@@ -108,7 +108,7 @@ export default function FilteredArticlesCarousel(props) {
                         alt={firstImage.alt || "Artículo"}
                         width={800}
                         height={400}
-                        className="w-full h-[240px] object-cover rounded-md"
+                        className="w-full max-h-[240px] object-contain rounded-md bg-white"
                       />
                     )}
                   </ArticleLink>
@@ -167,7 +167,7 @@ export default function FilteredArticlesCarousel(props) {
                     {article.authors?.length > 0 && (
                       <>
                         <span className="opacity-60">|</span>
-                        {locale === "de" && <span>Von:</span>}
+                        {locale === "de" && <span>von</span>}
                         {article.authors.map((author, i) => (
                           <span key={author.id} className="flex gap-1">
                             <LocaleLink
