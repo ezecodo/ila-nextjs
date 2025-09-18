@@ -3,11 +3,8 @@ import Link from "next/link";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import Image from "next/image";
 import styles from "./Footer.module.css";
-import { useTranslations } from "next-intl";
 
 const Footer = () => {
-  const t = useTranslations("Footer"); // Namespace Footer
-
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
@@ -21,7 +18,8 @@ const Footer = () => {
           />
         </div>
         <p className={styles.text}>
-          © 2025 <span className={styles.logoText}>ila</span> - {t("tagline")}
+          © 2025 <span className={styles.logoText}>ila</span> –
+          Informationsstelle Lateinamerika e.V., Bonn
         </p>
         <ul className={styles.socials}>
           <li>

@@ -10,10 +10,12 @@ export default function ContactPage() {
     <>
       <h1 className="text-3xl font-bold text-red-700 mb-6">Kontakt</h1>
 
-      <p className="font-semibold">Informationsstelle Lateinamerika e.V.</p>
-      <p>Oscar-Romero-Haus</p>
-      <p>Heerstr. 205</p>
-      <p>53111 Bonn</p>
+      <div className="space-y-0.5 leading-tight">
+        <p className="font-semibold">Informationsstelle Lateinamerika e.V.</p>
+        <p>Oscar-Romero-Haus</p>
+        <p>Heerstr. 205</p>
+        <p>53111 Bonn</p>
+      </div>
 
       <p className="mt-4">
         <a
@@ -30,12 +32,14 @@ export default function ContactPage() {
     <>
       <h1 className="text-3xl font-bold text-red-700 mb-6">Contacto</h1>
 
-      <p className="font-semibold">
-        Oficina de Información sobre América Latina (ILA) e.V.
-      </p>
-      <p>Oscar-Romero-Haus</p>
-      <p>Heerstr. 205</p>
-      <p>53111 Bonn</p>
+      <div className="space-y-0.5 leading-tight">
+        <p className="font-semibold">
+          Oficina de información sobre américa latina (ila) e.V.
+        </p>
+        <p>Oscar-Romero-Haus</p>
+        <p>Heerstr. 205</p>
+        <p>53111 Bonn</p>
+      </div>
 
       <p className="mt-4">
         <a

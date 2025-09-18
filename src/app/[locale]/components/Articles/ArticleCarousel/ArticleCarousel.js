@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Slider from "../../SafeSlick/SafeSlick";
 import { useLocale } from "next-intl";
-import PreviewHover from "../../PreviewHover/PreviewHover";
 import EntityBadges from "../../../components/EntityBadges/EntityBadges";
 import FavoriteButton from "../../../components/FavoriteButton/FavoriteButton";
 import HoverInfo from "../../../components/HoverInfo/HoverInfo";
@@ -85,12 +84,11 @@ export default function FilteredArticlesCarousel(props) {
             locale === "es" && article.isTranslatedES
               ? article.subtitleES
               : article.subtitle;
-          const date = article.publicationDate
-            ? new Date(article.publicationDate).toLocaleDateString("es-ES", {
-                year: "numeric",
-                month: "short",
-              })
-            : null;
+          const editionYear = article.edition?.datePublished
+            ? new Date(article.edition.datePublished).getFullYear()
+            : article.publicationDate
+              ? new Date(article.publicationDate).getFullYear()
+              : null;
 
           return (
             <div
@@ -130,17 +128,9 @@ export default function FilteredArticlesCarousel(props) {
                 )}
 
                 <h2 className="text-xl font-extrabold font-serif mt-4 leading-snug">
-                  <PreviewHover
-                    preview={
-                      locale === "es" && article.isTranslatedES
-                        ? article.previewTextES || "—"
-                        : article.previewText || "—"
-                    }
-                  >
-                    <ArticleLink article={article}>
-                      <span className="hover:underline">{articleTitle}</span>
-                    </ArticleLink>
-                  </PreviewHover>
+                  <ArticleLink article={article}>
+                    <span className="hover:underline">{articleTitle}</span>
+                  </ArticleLink>
                 </h2>
 
                 {subtitle && (
@@ -150,24 +140,11 @@ export default function FilteredArticlesCarousel(props) {
                 )}
 
                 <div className="flex justify-between items-start mt-2">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap gap-x-1 items-center">
-                    {date && <span>{date}</span>}
-
-                    {article.beitragstyp && (
-                      <>
-                        <span className="opacity-60">|</span>
-                        <span>
-                          {locale === "es" && article.beitragstyp.nameES
-                            ? article.beitragstyp.nameES
-                            : article.beitragstyp.name}
-                        </span>
-                      </>
-                    )}
-
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-wrap items-center gap-x-1">
+                    {/* Autor en minúscula y sin “:” */}
                     {article.authors?.length > 0 && (
                       <>
-                        <span className="opacity-60">|</span>
-                        {locale === "de" && <span>von</span>}
+                        <span>{locale === "de" ? "von" : "por"}&nbsp;</span>
                         {article.authors.map((author, i) => (
                           <span key={author.id} className="flex gap-1">
                             <LocaleLink
@@ -183,6 +160,38 @@ export default function FilteredArticlesCarousel(props) {
                             {i < article.authors.length - 1 && <span>,</span>}
                           </span>
                         ))}
+                      </>
+                    )}
+
+                    {/* | Categorías */}
+                    {article.categories?.length > 0 && (
+                      <>
+                        {article.authors?.length > 0 && (
+                          <span className="opacity-60">|</span>
+                        )}
+                        <span>
+                          {article.categories.map((cat, i) => (
+                            <span key={cat.id}>
+                              {locale === "es" && cat.nameES
+                                ? cat.nameES
+                                : cat.name}
+                              {i < article.categories.length - 1 && ", "}
+                            </span>
+                          ))}
+                        </span>
+                      </>
+                    )}
+
+                    {/* | 488/2025 */}
+                    {article.edition?.number && editionYear && (
+                      <>
+                        {(article.authors?.length > 0 ||
+                          article.beitragstyp) && (
+                          <span className="opacity-60">|</span>
+                        )}
+                        <span>
+                          {article.edition.number}/{editionYear}
+                        </span>
                       </>
                     )}
                   </div>
