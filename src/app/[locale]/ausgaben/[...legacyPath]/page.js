@@ -179,20 +179,23 @@ export default function LegacyArticlePage() {
               isES && article.isTranslatedES
                 ? article.subtitleES || article.previewTextES || ""
                 : article.subtitle || article.previewText || "",
-            // 👇 1) Añadir URL del artículo (faltaba)
-            url: `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`,
+            url: `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`, // 👈 URL principal
+            // 👇 Aseguramos string + array de imágenes
             image: article.images?.length
-              ? article.images.map((i) => i.url)
+              ? [
+                  article.images[0].url, // string directo (primera imagen)
+                  ...article.images.map((i) => i.url), // array completo
+                ]
               : [`${process.env.NEXT_PUBLIC_APP_URL}/ila-logo.png`],
             datePublished: article.publicationDate,
             dateModified: article.updatedAt,
             author: article.authors.map((a) => ({
               "@type": "Person",
               name: a.name,
-              // 👇 2) solo ponemos url si existe el id del autor
-              ...(a.id && {
-                url: `${process.env.NEXT_PUBLIC_APP_URL}/authors/${a.id}`,
-              }),
+              // 👇 si no hay id → ponemos aunque sea la home del sitio
+              url: a.id
+                ? `${process.env.NEXT_PUBLIC_APP_URL}/authors/${a.id}`
+                : process.env.NEXT_PUBLIC_APP_URL,
             })),
             publisher: {
               "@type": "Organization",
@@ -209,6 +212,11 @@ export default function LegacyArticlePage() {
               "@type": "WebPage",
               "@id": `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`,
             },
+            // 👇 BONUS: puedes incluir articleBody para más puntos SEO
+            articleBody:
+              isES && article.isTranslatedES
+                ? article.contentES
+                : article.content,
           }),
         }}
       />
