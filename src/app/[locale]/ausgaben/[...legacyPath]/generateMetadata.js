@@ -87,6 +87,8 @@ export async function generateMetadata({ params }) {
       logo: {
         "@type": "ImageObject",
         url: `${SITE_URL}/ila-logo.png`, // 👈 pon un logo real de ILA aquí
+        width: 196,
+        height: 196,
       },
     },
     inLanguage: params.locale,
