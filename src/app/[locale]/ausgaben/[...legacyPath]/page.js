@@ -179,6 +179,8 @@ export default function LegacyArticlePage() {
               isES && article.isTranslatedES
                 ? article.subtitleES || article.previewTextES || ""
                 : article.subtitle || article.previewText || "",
+            // 👇 1) Añadir URL del artículo (faltaba)
+            url: `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`,
             image: article.images?.length
               ? article.images.map((i) => i.url)
               : [`${process.env.NEXT_PUBLIC_APP_URL}/ila-logo.png`],
@@ -187,7 +189,10 @@ export default function LegacyArticlePage() {
             author: article.authors.map((a) => ({
               "@type": "Person",
               name: a.name,
-              url: `${process.env.NEXT_PUBLIC_APP_URL}/authors/${a.id}`,
+              // 👇 2) solo ponemos url si existe el id del autor
+              ...(a.id && {
+                url: `${process.env.NEXT_PUBLIC_APP_URL}/authors/${a.id}`,
+              }),
             })),
             publisher: {
               "@type": "Organization",
