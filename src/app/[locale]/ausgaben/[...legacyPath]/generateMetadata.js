@@ -1,11 +1,7 @@
 // app/[locale]/ausgaben/[...legacyPath]/generateMetadata.js
 import { getArticleByLegacyPath } from "@/lib/api/articles";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000");
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export async function generateMetadata({ params }) {
   const slug = params.legacyPath.join("/");
@@ -22,8 +18,16 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const title = article.title;
-  const description = article.subtitle || article.previewText || "";
+  const isES = params.locale === "es";
+
+  const title = `${
+    isES && article.isTranslatedES ? article.titleES : article.title
+  } – ila`;
+
+  const description =
+    isES && article.isTranslatedES
+      ? article.subtitleES || article.previewTextES || ""
+      : article.subtitle || article.previewText || "";
 
   const imageUrl = article.images?.[0]?.url;
   const ogImages = imageUrl
@@ -35,25 +39,67 @@ export async function generateMetadata({ params }) {
           alt: article.images[0].alt || title,
         },
       ]
-    : [];
+    : [
+        {
+          url: `${SITE_URL}/default-og.png`,
+          width: 1200,
+          height: 630,
+          alt: "ILA",
+        },
+      ];
 
-  // Regiones y temas
   const section = article.regions[0]?.name || "";
   const tags = [
     ...article.regions.map((r) => r.name),
     ...article.topics.map((t) => t.name),
   ];
 
-  // Autores
   const authorsMeta = article.authors.map((a) => ({
     name: a.name,
     url: `${SITE_URL}/authors/${a.id}`,
   }));
   const ogAuthors = article.authors.map((a) => `${SITE_URL}/authors/${a.id}`);
 
+  const keywords = [
+    isES && article.isTranslatedES ? article.titleES : article.title,
+    ...article.authors.map((a) => a.name),
+    ...article.regions.map((r) => r.name),
+    ...article.topics.map((t) => t.name),
+  ].join(", ");
+
+  // 👇 JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle", // o "Article"
+    headline: title,
+    description,
+    image: ogImages.map((i) => i.url),
+    datePublished: article.publicationDate,
+    dateModified: article.updatedAt,
+    author: authorsMeta.map((a) => ({
+      "@type": "Person",
+      name: a.name,
+      url: a.url,
+    })),
+    publisher: {
+      "@type": "Organization",
+      name: "ILA – Das Lateinamerika-Magazin",
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE_URL}/ila-logo.png`, // 👈 pon un logo real de ILA aquí
+      },
+    },
+    inLanguage: params.locale,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": canonicalUrl,
+    },
+  };
+
   return {
     title,
     description,
+    keywords,
 
     alternates: { canonical: canonicalUrl },
     robots: { index: true, follow: true },
@@ -67,7 +113,8 @@ export async function generateMetadata({ params }) {
       siteName: "ILA",
       images: ogImages,
       article: {
-        // ← este bloque es el que genera tus tags
+        publishedTime: article.publicationDate,
+        modifiedTime: article.updatedAt,
         section,
         tags,
         authors: ogAuthors,
@@ -82,6 +129,13 @@ export async function generateMetadata({ params }) {
       creator: authorsMeta[0]?.name,
     },
 
-    other: [{ name: "language", content: params.locale }],
+    // 👇 Aquí inyectamos JSON-LD
+    other: [
+      { name: "language", content: params.locale },
+      {
+        name: "structured-data",
+        content: JSON.stringify(jsonLd),
+      },
+    ],
   };
 }
