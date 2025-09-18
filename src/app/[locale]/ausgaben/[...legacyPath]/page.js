@@ -135,6 +135,35 @@ export default function LegacyArticlePage() {
       "<h2>$1</h2>"
     );
   }
+  function rewriteEditionLinksWithLocale(html, locale) {
+    if (!html) return "";
+
+    // 1) Links con marcador explícito: <a data-ila="edition" data-id="123" href="/editions/123">
+    html = html.replace(
+      /<a([^>]*\sdata-ila="edition"[^>]*)\s+href="\/?editions\/(\d+)"([^>]*)>/gi,
+      (m, pre, id, post) => `<a${pre} href="/${locale}/editions/${id}"${post}>`
+    );
+
+    // 2) Cualquier href relativo tipo /editions/123
+    html = html.replace(
+      /href="\/editions\/(\d+)"/gi,
+      (_, id) => `href="/${locale}/editions/${id}"`
+    );
+
+    // 3) Reparar los casos rotos tipo https://de/editions/123 o https://es/editions/123
+    html = html.replace(
+      /href="https?:\/\/(de|es)\/editions\/(\d+)"/gi,
+      (_, __, id) => `href="/${locale}/editions/${id}"`
+    );
+
+    // 4) Reparar cualquier host absoluto (localhost, vercel, hetzner, etc.)
+    html = html.replace(
+      /href="https?:\/\/[^"]*\/editions\/(\d+)"/gi,
+      (_, id) => `href="/${locale}/editions/${id}"`
+    );
+
+    return html;
+  }
   return (
     <main className="max-w-4xl mx-auto p-6">
       <DonationPopUp articleId={article.id} />
@@ -409,14 +438,17 @@ export default function LegacyArticlePage() {
           className="article-content text-gray-700 dark:text-gray-200 mt-6"
           itemProp="articleBody"
           dangerouslySetInnerHTML={{
-            __html: autoDetectHeadings(
-              autoFormatHeadings(
-                normalizeContentForRender(
-                  isES && article.contentES
-                    ? article.contentES
-                    : article.content
+            __html: rewriteEditionLinksWithLocale(
+              autoDetectHeadings(
+                autoFormatHeadings(
+                  normalizeContentForRender(
+                    isES && article.contentES
+                      ? article.contentES
+                      : article.content
+                  )
                 )
-              )
+              ),
+              locale
             ),
           }}
         />

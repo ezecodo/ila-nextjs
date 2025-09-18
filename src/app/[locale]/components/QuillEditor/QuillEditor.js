@@ -3,7 +3,7 @@ import Quill from "quill";
 import Delta from "quill-delta";
 
 import "quill/dist/quill.snow.css";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 
 // 🔥 NUEVO: Registrar formato para líneas con puntuación
 const Inline = Quill.import("blots/inline");
@@ -36,7 +36,6 @@ icons["dossier"] = "📕"; //
 
 const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
   const t = useTranslations("quilleditor");
-  const locale = useLocale();
 
   const editorRef = useRef(null);
   const quillRef = useRef(null);
@@ -278,27 +277,23 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
                     borderBottom: "1px solid #eee",
                   }}
                   onClick={() => {
-                    if (showEditionModal.range) {
-                      const { index, length } = showEditionModal.range;
-                      const selectedText = quillRef.current.getText(
-                        index,
-                        length
-                      );
+                    if (!showEditionModal.range) return;
+                    const { index, length } = showEditionModal.range;
+                    const selectedText = quillRef.current.getText(
+                      index,
+                      length
+                    );
 
-                      // primero elimina el texto seleccionado
-                      quillRef.current.deleteText(index, length);
-                      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+                    // 👇 Elimina el texto seleccionado y vuelve a insertarlo con formato "link"
+                    quillRef.current.deleteText(index, length);
+                    quillRef.current.insertText(index, selectedText, {
+                      link: `/editions/${edition.id}`,
+                      "data-ila": "edition",
+                      "data-id": edition.id,
+                    });
 
-                      // ahora inserta de nuevo ese texto pero como link relativo
-                      quillRef.current.insertText(
-                        index,
-                        selectedText,
-                        "link",
-                        `${baseUrl}/${locale}/editions/${edition.id}`
-                      );
-
-                      setShowEditionModal({ open: false, range: null });
-                    }
+                    // 👌 Cerrar modal
+                    setShowEditionModal({ open: false, range: null });
                   }}
                 >
                   <strong>ila {edition.number}</strong> – {edition.title}
