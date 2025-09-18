@@ -33,6 +33,7 @@ export default function EditArticlePage() {
   const [content, setContent] = useState("");
 
   const t = useTranslations("newArticle.form");
+
   const locale = useLocale();
 
   const [beitragstypen, setBeitragstypen] = useState([]);
@@ -829,10 +830,7 @@ export default function EditArticlePage() {
             key={locale}
           />
         </div>
-        <QuillEditor
-          value={content}
-          onChange={(value) => setContent(value)} // Actualiza el contenido
-        />
+        <QuillEditor value={content} onChange={(value) => setContent(value)} />
         <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
         <ToggleSwitch
           id="additionalInfoToggle"

@@ -3,10 +3,17 @@ import Quill from "quill";
 import Delta from "quill-delta";
 
 import "quill/dist/quill.snow.css";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 // 🔥 NUEVO: Registrar formato para líneas con puntuación
 const Inline = Quill.import("blots/inline");
+const Block = Quill.import("blots/block");
+
+class DossierBlot extends Inline {}
+DossierBlot.blotName = "dossier";
+DossierBlot.tagName = "span";
+Quill.register(DossierBlot);
+
 class PunctuatedLineBlot extends Inline {
   static create() {
     return super.create();
@@ -16,47 +23,23 @@ PunctuatedLineBlot.blotName = "punctuated-line";
 PunctuatedLineBlot.tagName = "span";
 PunctuatedLineBlot.className = "punctuated-line";
 Quill.register(PunctuatedLineBlot);
-const Block = Quill.import("blots/block");
 
 class PoemBlot extends Block {}
 PoemBlot.blotName = "poem";
 PoemBlot.tagName = "div";
 PoemBlot.className = "poem";
-
 Quill.register(PoemBlot);
 
-// 🔥🔥🔥 AÑADE ESTO JUSTO AQUÍ - después de Quill.register(PoemBlot);
-// 🔥 Nuevo blot para enlaces a dossiers
-class DossierBlot extends Inline {
-  static create(value) {
-    let node = super.create();
-    node.setAttribute("href", value.href);
-    node.setAttribute("class", "dossier-link");
-    node.setAttribute("target", "_blank"); // opcional
-    return node;
-  }
-
-  static formats(node) {
-    return {
-      href: node.getAttribute("href"),
-    };
-  }
-}
-DossierBlot.blotName = "dossier";
-DossierBlot.tagName = "a";
-Quill.register(DossierBlot);
-DossierBlot.blotName = "dossier";
-DossierBlot.tagName = "a";
-DossierBlot.className = "dossier-link";
-Quill.register(DossierBlot);
 const icons = Quill.import("ui/icons");
 icons["poem"] = "📜"; // 👈 puede ser emoji o un SVG
 icons["dossier"] = "📕"; //
 
 const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
+  const t = useTranslations("quilleditor");
+  const locale = useLocale();
+
   const editorRef = useRef(null);
   const quillRef = useRef(null);
-  const t = useTranslations("quilleditor");
 
   // ✅ aquí dentro van tus states
   const [editions, setEditions] = useState([]);
@@ -140,8 +123,9 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
       });
 
       // 👉 Handler para Dossier
+
       toolbar.addHandler("dossier", () => {
-        console.log("CLICK EN DOSSIER"); // 👈 debug
+        console.log("CLICK EN 📕"); // debería salir en consola
         const range = quillRef.current.getSelection();
         if (!range || range.length === 0) {
           alert(
@@ -149,7 +133,6 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
           );
           return;
         }
-
         setShowEditionModal({ open: true, range });
       });
       // 👇 NUEVO: detectar títulos al pegar texto plano
@@ -296,25 +279,26 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
                   }}
                   onClick={() => {
                     if (showEditionModal.range) {
+                      const { index, length } = showEditionModal.range;
                       const selectedText = quillRef.current.getText(
-                        showEditionModal.range.index,
-                        showEditionModal.range.length
+                        index,
+                        length
                       );
 
-                      // ✅ aquí insertamos el link relativo
-                      const linkHTML = `<a href="/editions/${edition.id}" class="dossier-link">${selectedText}</a>`;
+                      // primero elimina el texto seleccionado
+                      quillRef.current.deleteText(index, length);
+                      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
 
-                      quillRef.current.deleteText(
-                        showEditionModal.range.index,
-                        showEditionModal.range.length
+                      // ahora inserta de nuevo ese texto pero como link relativo
+                      quillRef.current.insertText(
+                        index,
+                        selectedText,
+                        "link",
+                        `${baseUrl}/${locale}/editions/${edition.id}`
                       );
 
-                      quillRef.current.clipboard.dangerouslyPasteHTML(
-                        showEditionModal.range.index,
-                        linkHTML
-                      );
+                      setShowEditionModal({ open: false, range: null });
                     }
-                    setShowEditionModal({ open: false, range: null });
                   }}
                 >
                   <strong>ila {edition.number}</strong> – {edition.title}

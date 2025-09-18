@@ -865,7 +865,8 @@ export default function NewArticlePage() {
         </div>
         <QuillEditor
           onChange={(value) => setContent(value)} // Actualiza el contenido
-          resetTrigger={resetTrigger} // Reinicia el editor
+          resetTrigger={resetTrigger}
+          locale={params.locale} // Reinicia el editor
         />
 
         <ToggleSwitch
