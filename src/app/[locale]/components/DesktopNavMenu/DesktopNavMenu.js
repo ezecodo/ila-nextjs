@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { useRouter, usePathname } from "@/i18n/navigation";
+
 import { useTranslations } from "next-intl";
 import { FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
 import SearchBar from "../SearchBar";
@@ -11,8 +11,7 @@ import { navSections } from "./navMenuConfig";
 export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
   const t = useTranslations("navMenu");
   const { data: session } = useSession();
-  const router = useRouter();
-  const pathname = usePathname();
+
   const [openSection, setOpenSection] = useState(null);
 
   // ─── MÓVIL: acordeón + auth + locale ─────────────────────────────────
@@ -110,28 +109,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                 {t("login")}
               </button>
             )}
-          </li>
-
-          {/* 6) Selector de idioma */}
-          <li className="flex justify-center gap-2 pt-2">
-            <button
-              onClick={() => {
-                router.replace(pathname, { locale: "es" });
-                onLinkClick?.();
-              }}
-              className="px-2 py-1 border rounded"
-            >
-              ES
-            </button>
-            <button
-              onClick={() => {
-                router.replace(pathname, { locale: "de" });
-                onLinkClick?.();
-              }}
-              className="px-2 py-1 border rounded"
-            >
-              DE
-            </button>
           </li>
         </ul>
       </nav>

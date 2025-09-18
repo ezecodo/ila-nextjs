@@ -83,25 +83,48 @@ export default function Header() {
   return (
     <header className={`${styles.header} ${isCompact ? styles.compact : ""}`}>
       {/* Mobile top */}
-      <div className="w-full flex md:hidden items-center justify-between px-4 py-2">
-        <button
-          className={styles.menuButton}
-          onClick={toggleMenu}
-          aria-label="Toggle menu"
-        >
-          <FaBars size={24} />
-        </button>
-        <Link href="/" className="flex flex-col items-center gap-0.5 mx-auto">
-          <Image src="/ila-logo.png" alt="ILA Logo" width={40} height={40} />
+      {/* Mobile top */}
+      {/* Mobile top */}
+      <div className="w-full flex md:hidden items-center px-4 py-2">
+        {/* Logo + tagline a la IZQ */}
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <Image src="/ila-logo.png" alt="ila Logo" width={45} height={45} />
           <span
-            className="text-sm font-medium text-center"
+            className="text-base md:text-lg font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[55vw] text-center"
             style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
           >
             {t("tagline")}
           </span>
         </Link>
-      </div>
 
+        {/* Idiomas encima del toggle */}
+        <div className="ml-auto flex flex-col items-end gap-1">
+          <div className="flex gap-1 text-xs font-semibold">
+            <button
+              onClick={() =>
+                router.replace(`${pathname}${queryParam}`, { locale: "es" })
+              }
+            >
+              ES
+            </button>
+            <button
+              onClick={() =>
+                router.replace(`${pathname}${queryParam}`, { locale: "de" })
+              }
+            >
+              DE
+            </button>
+          </div>
+
+          <button
+            className="p-2 text-current"
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <FaBars size={18} />
+          </button>
+        </div>
+      </div>
       {/* Mobile menu */}
       {menuOpen && (
         <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-md">
@@ -133,11 +156,6 @@ export default function Header() {
 
             {/* Espaciador a la derecha (si luego quieres, pon aquí SearchBar u otro control) */}
             <div className="justify-self-end" />
-            {/* Ejemplo con buscador:
-      <div className="justify-self-end w-[360px]">
-        <SearchBar />
-      </div>
-      */}
           </div>
         </div>
       )}
