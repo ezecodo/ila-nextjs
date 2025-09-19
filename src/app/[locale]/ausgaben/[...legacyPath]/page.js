@@ -90,8 +90,8 @@ export default function LegacyArticlePage() {
   function autoDetectHeadings(html) {
     if (!html) return "";
 
-    // Si ya hay h2, no tocamos nada
-    if (/<h2\b/i.test(html)) return html;
+    // Si ya hay h3, no tocamos nada
+    if (/<h3\b/i.test(html)) return html;
 
     return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
       // quitar <br> y normalizar espacios
@@ -109,12 +109,12 @@ export default function LegacyArticlePage() {
 
       // Regla: preguntas cortas -> h2
       if (looksLikeQuestion && isShort) {
-        return `<h2>${text}</h2>`;
+        return `<h3>${text}</h3>`;
       }
 
       // Regla general para títulos cortos
       if (isShort && startsWithUpper && endsAsHeading && fewSentences) {
-        return `<h2>${text}</h2>`;
+        return `<h3>${text}</h3>`;
       }
 
       return m;
@@ -132,7 +132,7 @@ export default function LegacyArticlePage() {
     // Párrafos que solo tienen <strong> → convertirlos en <h2>
     return html.replace(
       /<p>\s*<strong>(.*?)<\/strong>\s*<\/p>/gi,
-      "<h2>$1</h2>"
+      "<h3>$1</h3>"
     );
   }
   function rewriteEditionLinksWithLocale(html, locale) {

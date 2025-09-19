@@ -71,7 +71,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         theme: "snow",
         modules: {
           toolbar: [
-            [{ header: "1" }, { header: "2" }],
+            [{ header: "1" }, { header: "2" }, { header: "3" }],
             [{ list: "ordered" }, { list: "bullet" }],
             ["link"],
             ["image"],
@@ -145,7 +145,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
           !/[.!?]$/.test(text);
 
         if (isHeading) {
-          return new Delta().insert(text + "\n", { header: 2 });
+          return new Delta().insert(text + "\n", { header: 3 });
         }
 
         return delta;
