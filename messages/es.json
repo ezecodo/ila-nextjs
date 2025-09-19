@@ -412,5 +412,29 @@
     "bgLabel": "Imagen de Fondo:",
     "submit": "Crear Edición",
     "updateButton": "Guardar Cambios"
+  },
+  "orderForm": {
+    "title": "Dirección de facturación y envío",
+    "salutation": "Tratamiento",
+    "choose": "Seleccione",
+    "mrs": "Señora",
+    "mr": "Señor",
+    "diverse": "Otro",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "institution": "Institución",
+    "street": "Calle / Nº",
+    "addressExtra": "Complemento de dirección",
+    "zip": "Código postal",
+    "city": "Ciudad",
+    "country": "País",
+    "phone": "Teléfono",
+    "email": "Correo electrónico",
+    "message": "Mensaje adicional",
+    "privacyText": "Al usar este formulario usted acepta el almacenamiento y tratamiento de sus datos personales únicamente con el propósito de procesar su pedido.",
+    "privacyLink": "Política de privacidad",
+    "privacyRequired": "Debe aceptar la política de privacidad.",
+    "submit": "Enviar pedido",
+    "successMessage": "¡Gracias por su pedido!"
   }
 }

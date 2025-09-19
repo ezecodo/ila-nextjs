@@ -5,7 +5,15 @@ import { useLocale } from "next-intl";
 
 export default function MiniEditionCard({ edition }) {
   const locale = useLocale();
-  const price = edition.isOnSale ? "5,00 € (Angebot)" : "7,00 €";
+
+  // 👉 Lógica de precios
+  let price;
+  if (edition.isSpecialOffer) {
+    price = "ab 2,40 € (Sonderangebot)";
+  } else {
+    price = "6,00 €";
+  }
+
   const date = edition.datePublished
     ? new Date(edition.datePublished).toLocaleDateString(
         locale === "es" ? "es-ES" : "de-DE",

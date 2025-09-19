@@ -82,6 +82,8 @@ model Edition {
   backgroundImage    String?
   coverImage         String?
   isAvailableToOrder Boolean?
+  isSpecialOffer     Boolean @default(false)
+  isReprint   Boolean  @default(false)
   drupalId           Int?
   titleES            String?
   articles           Article[]

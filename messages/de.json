@@ -409,5 +409,29 @@
     "bgLabel": "Hintergrundbild:",
     "submit": "Ausgabe erstellen",
     "updateButton": "Änderungen speichern"
+  },
+  "orderForm": {
+    "title": "Rechnungs- und Lieferadresse",
+    "salutation": "Anrede",
+    "choose": "Bitte wählen",
+    "mrs": "Frau",
+    "mr": "Herr",
+    "diverse": "Divers",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "institution": "Institution",
+    "street": "Straße / Nr.",
+    "addressExtra": "Adresszusatz",
+    "zip": "PLZ",
+    "city": "Ort",
+    "country": "Land",
+    "phone": "Telefonnummer",
+    "email": "E-Mailadresse",
+    "message": "Zusätzliche Mitteilung",
+    "privacyText": "Mit der Benutzung dieses Formulars erklären Sie sich mit der Speicherung und Verarbeitung Ihrer personenbezogenen Daten ausschließlich zum Zweck der Abwicklung Ihrer Bestellung einverstanden.",
+    "privacyLink": "Datenschutzerklärung",
+    "privacyRequired": "Bitte stimmen Sie der Datenschutzerklärung zu.",
+    "submit": "Bestellung absenden",
+    "successMessage": "Vielen Dank für Ihre Bestellung!"
   }
 }
