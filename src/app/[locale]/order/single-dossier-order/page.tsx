@@ -14,15 +14,47 @@ type Edition = {
   isAvailableToOrder: boolean;
   isSpecialOffer?: boolean;
 };
+type EditionWithQty = Edition & { qty: number };
 
 export default function SingleDossierOrderPage() {
   const [normalEditions, setNormalEditions] = useState<Edition[]>([]);
   const [offerEditions, setOfferEditions] = useState<Edition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedNormal, setSelectedNormal] = useState<EditionWithQty[]>([]);
+  const [selectedOffers, setSelectedOffers] = useState<EditionWithQty[]>([]);
 
   // estados independientes para los filtros
   const [yearNormal, setYearNormal] = useState<string>("all");
   const [yearOffer, setYearOffer] = useState<string>("all");
+
+  const addToOrder = (edition: Edition, type: "normal" | "offer") => {
+    if (type === "normal") {
+      setSelectedNormal((prev) => {
+        const exists = prev.find((item) => item.id === edition.id);
+        if (exists) {
+          return prev.map((item) =>
+            item.id === edition.id ? { ...item, qty: item.qty + 1 } : item
+          );
+        }
+        return [...prev, { ...edition, qty: 1 }];
+      });
+    } else if (type === "offer") {
+      setSelectedOffers((prev) => {
+        const exists = prev.find((item) => item.id === edition.id);
+        if (exists) {
+          return prev.map((item) =>
+            item.id === edition.id ? { ...item, qty: item.qty + 1 } : item
+          );
+        }
+        return [...prev, { ...edition, qty: 1 }];
+      });
+    }
+
+    // 👉 Hacer scroll automático al formulario
+    document
+      .getElementById("orderForm")
+      ?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
     fetch("/api/editions")
@@ -137,7 +169,11 @@ export default function SingleDossierOrderPage() {
         )}
 
         {filteredNormal.length > 0 ? (
-          <EditionsCarousel editions={filteredNormal} />
+          <EditionsCarousel
+            editions={filteredNormal}
+            onAdd={addToOrder}
+            type="normal"
+          />
         ) : (
           <p className="text-center text-gray-600">
             No dossiers available for{" "}
@@ -194,7 +230,11 @@ export default function SingleDossierOrderPage() {
         )}
 
         {filteredOffer.length > 0 ? (
-          <EditionsCarousel editions={filteredOffer} />
+          <EditionsCarousel
+            editions={filteredOffer}
+            onAdd={addToOrder}
+            type="offer"
+          />
         ) : (
           <p className="text-center text-gray-600">
             No special offer dossiers available for{" "}
@@ -204,6 +244,64 @@ export default function SingleDossierOrderPage() {
       </section>
       {/* 🔹 Formulario de pedido */}
       <section className="mt-16">
+        <section className="mb-10">
+          {selectedNormal.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-bold mb-2">
+                Ihre Auswahl (Normale Dossiers)
+              </h3>
+              {selectedNormal.map((item, i) => (
+                <div key={i} className="flex justify-between items-center mb-2">
+                  <span>
+                    {item.qty} × ila {item.number}: {item.title}
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.qty}
+                    onChange={(e) => {
+                      const qty = parseInt(e.target.value, 10) || 1;
+                      setSelectedNormal((prev) =>
+                        prev.map((p, idx) => (idx === i ? { ...p, qty } : p))
+                      );
+                    }}
+                    className="w-16 border border-gray-300 rounded px-2 py-1"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {selectedOffers.length > 0 && (
+            <div>
+              <h3 className="text-lg font-bold mb-2">Sonderangebote</h3>
+              {selectedOffers.length < 3 && (
+                <p className="text-red-600 text-sm mb-2">
+                  ⚠️ Mindestbestellwert für Sonderangebote: 3 Hefte
+                </p>
+              )}
+              {selectedOffers.map((item, i) => (
+                <div key={i} className="flex justify-between items-center mb-2">
+                  <span>
+                    {item.qty} × ila {item.number}: {item.title}
+                  </span>
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.qty}
+                    onChange={(e) => {
+                      const qty = parseInt(e.target.value, 10) || 1;
+                      setSelectedOffers((prev) =>
+                        prev.map((p, idx) => (idx === i ? { ...p, qty } : p))
+                      );
+                    }}
+                    className="w-16 border border-gray-300 rounded px-2 py-1"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
         <OrderForm />
       </section>
     </main>

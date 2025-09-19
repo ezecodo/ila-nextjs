@@ -7,7 +7,12 @@ import MiniEditionCard from "../MiniEditionCard/MiniEditionCard";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-export default function EditionsCarousel({ editions, slidesToShow = 3 }) {
+export default function EditionsCarousel({
+  editions,
+  slidesToShow = 3,
+  onAdd,
+  type,
+}) {
   if (!editions || editions.length === 0) return null;
 
   const settings = {
@@ -40,6 +45,16 @@ export default function EditionsCarousel({ editions, slidesToShow = 3 }) {
           <div key={edition.id} className="px-3 focus:outline-none">
             <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full mx-auto">
               <MiniEditionCard edition={edition} />
+              {onAdd && (
+                <div className="p-3 text-center">
+                  <button
+                    onClick={() => onAdd(edition, type)}
+                    className="mt-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition"
+                  >
+                    Zum Warenkorb hinzufügen
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}

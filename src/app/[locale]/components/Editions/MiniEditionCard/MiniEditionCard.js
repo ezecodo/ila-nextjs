@@ -66,13 +66,6 @@ export default function MiniEditionCard({ edition }) {
 
       {/* Precio */}
       <p className="mt-1 font-semibold text-red-600">{price}</p>
-
-      {/* Botón */}
-      <Link href={`/order/${edition.id}`}>
-        <button className="mt-2 px-3 py-1 bg-red-700 text-white rounded hover:bg-red-800">
-          Bestellen
-        </button>
-      </Link>
     </div>
   );
 }
