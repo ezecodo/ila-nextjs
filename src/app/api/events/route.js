@@ -46,6 +46,7 @@ export async function POST(req) {
     const title = formData.get("title");
     const description = formData.get("description");
     const date = formData.get("date");
+    const time = formData.get("time");
     const location = formData.get("location");
     const file = formData.get("image"); // Obtener archivo de la imagen
 
@@ -81,6 +82,7 @@ export async function POST(req) {
         title,
         description,
         date: new Date(date),
+        time,
         location,
         image: uploadResponse.secure_url, // Guardamos la URL de Cloudinary
       },

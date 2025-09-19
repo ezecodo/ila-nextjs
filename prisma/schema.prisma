@@ -323,8 +323,9 @@ model Favorite {
 model Event {
   id          String   @id @default(uuid())
   title       String
-  description String
+ description String @db.Text
   date        DateTime
+  time String?
   location    String
   image       String
   createdAt   DateTime @default(now())

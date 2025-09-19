@@ -8,6 +8,7 @@ export default function CreateEventPage() {
     title: "",
     description: "",
     date: "",
+    time: "",
     location: "",
     image: null, // Se cambiará con la imagen seleccionada
   });
@@ -42,6 +43,7 @@ export default function CreateEventPage() {
       formData.append("title", eventData.title);
       formData.append("description", eventData.description);
       formData.append("date", eventData.date);
+      formData.append("time", eventData.time);
       formData.append("location", eventData.location);
       formData.append("image", eventData.image);
 
@@ -101,6 +103,13 @@ export default function CreateEventPage() {
           onChange={handleChange}
           className="w-full p-2 border rounded"
           required
+        />
+        <input
+          type="time"
+          name="time"
+          value={eventData.time || ""}
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
         />
         <input
           type="text"

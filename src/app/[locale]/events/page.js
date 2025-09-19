@@ -184,7 +184,16 @@ export default function EventsPage() {
                       {event.title}
                     </h2>
                     <p className="text-gray-500 text-xs">
-                      {new Date(event.date).toLocaleDateString()}
+                      {new Date(event.date).toLocaleDateString("es-ES", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                      {event.time && (
+                        <span className="ml-2 text-gray-600">
+                          🕒 {event.time}
+                        </span>
+                      )}
                     </p>
                     <p className="mt-1 text-gray-700 text-sm line-clamp-2">
                       {event.description}

@@ -58,7 +58,7 @@ export default function InfoBox() {
             />
           </div>
 
-          {/* Fecha */}
+          {/* Fecha + Hora */}
           <p className="text-sm font-bold flex items-center gap-2 mt-1">
             📅{" "}
             {new Date(current.date).toLocaleDateString("es-ES", {
@@ -66,6 +66,9 @@ export default function InfoBox() {
               month: "long",
               year: "numeric",
             })}
+            {current.time && (
+              <span className="ml-2 text-gray-600">🕒 {current.time}</span>
+            )}
           </p>
 
           {/* Imagen más grande */}
