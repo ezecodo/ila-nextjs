@@ -59,13 +59,15 @@ export default function EditionDetails() {
       return (
         <div
           key={index}
-          className={`flex justify-between items-center px-4 py-2 border-b ${
-            isLinked ? "hover:bg-gray-50 transition" : ""
+          className={`flex justify-between items-center px-4 py-2 border-b dark:border-gray-700 ${
+            isLinked ? "hover:bg-gray-50 dark:hover:bg-gray-800 transition" : ""
           }`}
         >
           <div
             className={`text-sm md:text-base ${
-              isLinked ? "text-blue-700 font-medium" : "text-gray-800"
+              isLinked
+                ? "text-blue-700 dark:text-blue-400 font-medium"
+                : "text-gray-800 dark:text-gray-200"
             }`}
           >
             {isLinked ? (
@@ -94,11 +96,11 @@ export default function EditionDetails() {
         <h1 className="text-3xl md:text-4xl mb-4 text-center leading-snug flex flex-wrap justify-center items-baseline gap-2">
           <span
             style={{ fontFamily: "Futura" }}
-            className="font-bold text-gray-800"
+            className="font-bold text-gray-800 dark:text-gray-200"
           >
             ila {edition.number}
           </span>
-          <span className="font-serif font-bold text-red-800">
+          <span className="font-serif font-bold text-red-800 dark:text-red-400">
             {edition.title}
           </span>
         </h1>
@@ -145,7 +147,7 @@ export default function EditionDetails() {
         </div>
       </div>
 
-      <p className="text-gray-600 mb-4">
+      <p className="text-gray-600 dark:text-gray-400 mb-4">
         Publicado el{" "}
         {new Date(edition.datePublished).toLocaleDateString("es-ES", {
           year: "numeric",
@@ -154,7 +156,7 @@ export default function EditionDetails() {
         })}
       </p>
 
-      <div className="text-gray-700 mb-6">
+      <div className="text-gray-700 dark:text-gray-300 mb-6">
         {edition.summary
           ? edition.summary.split("\n").map((line, index) => (
               <p key={index} className="mb-4">
@@ -170,7 +172,7 @@ export default function EditionDetails() {
           <h2 className="text-xl font-bold mb-4 border-b pb-1">
             {t("tableOfContents")}
           </h2>
-          <div className="rounded-md shadow-sm border border-gray-200 divide-y">
+          <div className="rounded-md shadow-sm border border-gray-200 dark:border-gray-700 divide-y dark:divide-gray-700">
             {renderTableOfContents()}
           </div>
         </div>

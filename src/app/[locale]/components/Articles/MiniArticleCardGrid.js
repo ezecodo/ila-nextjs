@@ -49,7 +49,7 @@ export default function MiniArticleCardGrid({ article }) {
     (article.authors?.length > 0 ||
       article.categories?.length > 0 ||
       article.edition?.number) && (
-      <div className="text-sm text-gray-600 mt-1 flex flex-wrap items-center gap-1">
+      <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 flex flex-wrap items-center gap-1">
         {/* Autores */}
         {article.authors?.length > 0 && (
           <>
@@ -58,7 +58,7 @@ export default function MiniArticleCardGrid({ article }) {
               <span key={author.id} className="flex gap-1">
                 <LocaleLink
                   href={`/authors/${author.id}`}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   <HoverInfo
                     id={author.id}
@@ -103,7 +103,7 @@ export default function MiniArticleCardGrid({ article }) {
     );
 
   return (
-    <div className="w-full rounded-md">
+    <div className="w-full rounded-md bg-white dark:bg-gray-800 shadow-sm dark:shadow-md">
       {/* Imagen */}
       {hasImage ? (
         <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t">
@@ -165,7 +165,9 @@ export default function MiniArticleCardGrid({ article }) {
 
         {/* Vorspann (siempre visible) */}
         {teaser && (
-          <p className="text-sm text-gray-600 line-clamp-3">{teaser}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+            {teaser}
+          </p>
         )}
 
         {/* Meta info */}

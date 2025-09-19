@@ -252,7 +252,7 @@ export default function LegacyArticlePage() {
           {(isES ? article.previewTextES : article.previewText) && (
             <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
               <div
-                className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800"
+                className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
                 dangerouslySetInnerHTML={{
                   __html:
                     isES && article.previewTextES

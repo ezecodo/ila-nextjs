@@ -188,7 +188,13 @@ export default function EditorialPage() {
   );
 
   return (
-    <div className="prose prose-lg max-w-3xl mx-auto py-10 space-y-4">
+    <div
+      className="prose prose-lg max-w-3xl mx-auto py-10 space-y-4
+               text-gray-900 dark:text-gray-100
+               dark:prose-headings:text-gray-100
+               dark:prose-strong:text-gray-100
+               dark:prose-a:text-red-400 dark:prose-a:hover:text-red-500"
+    >
       {locale === "es" ? contentEs : contentDe}
     </div>
   );

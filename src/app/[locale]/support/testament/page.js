@@ -7,7 +7,7 @@ export default function TestamentPage() {
   const locale = useLocale();
 
   const contentDe = (
-    <article className="prose prose-lg max-w-3xl mx-auto py-10 prose-headings:text-red-700 prose-a:text-red-600">
+    <article>
       <h1>ila über den Tod hinaus</h1>
 
       <p>
@@ -82,7 +82,7 @@ export default function TestamentPage() {
   );
 
   const contentEs = (
-    <article className="prose prose-lg max-w-3xl mx-auto py-10 prose-headings:text-red-700 prose-a:text-red-600">
+    <article>
       <h1>ila más allá de la muerte</h1>
 
       <p>
@@ -151,5 +151,16 @@ export default function TestamentPage() {
     </article>
   );
 
-  return <>{locale === "es" ? contentEs : contentDe}</>;
+  return (
+    <div
+      className="prose prose-lg max-w-3xl mx-auto py-10
+                 text-gray-900 dark:text-gray-100
+                 dark:prose-headings:text-gray-100
+                 dark:prose-strong:text-gray-100
+                 dark:prose-a:text-red-400 dark:prose-a:hover:text-red-500
+                 dark:prose-li:marker:text-gray-400"
+    >
+      {locale === "es" ? contentEs : contentDe}
+    </div>
+  );
 }

@@ -205,7 +205,7 @@ export default function LatestEditionWithArticles() {
         {currentEdition && (
           <div className="flex flex-col lg:flex-row gap-2 items-start">
             <div className="relative w-full lg:w-1/3 flex items-start justify-center">
-              <div className="bg-white shadow-lg p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm">
+              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm">
                 {/* Título + flechas */}
                 <div className="relative w-full">
                   <div className="flex items-center justify-center">
@@ -239,7 +239,7 @@ export default function LatestEditionWithArticles() {
                         </button>
 
                         {currentEdition.datePublished && (
-                          <span className="font-bold text-xs md:text-sm text-black dark:text-white leading-none">
+                          <span className="font-bold text-xs md:text-sm text-black dark:text-gray-300 leading-none">
                             {new Date(currentEdition.datePublished)
                               .toLocaleDateString(
                                 locale === "es" ? "es-ES" : "de-DE",
@@ -401,7 +401,7 @@ export default function LatestEditionWithArticles() {
                       </div>
 
                       {/* título del dossier */}
-                      <div className="font-serif font-bold text-red-800 text-xl md:text-2xl leading-snug">
+                      <div className="font-serif font-bold text-red-800 dark:text-red-400 text-xl md:text-2xl leading-snug">
                         {locale === "es" && currentEdition.titleES
                           ? currentEdition.titleES
                           : currentEdition.title}
@@ -433,7 +433,7 @@ export default function LatestEditionWithArticles() {
                     alt={`Portada de ${currentEdition.title}`}
                     width={300}
                     height={400}
-                    className="shadow-md object-cover w-full h-auto"
+                    className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto"
                     priority
                   />
                 </div>

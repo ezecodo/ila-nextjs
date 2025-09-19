@@ -118,29 +118,29 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   return (
-    <nav className="bg-white/80 backdrop-blur-md px-6 py-2 rounded-lg shadow-md">
+    <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-2 rounded-lg shadow-md dark:shadow-lg">
       <div className="flex items-center justify-center gap-8">
         {navSections.map((sec) =>
           sec.items ? (
             <div key={sec.labelKey} className="relative group">
-              <span className="font-semibold hover:text-red-600 transition-colors cursor-pointer">
+              <span className="font-semibold text-gray-800 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer">
                 {t(sec.labelKey)}
               </span>
 
-              <ul className="absolute left-0 top-full w-56 bg-white rounded shadow-lg opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity">
+              <ul className="absolute left-0 top-full w-56 bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity">
                 {sec.items.map((item) =>
                   item.items ? (
                     // 👉 Submenú "Service"
                     <li key={item.labelKey} className="relative group/item">
-                      <span className="block px-4 py-2 font-medium hover:bg-gray-100 cursor-pointer">
+                      <span className="block px-4 py-2 font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                         {t(item.labelKey)}
                       </span>
-                      <ul className="absolute left-full top-0 min-w-[16rem] bg-white rounded shadow-lg opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-opacity whitespace-normal">
+                      <ul className="absolute left-full top-0 min-w-[16rem] bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-opacity whitespace-normal">
                         {item.items.map((sub) => (
                           <li key={sub.href}>
                             <Link
                               href={sub.href}
-                              className="block px-4 py-2 hover:bg-gray-100"
+                              className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                             >
                               {t(sub.labelKey)}
                             </Link>
@@ -153,7 +153,7 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className="block px-4 py-2 hover:bg-gray-100"
+                        className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         {t(item.labelKey)}
                       </Link>

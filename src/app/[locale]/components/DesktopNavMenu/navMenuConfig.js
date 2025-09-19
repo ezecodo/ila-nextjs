@@ -1,10 +1,10 @@
 // src/components/Header/navMenuConfig.js
 export const navSections = [
-  { labelKey: "index", href: "/" },
+  { labelKey: "index", href: "" },
   {
     labelKey: "newsEvents",
     items: [
-      { labelKey: "news", href: "/news" },
+      { labelKey: "news", href: "/aktuell/aktuelles" },
       { labelKey: "events", href: "/events" },
     ],
   },

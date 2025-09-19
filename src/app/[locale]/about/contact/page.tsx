@@ -53,7 +53,13 @@ export default function ContactPage() {
   );
 
   return (
-    <div className="prose prose-lg max-w-2xl mx-auto py-10">
+    <div
+      className="prose prose-lg max-w-2xl mx-auto py-10
+             text-gray-900 dark:text-gray-100
+             dark:prose-headings:text-gray-100
+             dark:prose-strong:text-gray-100
+             dark:prose-a:text-red-400 dark:prose-a:hover:text-red-500"
+    >
       {locale === "es" ? contentEs : contentDe}
     </div>
   );

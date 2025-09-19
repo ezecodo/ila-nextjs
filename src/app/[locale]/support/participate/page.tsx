@@ -6,7 +6,15 @@ export default function ParticipatePage() {
   const locale = useLocale();
 
   const contentDe = (
-    <article className="prose prose-lg max-w-3xl mx-auto py-10 prose-headings:text-red-700 prose-a:text-red-600">
+    <article
+      className="prose prose-lg max-w-3xl mx-auto py-10 
+                      prose-headings:text-red-700 prose-a:text-red-600
+                      dark:prose-invert
+                      dark:prose-headings:text-red-400 dark:prose-a:text-red-400
+                      prose-p:text-gray-700 dark:prose-p:text-gray-300
+                      prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-300
+                      prose-strong:text-gray-800 dark:prose-strong:text-gray-200"
+    >
       <h1>Mitmachen</h1>
 
       <p>
@@ -121,13 +129,26 @@ export default function ParticipatePage() {
 
       <p className="mt-6 font-semibold">
         Interesse? Schreib uns:{" "}
-        <a href="mailto:ila-bonn@t-online.de">ila-bonn@t-online.de</a>
+        <a
+          href="mailto:ila-bonn@t-online.de"
+          className="hover:text-red-800 dark:hover:text-red-300 transition-colors"
+        >
+          ila-bonn@t-online.de
+        </a>
       </p>
     </article>
   );
 
   const contentEs = (
-    <article className="prose prose-lg max-w-3xl mx-auto py-10 prose-headings:text-red-700 prose-a:text-red-600">
+    <article
+      className="prose prose-lg max-w-3xl mx-auto py-10 
+                      prose-headings:text-red-700 prose-a:text-red-600
+                      dark:prose-invert
+                      dark:prose-headings:text-red-400 dark:prose-a:text-red-400
+                      prose-p:text-gray-700 dark:prose-p:text-gray-300
+                      prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-300
+                      prose-strong:text-gray-800 dark:prose-strong:text-gray-200"
+    >
       <h1>Participar</h1>
 
       <p>
@@ -173,7 +194,9 @@ export default function ParticipatePage() {
         tomada en serio. Me impresionó la cantidad de personas detrás de la ila,
         sin obtener beneficio alguno. Lo hacemos de corazón, porque creemos que
         es importante que exista un periodismo independiente y de izquierda.”
-        <footer>— Ximena Juárez Villalpando, ex practicante de la ila</footer>
+        <footer className="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">
+          — Ximena Juárez Villalpando, ex practicante de la ila
+        </footer>
       </blockquote>
 
       <h2>Corazón de la redacción</h2>
@@ -223,10 +246,19 @@ export default function ParticipatePage() {
 
       <p className="mt-6 font-semibold">
         ¿Te interesa? Escríbenos:{" "}
-        <a href="mailto:ila-bonn@t-online.de">ila-bonn@t-online.de</a>
+        <a
+          href="mailto:ila-bonn@t-online.de"
+          className="hover:text-red-800 dark:hover:text-red-300 transition-colors"
+        >
+          ila-bonn@t-online.de
+        </a>
       </p>
     </article>
   );
 
-  return <>{locale === "es" ? contentEs : contentDe}</>;
+  return (
+    <div className="bg-white dark:bg-gray-900 transition-colors duration-300 min-h-screen">
+      {locale === "es" ? contentEs : contentDe}
+    </div>
+  );
 }

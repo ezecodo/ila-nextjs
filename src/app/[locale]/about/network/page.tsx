@@ -262,8 +262,14 @@ export default function NetworkPage() {
   }));
 
   return (
-    <div className="prose prose-lg max-w-4xl mx-auto py-10">
-      <h1 className="text-3xl font-bold text-red-700 mb-8">
+    <div
+      className="prose prose-lg max-w-4xl mx-auto py-10
+               text-gray-900 dark:text-gray-100
+               dark:prose-headings:text-gray-100
+               dark:prose-strong:text-gray-100
+               dark:prose-a:text-red-400 dark:prose-a:hover:text-red-500"
+    >
+      <h1 className="text-3xl font-bold text-red-700 dark:text-red-400 mb-8">
         {locale === "es" ? "Red de colaboración" : "Netzwerk"}
       </h1>
 
@@ -271,12 +277,14 @@ export default function NetworkPage() {
         {(locale === "es" ? partnersEs : partnersDe).map((p) => (
           <li key={p.name}>
             <p className="font-semibold">{p.name}</p>
-            {p.desc && <p className="text-gray-700">{p.desc}</p>}
+            {p.desc && (
+              <p className="text-gray-700 dark:text-gray-300">{p.desc}</p>
+            )}
             <a
               href={p.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-red-600 hover:underline"
+              className="text-red-600 hover:underline dark:text-red-400 dark:hover:text-red-500"
             >
               {p.url}
             </a>
