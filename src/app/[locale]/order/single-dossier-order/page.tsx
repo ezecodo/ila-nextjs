@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import EditionsCarousel from "../../components/Editions/EditionsCarousel/EditionsCarousel";
 import OrderForm from "../../components/OrderForm/OrderForm";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 // 👇 añade esto después de tus imports
 type OrderFormProps = {
@@ -25,6 +27,8 @@ type Edition = {
 type EditionWithQty = Edition & { qty: number };
 
 export default function SingleDossierOrderPage() {
+  const locale = useLocale();
+  const t = useTranslations("orderForm");
   const [normalEditions, setNormalEditions] = useState<Edition[]>([]);
   const [offerEditions, setOfferEditions] = useState<Edition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,20 +133,44 @@ export default function SingleDossierOrderPage() {
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
       <h1 className="text-3xl font-bold text-center mb-12">
-        Order Single Dossiers & Sonderangebote
+        {t("orderTitle")}
       </h1>
 
       {/* 🔹 Dossiers Normales (isSpecialOffer = false) */}
       <section className="mb-20">
         <h2 className="text-2xl font-semibold mb-4 text-center">
-          Einzelheftverkauf
+          {locale === "de"
+            ? "Einzelheftverkauf"
+            : "Venta de ejemplares sueltos"}
         </h2>
         <p className="text-sm text-gray-700 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
-          Normalpreis eines ila-Heftes (ab 2017): <strong>6 €</strong> <br />
-          Nachdrucke bestimmter vergriffener Hefte: <strong>5 €</strong> <br />
-          zzgl. 0,50 € für Verpackung und Versad (innerhalb Deutschland) <br />
-          Ab zwei Heften übernehmen wir die Versandkosten. <br />
-          Alle Preise enthalten die gesetzliche Umsatzsteuer.
+          {locale === "de" ? (
+            <>
+              Normalpreis eines ila-Heftes: ab 2025 <strong>7 €</strong>, ab
+              2017: <strong>6 €</strong>
+              <br />
+              Nachdrucke bestimmter vergriffener Hefte: <strong>5 €</strong>
+              <br />
+              zzgl. 0,50 € für Verpackung und Versand (innerhalb Deutschlands)
+              <br />
+              Ab zwei Heften übernehmen wir die Versandkosten.
+              <br />
+              Alle Preise enthalten die gesetzliche Umsatzsteuer.
+            </>
+          ) : (
+            <>
+              Precio normal de un ejemplar de ila: desde 2025,{" "}
+              <strong>7 €</strong>; desde 2017, <strong>6 €</strong>
+              <br />
+              Reimpresión de ciertos ejemplares agotados: <strong>5 €</strong>
+              <br />
+              Más 0,50 € por embalaje y envío (dentro de Alemania)
+              <br />
+              A partir de dos ejemplares asumimos los gastos de envío.
+              <br />
+              Todos los precios incluyen el IVA legal.
+            </>
+          )}
         </p>
 
         {/* Selector de años normales */}
@@ -192,19 +220,35 @@ export default function SingleDossierOrderPage() {
 
       {/* 🔹 Sonderangebote (isSpecialOffer = true) */}
       <section>
-        <h2 className="text-2xl font-semibold mb-4 text-center">
-          Sonderangebote
-        </h2>
-        <p className="text-sm text-gray-700 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
-          Sonderangebote aus Lagerbeständen: <br />3 ila-Ausgaben für{" "}
-          <strong>7,50 Euro</strong> | 5 Hefte für <strong>12,00 Euro</strong>.{" "}
-          <br />
-          Alle weiteren Packmaße als Kombinationen aus drei und fünf Heften.{" "}
-          <br />
-          Mindestbestellwert: <strong>3 Hefte</strong>. <br />
-          Kosten für Porto und Versand übernimmt die ila. <br />
-          <strong>ab 2,40 € pro Heft!</strong>
-        </p>
+        <section>
+          <h2 className="text-2xl font-semibold mb-4 text-center">
+            {locale === "de" ? "Sonderangebote" : "Ofertas especiales"}
+          </h2>
+
+          {locale === "de" ? (
+            <p className="text-sm text-gray-700 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
+              Sonderangebote aus Lagerbeständen: <br />3 ila-Ausgaben für{" "}
+              <strong>7,50 Euro</strong> | 5 Hefte für{" "}
+              <strong>12,00 Euro</strong>. <br />
+              Alle weiteren Packmaße als Kombinationen aus drei und fünf Heften.{" "}
+              <br />
+              Mindestbestellwert: <strong>3 Hefte</strong>. <br />
+              Kosten für Porto und Versand übernimmt die ila. <br />
+              <strong>ab 2,40 € pro Heft!</strong>
+            </p>
+          ) : (
+            <p className="text-sm text-gray-700 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
+              Ofertas especiales de existencias en almacén: <br />3 ejemplares
+              de ila por <strong>7,50 €</strong> | 5 ejemplares por{" "}
+              <strong>12,00 €</strong>. <br />
+              Todas las demás combinaciones posibles en múltiplos de tres y
+              cinco ejemplares. <br />
+              Pedido mínimo: <strong>3 ejemplares</strong>. <br />
+              La ila asume los gastos de envío. <br />
+              <strong>¡desde 2,40 € por ejemplar!</strong>
+            </p>
+          )}
+        </section>
 
         {/* Selector de años ofertas */}
         {yearsOffer.length > 0 && (

@@ -3,6 +3,7 @@
 import Slider from "../../SafeSlick/SafeSlick";
 import { PrevArrow, NextArrow } from "../../Articles/CustomArrows/CustomArrows";
 import MiniEditionCard from "../MiniEditionCard/MiniEditionCard";
+import { useTranslations } from "next-intl";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -13,6 +14,7 @@ export default function EditionsCarousel({
   onAdd,
   type,
 }) {
+  const t = useTranslations("orderForm");
   if (!editions || editions.length === 0) return null;
 
   const settings = {
@@ -51,7 +53,7 @@ export default function EditionsCarousel({
                     onClick={() => onAdd(edition, type)}
                     className="mt-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition"
                   >
-                    Zum Warenkorb hinzufügen
+                    {t("add")}
                   </button>
                 </div>
               )}

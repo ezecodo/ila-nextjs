@@ -411,6 +411,9 @@
     "updateButton": "Änderungen speichern"
   },
   "orderForm": {
+    "add": "Zum Warenkorb hinzufügen",
+    "orderTitle": " Einzelausgaben & Sonderangebote",
+    "normalPrices": "Normalpreis eines ila-Heftes: ab 2025 7 €, ab 2017: 6 € <br /> Nachdrucke bestimmter vergriffener Hefte: <strong>5 €</strong> <br /> zzgl. 0,50 € für Verpackung und Versand (innerhalb Deutschland) <br /> Ab zwei Heften übernehmen wir die Versandkosten. <br /> Alle Preise enthalten die gesetzliche Umsatzsteuer.",
     "title": "Rechnungs- und Lieferadresse",
     "salutation": "Anrede",
     "choose": "Bitte wählen",

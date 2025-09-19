@@ -11,7 +11,11 @@ export default function MiniEditionCard({ edition }) {
   if (edition.isSpecialOffer) {
     price = "ab 2,40 € (Sonderangebot)";
   } else {
-    price = "6,00 €";
+    const year = edition.datePublished
+      ? new Date(edition.datePublished).getFullYear()
+      : null;
+
+    price = year && year >= 2025 ? "7,00 €" : "6,00 €";
   }
 
   const date = edition.datePublished

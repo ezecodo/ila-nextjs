@@ -14,6 +14,7 @@ export default function OrderForm({
   selectedNormal = [],
   selectedOffers = [],
 }) {
+  const [successMessage, setSuccessMessage] = useState(null);
   const t = useTranslations("orderForm");
   const locale = useLocale();
 
@@ -75,7 +76,16 @@ export default function OrderForm({
 
       const data = await res.json();
       console.log("✅ Pedido creado:", data);
-      alert(t("successMessage"));
+      setSuccessMessage(
+        locale === "de"
+          ? "🎉 Vielen Dank! Ihr Auftrag wurde erfolgreich übermittelt."
+          : "🎉 ¡Muchas gracias! Tu pedido ha sido enviado correctamente."
+      );
+
+      // 👉 resetear toda la página a los 3 segundos
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (error) {
       console.error(error);
       alert("❌ Hubo un problema con tu pedido");
@@ -83,204 +93,239 @@ export default function OrderForm({
   };
 
   return (
-    <form
-      id="orderForm"
-      onSubmit={handleSubmit}
-      className="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6 space-y-4"
-    >
-      <h2 className="text-2xl font-semibold text-center mb-4">{t("title")}</h2>
+    <div>
+      {successMessage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full text-center">
+            <h3 className="text-xl font-bold text-green-700 mb-4">
+              🎉{" "}
+              {locale === "de"
+                ? "Bestellung erfolgreich!"
+                : "¡Pedido realizado!"}
+            </h3>
+            <p className="text-gray-700 mb-6">{successMessage}</p>
+            <button
+              onClick={() => {
+                setSuccessMessage(null);
+                window.location.reload(); // 🔄 resetea toda la página
+              }}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Anrede */}
-      <div>
-        <label className="block text-sm font-medium">{t("salutation")} *</label>
-        <select
-          name="salutation"
-          value={formData.salutation}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        >
-          <option value="">{t("choose")}</option>
-          <option value="Frau">{t("mrs")}</option>
-          <option value="Herr">{t("mr")}</option>
-          <option value="Divers">{t("diverse")}</option>
-        </select>
-      </div>
-
-      {/* Vorname */}
-      <div>
-        <label className="block text-sm font-medium">{t("firstName")} *</label>
-        <input
-          type="text"
-          name="firstName"
-          value={formData.firstName}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Nachname */}
-      <div>
-        <label className="block text-sm font-medium">{t("lastName")} *</label>
-        <input
-          type="text"
-          name="lastName"
-          value={formData.lastName}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Institution */}
-      <div>
-        <label className="block text-sm font-medium">{t("institution")}</label>
-        <input
-          type="text"
-          name="institution"
-          value={formData.institution}
-          onChange={handleChange}
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Straße / Nr */}
-      <div>
-        <label className="block text-sm font-medium">{t("street")} *</label>
-        <input
-          type="text"
-          name="street"
-          value={formData.street}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Adresszusatz */}
-      <div>
-        <label className="block text-sm font-medium">{t("addressExtra")}</label>
-        <input
-          type="text"
-          name="addressExtra"
-          value={formData.addressExtra}
-          onChange={handleChange}
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* PLZ */}
-      <div>
-        <label className="block text-sm font-medium">{t("zip")} *</label>
-        <input
-          type="text"
-          name="zip"
-          value={formData.zip}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Ort */}
-      <div>
-        <label className="block text-sm font-medium">{t("city")} *</label>
-        <input
-          type="text"
-          name="city"
-          value={formData.city}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Land */}
-      <div>
-        <label className="block text-sm font-medium">{t("country")} *</label>
-        <select
-          name="country"
-          value={formData.country}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        >
-          <option value="">{t("choose")}</option>
-          {Object.entries(
-            countries.getNames(locale === "de" ? "de" : "es", {
-              select: "official",
-            })
-          ).map(([code, name]) => (
-            <option key={code} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Telefonnummer */}
-      <div>
-        <label className="block text-sm font-medium">{t("phone")}</label>
-        <input
-          type="text"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Email */}
-      <div>
-        <label className="block text-sm font-medium">{t("email")} *</label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Mitteilung */}
-      <div>
-        <label className="block text-sm font-medium">{t("message")}</label>
-        <textarea
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          rows={4}
-          className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
-        />
-      </div>
-
-      {/* Datenschutz */}
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          name="privacy"
-          checked={formData.privacy}
-          onChange={handleChange}
-          required
-          className="mr-2"
-        />
-        <label className="text-sm">
-          {t("privacyText")}{" "}
-          <Link href="/datenschutz" className="text-red-600 underline">
-            {t("privacyLink")}
-          </Link>
-          .
-        </label>
-      </div>
-
-      <button
-        type="submit"
-        className="w-full py-2 px-4 bg-red-700 text-white rounded hover:bg-red-800 transition"
+      <form
+        id="orderForm"
+        onSubmit={handleSubmit}
+        className="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6 space-y-4"
       >
-        {t("submit")}
-      </button>
-    </form>
+        <h2 className="text-2xl font-semibold text-center mb-4">
+          {t("title")}
+        </h2>
+
+        {/* Anrede */}
+        <div>
+          <label className="block text-sm font-medium">
+            {t("salutation")} *
+          </label>
+          <select
+            name="salutation"
+            value={formData.salutation}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          >
+            <option value="">{t("choose")}</option>
+            <option value="Frau">{t("mrs")}</option>
+            <option value="Herr">{t("mr")}</option>
+            <option value="Divers">{t("diverse")}</option>
+          </select>
+        </div>
+
+        {/* Vorname */}
+        <div>
+          <label className="block text-sm font-medium">
+            {t("firstName")} *
+          </label>
+          <input
+            type="text"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Nachname */}
+        <div>
+          <label className="block text-sm font-medium">{t("lastName")} *</label>
+          <input
+            type="text"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Institution */}
+        <div>
+          <label className="block text-sm font-medium">
+            {t("institution")}
+          </label>
+          <input
+            type="text"
+            name="institution"
+            value={formData.institution}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Straße / Nr */}
+        <div>
+          <label className="block text-sm font-medium">{t("street")} *</label>
+          <input
+            type="text"
+            name="street"
+            value={formData.street}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Adresszusatz */}
+        <div>
+          <label className="block text-sm font-medium">
+            {t("addressExtra")}
+          </label>
+          <input
+            type="text"
+            name="addressExtra"
+            value={formData.addressExtra}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* PLZ */}
+        <div>
+          <label className="block text-sm font-medium">{t("zip")} *</label>
+          <input
+            type="text"
+            name="zip"
+            value={formData.zip}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Ort */}
+        <div>
+          <label className="block text-sm font-medium">{t("city")} *</label>
+          <input
+            type="text"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Land */}
+        <div>
+          <label className="block text-sm font-medium">{t("country")} *</label>
+          <select
+            name="country"
+            value={formData.country}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          >
+            <option value="">{t("choose")}</option>
+            {Object.entries(
+              countries.getNames(locale === "de" ? "de" : "es", {
+                select: "official",
+              })
+            ).map(([code, name]) => (
+              <option key={code} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Telefonnummer */}
+        <div>
+          <label className="block text-sm font-medium">{t("phone")}</label>
+          <input
+            type="text"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-medium">{t("email")} *</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Mitteilung */}
+        <div>
+          <label className="block text-sm font-medium">{t("message")}</label>
+          <textarea
+            name="message"
+            value={formData.message}
+            onChange={handleChange}
+            rows={4}
+            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+          />
+        </div>
+
+        {/* Datenschutz */}
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            name="privacy"
+            checked={formData.privacy}
+            onChange={handleChange}
+            required
+            className="mr-2"
+          />
+          <label className="text-sm">
+            {t("privacyText")}{" "}
+            <Link href="/datenschutz" className="text-red-600 underline">
+              {t("privacyLink")}
+            </Link>
+            .
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          className="w-full py-2 px-4 bg-red-700 text-white rounded hover:bg-red-800 transition"
+        >
+          {t("submit")}
+        </button>
+      </form>
+    </div>
   );
 }
