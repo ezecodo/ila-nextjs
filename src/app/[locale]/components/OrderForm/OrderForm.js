@@ -10,7 +10,10 @@ import es from "i18n-iso-countries/langs/es.json";
 countries.registerLocale(de);
 countries.registerLocale(es);
 
-export default function OrderForm() {
+export default function OrderForm({
+  selectedNormal = [],
+  selectedOffers = [],
+}) {
   const t = useTranslations("orderForm");
   const locale = useLocale();
 
@@ -38,7 +41,7 @@ export default function OrderForm() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.privacy) {
@@ -46,12 +49,42 @@ export default function OrderForm() {
       return;
     }
 
-    console.log("📦 Form Data:", formData);
-    alert(t("successMessage"));
+    // 👉 Combinar items seleccionados
+    // 👉 Combinar items seleccionados
+    const items = [
+      ...selectedNormal.map((item) => ({
+        editionId: Number(item.id), // 👈 asegurar que es Int
+        qty: item.qty,
+      })),
+      ...selectedOffers.map((item) => ({
+        editionId: Number(item.id),
+        qty: item.qty,
+      })),
+    ];
+
+    console.log("📦 Items enviados al backend:", items);
+
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, items }),
+      });
+
+      if (!res.ok) throw new Error("❌ Error al crear el pedido");
+
+      const data = await res.json();
+      console.log("✅ Pedido creado:", data);
+      alert(t("successMessage"));
+    } catch (error) {
+      console.error(error);
+      alert("❌ Hubo un problema con tu pedido");
+    }
   };
 
   return (
     <form
+      id="orderForm"
       onSubmit={handleSubmit}
       className="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6 space-y-4"
     >

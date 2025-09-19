@@ -4,8 +4,16 @@ import { useEffect, useState } from "react";
 import EditionsCarousel from "../../components/Editions/EditionsCarousel/EditionsCarousel";
 import OrderForm from "../../components/OrderForm/OrderForm";
 
+// 👇 añade esto después de tus imports
+type OrderFormProps = {
+  selectedNormal: EditionWithQty[];
+  selectedOffers: EditionWithQty[];
+};
+// 👇 creamos un alias con tipado
+const TypedOrderForm = OrderForm as React.FC<OrderFormProps>;
+
 type Edition = {
-  id: string;
+  id: number;
   number: number;
   title: string;
   titleES?: string;
@@ -302,7 +310,10 @@ export default function SingleDossierOrderPage() {
             </div>
           )}
         </section>
-        <OrderForm />
+        <TypedOrderForm
+          selectedNormal={selectedNormal}
+          selectedOffers={selectedOffers}
+        />
       </section>
     </main>
   );
