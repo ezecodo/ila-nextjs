@@ -98,30 +98,36 @@ export default function Header() {
         </Link>
 
         {/* Idiomas encima del toggle */}
-        <div className="ml-auto flex flex-col items-end gap-1">
-          <div className="flex gap-1 text-xs font-semibold">
-            <button
-              onClick={() =>
-                router.replace(`${pathname}${queryParam}`, { locale: "es" })
-              }
-            >
-              ES
-            </button>
-            <button
-              onClick={() =>
-                router.replace(`${pathname}${queryParam}`, { locale: "de" })
-              }
-            >
-              DE
-            </button>
+        <div className="ml-auto flex flex-col items-center gap-1 w-10">
+          {/* Selector idioma */}
+          <div className="text-xs font-semibold uppercase tracking-wide text-center">
+            {locale === "de" && (
+              <button
+                onClick={() =>
+                  router.replace(`${pathname}${queryParam}`, { locale: "es" })
+                }
+              >
+                ES
+              </button>
+            )}
+            {locale === "es" && (
+              <button
+                onClick={() =>
+                  router.replace(`${pathname}${queryParam}`, { locale: "de" })
+                }
+              >
+                DE
+              </button>
+            )}
           </div>
 
+          {/* Botón hamburguesa */}
           <button
             className="p-2 text-current"
             onClick={toggleMenu}
             aria-label="Toggle menu"
           >
-            <FaBars size={18} />
+            <FaBars size={20} />
           </button>
         </div>
       </div>
@@ -235,22 +241,26 @@ export default function Header() {
             </label>
 
             <div className={styles.languageSwitcher}>
-              <button
-                onClick={() =>
-                  router.replace(`${pathname}${queryParam}`, { locale: "es" })
-                }
-                className={styles.langButton}
-              >
-                ES
-              </button>
-              <button
-                onClick={() =>
-                  router.replace(`${pathname}${queryParam}`, { locale: "de" })
-                }
-                className={styles.langButton}
-              >
-                DE
-              </button>
+              {locale === "de" && (
+                <button
+                  onClick={() =>
+                    router.replace(`${pathname}${queryParam}`, { locale: "es" })
+                  }
+                  className={styles.langButton}
+                >
+                  ES
+                </button>
+              )}
+              {locale === "es" && (
+                <button
+                  onClick={() =>
+                    router.replace(`${pathname}${queryParam}`, { locale: "de" })
+                  }
+                  className={styles.langButton}
+                >
+                  DE
+                </button>
+              )}
             </div>
           </div>
         </div>
