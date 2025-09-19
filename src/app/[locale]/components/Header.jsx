@@ -127,11 +127,44 @@ export default function Header() {
       </div>
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-md">
+        <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-md flex flex-col gap-4">
+          {/* Menú principal */}
           <DesktopNavMenu
             isMobile={true}
             onLinkClick={() => setMenuOpen(false)}
           />
+
+          {/* Botones de usuario */}
+          <div className="flex items-center justify-center gap-4 mt-4">
+            {session ? (
+              <>
+                <Link href={dashboardRoute} onClick={() => setMenuOpen(false)}>
+                  <button className="p-2 rounded-full bg-red-700 text-white">
+                    <FaTachometerAlt />
+                  </button>
+                </Link>
+                <button
+                  className="p-2 rounded-full bg-red-700 text-white"
+                  onClick={() => {
+                    handleSignOut();
+                    setMenuOpen(false);
+                  }}
+                >
+                  <FaSignOutAlt />
+                </button>
+              </>
+            ) : (
+              <button
+                className="p-2 rounded-full bg-red-700 text-white"
+                onClick={() => {
+                  signIn();
+                  setMenuOpen(false);
+                }}
+              >
+                <FaUser />
+              </button>
+            )}
+          </div>
         </div>
       )}
 
