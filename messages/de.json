@@ -116,7 +116,13 @@
     "next": "Nächste"
   },
   "events": {
-    "events": "Veranstaltungen"
+    "events": "Veranstaltungen",
+    "title": "Veranstaltungen",
+    "previousMonth": "Vorheriger Monat",
+    "nextMonth": "Nächster Monat",
+    "more": "mehr",
+    "noEvents": "Keine Veranstaltungen diesen Monat",
+    "eventImageAlt": "Veranstaltungsbild"
   },
   "auth": {
     "title": "Anmelden",

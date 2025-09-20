@@ -13,13 +13,24 @@ import {
   isSameMonth,
   addDays,
 } from "date-fns";
-import { es } from "date-fns/locale";
-import { useTranslations } from "next-intl";
+import { es, enUS, de } from "date-fns/locale";
+import { useTranslations, useLocale } from "next-intl";
+
+// Mapa de locales de next-intl a date-fns
+const dateFnsLocales = {
+  en: enUS,
+  es: es,
+  de: de,
+};
 
 export default function EventsPage() {
   const t = useTranslations("events");
+  const locale = useLocale(); // Obtiene el locale actual (ej: "es", "en", "de")
   const [events, setEvents] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // Obtiene el locale de date-fns correspondiente
+  const dateFnsLocale = dateFnsLocales[locale] || enUS;
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -49,15 +60,17 @@ export default function EventsPage() {
       <button
         onClick={() => setCurrentMonth(addMonths(currentMonth, -1))}
         className="p-2 rounded-full hover:bg-gray-100 transition-all"
+        aria-label={t("previousMonth")}
       >
         ⟵
       </button>
       <h1 className="text-xl font-semibold">
-        {format(currentMonth, "MMMM yyyy", { locale: es })}
+        {format(currentMonth, "MMMM yyyy", { locale: dateFnsLocale })}
       </h1>
       <button
         onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
         className="p-2 rounded-full hover:bg-gray-100 transition-all"
+        aria-label={t("nextMonth")}
       >
         ⟶
       </button>
@@ -66,7 +79,7 @@ export default function EventsPage() {
 
   const renderDays = () => {
     const days = [];
-    const startDate = startOfWeek(currentMonth, { locale: es });
+    const startDate = startOfWeek(currentMonth, { locale: dateFnsLocale });
 
     for (let i = 0; i < 7; i++) {
       days.push(
@@ -74,7 +87,7 @@ export default function EventsPage() {
           key={i}
           className="text-center text-xs font-semibold text-gray-600"
         >
-          {format(addDays(startDate, i), "EEEEEE", { locale: es })}
+          {format(addDays(startDate, i), "EEEEEE", { locale: dateFnsLocale })}
         </div>
       );
     }
@@ -84,8 +97,8 @@ export default function EventsPage() {
   const renderCells = () => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { locale: es });
-    const endDate = endOfWeek(monthEnd, { locale: es });
+    const startDate = startOfWeek(monthStart, { locale: dateFnsLocale });
+    const endDate = endOfWeek(monthEnd, { locale: dateFnsLocale });
 
     const rows = [];
     let days = [];
@@ -130,7 +143,7 @@ export default function EventsPage() {
             {/* Conteo adicional si hay más */}
             {dayEvents.length > 1 && (
               <p className="text-[10px] text-center text-gray-500 mt-0.5">
-                +{dayEvents.length - 1} más
+                +{dayEvents.length - 1} {t("more")}
               </p>
             )}
           </div>
@@ -153,7 +166,7 @@ export default function EventsPage() {
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        {t("events")}
+        {t("title")}
       </h1>
 
       <div className="bg-gray-50 rounded-md p-3 shadow-sm max-w-4xl mx-auto">
@@ -165,7 +178,7 @@ export default function EventsPage() {
       {/* Lista de eventos del mes actual */}
       <div className="mt-8 space-y-4">
         {filteredEvents.length === 0 ? (
-          <p className="text-center text-gray-500">No hay eventos este mes.</p>
+          <p className="text-center text-gray-500">{t("noEvents")}</p>
         ) : (
           filteredEvents.map((event) => (
             <div key={event.id}>
@@ -174,7 +187,7 @@ export default function EventsPage() {
                   <div className="relative flex-shrink-0 w-24 h-32">
                     <Image
                       src={event.image}
-                      alt={event.title || "Imagen del evento"}
+                      alt={event.title || t("eventImageAlt")}
                       fill
                       className="object-contain rounded"
                     />
@@ -184,16 +197,7 @@ export default function EventsPage() {
                       {event.title}
                     </h2>
                     <p className="text-gray-500 text-xs">
-                      {new Date(event.date).toLocaleDateString("es-ES", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
-                      {event.time && (
-                        <span className="ml-2 text-gray-600">
-                          🕒 {event.time}
-                        </span>
-                      )}
+                      {new Date(event.date).toLocaleDateString(locale)}
                     </p>
                     <p className="mt-1 text-gray-700 text-sm line-clamp-2">
                       {event.description}

@@ -115,7 +115,13 @@
   },
 
   "events": {
-    "events": "Eventos"
+    "events": "Eventos",
+    "title": "Eventos",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "more": "más",
+    "noEvents": "No hay eventos este mes",
+    "eventImageAlt": "Imagen del evento"
   },
 
   "auth": {
