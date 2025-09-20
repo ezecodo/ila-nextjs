@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 export default function EventPage() {
   const t = useTranslations("events");
+  const locale = useLocale();
   const { id } = useParams(); // ✅ Obtener el ID desde la URL
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ export default function EventPage() {
         <div className="w-full max-h-[500px] overflow-hidden mb-6">
           <Image
             src={event.image}
-            alt={event.title || "Imagen del evento"}
+            alt={locale === "es" ? event.titleES || event.title : event.title}
             width={800} // ✅ Ajustamos el tamaño
             height={500} // ✅ Altura fija para evitar cortes
             className="w-full h-auto rounded-md object-cover"
@@ -59,7 +60,9 @@ export default function EventPage() {
         </div>
       )}
 
-      <h1 className="text-3xl font-bold mb-4">{event.title}</h1>
+      <h1 className="text-3xl font-bold mb-4">
+        {locale === "es" ? event.titleES || event.title : event.title}
+      </h1>
       <p className="text-gray-600 text-lg">
         📅{" "}
         {new Date(event.date).toLocaleDateString(undefined, {
@@ -71,7 +74,11 @@ export default function EventPage() {
           <span className="ml-2 text-gray-700">🕒 {event.time}</span>
         )}
       </p>
-      <p className="mt-2 text-gray-800">{event.description}</p>
+      <p className="mt-2 text-gray-800">
+        {locale === "es"
+          ? event.descriptionES || event.description
+          : event.description}
+      </p>
       <p className="mt-4 font-semibold text-gray-900">
         📍{" "}
         <a

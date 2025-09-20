@@ -127,12 +127,18 @@ export default function EventsPage() {
             {dayEvents.slice(0, 1).map((event) => (
               <Link key={event.id} href={`/events/${event.id}`}>
                 <div
-                  title={event.title}
+                  title={
+                    locale === "es" ? event.titleES || event.title : event.title
+                  }
                   className="w-full h-10 relative rounded overflow-hidden mx-auto mt-0.5 group cursor-pointer"
                 >
                   <Image
                     src={event.image}
-                    alt={event.title}
+                    alt={
+                      locale === "es"
+                        ? event.titleES || event.title
+                        : event.title
+                    }
                     fill
                     className="object-cover group-hover:brightness-90 transition"
                   />
@@ -194,7 +200,9 @@ export default function EventsPage() {
                   </div>
                   <div className="flex-1">
                     <h2 className="text-lg font-semibold text-gray-900">
-                      {event.title}
+                      {locale === "es"
+                        ? event.titleES || event.title
+                        : event.title}
                     </h2>
                     <p className="text-gray-500 text-xs">
                       {new Date(event.date).toLocaleDateString(locale, {
@@ -209,7 +217,9 @@ export default function EventsPage() {
                       )}
                     </p>
                     <p className="mt-1 text-gray-700 text-sm line-clamp-2">
-                      {event.description}
+                      {locale === "es"
+                        ? event.descriptionES || event.description
+                        : event.description}
                     </p>
                     <p className="mt-2 text-blue-500 font-semibold text-sm">
                       📍 <span className="underline">{event.location}</span>

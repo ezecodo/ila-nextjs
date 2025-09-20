@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 
 export default function InfoBox() {
   const t = useTranslations("navMenu");
+  const locale = useLocale();
 
   const [events, setEvents] = useState([]);
   const [index, setIndex] = useState(0);
@@ -61,11 +62,11 @@ export default function InfoBox() {
           {/* Fecha + Hora */}
           <p className="text-sm font-bold flex items-center gap-2 mt-1">
             📅{" "}
-            {new Date(current.date).toLocaleDateString("es-ES", {
+            {new Intl.DateTimeFormat(locale, {
               day: "numeric",
               month: "long",
               year: "numeric",
-            })}
+            }).format(new Date(current.date))}
             {current.time && (
               <span className="ml-2 text-gray-600">🕒 {current.time}</span>
             )}
