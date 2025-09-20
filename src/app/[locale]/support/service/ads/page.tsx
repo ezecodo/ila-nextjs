@@ -6,7 +6,7 @@ export default function AdsPage() {
   const locale = useLocale();
 
   const contentDe = (
-    <div className="prose prose-lg max-w-3xl mx-auto py-10">
+    <div className="prose prose-lg max-w-3xl mx-auto py-10 dark:prose-invert prose-headings:text-red-700 dark:prose-headings:text-red-400 prose-p:text-gray-900 dark:prose-p:text-gray-100 prose-a:text-red-600 dark:prose-a:text-red-400">
       <h1 className="text-3xl font-bold text-red-700">Anzeigen</h1>
 
       <p>
@@ -60,13 +60,13 @@ export default function AdsPage() {
       <table className="table-auto border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-3 py-2 text-left">
+            <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
               Format
             </th>
-            <th className="border border-gray-300 px-3 py-2 text-left">
+            <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
               Maße (mm)
             </th>
-            <th className="border border-gray-300 px-3 py-2 text-left">
+            <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
               Preis (€)
             </th>
           </tr>
@@ -101,7 +101,7 @@ export default function AdsPage() {
           </tr>
         </tbody>
       </table>
-      <p className="mt-2 text-sm italic">
+      <p className="mt-2 text-sm italic text-gray-600 dark:text-gray-400">
         (Titelseite & Rückseite vierfarbig, Innenteil in schwarz-weiß. Alle
         Preise zzgl. der gesetzlichen Mehrwertsteuer.)
       </p>
@@ -141,7 +141,7 @@ export default function AdsPage() {
   );
 
   const contentEs = (
-    <div className="prose prose-lg max-w-3xl mx-auto py-10">
+    <div className="prose prose-lg max-w-3xl mx-auto py-10 dark:prose-invert">
       <h1 className="text-3xl font-bold text-red-700">Anuncios</h1>
 
       <p>
@@ -185,16 +185,16 @@ export default function AdsPage() {
       </p>
 
       <h3>Formatos y precios</h3>
-      <table className="table-auto border-collapse border border-gray-300">
+      <table className="table-auto border-collapse border border-gray-300 dark:border-gray-600">
         <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-3 py-2 text-left">
+          <tr className="bg-gray-100 dark:bg-gray-700">
+            <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
               Formato
             </th>
-            <th className="border border-gray-300 px-3 py-2 text-left">
+            <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
               Medidas (mm)
             </th>
-            <th className="border border-gray-300 px-3 py-2 text-left">
+            <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left">
               Precio (€)
             </th>
           </tr>
@@ -231,7 +231,7 @@ export default function AdsPage() {
           </tr>
         </tbody>
       </table>
-      <p className="mt-2 text-sm italic">
+      <p className="mt-2 text-sm italic text-gray-600 dark:text-gray-400">
         (Portada y contraportada a color, interior en blanco y negro. Todos los
         precios más IVA.)
       </p>
@@ -250,7 +250,10 @@ export default function AdsPage() {
         La fecha límite de entrega es el día 25 del mes anterior. Para entonces
         deben recibirse los archivos listos para imprimir, preferiblemente por
         correo electrónico (EPS o PDF con tipografías incrustadas) a:{" "}
-        <a href="mailto:ila-bonn@t-online.de" className="text-red-600">
+        <a
+          href="mailto:ila-bonn@t-online.de"
+          className="text-red-600 dark:text-red-400"
+        >
           ila-bonn@t-online.de
         </a>
         . Más detalles técnicos bajo consulta. Teléfono: 0228 / 65 86 13.

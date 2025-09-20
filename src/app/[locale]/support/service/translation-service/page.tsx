@@ -6,7 +6,7 @@ export default function TranslationServicePage() {
   const locale = useLocale();
 
   const contentDe = (
-    <div className="prose prose-lg max-w-3xl mx-auto py-10">
+    <div className="prose prose-lg max-w-3xl mx-auto py-10 dark:prose-invert prose-headings:text-red-700 dark:prose-headings:text-red-400 prose-p:text-gray-900 dark:prose-p:text-gray-100 prose-a:text-red-600 dark:prose-a:text-red-400">
       <h1 className="text-3xl font-bold text-red-700 mb-6">
         Dolmetsch- und Übersetzungsservice
       </h1>

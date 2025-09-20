@@ -45,13 +45,13 @@ export default function EditionsCarousel({
       <Slider {...settings}>
         {editions.map((edition) => (
           <div key={edition.id} className="px-3 focus:outline-none">
-            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full mx-auto">
+            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-md dark:shadow-gray-800 overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full mx-auto">
               <MiniEditionCard edition={edition} />
               {onAdd && (
                 <div className="p-3 text-center">
                   <button
                     onClick={() => onAdd(edition, type)}
-                    className="mt-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition"
+                    className="mt-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 dark:hover:bg-red-500 transition"
                   >
                     {t("add")}
                   </button>

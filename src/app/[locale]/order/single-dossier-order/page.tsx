@@ -131,19 +131,19 @@ export default function SingleDossierOrderPage() {
         );
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-3xl font-bold text-center mb-12">
+    <main className="max-w-6xl mx-auto px-4 py-10 dark:text-gray-200">
+      <h1 className="text-3xl font-bold text-center mb-12 dark:text-gray-100">
         {t("orderTitle")}
       </h1>
 
       {/* 🔹 Dossiers Normales (isSpecialOffer = false) */}
       <section className="mb-20">
-        <h2 className="text-2xl font-semibold mb-4 text-center">
+        <h2 className="text-2xl font-semibold mb-4 text-center dark:text-gray-100">
           {locale === "de"
             ? "Einzelheftverkauf"
             : "Venta de ejemplares sueltos"}
         </h2>
-        <p className="text-sm text-gray-700 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
+        <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
           {locale === "de" ? (
             <>
               Normalpreis eines ila-Heftes: ab 2025 <strong>7 €</strong>, ab
@@ -226,7 +226,7 @@ export default function SingleDossierOrderPage() {
           </h2>
 
           {locale === "de" ? (
-            <p className="text-sm text-gray-700 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
               Sonderangebote aus Lagerbeständen: <br />3 ila-Ausgaben für{" "}
               <strong>7,50 Euro</strong> | 5 Hefte für{" "}
               <strong>12,00 Euro</strong>. <br />
@@ -237,7 +237,7 @@ export default function SingleDossierOrderPage() {
               <strong>ab 2,40 € pro Heft!</strong>
             </p>
           ) : (
-            <p className="text-sm text-gray-700 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
               Ofertas especiales de existencias en almacén: <br />3 ejemplares
               de ila por <strong>7,50 €</strong> | 5 ejemplares por{" "}
               <strong>12,00 €</strong>. <br />
@@ -259,7 +259,7 @@ export default function SingleDossierOrderPage() {
                 className={`px-3 py-1 rounded-full text-sm transition whitespace-nowrap ${
                   yearOffer === "all"
                     ? "bg-red-700 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
                 All
@@ -288,7 +288,7 @@ export default function SingleDossierOrderPage() {
             type="offer"
           />
         ) : (
-          <p className="text-center text-gray-600">
+          <p className="text-center text-gray-600 dark:text-gray-400">
             No special offer dossiers available for{" "}
             {yearOffer === "all" ? "order" : `year ${yearOffer}`}.
           </p>
@@ -317,7 +317,7 @@ export default function SingleDossierOrderPage() {
                         prev.map((p, idx) => (idx === i ? { ...p, qty } : p))
                       );
                     }}
-                    className="w-16 border border-gray-300 rounded px-2 py-1"
+                    className="w-16 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 dark:bg-gray-800 dark:text-gray-200"
                   />
                 </div>
               ))}

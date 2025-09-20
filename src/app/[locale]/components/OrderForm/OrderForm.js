@@ -120,7 +120,7 @@ export default function OrderForm({
       <form
         id="orderForm"
         onSubmit={handleSubmit}
-        className="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-6 space-y-4"
+        className="max-w-2xl mx-auto bg-white dark:bg-gray-900 shadow-md rounded-lg p-6 space-y-4 dark:text-gray-200"
       >
         <h2 className="text-2xl font-semibold text-center mb-4">
           {t("title")}
@@ -128,7 +128,7 @@ export default function OrderForm({
 
         {/* Anrede */}
         <div>
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {t("salutation")} *
           </label>
           <select
@@ -136,7 +136,7 @@ export default function OrderForm({
             value={formData.salutation}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           >
             <option value="">{t("choose")}</option>
             <option value="Frau">{t("mrs")}</option>
@@ -147,7 +147,7 @@ export default function OrderForm({
 
         {/* Vorname */}
         <div>
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {t("firstName")} *
           </label>
           <input
@@ -156,26 +156,28 @@ export default function OrderForm({
             value={formData.firstName}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Nachname */}
         <div>
-          <label className="block text-sm font-medium">{t("lastName")} *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("lastName")} *
+          </label>
           <input
             type="text"
             name="lastName"
             value={formData.lastName}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Institution */}
         <div>
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {t("institution")}
           </label>
           <input
@@ -183,26 +185,28 @@ export default function OrderForm({
             name="institution"
             value={formData.institution}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Straße / Nr */}
         <div>
-          <label className="block text-sm font-medium">{t("street")} *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("street")} *
+          </label>
           <input
             type="text"
             name="street"
             value={formData.street}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Adresszusatz */}
         <div>
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {t("addressExtra")}
           </label>
           <input
@@ -210,45 +214,51 @@ export default function OrderForm({
             name="addressExtra"
             value={formData.addressExtra}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* PLZ */}
         <div>
-          <label className="block text-sm font-medium">{t("zip")} *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("zip")} *
+          </label>
           <input
             type="text"
             name="zip"
             value={formData.zip}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Ort */}
         <div>
-          <label className="block text-sm font-medium">{t("city")} *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("city")} *
+          </label>
           <input
             type="text"
             name="city"
             value={formData.city}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Land */}
         <div>
-          <label className="block text-sm font-medium">{t("country")} *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("country")} *
+          </label>
           <select
             name="country"
             value={formData.country}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           >
             <option value="">{t("choose")}</option>
             {Object.entries(
@@ -265,38 +275,44 @@ export default function OrderForm({
 
         {/* Telefonnummer */}
         <div>
-          <label className="block text-sm font-medium">{t("phone")}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("phone")}
+          </label>
           <input
             type="text"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium">{t("email")} *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("email")} *
+          </label>
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 
         {/* Mitteilung */}
         <div>
-          <label className="block text-sm font-medium">{t("message")}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("message")}
+          </label>
           <textarea
             name="message"
             value={formData.message}
             onChange={handleChange}
             rows={4}
-            className="mt-1 block w-full border border-gray-300 rounded px-3 py-2"
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 dark:bg-gray-800 dark:text-gray-200"
           />
         </div>
 

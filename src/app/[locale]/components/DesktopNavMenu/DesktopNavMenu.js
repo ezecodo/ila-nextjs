@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
-
 import { useTranslations } from "next-intl";
 import { FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
 import SearchBar from "../SearchBar";
@@ -12,7 +11,19 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
   const t = useTranslations("navMenu");
   const { data: session } = useSession();
 
-  const [openSection, setOpenSection] = useState(null);
+  const [openSections, setOpenSections] = useState(new Set());
+
+  const toggleSection = (sectionKey) => {
+    const newOpenSections = new Set(openSections);
+    if (newOpenSections.has(sectionKey)) {
+      newOpenSections.delete(sectionKey);
+    } else {
+      newOpenSections.add(sectionKey);
+    }
+    setOpenSections(newOpenSections);
+  };
+
+  const isSectionOpen = (sectionKey) => openSections.has(sectionKey);
 
   // ─── MÓVIL: acordeón + auth + locale ─────────────────────────────────
   if (isMobile) {
@@ -31,29 +42,68 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
             <React.Fragment key={sec.labelKey}>
               <li
                 className="py-2 cursor-pointer hover:text-red-600 transition-colors"
-                onClick={() =>
-                  setOpenSection(
-                    openSection === sec.labelKey ? null : sec.labelKey
-                  )
-                }
+                onClick={() => toggleSection(sec.labelKey)}
               >
                 {t(sec.labelKey)}
+                {sec.items && (
+                  <span className="ml-2">
+                    {isSectionOpen(sec.labelKey) ? "−" : "+"}
+                  </span>
+                )}
               </li>
-              {sec.items && openSection === sec.labelKey && (
-                <ul className="flex flex-col gap-1 pl-6 text-base font-normal">
+
+              {/* Items de primer nivel */}
+              {sec.items && isSectionOpen(sec.labelKey) && (
+                <ul className="flex flex-col gap-1 pl-4 text-base font-normal text-left">
                   {sec.items.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={() => {
-                          setOpenSection(null);
-                          onLinkClick?.();
-                        }}
-                        className="block py-1 hover:underline"
-                      >
-                        {t(item.labelKey)}
-                      </Link>
-                    </li>
+                    <React.Fragment key={item.labelKey}>
+                      {item.items ? (
+                        // 👉 Caso submenú (ej: Service)
+                        <>
+                          <li
+                            className="py-1 cursor-pointer hover:text-red-600 transition-colors flex items-center justify-between"
+                            onClick={() => toggleSection(item.labelKey)}
+                          >
+                            <span>{t(item.labelKey)}</span>
+                            <span className="mr-2">
+                              {isSectionOpen(item.labelKey) ? "−" : "+"}
+                            </span>
+                          </li>
+                          {isSectionOpen(item.labelKey) && (
+                            <ul className="flex flex-col gap-1 pl-6 text-sm border-l border-gray-200 dark:border-gray-700">
+                              {item.items.map((sub) => (
+                                <li key={sub.href}>
+                                  <Link
+                                    href={sub.href}
+                                    onClick={() => {
+                                      setOpenSections(new Set());
+                                      onLinkClick?.();
+                                    }}
+                                    className="block py-1 hover:underline"
+                                  >
+                                    {t(sub.labelKey)}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </>
+                      ) : (
+                        // 👉 Caso link normal
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            onClick={() => {
+                              setOpenSections(new Set());
+                              onLinkClick?.();
+                            }}
+                            className="block py-1 hover:underline text-gray-800 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-300 transition-colors"
+                          >
+                            {t(item.labelKey)}
+                          </Link>
+                        </li>
+                      )}
+                    </React.Fragment>
                   ))}
                 </ul>
               )}
@@ -80,7 +130,10 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                       ? "/dashboard"
                       : "/dashboard-users"
                   }
-                  onClick={onLinkClick}
+                  onClick={() => {
+                    setOpenSections(new Set());
+                    onLinkClick?.();
+                  }}
                   className="flex items-center gap-2"
                 >
                   <FaTachometerAlt />
@@ -89,6 +142,7 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                 <button
                   onClick={() => {
                     signOut({ redirect: false });
+                    setOpenSections(new Set());
                     onLinkClick?.();
                   }}
                   className="flex items-center gap-2"
@@ -101,6 +155,7 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
               <button
                 onClick={() => {
                   signIn();
+                  setOpenSections(new Set());
                   onLinkClick?.();
                 }}
                 className="flex items-center gap-2"
@@ -115,7 +170,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
     );
   }
 
-  // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   return (
     <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-2 rounded-lg shadow-md dark:shadow-lg">
@@ -133,14 +187,14 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                     // 👉 Submenú "Service"
                     <li key={item.labelKey} className="relative group/item">
                       <span className="block px-4 py-2 font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                        {t(item.labelKey)}
+                        {t(item.labelKey)} →
                       </span>
                       <ul className="absolute left-full top-0 min-w-[16rem] bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-opacity whitespace-normal">
                         {item.items.map((sub) => (
                           <li key={sub.href}>
                             <Link
                               href={sub.href}
-                              className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-400"
                             >
                               {t(sub.labelKey)}
                             </Link>
