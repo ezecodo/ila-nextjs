@@ -64,8 +64,8 @@ export default function SingleDossierOrderPage() {
 
     // 👉 Hacer scroll automático al formulario
     document
-      .getElementById("orderForm")
-      ?.scrollIntoView({ behavior: "smooth" });
+      .getElementById("cartTitle")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   useEffect(() => {
@@ -296,10 +296,10 @@ export default function SingleDossierOrderPage() {
       </section>
       {/* 🔹 Formulario de pedido */}
       <section className="mt-16">
-        <section className="mb-10">
+        <section className="mb-10" id="cartSection">
           {selectedNormal.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-lg font-bold mb-2">
+              <h3 id="cartTitle" className="text-lg font-bold mb-2">
                 Ihre Auswahl (Normale Dossiers)
               </h3>
               {selectedNormal.map((item, i) => (
