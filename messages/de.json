@@ -122,7 +122,8 @@
     "nextMonth": "Nächster Monat",
     "more": "mehr",
     "noEvents": "Keine Veranstaltungen diesen Monat",
-    "eventImageAlt": "Veranstaltungsbild"
+    "eventImageAlt": "Veranstaltungsbild",
+    "backToEvents": "Zurück zu den Veranstaltungen"
   },
   "auth": {
     "title": "Anmelden",

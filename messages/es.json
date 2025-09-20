@@ -121,7 +121,8 @@
     "nextMonth": "Mes siguiente",
     "more": "más",
     "noEvents": "No hay eventos este mes",
-    "eventImageAlt": "Imagen del evento"
+    "eventImageAlt": "Imagen del evento",
+    "backToEvents": "Volver a eventos"
   },
 
   "auth": {
