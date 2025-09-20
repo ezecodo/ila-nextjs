@@ -79,7 +79,11 @@ export default function InfoBox() {
           >
             <Image
               src={current.image}
-              alt={current.title}
+              alt={
+                locale === "es"
+                  ? current.titleES || current.title
+                  : current.title
+              }
               fill
               className="object-contain p-2"
             />
@@ -88,7 +92,9 @@ export default function InfoBox() {
           {/* Título */}
           <Link href={`/events/${current.id}`}>
             <h3 className="text-base font-bold hover:underline mt-1">
-              {current.title}
+              {locale === "es"
+                ? current.titleES || current.title
+                : current.title}
             </h3>
           </Link>
 
