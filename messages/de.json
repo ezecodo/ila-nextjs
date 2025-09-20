@@ -140,7 +140,9 @@
     "menu": {
       "inicio": "Startseite",
       "articles": "Artikel eingeben",
+      "orders": "Bestellungen",
       "editions": "Ausgabe eingeben",
+
       "account": "Kontoeinstellungen",
       "events": "Veranstaltung eingeben",
       "carousels": "Karussells erstellen",

@@ -141,6 +141,7 @@
     "menu": {
       "inicio": "Inicio",
       "articles": "Ingresar Artículo",
+      "orders": "Pedidos",
       "editions": "Ingresar Edición",
       "account": "Configuración de Cuenta",
       "events": "Crear Eventos",

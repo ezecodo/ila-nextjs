@@ -11,6 +11,7 @@ import {
   FaUserCog,
   FaCalendarAlt,
   FaSlidersH,
+  FaShoppingCart,
 } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
@@ -60,6 +61,12 @@ export default function DashboardLayout({
       label: t("menu.carousels"),
       href: "/dashboard/carousels",
       icon: <FaSlidersH />,
+    },
+    {
+      key: "orders",
+      label: t("menu.orders"), // 👉 si quieres traducible: t("menu.orders")
+      href: "/dashboard/orders",
+      icon: <FaShoppingCart />,
     },
     {
       key: "assignTranslations",
