@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 
 export default function DonationBanner() {
   const t = useTranslations("donation");
-  const locale = useLocale();
 
   // Ruta del botón según idioma (ajústala si tus rutas son otras)
-  const donateHref = locale === "de" ? "/spenden" : "/donar";
+  const donateHref = "/donar";
 
   return (
     <div className="bg-red-600 text-white p-6 shadow-lg flex flex-col items-center text-center gap-4">
