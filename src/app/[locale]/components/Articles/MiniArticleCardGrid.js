@@ -103,7 +103,7 @@ export default function MiniArticleCardGrid({ article }) {
     );
 
   return (
-    <div className="w-full rounded-md bg-white dark:bg-gray-800 shadow-sm dark:shadow-md">
+    <div className="w-full rounded-md bg-white dark:bg-gray-800 shadow-sm dark:shadow-md mb-8">
       {/* Imagen */}
       {hasImage ? (
         <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t">
