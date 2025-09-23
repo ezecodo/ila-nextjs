@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
+
 import SearchBar from "../SearchBar";
 import { navSections } from "./navMenuConfig";
 
@@ -118,52 +118,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
           {/* 4) Separador */}
           <li>
             <hr className="border-gray-200 dark:border-gray-700 my-4" />
-          </li>
-
-          {/* 5) Dashboard / Logout / Login */}
-          <li className="flex justify-center items-center gap-4">
-            {session ? (
-              <>
-                <Link
-                  href={
-                    session.user.role === "admin"
-                      ? "/dashboard"
-                      : "/dashboard-users"
-                  }
-                  onClick={() => {
-                    setOpenSections(new Set());
-                    onLinkClick?.();
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <FaTachometerAlt />
-                  {t("dashboard")}
-                </Link>
-                <button
-                  onClick={() => {
-                    signOut({ redirect: false });
-                    setOpenSections(new Set());
-                    onLinkClick?.();
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <FaSignOutAlt />
-                  {t("logout")}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={() => {
-                  signIn();
-                  setOpenSections(new Set());
-                  onLinkClick?.();
-                }}
-                className="flex items-center gap-2"
-              >
-                <FaUser />
-                {t("login")}
-              </button>
-            )}
           </li>
         </ul>
       </nav>

@@ -28,6 +28,7 @@
   },
   "navMenu": {
     "index": "Home",
+    "greeting": "Hola, {name}",
     "contents": "Contenidos",
     "currentIssue": "Número Actual",
     "onlineOnly": "Solo Online",

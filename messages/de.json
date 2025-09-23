@@ -29,6 +29,7 @@
   "navMenu": {
     "index": "Home",
     "contents": "Inhalte",
+    "greeting": "Hallo, {name}",
     "currentIssue": "Aktuelles Heft",
     "onlineOnly": "Nur online",
     "archive": "Archiv",
