@@ -40,72 +40,88 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
           {/* 2) Secciones desplegables */}
           {navSections.map((sec) => (
             <React.Fragment key={sec.labelKey}>
-              <li
-                className="py-2 cursor-pointer hover:text-red-600 transition-colors"
-                onClick={() => toggleSection(sec.labelKey)}
-              >
-                {t(sec.labelKey)}
-                {sec.items && (
-                  <span className="ml-2">
-                    {isSectionOpen(sec.labelKey) ? "−" : "+"}
-                  </span>
-                )}
-              </li>
+              {/* Caso especial: Home → Link directo */}
+              {!sec.items ? (
+                <li className="py-2">
+                  <Link
+                    href={sec.href}
+                    onClick={() => {
+                      setOpenSections(new Set());
+                      onLinkClick?.();
+                    }}
+                    className="hover:text-red-600 transition-colors"
+                  >
+                    {t(sec.labelKey)}
+                  </Link>
+                </li>
+              ) : (
+                <>
+                  {/* Sección con items o sub-items */}
+                  <li
+                    className="py-2 cursor-pointer hover:text-red-600 transition-colors"
+                    onClick={() => toggleSection(sec.labelKey)}
+                  >
+                    {t(sec.labelKey)}
+                    <span className="ml-2">
+                      {isSectionOpen(sec.labelKey) ? "−" : "+"}
+                    </span>
+                  </li>
 
-              {/* Items de primer nivel */}
-              {sec.items && isSectionOpen(sec.labelKey) && (
-                <ul className="flex flex-col gap-1 pl-4 text-base font-normal text-left">
-                  {sec.items.map((item) => (
-                    <React.Fragment key={item.labelKey}>
-                      {item.items ? (
-                        // 👉 Caso submenú (ej: Service)
-                        <>
-                          <li
-                            className="py-1 cursor-pointer hover:text-red-600 transition-colors flex items-center justify-between"
-                            onClick={() => toggleSection(item.labelKey)}
-                          >
-                            <span>{t(item.labelKey)}</span>
-                            <span className="mr-2">
-                              {isSectionOpen(item.labelKey) ? "−" : "+"}
-                            </span>
-                          </li>
-                          {isSectionOpen(item.labelKey) && (
-                            <ul className="flex flex-col gap-1 pl-6 text-sm border-l border-gray-200 dark:border-gray-700">
-                              {item.items.map((sub) => (
-                                <li key={sub.href}>
-                                  <Link
-                                    href={sub.href}
-                                    onClick={() => {
-                                      setOpenSections(new Set());
-                                      onLinkClick?.();
-                                    }}
-                                    className="block py-1 hover:underline"
-                                  >
-                                    {t(sub.labelKey)}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
+                  {isSectionOpen(sec.labelKey) && (
+                    <ul className="flex flex-col gap-1 pl-4 text-base font-normal text-left">
+                      {sec.items.map((item) => (
+                        <React.Fragment key={item.labelKey}>
+                          {item.items ? (
+                            // 👉 Caso submenú (ej: Service)
+                            <>
+                              <li
+                                className="py-1 cursor-pointer hover:text-red-600 transition-colors flex items-center justify-between"
+                                onClick={() => toggleSection(item.labelKey)}
+                              >
+                                <span>{t(item.labelKey)}</span>
+                                <span className="mr-2">
+                                  {isSectionOpen(item.labelKey) ? "−" : "+"}
+                                </span>
+                              </li>
+                              {isSectionOpen(item.labelKey) && (
+                                <ul className="flex flex-col gap-1 pl-6 text-sm border-l border-gray-200 dark:border-gray-700">
+                                  {item.items.map((sub) => (
+                                    <li key={sub.href}>
+                                      <Link
+                                        href={sub.href}
+                                        onClick={() => {
+                                          setOpenSections(new Set());
+                                          onLinkClick?.();
+                                        }}
+                                        className="block py-1 hover:underline"
+                                      >
+                                        {t(sub.labelKey)}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </>
+                          ) : (
+                            // 👉 Caso link normal
+                            <li key={item.href}>
+                              <Link
+                                href={item.href}
+                                onClick={() => {
+                                  setOpenSections(new Set());
+                                  onLinkClick?.();
+                                }}
+                                className="block py-1 hover:underline text-gray-800 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-300 transition-colors"
+                              >
+                                {t(item.labelKey)}
+                              </Link>
+                            </li>
                           )}
-                        </>
-                      ) : (
-                        // 👉 Caso link normal
-                        <li key={item.href}>
-                          <Link
-                            href={item.href}
-                            onClick={() => {
-                              setOpenSections(new Set());
-                              onLinkClick?.();
-                            }}
-                            className="block py-1 hover:underline text-gray-800 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-300 transition-colors"
-                          >
-                            {t(item.labelKey)}
-                          </Link>
-                        </li>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </ul>
+                        </React.Fragment>
+                      ))}
+                    </ul>
+                  )}
+                </>
               )}
             </React.Fragment>
           ))}
