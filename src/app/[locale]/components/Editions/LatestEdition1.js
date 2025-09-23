@@ -260,14 +260,14 @@ export default function LatestEditionWithArticles() {
                             className="absolute z-30 top-full mt-2 left-1/2 -translate-x-1/2 bg-white border rounded-lg shadow-lg w-56 p-2"
                           >
                             <label className="block text-xs text-gray-500 mb-1">
-                              Ir a edición por número
+                              {t("pickerLabel")}
                             </label>
                             <input
                               ref={inputRef}
                               type="number"
                               value={pickerValue}
                               className="w-full border rounded px-2 py-1 text-sm"
-                              placeholder="Ej: 481"
+                              placeholder={t("pickerPlaceholder")}
                               onChange={(e) => {
                                 const val = e.target.value;
                                 setPickerValue(val);
@@ -384,16 +384,7 @@ export default function LatestEditionWithArticles() {
                                 className="text-sm text-gray-600 hover:underline"
                                 onClick={() => setShowNumberPicker(false)}
                               >
-                                Cerrar
-                              </button>
-                              <button
-                                type="button"
-                                className="text-sm text-blue-700 hover:underline"
-                                onClick={() =>
-                                  router.push(`/editions/${currentEdition.id}`)
-                                }
-                              >
-                                Ver edición
+                                {t("close")}
                               </button>
                             </div>
                           </div>

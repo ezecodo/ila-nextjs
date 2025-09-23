@@ -111,7 +111,10 @@
     "tableOfContents": "Inhaltsverzeichnis",
     "articlesFromDossier": "Online-Artikel aus dem Dossier",
     "editorialButton": "Editorial und Inhalt",
-    "backToEditions": "Zurück zu den Dossiers"
+    "backToEditions": "Zurück zu den Dossiers",
+    "pickerLabel": "Gehe zum Dossier nach Nummer",
+    "pickerPlaceholder": "Z.B.: 481",
+    "close": "Schließen"
   },
   "main": {
     "prev": "Vorherige",

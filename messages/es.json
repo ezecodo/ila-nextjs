@@ -109,7 +109,10 @@
     "tableOfContents": "Tabla de Contenidos",
     "articlesFromDossier": "Artículos online del dossier",
     "editorialButton": "Editorial y Contenido",
-    "backToEditions": "Volver a los Dossiers"
+    "backToEditions": "Volver a los Dossiers",
+    "pickerLabel": "Ir a Dossier por número",
+    "pickerPlaceholder": "Ej: 481",
+    "close": "Cerrar"
   },
   "main": {
     "prev": "Anterior",
