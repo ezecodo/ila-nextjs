@@ -107,7 +107,8 @@
     "viewEdition": "Ver Edición",
     "tableOfContents": "Tabla de Contenidos",
     "articlesFromDossier": "Artículos online del dossier",
-    "editorialButton": "Editorial y Contenido"
+    "editorialButton": "Editorial y Contenido",
+    "backToEditions": "Volver a los Dossiers"
   },
   "main": {
     "prev": "Anterior",

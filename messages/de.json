@@ -109,7 +109,8 @@
     "viewEdition": "Dossier ansehen",
     "tableOfContents": "Inhaltsverzeichnis",
     "articlesFromDossier": "Online-Artikel aus dem Dossier",
-    "editorialButton": "Editorial und Inhalt"
+    "editorialButton": "Editorial und Inhalt",
+    "backToEditions": "Zurück zu den Dossiers"
   },
   "main": {
     "prev": "Vorherige",

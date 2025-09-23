@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import CartButton from "../../components/CartButton/CartButton";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 export default function EditionDetails() {
   const { id } = useParams();
@@ -13,6 +13,7 @@ export default function EditionDetails() {
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
   const t = useTranslations("dossiers");
+  const locale = useLocale();
 
   useEffect(() => {
     if (!id) return;
@@ -56,10 +57,13 @@ export default function EditionDetails() {
 
       const isLinked = Boolean(matchedArticle);
 
+      // 👉 Detectar si es "Aktuelles"
+      const isAktuelles = line.trim().toLowerCase() === "aktuelles";
+
       return (
         <div
           key={index}
-          className={`flex justify-between items-center px-4 py-2 border-b dark:border-gray-700 ${
+          className={`flex justify-between items-center px-4 py-1 border-b dark:border-gray-700 ${
             isLinked ? "hover:bg-gray-50 dark:hover:bg-gray-800 transition" : ""
           }`}
         >
@@ -67,7 +71,9 @@ export default function EditionDetails() {
             className={`text-sm md:text-base ${
               isLinked
                 ? "text-blue-700 dark:text-blue-400 font-medium"
-                : "text-gray-800 dark:text-gray-200"
+                : isAktuelles
+                  ? "font-bold text-gray-900 dark:text-gray-100"
+                  : "text-gray-800 dark:text-gray-200"
             }`}
           >
             {isLinked ? (
@@ -148,8 +154,8 @@ export default function EditionDetails() {
       </div>
 
       <p className="text-gray-600 dark:text-gray-400 mb-4">
-        Publicado el{" "}
-        {new Date(edition.datePublished).toLocaleDateString("es-ES", {
+        {locale === "es" ? "Publicado el " : "Veröffentlicht am "}
+        {new Date(edition.datePublished).toLocaleDateString(locale, {
           year: "numeric",
           month: "long",
           day: "numeric",
@@ -182,7 +188,7 @@ export default function EditionDetails() {
         href="/editions"
         className="mt-4 inline-block bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-800 transition"
       >
-        Volver a las ediciones
+        {t("backToEditions")}
       </Link>
     </div>
   );
