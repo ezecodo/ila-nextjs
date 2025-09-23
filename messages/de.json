@@ -445,5 +445,23 @@
     "privacyRequired": "Bitte stimmen Sie der Datenschutzerklärung zu.",
     "submit": "Bestellung absenden",
     "successMessage": "Vielen Dank für Ihre Bestellung!"
+  },
+  "orders": {
+    "title": "📦 Bestellungen",
+    "searchPlaceholder": "Nach Kunde oder E-Mail suchen...",
+    "loading": "Bestellungen werden geladen...",
+    "date": "Datum",
+    "customer": "Kunde",
+    "email": "E-Mail",
+    "items": "Artikel",
+    "actions": "Aktionen",
+    "viewDetails": "Details ansehen",
+    "noResults": "Keine Bestellungen gefunden.",
+    "orderFrom": "Bestellung von",
+    "clientEmail": "📧 E-Mail",
+    "clientAddress": "📍 Adresse",
+    "clientPhone": "📞 Telefon",
+    "clientMessage": "Nachricht",
+    "requestedItems": "📰 Bestellte Artikel"
   }
 }

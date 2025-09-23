@@ -447,5 +447,23 @@
     "privacyRequired": "Debe aceptar la política de privacidad.",
     "submit": "Enviar pedido",
     "successMessage": "¡Gracias por su pedido!"
+  },
+  "orders": {
+    "title": "📦 Pedidos",
+    "searchPlaceholder": "Buscar por cliente o email...",
+    "loading": "Cargando pedidos...",
+    "date": "Fecha",
+    "customer": "Cliente",
+    "email": "Email",
+    "items": "Items",
+    "actions": "Acciones",
+    "viewDetails": "Ver detalle",
+    "noResults": "No se encontraron pedidos con esa búsqueda.",
+    "orderFrom": "Pedido de",
+    "clientEmail": "📧 Email",
+    "clientAddress": "📍 Dirección",
+    "clientPhone": "📞 Teléfono",
+    "clientMessage": "Mensaje",
+    "requestedItems": "📰 Items solicitados"
   }
 }
