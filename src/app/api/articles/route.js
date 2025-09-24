@@ -209,9 +209,15 @@ export async function POST(request) {
       if (article.editionId) {
         const ed = await prisma.edition.findUnique({
           where: { id: article.editionId },
-          select: { number: true, title: true },
+          select: { number: true, title: true, datePublished: true }, // 👈 añadir
         });
-        editionData = ed ? { number: ed.number, title: ed.title } : null;
+        editionData = ed
+          ? {
+              number: ed.number,
+              title: ed.title,
+              datePublished: ed.datePublished, // 👈 incluir en metadata
+            }
+          : null;
       }
 
       await prisma.activityLog.create({

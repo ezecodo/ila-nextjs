@@ -182,18 +182,39 @@ export async function PUT(req, context) {
       const updatedArticle = await prisma.article.update({
         where: { id: parseInt(id, 10) },
         data: dataToUpdate,
-      });
-      await prisma.activityLog.create({
-        data: {
-          userId,
-          articleId: updatedArticle.id,
-          action: "UPDATE_ARTICLE",
-          metadata: JSON.stringify({
-            title: updatedArticle.title,
-            legacyPath: updatedArticle.legacyPath,
-          }),
+        include: {
+          edition: {
+            select: {
+              id: true,
+              number: true,
+              title: true,
+              datePublished: true,
+            },
+          },
         },
       });
+
+      if (session?.user?.name !== "eZe") {
+        await prisma.activityLog.create({
+          data: {
+            userId,
+            articleId: updatedArticle.id,
+            action: "UPDATE_ARTICLE",
+            metadata: JSON.stringify({
+              title: updatedArticle.title,
+              legacyPath: updatedArticle.legacyPath,
+              edition: updatedArticle.edition
+                ? {
+                    id: updatedArticle.edition.id,
+                    number: updatedArticle.edition.number,
+                    title: updatedArticle.edition.title,
+                    datePublished: updatedArticle.edition.datePublished,
+                  }
+                : null,
+            }),
+          },
+        });
+      }
 
       return Response.json(updatedArticle, { status: 200 });
     }
@@ -370,7 +391,7 @@ export async function PUT(req, context) {
       }
 
       const updatedArticle = await prisma.article.update({
-        where: { id: parseInt(id) },
+        where: { id: parseInt(id, 10) },
         data: {
           title,
           subtitle,
@@ -384,12 +405,12 @@ export async function PUT(req, context) {
             set: interviewees.map((id) => ({ id: parseInt(id, 10) })),
           },
           isInPrintEdition: isPrinted,
-          editionId: editionId ? parseInt(editionId) : null,
-          startPage: startPage ? parseInt(startPage) : null,
-          endPage: endPage ? parseInt(endPage) : null,
-          beitragstypId: beitragstypId ? parseInt(beitragstypId) : null,
+          editionId: editionId ? parseInt(editionId, 10) : null,
+          startPage: startPage ? parseInt(startPage, 10) : null,
+          endPage: endPage ? parseInt(endPage, 10) : null,
+          beitragstypId: beitragstypId ? parseInt(beitragstypId, 10) : null,
           beitragssubtypId: beitragssubtypId
-            ? parseInt(beitragssubtypId)
+            ? parseInt(beitragssubtypId, 10)
             : null,
           categories: categories.length
             ? {
@@ -402,7 +423,16 @@ export async function PUT(req, context) {
           topics: {
             set: topics.map((id) => ({ id: parseInt(id, 10) })),
           },
-          // …añadir otros campos
+        },
+        include: {
+          edition: {
+            select: {
+              id: true,
+              number: true,
+              title: true,
+              datePublished: true,
+            },
+          },
         },
       });
       // 👇 Solo log si el user no es "eZe"
@@ -415,6 +445,14 @@ export async function PUT(req, context) {
             metadata: JSON.stringify({
               title: updatedArticle.title,
               legacyPath: updatedArticle.legacyPath,
+              edition: updatedArticle.edition
+                ? {
+                    id: updatedArticle.edition.id,
+                    number: updatedArticle.edition.number,
+                    title: updatedArticle.edition.title,
+                    datePublished: updatedArticle.edition.datePublished,
+                  }
+                : null,
             }),
           },
         });

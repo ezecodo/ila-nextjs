@@ -142,7 +142,22 @@ export default function ActivityFeed() {
                       <span className="font-semibold">
                         {log.metadata.edition.number}
                       </span>{" "}
-                      – {log.metadata.edition.title})
+                      – {log.metadata.edition.title}
+                      {log.metadata.edition.datePublished && (
+                        <>
+                          {" "}
+                          –{" "}
+                          <span className="font-semibold">
+                            {new Date(
+                              log.metadata.edition.datePublished
+                            ).toLocaleDateString("en-GB", {
+                              month: "2-digit",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </>
+                      )}
+                      )
                     </span>
                   )}
                 </>
@@ -196,6 +211,31 @@ export default function ActivityFeed() {
                   ) : (
                     <span className="italic text-gray-500">
                       “{log.article?.title || t("untitled")}”
+                    </span>
+                  )}
+                  {/* 👇 NUEVO: mostrar dossier si viene en metadata */}
+                  {log.metadata?.edition && (
+                    <span className="ml-1 text-gray-600">
+                      ({t("inEdition")}{" "}
+                      <span className="font-semibold">
+                        {log.metadata.edition.number}
+                      </span>{" "}
+                      – {log.metadata.edition.title}
+                      {log.metadata.edition.datePublished && (
+                        <>
+                          {" "}
+                          –{" "}
+                          <span className="font-semibold">
+                            {new Date(
+                              log.metadata.edition.datePublished
+                            ).toLocaleDateString("en-GB", {
+                              month: "2-digit",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </>
+                      )}
+                      )
                     </span>
                   )}
                 </>
