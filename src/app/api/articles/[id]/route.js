@@ -405,17 +405,20 @@ export async function PUT(req, context) {
           // …añadir otros campos
         },
       });
-      await prisma.activityLog.create({
-        data: {
-          userId,
-          articleId: updatedArticle.id,
-          action: "UPDATE_ARTICLE",
-          metadata: JSON.stringify({
-            title: updatedArticle.title,
-            legacyPath: updatedArticle.legacyPath,
-          }),
-        },
-      });
+      // 👇 Solo log si el user no es "eZe"
+      if (session?.user?.name !== "eZe") {
+        await prisma.activityLog.create({
+          data: {
+            userId,
+            articleId: updatedArticle.id,
+            action: "UPDATE_ARTICLE",
+            metadata: JSON.stringify({
+              title: updatedArticle.title,
+              legacyPath: updatedArticle.legacyPath,
+            }),
+          },
+        });
+      }
       const images = await prisma.image.findMany({
         where: { contentType: "ARTICLE", contentId: parseInt(id, 10) },
       });
