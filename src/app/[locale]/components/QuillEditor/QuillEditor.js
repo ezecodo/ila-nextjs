@@ -73,6 +73,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
           toolbar: [
             [{ header: "1" }, { header: "2" }, { header: "3" }],
             [{ list: "ordered" }, { list: "bullet" }],
+            ["bold", "italic"],
             ["link"],
             ["image"],
             ["poem"],
@@ -136,18 +137,6 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
       });
       // 👇 NUEVO: detectar títulos al pegar texto plano
       quillRef.current.clipboard.addMatcher(Node.TEXT_NODE, (node, delta) => {
-        const text = (node.data || "").trim();
-
-        const isHeading =
-          text.length > 0 &&
-          text.length < 120 &&
-          /^[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text) &&
-          !/[.!?]$/.test(text);
-
-        if (isHeading) {
-          return new Delta().insert(text + "\n", { header: 3 });
-        }
-
         return delta;
       });
 

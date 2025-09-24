@@ -402,15 +402,7 @@ html.dark {
 }
 
 /* Cuando un párrafo está en negrita y parece título */
-.article-content p strong {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  display: block;
-  margin: 1.25rem 0 0.5rem 0; /* menos hueco */
-  padding-left: 0.75rem;
-  border-left: 4px solid #dc2626;
-}
+
 .article-content p + p {
   margin-top: 2rem; /* salto más grande entre párrafos consecutivos */
 }

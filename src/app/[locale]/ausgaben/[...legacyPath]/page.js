@@ -129,10 +129,19 @@ export default function LegacyArticlePage() {
   function autoFormatHeadings(html) {
     if (!html) return "";
 
-    // Párrafos que solo tienen <strong> → convertirlos en <h2>
+    // Solo transformar si NO hay otros estilos además de <strong>
     return html.replace(
-      /<p>\s*<strong>(.*?)<\/strong>\s*<\/p>/gi,
-      "<h3>$1</h3>"
+      /<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi,
+      (m, inner) => {
+        // Heurística: si es cortito y parece un subtítulo, h3
+        const isHeadingLike =
+          inner.length > 0 &&
+          inner.length < 120 &&
+          /^[A-ZÄÖÜÑÁÉÍÓÚ]/.test(inner) &&
+          !/[.!?]$/.test(inner);
+
+        return isHeadingLike ? `<h3>${inner}</h3>` : m;
+      }
     );
   }
   function rewriteEditionLinksWithLocale(html, locale) {
