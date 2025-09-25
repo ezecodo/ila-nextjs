@@ -34,10 +34,21 @@ export default function MiniArticleCardGrid({ article }) {
   const subtitle = isES ? article.subtitleES : article.subtitle;
 
   // Vorspann fijo (con fallback al contenido limpio)
-  const teaser =
-    stripHTML(isES ? article.previewTextES : article.previewText) ||
-    stripHTML(article.content)?.slice(0, 400) ||
-    "";
+  let teaser = "";
+
+  if (isES) {
+    // 👉 Primero usamos previewTextES, si no, fallback al contentES
+    teaser =
+      stripHTML(article.previewTextES) ||
+      stripHTML(article.contentES)?.slice(0, 400) ||
+      "";
+  } else {
+    // 👉 En DE usamos previewText y si no, fallback al content (alemán)
+    teaser =
+      stripHTML(article.previewText) ||
+      stripHTML(article.content)?.slice(0, 400) ||
+      "";
+  }
 
   const editionYear = article.edition?.datePublished
     ? new Date(article.edition.datePublished).getFullYear()
