@@ -470,3 +470,25 @@ body {
 html {
   color-scheme: light dark;
 }
+
+/* Estilos solo para la página de traducción */
+.translate-page input,
+.translate-page textarea {
+  background-color: #fff !important; /* fondo claro */
+  color: #111 !important; /* texto oscuro */
+}
+
+.translate-page input:disabled,
+.translate-page textarea:disabled {
+  background-color: #f3f3f3 !important;
+  color: #666 !important;
+}
+/* Forzar que los formularios usen esquema claro */
+.translate-page {
+  color-scheme: light;
+}
+
+.field-readonly {
+  @apply border rounded p-2 bg-gray-100 text-gray-800;
+  color-scheme: light; /* fuerza esquema claro */
+}

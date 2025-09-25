@@ -123,7 +123,7 @@ const TranslateArticlePage = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="translate-page max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6 text-red-600">
         🌐 Traducir artículo al español
       </h1>
@@ -156,7 +156,7 @@ const TranslateArticlePage = () => {
             </button>
             <label className="font-bold">Título (alemán)</label>
           </div>
-          <p className="border bg-gray-100 p-2 rounded mt-1">{article.title}</p>
+          <p className="field-readonly mt-1">{article.title}</p>
         </div>
         <div>
           <label className="font-bold">Título (español)</label>
@@ -204,7 +204,7 @@ const TranslateArticlePage = () => {
             </button>
             <label className="font-bold">Subtítulo (alemán)</label>
           </div>
-          <p className="border bg-gray-100 p-2 rounded mt-1">
+          <p className="field-readonly mt-1">
             {stripHtml(article.subtitle) || "—"}
           </p>
         </div>
@@ -256,7 +256,7 @@ const TranslateArticlePage = () => {
             </button>
             <label className="font-bold">Preview Text (alemán)</label>
           </div>
-          <p className="border bg-gray-100 p-2 rounded whitespace-pre-line mt-1">
+          <p className="field-readonly mt-1">
             {stripHtml(article.previewText) || "—"}
           </p>
         </div>
@@ -307,7 +307,7 @@ const TranslateArticlePage = () => {
             </button>
             <label className="font-bold">Contenido (alemán)</label>
           </div>
-          <p className="border bg-gray-100 p-2 rounded whitespace-pre-line h-48 overflow-y-scroll mt-1">
+          <p className="field-readonly h-48 overflow-y-scroll mt-1">
             {stripHtml(article.content) || "—"}
           </p>
         </div>
@@ -358,7 +358,7 @@ const TranslateArticlePage = () => {
             </button>
             <label className="font-bold">Información adicional (alemán)</label>
           </div>
-          <p className="border bg-gray-100 p-2 rounded whitespace-pre-line mt-1">
+          <p className="field-readonly mt-1">
             {stripHtml(article.additionalInfo) || "—"}
           </p>
         </div>
