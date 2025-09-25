@@ -31,21 +31,40 @@ const ArticlesList = ({ mode = "admin" }) => {
   const { data: session } = useSession();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState(null);
+  const [selectedEdition, setSelectedEdition] = useState("");
+  const [editions, setEditions] = useState([]);
+
+  useEffect(() => {
+    async function fetchEditions() {
+      try {
+        const res = await fetch("/api/editions");
+        const data = await res.json();
+        setEditions(data);
+      } catch (err) {
+        console.error("❌ Error cargando ediciones:", err);
+      }
+    }
+    fetchEditions();
+  }, []);
 
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         const base = `/api/articles/list`;
-        const params =
-          mode === "reviewer"
-            ? `reviewer=true&page=${page}&limit=${limit}`
-            : mode === "assign"
-              ? `unassigned=true&page=${page}&limit=${limit}`
-              : mode === "translator"
-                ? `translatorId=${session?.user?.id}&page=${page}&limit=${limit}`
-                : `page=${page}&limit=${limit}&sortField=${sortField}&sortOrder=${sortOrder}`;
+        const searchParams = new URLSearchParams();
 
-        const response = await fetch(`${base}?${params}`);
+        // paginación y orden
+        searchParams.append("page", page);
+        searchParams.append("limit", limit);
+        searchParams.append("sortField", sortField);
+        searchParams.append("sortOrder", sortOrder);
+
+        // 👇 NUEVO filtro por dossier
+        if (selectedEdition) {
+          searchParams.append("editionId", selectedEdition);
+        }
+
+        const response = await fetch(`${base}?${searchParams.toString()}`);
         if (!response.ok) throw new Error("Error al obtener artículos");
         const data = await response.json();
         setArticles(data.articles);
@@ -54,9 +73,10 @@ const ArticlesList = ({ mode = "admin" }) => {
         console.error("Error cargando artículos:", error);
       }
     };
+
     if (mode === "translator" && !session?.user?.id) return;
     fetchArticles();
-  }, [page, sortField, sortOrder, mode, session?.user?.id]);
+  }, [page, sortField, sortOrder, mode, session?.user?.id, selectedEdition]); // 👈 añadimos selectedEdition
 
   const handleSort = (field) => {
     // En modo reviewer puedes seguir ordenando si tu API lo soporta; si no, puedes early-return aquí.
@@ -73,7 +93,23 @@ const ArticlesList = ({ mode = "admin" }) => {
         {mode === "reviewer" && " — Para Revisar"}
         {mode === "assign" && " — Sin Traductor"}
       </h2>
-
+      <div className="mb-4 flex items-center gap-2">
+        <label className="text-sm font-semibold text-gray-700">
+          Filtrar por Dossier:
+        </label>
+        <select
+          value={selectedEdition}
+          onChange={(e) => setSelectedEdition(e.target.value)}
+          className="p-2 border rounded text-sm"
+        >
+          <option value="">-- Todos --</option>
+          {editions.map((ed) => (
+            <option key={ed.id} value={ed.id}>
+              {ed.title} (N° {ed.number})
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse shadow-md text-sm">
           <thead>

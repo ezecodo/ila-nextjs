@@ -5,7 +5,7 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "200");
+    let limit = parseInt(searchParams.get("limit") || "200");
     const offset = (page - 1) * limit;
     // 👇 Si está en español, levantamos más artículos para no quedarnos cortos
     const locale = searchParams.get("locale");

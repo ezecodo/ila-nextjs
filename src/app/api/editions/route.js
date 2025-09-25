@@ -13,6 +13,7 @@ cloudinary.v2.config({
 export async function GET() {
   try {
     const editions = await prisma.edition.findMany({
+      orderBy: { number: "desc" },
       include: {
         regions: {
           select: {
