@@ -162,11 +162,6 @@ export default function MiniArticleCardGrid({ article }) {
               {isES ? article.titleES : article.title}
             </span>
           </ArticleLink>
-          {isES && (
-            <span className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded-full border border-green-300">
-              ES
-            </span>
-          )}
         </h3>
 
         {/* Subtítulo (pegado al título) */}
