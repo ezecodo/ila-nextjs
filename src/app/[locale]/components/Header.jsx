@@ -31,7 +31,13 @@ export default function Header() {
 
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("theme") === "dark";
+      const savedTheme = localStorage.getItem("theme");
+      // Si el sistema está en DARK → activar dark mode
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        return true;
+      }
+      // Si el sistema está en LIGHT → respetar toggle guardado
+      return savedTheme === "dark";
     }
     return false;
   });
@@ -63,8 +69,31 @@ export default function Header() {
   useEffect(() => {
     if (!mounted) return;
     localStorage.setItem("theme", darkMode ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, [darkMode, mounted]);
+  // Escuchar cuando el sistema cambia a dark mode
+  useEffect(() => {
+    if (!mounted) return;
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const handleSystemThemeChange = (e) => {
+      // Cuando el sistema cambia a DARK → activar nuestro dark mode
+      if (e.matches) {
+        setDarkMode(true);
+      }
+      // Cuando el sistema cambia a LIGHT → mantener toggle actual
+      // (no forzar light mode)
+    };
+
+    mediaQuery.addEventListener("change", handleSystemThemeChange);
+    return () =>
+      mediaQuery.removeEventListener("change", handleSystemThemeChange);
+  }, [mounted]);
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
@@ -236,7 +265,7 @@ export default function Header() {
               />
               <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-black transition-colors" />
               <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white dark:bg-gray-200 flex items-center justify-center text-[10px]">
-                {darkMode ? "🌙" : "☀️"}
+                {mounted ? (darkMode ? "🌙" : "☀️") : "☀️"}
               </div>
             </label>
 

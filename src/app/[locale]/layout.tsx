@@ -84,6 +84,9 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <meta name="color-scheme" content="light dark" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${futura.variable} antialiased flex flex-col min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
       >

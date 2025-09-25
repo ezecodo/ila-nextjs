@@ -66,6 +66,18 @@
   --background: #ffffff;
   --foreground: #171717;
 }
+/* 🔥 SISTEMA UNIFICADO - Prioriza tu toggle manual */
+html.dark {
+  --background: #111111;
+  --foreground: #ffffff;
+}
+/* 🔥 Solo aplica dark mode nativo si NO hay clase manual */
+html:not(.dark) {
+  @media (prefers-color-scheme: dark) {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -76,14 +88,8 @@
 
 body {
   @apply bg-[var(--background)] text-[var(--foreground)];
-  color: var(--foreground);
-  background: var(--background);
+
   font-family: Arial, Helvetica, sans-serif;
-}
-/* ✅ Esto SÍ funciona porque la clase "dark" está en <html> */
-html.dark {
-  --background: #111111;
-  --foreground: #ffffff;
 }
 
 .page-content {
@@ -459,4 +465,8 @@ html.dark {
 .dossier-link {
   color: #0066cc;
   text-decoration: underline;
+}
+
+html {
+  color-scheme: light dark;
 }
