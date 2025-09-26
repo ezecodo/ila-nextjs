@@ -263,10 +263,12 @@ export default function LegacyArticlePage() {
               <div
                 className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
                 dangerouslySetInnerHTML={{
-                  __html:
+                  __html: rewriteEditionLinksWithLocale(
                     isES && article.previewTextES
                       ? article.previewTextES
                       : article.previewText,
+                    locale
+                  ),
                 }}
               />
             </div>
@@ -519,15 +521,16 @@ export default function LegacyArticlePage() {
               ),
             }}
           />
-
           {((isES && article.additionalInfoES) || article.additionalInfo) && (
             <div
               className="article-content mt-6 text-base text-gray-700 dark:text-gray-300"
               dangerouslySetInnerHTML={{
-                __html:
+                __html: rewriteEditionLinksWithLocale(
                   isES && article.additionalInfoES
                     ? article.additionalInfoES
                     : article.additionalInfo,
+                  locale
+                ),
               }}
             />
           )}

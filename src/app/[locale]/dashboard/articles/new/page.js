@@ -870,18 +870,20 @@ export default function NewArticlePage() {
 
         <ToggleSwitch
           id="additionalInfoToggle"
-          label={t("additionalInfoToggle")} // Información adicional toogle
+          label={t("additionalInfoToggle")}
           checked={additionalInfoEnabled}
           onChange={(e) => setAdditionalInfoEnabled(e.target.checked)}
         />
+
         {additionalInfoEnabled && (
-          <InputField
-            id="additionalInfo"
-            label={t("additionalInfo")} // Información adicional
-            value={additionalInfo}
-            onChange={(e) => setAdditionalInfo(e.target.value)}
-            placeholder={t("additionalInfoPlaceholder")}
-          />
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>{t("additionalInfo")}</label>
+            <QuillEditor
+              value={additionalInfo}
+              onChange={(value) => setAdditionalInfo(value)} // HTML enriquecido
+              resetTrigger={resetTrigger} // para que se limpie al resetear
+            />
+          </div>
         )}
 
         {/* TIPO DE ARTÍCULO */}
