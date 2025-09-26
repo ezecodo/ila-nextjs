@@ -21,7 +21,7 @@ export async function GET(req) {
     const unassignedMode = searchParams.get("unassigned") === "true";
     const translatorId = searchParams.get("translatorId");
 
-    let whereCondition = { isPublished: true };
+    let whereCondition = {};
 
     if (translatorId) {
       whereCondition.translatorId = translatorId;

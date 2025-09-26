@@ -121,6 +121,13 @@ const ArticlesList = ({ mode = "admin" }) => {
                 ID ⬍
               </th>
               <th
+                className="p-1.5 border cursor-pointer text-center"
+                onClick={() => handleSort("isPublished")}
+                title={locale === "de" ? "Veröffentlicht" : "Publicado"}
+              >
+                📢
+              </th>
+              <th
                 className="p-1.5 border cursor-pointer text-left"
                 onClick={() => handleSort("title")}
               >
@@ -160,7 +167,9 @@ const ArticlesList = ({ mode = "admin" }) => {
                   >
                     📚 Edición ⬍
                   </th>
-                  <th className="p-1.5 border text-left">📷 Imagen</th>
+                  <th className="p-1.5 border text-center" title="Imagen">
+                    🖼️
+                  </th>
                   <th className="p-1.5 border text-left">✏️ Editar</th>
                   <th className="p-1.5 border text-left">🗑️ </th>
                 </>
@@ -181,6 +190,25 @@ const ArticlesList = ({ mode = "admin" }) => {
                 } hover:bg-red-100`}
               >
                 <td className="p-1.5 border">{article.id}</td>
+                <td className="p-1.5 border text-center">
+                  {article.isPublished ? (
+                    <span
+                      title={locale === "de" ? "Veröffentlicht" : "Publicado"}
+                    >
+                      ✅
+                    </span>
+                  ) : (
+                    <span
+                      title={
+                        locale === "de"
+                          ? "Nicht veröffentlicht"
+                          : "No publicado"
+                      }
+                    >
+                      ❌
+                    </span>
+                  )}
+                </td>
 
                 <td className="p-1.5 border">
                   <Link
