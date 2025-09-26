@@ -295,35 +295,33 @@ export default function Header() {
         </div>
       )}
 
-      {/* Desktop main */}
+      {/* Desktop main - LAYOUT ARREGLADO */}
       {!isCompact && (
         <div className="w-full hidden md:flex px-4 pt-2 pb-0">
           <div className="max-w-7xl mx-auto w-full">
-            {/* Fila superior: logo IZQ + tagline CENTRO */}
-            {/* Fila superior: logo fijo a la IZQ + tagline CENTRO */}
-            <div className="relative flex items-center h-[96px]">
-              {/* Logo: fijo respecto al contenedor, no depende del menú */}
-              <Link
-                href="/"
-                className="absolute left-[8rem] md:left-[12rem] flex items-center"
-                aria-label="ILA Home"
-              >
-                <Image
-                  src="/ila-logo.png"
-                  alt="ILA Logo"
-                  width={80}
-                  height={80}
-                  priority
-                />
-              </Link>
+            {/* NUEVA estructura responsiva con Grid */}
+            <div className="flex items-center justify-center gap-4 h-[96px] lg:gap-6">
+              {/* Columna izquierda: Logo */}
+              <div className="justify-self-start">
+                <Link
+                  href="/"
+                  aria-label="ILA Home"
+                  className="flex items-center"
+                >
+                  <Image
+                    src="/ila-logo.png"
+                    alt="ILA Logo"
+                    width={80}
+                    height={80}
+                    priority
+                  />
+                </Link>
+              </div>
 
-              {/* Tagline perfectamente centrado en el contenedor */}
-              <div
-                className="mx-auto text-center relative"
-                style={{ left: "-10px" }}
-              >
+              {/* Columna central: Tagline */}
+              <div className="text-center xl:whitespace-nowrap whitespace-normal">
                 <span
-                  className="text-[1.9rem] md:text-[2.4rem] font-bold leading-tight whitespace-nowrap"
+                  className="text-[1.4rem] lg:text-[1.9rem] xl:text-[2.4rem] font-bold leading-tight"
                   style={{
                     fontFamily: "'Futura Cyrillic', Arial, sans-serif",
                     letterSpacing: "-0.5px",
@@ -347,7 +345,7 @@ export default function Header() {
                             top: "0.25em",
                             width: "0.21em",
                             height: "0.10em",
-                            background: "#222", // 👈 mismo color que el texto
+                            background: "#222",
                             borderRadius: "0.03em",
                             transform: "rotate(-18deg)",
                             zIndex: 2,
@@ -363,7 +361,7 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Fila inferior: menú centrado en una sola línea */}
+            {/* Fila inferior: menú centrado */}
             <div className="flex items-center justify-center py-2">
               <div className="shrink-0 overflow-x-visible whitespace-nowrap">
                 <DesktopNavMenu />

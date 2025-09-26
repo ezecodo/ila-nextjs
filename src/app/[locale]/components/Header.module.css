@@ -46,6 +46,31 @@
   object-fit: contain;
 }
 
+/* 🔥 NUEVO: Posicionamiento responsivo del logo */
+.logoResponsive {
+  position: absolute;
+  left: 8rem; /* Valor por defecto */
+}
+
+/* Media queries para posicionamiento responsivo del logo */
+@media (max-width: 1200px) {
+  .logoResponsive {
+    left: 6rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .logoResponsive {
+    left: 4rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .logoResponsive {
+    left: 2rem;
+  }
+}
+
 .languageSwitcher {
   display: flex;
   gap: 0.5rem;
