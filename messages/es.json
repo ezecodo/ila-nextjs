@@ -308,12 +308,12 @@
 
       "intervieweePlaceholder": "Seleccione un entrevistado",
       "authorModal": {
-        "title": "Agregar Nuevo Autor",
-        "nameLabel": "Nombre del Autor",
-        "namePlaceholder": "Ingrese el nombre del autor",
-        "emailLabel": "Email del Autor (opcional)",
-        "emailPlaceholder": "Ingrese el email del autor",
-        "addButton": "Agregar Autor"
+        "title": "Agregar Nueva Autor/a",
+        "nameLabel": "Nombre de la Autor/a",
+        "namePlaceholder": "Ingrese el nombre de la autor/a",
+        "emailLabel": "Email de la Autor/a (opcional)",
+        "emailPlaceholder": "Ingrese el email de la autor/a",
+        "addButton": "Agregar Autor/a"
       }
     },
     "modals": {

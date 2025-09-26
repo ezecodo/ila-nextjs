@@ -306,12 +306,12 @@
 
       "intervieweePlaceholder": "Interviewpartner/in wählen",
       "authorModal": {
-        "title": "Neuen Autor hinzufügen",
-        "nameLabel": "Name des Autors",
-        "namePlaceholder": "Autorennamen eingeben",
-        "emailLabel": "E-Mail des Autors (optional)",
-        "emailPlaceholder": "Autor-E-Mail eingeben",
-        "addButton": "Autor hinzufügen"
+        "title": "Neue Autor*in hinzufügen",
+        "nameLabel": "Name der Autor*in",
+        "namePlaceholder": "Name der Autor*in eingeben",
+        "emailLabel": "E-Mail der Autor*in (optional)",
+        "emailPlaceholder": "E-Mail der Autor*in eingeben",
+        "addButton": "Autor*in hinzufügen"
       }
     },
     "modals": {

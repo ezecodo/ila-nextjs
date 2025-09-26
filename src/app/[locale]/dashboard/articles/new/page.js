@@ -670,11 +670,18 @@ export default function NewArticlePage() {
           return;
         }
 
+        // ✅ Actualiza la lista de autores disponibles
         setAuthors((prev) => [
           ...prev,
           { id: newAuthor.id, name: newAuthor.name },
         ]);
-        setSelectedAuthor(newAuthor.id);
+
+        // ✅ Selecciona automáticamente el nuevo autor en el form
+        setSelectedAuthors((prev) => [
+          ...prev,
+          { value: newAuthor.id, label: newAuthor.name },
+        ]);
+
         setMessage("Autor agregado con éxito.");
         setIsModalOpen(false);
         setNewAuthorName("");
@@ -683,7 +690,6 @@ export default function NewArticlePage() {
         let errorMessage = "Error desconocido.";
         const contentType = res.headers.get("content-type");
 
-        // Solo intentar parsear JSON si el tipo de contenido es JSON
         if (contentType && contentType.includes("application/json")) {
           try {
             const errorData = await res.json();
