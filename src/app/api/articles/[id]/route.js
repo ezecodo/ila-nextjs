@@ -222,6 +222,18 @@ export async function PUT(req, context) {
     if (contentType.includes("multipart/form-data")) {
       // 🟠 Caso: Edición con imágenes
       const formData = await req.formData();
+      // 🟢 Publicar Ahora
+      const isPublished = formData.get("isPublished") === "true";
+
+      // 🟢 Fecha de publicación
+      let publicationDate = formData.get("publicationDate")
+        ? new Date(formData.get("publicationDate"))
+        : null;
+
+      // Si se marca "Publicar Ahora" y no hay fecha → usar ahora mismo
+      if (isPublished && !publicationDate) {
+        publicationDate = new Date();
+      }
       // IDs de imágenes que se mantienen
       const keepImages = (() => {
         try {
@@ -423,6 +435,8 @@ export async function PUT(req, context) {
           topics: {
             set: topics.map((id) => ({ id: parseInt(id, 10) })),
           },
+          isPublished,
+          publicationDate,
         },
         include: {
           edition: {
