@@ -403,7 +403,7 @@ export default function CurrentIssuePage() {
         </div>
 
         {/* Texto del summary que fluye alrededor de la imagen */}
-        <div className="text-gray-700 dark:text-gray-300">
+        <div className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200">
           {edition.summary
             ? edition.summary.split("\n").map((line, i) => (
                 <p key={i} className="mb-4">
