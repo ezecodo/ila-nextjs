@@ -257,16 +257,16 @@ export default function LatestEditionWithArticles() {
                         {showNumberPicker && (
                           <div
                             ref={popoverRef}
-                            className="absolute z-30 top-full mt-2 left-1/2 -translate-x-1/2 bg-white border rounded-lg shadow-lg w-56 p-2"
+                            className="absolute z-30 top-full mt-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg w-56 p-2"
                           >
-                            <label className="block text-xs text-gray-500 mb-1">
+                            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                               {t("pickerLabel")}
                             </label>
                             <input
                               ref={inputRef}
                               type="number"
                               value={pickerValue}
-                              className="w-full border rounded px-2 py-1 text-sm"
+                              className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-red-500"
                               placeholder={t("pickerPlaceholder")}
                               onChange={(e) => {
                                 const val = e.target.value;
@@ -351,12 +351,13 @@ export default function LatestEditionWithArticles() {
                                     type="button"
                                     data-idx={idx}
                                     className={[
-                                      "w-full text-left px-2 py-1 rounded text-sm hover:bg-red-50",
+                                      "w-full text-left px-2 py-1 rounded text-sm",
+                                      "hover:bg-red-50 dark:hover:bg-gray-700",
                                       isHighlighted
-                                        ? "bg-red-100 ring-1 ring-red-300"
+                                        ? "bg-red-200 dark:bg-gray-600 ring-1 ring-red-400 dark:ring-gray-500"
                                         : "",
                                       !isHighlighted && isActive
-                                        ? "bg-red-100/60"
+                                        ? "bg-red-100/60 dark:bg-gray-700"
                                         : "",
                                     ].join(" ")}
                                     onClick={() => {
@@ -381,7 +382,7 @@ export default function LatestEditionWithArticles() {
                             <div className="mt-2 flex justify-end gap-2">
                               <button
                                 type="button"
-                                className="text-sm text-gray-600 hover:underline"
+                                className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
                                 onClick={() => setShowNumberPicker(false)}
                               >
                                 {t("close")}

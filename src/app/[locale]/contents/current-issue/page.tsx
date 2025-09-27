@@ -243,7 +243,7 @@ export default function CurrentIssuePage() {
                   <div className="flex items-center gap-2 mb-3">
                     {article.pageNumber && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-600 text-white">
-                        Pág. {article.pageNumber}
+                        {t("page")} {article.pageNumber}
                       </span>
                     )}
                     {article.isSection && (
