@@ -123,7 +123,9 @@
     "showLess": "Weniger anzeigen",
     "noSummary": "Keine Zusammenfassung",
     "noRegions": "Keine Regionen zugeordnet",
-    "noTopics": "Keine Themen zugeordnet"
+    "noTopics": "Keine Themen zugeordnet",
+    "linkArticle": "Artikel verknüpfen...",
+    "confirm": "Bestätigen"
   },
   "main": {
     "prev": "Vorherige",

@@ -121,7 +121,9 @@
     "showLess": "Mostrar menos",
     "noSummary": "Sin resumen",
     "noRegions": "Sin regiones asociadas",
-    "noTopics": "Sin temas asociados"
+    "noTopics": "Sin temas asociados",
+    "linkArticle": "Vincular artículo...",
+    "confirm": "Confirmar"
   },
   "main": {
     "prev": "Anterior",

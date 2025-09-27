@@ -102,16 +102,29 @@ export default function CurrentIssuePage() {
         }
 
         // Crear nuevo artículo
+        // Crear nuevo artículo
         const titleWithoutPage = line.replace(/^\d+\s*/, "");
-        const matchedArticle = articles.find((article) =>
+
+        // Intentar primero con el título
+        let matchedArticle = articles.find((article) =>
           titleWithoutPage.toLowerCase().includes(article.title.toLowerCase())
         );
+
+        // Si no encontró nada, intentar con la siguiente línea (posible subtítulo)
+        if (!matchedArticle && lines[i + 1]) {
+          const possibleSubtitle = lines[i + 1].trim();
+          matchedArticle = articles.find((article) =>
+            possibleSubtitle.toLowerCase().includes(article.title.toLowerCase())
+          );
+        }
 
         currentArticle = {
           id: parsedArticles.length,
           pageNumber,
           title: titleWithoutPage,
-          subtitle: null,
+          // 👇 Si no encontramos nada, miramos la línea siguiente como posible subtítulo
+          subtitle:
+            !matchedArticle && lines[i + 1] ? lines[i + 1].trim() : null,
           author: null,
           isLinked: Boolean(matchedArticle),
           matchedArticle: matchedArticle || null,
