@@ -15,6 +15,8 @@ export async function GET(req) {
 
     const showFavorites = searchParams.get("favorites") === "true";
     const editionId = searchParams.get("editionId");
+    const nurOnline = searchParams.get("nurOnline") === "true";
+    const unpublished = searchParams.get("unpublished") === "true";
 
     const beitragstypId = searchParams.get("beitragstypId");
     const reviewerMode = searchParams.get("reviewer") === "true";
@@ -49,13 +51,23 @@ export async function GET(req) {
       };
     }
 
-    if (editionId) {
-      whereCondition.OR = [
-        { editionId: parseInt(editionId, 10) },
-        { isInPrintEdition: false }, // 👈 también incluir artículos fuera de edición
-      ];
+    if (nurOnline) {
+      whereCondition = {
+        ...whereCondition,
+        isInPrintEdition: false,
+        editionId: null, // solo artículos sin dossier
+      };
+    } else if (unpublished) {
+      whereCondition = {
+        ...whereCondition,
+        isPublished: false,
+      };
+    } else if (editionId) {
+      whereCondition = {
+        ...whereCondition,
+        editionId: parseInt(editionId, 10),
+      };
     }
-
     if (showFavorites) {
       const session = await auth();
       if (!session || !session.user) {

@@ -62,7 +62,9 @@ const ArticlesList = ({ mode = "admin" }) => {
         // 👇 NUEVO filtro por dossier
         if (selectedEdition) {
           if (selectedEdition === "nur-online") {
-            searchParams.append("categoryId", 7); // Nur Online = categoría 7
+            searchParams.append("nurOnline", "true");
+          } else if (selectedEdition === "unpublished") {
+            searchParams.append("unpublished", "true");
           } else {
             searchParams.append("editionId", selectedEdition);
           }
@@ -108,6 +110,7 @@ const ArticlesList = ({ mode = "admin" }) => {
         >
           <option value="">-- Todos --</option>
           <option value="nur-online">🌐 Nur Online</option>
+          <option value="unpublished">❌ Nicht veröffentlicht</option>
           {editions.map((ed) => (
             <option key={ed.id} value={ed.id}>
               {ed.title} (N° {ed.number})
