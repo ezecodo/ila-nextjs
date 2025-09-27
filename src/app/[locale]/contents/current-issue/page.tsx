@@ -177,11 +177,11 @@ export default function CurrentIssuePage() {
                     <div className="flex items-center gap-2 mb-3">
                       {article.pageNumber && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-600 text-white">
-                          Pág. {article.pageNumber}
+                          {t("page")} {article.pageNumber}
                         </span>
                       )}
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                        Artículo
+                        {t("article")}
                       </span>
                     </div>
 
@@ -235,7 +235,7 @@ export default function CurrentIssuePage() {
                     )}
                     {article.isSection && (
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-600 text-white">
-                        Sección
+                        {t("section")}
                       </span>
                     )}
                   </div>
@@ -290,7 +290,7 @@ export default function CurrentIssuePage() {
                       d="M5 15l7-7 7 7"
                     />
                   </svg>
-                  Mostrar menos
+                  {t("showLess")}
                 </>
               ) : (
                 <>
@@ -307,7 +307,7 @@ export default function CurrentIssuePage() {
                       d="M19 9l-7 7-7-7"
                     />
                   </svg>
-                  Mostrar {contents.length - 6} más artículos
+                  {t("showMore", { count: contents.length - 6 })}
                 </>
               )}
             </button>
@@ -354,7 +354,7 @@ export default function CurrentIssuePage() {
                 </span>
               ))
             ) : (
-              <span className="topicBadge">Sin temas asociados</span>
+              <span className="topicBadge">{t("noTopics")}</span>
             )}
           </div>
 
@@ -380,7 +380,7 @@ export default function CurrentIssuePage() {
             </span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {locale === "es" ? "Publicado el " : "Veröffentlicht am "}
+            {t("publishedOn")}{" "}
             {new Date(edition.datePublished).toLocaleDateString(locale, {
               year: "numeric",
               month: "long",
@@ -397,7 +397,7 @@ export default function CurrentIssuePage() {
                   {line}
                 </p>
               ))
-            : "Sin resumen"}
+            : t("noSummary")}
         </div>
 
         {/* Clearfix para asegurar que los elementos siguientes no se monten */}

@@ -114,7 +114,16 @@
     "backToEditions": "Zurück zu den Dossiers",
     "pickerLabel": "Gehe zum Dossier nach Nummer",
     "pickerPlaceholder": "Z.B.: 481",
-    "close": "Schließen"
+    "close": "Schließen",
+    "publishedOn": "Veröffentlicht am",
+    "page": "S.",
+    "article": "Artikel",
+    "section": "Rubrik",
+    "showMore": "{count} weitere Artikel anzeigen",
+    "showLess": "Weniger anzeigen",
+    "noSummary": "Keine Zusammenfassung",
+    "noRegions": "Keine Regionen zugeordnet",
+    "noTopics": "Keine Themen zugeordnet"
   },
   "main": {
     "prev": "Vorherige",

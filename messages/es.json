@@ -112,7 +112,16 @@
     "backToEditions": "Volver a los Dossiers",
     "pickerLabel": "Ir a Dossier por número",
     "pickerPlaceholder": "Ej: 481",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "publishedOn": "Publicado el",
+    "page": "Pág.",
+    "article": "Artículo",
+    "section": "Sección",
+    "showMore": "Mostrar {count} más artículos",
+    "showLess": "Mostrar menos",
+    "noSummary": "Sin resumen",
+    "noRegions": "Sin regiones asociadas",
+    "noTopics": "Sin temas asociados"
   },
   "main": {
     "prev": "Anterior",
