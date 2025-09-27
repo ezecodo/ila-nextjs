@@ -8,14 +8,14 @@ export const navSections = [
       { labelKey: "events", href: "/events" },
     ],
   },
-  /*   {
+  {
     labelKey: "contents",
     items: [
       { labelKey: "currentIssue", href: "/contents/current-issue" },
-      { labelKey: "onlineOnly", href: "/contents/online-only" },
-      { labelKey: "archive", href: "/contents/archive" },
+      /*   { labelKey: "onlineOnly", href: "/contents/online-only" },
+      { labelKey: "archive", href: "/contents/archive" }, */
     ],
-  }, */
+  },
   {
     labelKey: "orderSubscribe",
     items: [

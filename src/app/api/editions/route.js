@@ -9,9 +9,21 @@ cloudinary.v2.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-export async function GET() {
+export async function GET(req) {
   try {
+    const { searchParams } = new URL(req.url);
+    const current = searchParams.get("current");
+
+    if (current === "true") {
+      const edition = await prisma.edition.findFirst({
+        where: { isCurrent: true },
+        include: {
+          regions: { select: { id: true, name: true, nameES: true } },
+          topics: { select: { id: true, name: true, nameES: true } },
+        },
+      });
+      return new Response(JSON.stringify(edition), { status: 200 });
+    }
     const editions = await prisma.edition.findMany({
       orderBy: { number: "desc" },
       include: {
