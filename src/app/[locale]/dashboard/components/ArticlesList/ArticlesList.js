@@ -61,7 +61,11 @@ const ArticlesList = ({ mode = "admin" }) => {
 
         // 👇 NUEVO filtro por dossier
         if (selectedEdition) {
-          searchParams.append("editionId", selectedEdition);
+          if (selectedEdition === "nur-online") {
+            searchParams.append("categoryId", 7); // Nur Online = categoría 7
+          } else {
+            searchParams.append("editionId", selectedEdition);
+          }
         }
 
         const response = await fetch(`${base}?${searchParams.toString()}`);
@@ -103,6 +107,7 @@ const ArticlesList = ({ mode = "admin" }) => {
           className="p-2 border rounded text-sm"
         >
           <option value="">-- Todos --</option>
+          <option value="nur-online">🌐 Nur Online</option>
           {editions.map((ed) => (
             <option key={ed.id} value={ed.id}>
               {ed.title} (N° {ed.number})

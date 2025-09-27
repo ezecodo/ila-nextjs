@@ -50,7 +50,10 @@ export async function GET(req) {
     }
 
     if (editionId) {
-      whereCondition.editionId = parseInt(editionId, 10);
+      whereCondition.OR = [
+        { editionId: parseInt(editionId, 10) },
+        { isInPrintEdition: false }, // 👈 también incluir artículos fuera de edición
+      ];
     }
 
     if (showFavorites) {
@@ -72,6 +75,12 @@ export async function GET(req) {
 
     if (beitragstypId) {
       whereCondition.beitragstypId = parseInt(beitragstypId, 10);
+    }
+    const categoryId = searchParams.get("categoryId");
+    if (categoryId) {
+      whereCondition.categories = {
+        some: { id: parseInt(categoryId, 10) },
+      };
     }
 
     const articles = await prisma.article.findMany({
