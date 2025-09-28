@@ -231,7 +231,7 @@ export default function LegacyArticlePage() {
       />
 
       <main className="max-w-4xl mx-auto p-6">
-        <DonationPopUp articleId={article.id} />
+        {!isAdmin && <DonationPopUp articleId={article.id} />}
 
         <article itemScope itemType="https://schema.org/Article">
           <div className="max-w-3xl mx-auto">
