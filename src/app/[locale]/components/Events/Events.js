@@ -38,21 +38,6 @@ export default function InfoBox() {
         <SectionHeader title={t("events")} />
 
         <div className="relative bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-          {/* Indicador de evento activo */}
-          <div className="flex justify-center mb-4 pt-4">
-            <div className="flex space-x-1">
-              {events.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setIndex(i)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    i === index ? "bg-red-600 w-6" : "bg-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
           {/* Flechas laterales - MÁS SEPARADAS */}
           <button
             onClick={() => index > 0 && setIndex(index - 1)}
@@ -124,7 +109,20 @@ export default function InfoBox() {
 
             {/* Línea divisoria */}
             <div className="border-t border-gray-200 my-4"></div>
-
+            {/* Indicador de evento activo */}
+            <div className="flex justify-center mb-4 pt-4">
+              <div className="flex space-x-1">
+                {events.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setIndex(i)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      i === index ? "bg-red-600 w-6" : "bg-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
             {/* Botón de calendario */}
             <Link
               href="/events"
