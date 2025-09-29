@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
+import SectionHeader from "../../components/SectionsHeader/SetionHeader";
 
 export default function InfoBox() {
   const t = useTranslations("navMenu");
@@ -34,80 +35,104 @@ export default function InfoBox() {
   return (
     <section className="w-full max-w-md mx-auto">
       <section className="w-full max-w-sm mx-auto">
-        {/* Título */}
-        <div className="bg-red-50 pl-6 py-2 rounded-t-md text-red-800 text-xl font-serif font-bold text-left">
-          {t("events")}
-        </div>
+        <SectionHeader title={t("events")} />
 
-        {/* Contenedor del evento */}
-        <div className="relative bg-white text-red-700 px-4 py-5 shadow-sm flex flex-col items-center text-center gap-2 w-full rounded-b-md border border-red-200">
-          {/* Flechas laterales */}
-          <div className="absolute left-[1rem] top-1/2 -translate-y-1/2 -translate-x-full z-10">
-            <PrevArrow
-              onClick={() => index > 0 && setIndex(index - 1)}
-              className={index === 0 ? "opacity-40 pointer-events-none" : ""}
-            />
-          </div>
-          <div className="absolute right-[1rem] top-1/2 -translate-y-1/2 translate-x-full z-10">
-            <NextArrow
-              onClick={() => index < events.length - 1 && setIndex(index + 1)}
-              className={
-                index === events.length - 1
-                  ? "opacity-40 pointer-events-none"
-                  : ""
-              }
-            />
+        <div className="relative bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+          {/* Indicador de evento activo */}
+          <div className="flex justify-center mb-4 pt-4">
+            <div className="flex space-x-1">
+              {events.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setIndex(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    i === index ? "bg-red-600 w-6" : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* Fecha + Hora */}
-          <p className="text-sm font-bold flex items-center gap-2 mt-1">
-            📅{" "}
-            {new Intl.DateTimeFormat(locale, {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }).format(new Date(current.date))}
-            {current.time && (
-              <span className="ml-2 text-gray-600">🕒 {current.time}</span>
-            )}
-          </p>
-
-          {/* Imagen más grande */}
-          <Link
-            href={`/events/${current.id}`}
-            className="w-44 h-44 relative rounded-md overflow-hidden bg-white shadow-sm"
+          {/* Flechas laterales - MÁS SEPARADAS */}
+          <button
+            onClick={() => index > 0 && setIndex(index - 1)}
+            disabled={index === 0}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all disabled:opacity-30 disabled:cursor-not-allowed z-10 border border-gray-200"
           >
-            <Image
-              src={current.image}
-              alt={
-                locale === "es"
+            <PrevArrow />
+          </button>
+
+          <button
+            onClick={() => index < events.length - 1 && setIndex(index + 1)}
+            disabled={index === events.length - 1}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all disabled:opacity-30 disabled:cursor-not-allowed z-10 border border-gray-200"
+          >
+            <NextArrow />
+          </button>
+
+          <div className="p-6">
+            {/* Fecha y Hora */}
+            <div className="text-center mb-4">
+              <div className="inline-flex items-center bg-red-50 text-red-700 px-4 py-2 rounded-full text-sm font-semibold">
+                <span className="text-red-600 mr-2">📅</span>
+                {new Intl.DateTimeFormat(locale, {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                }).format(new Date(current.date))}
+                {current.time && (
+                  <>
+                    <span className="mx-2 text-gray-400">•</span>
+                    <span className="text-gray-600">🕒 {current.time}</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Imagen rectangular horizontal */}
+            <Link
+              href={`/events/${current.id}`}
+              className="block w-full h-48 relative overflow-hidden bg-gray-100 shadow-md mx-auto mb-4 group"
+            >
+              <Image
+                src={current.image}
+                alt={
+                  locale === "es"
+                    ? current.titleES || current.title
+                    : current.title
+                }
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
+            </Link>
+
+            {/* Título del evento */}
+            <Link href={`/events/${current.id}`}>
+              <h3 className="text-lg font-bold text-gray-800 hover:text-red-600 transition-colors text-center mb-3 leading-tight">
+                {locale === "es"
                   ? current.titleES || current.title
-                  : current.title
-              }
-              fill
-              className="object-contain p-2"
-            />
-          </Link>
+                  : current.title}
+              </h3>
+            </Link>
 
-          {/* Título */}
-          <Link href={`/events/${current.id}`}>
-            <h3 className="text-base font-bold hover:underline mt-1">
-              {locale === "es"
-                ? current.titleES || current.title
-                : current.title}
-            </h3>
-          </Link>
+            {/* Ubicación */}
+            <div className="flex items-center justify-center text-gray-600 mb-4">
+              <span className="text-red-500 mr-2">📍</span>
+              <span className="text-sm">{current.location}</span>
+            </div>
 
-          {/* Ubicación */}
-          <p className="text-sm mb-1">📍 {current.location}</p>
+            {/* Línea divisoria */}
+            <div className="border-t border-gray-200 my-4"></div>
 
-          {/* Botón */}
-          <Link
-            href="/events"
-            className="bg-red-600 text-white font-semibold px-4 py-2 rounded hover:bg-red-700 transition text-sm mt-2"
-          >
-            {t("calendarButton")}
-          </Link>
+            {/* Botón de calendario */}
+            <Link
+              href="/events"
+              className="block w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-md hover:shadow-lg text-center"
+            >
+              {t("calendarButton")}
+            </Link>
+          </div>
         </div>
       </section>
     </section>

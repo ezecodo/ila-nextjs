@@ -46,6 +46,12 @@ const DashboardStats = () => {
         color="text-green-600"
       />
       <StatCard
+        label="Aktuelles"
+        value={stats.totalAktuelles}
+        color="text-indigo-600"
+        href="/dashboard/aktuelles"
+      />
+      <StatCard
         label={t("users")}
         value={stats.totalUsers}
         color="text-yellow-600"

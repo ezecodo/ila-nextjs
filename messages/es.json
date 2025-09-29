@@ -221,6 +221,33 @@
       "edit": "Editar",
       "delete": "Eliminar",
       "confirmDelete": "¿Eliminar este carrusel?"
+    },
+    "Aktuelles": {
+      "listTitle": "Gestionar Aktuelles",
+      "loadingAktuelles": "Cargando Aktuelles...",
+      "createNew": "Crear nuevo Aktuelles",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "confirmDelete": "¿Estás seguro de que deseas eliminar esta entrada?",
+      "confirmDeleteDetail": "Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este elemento?",
+      "errorDeleting": "Error al eliminar",
+      "errorLoading": "Error al cargar los datos.",
+      "title": "Título",
+      "date": "Fecha",
+      "titleDE": "Título (DE)",
+      "titleES": "Título (ES)",
+      "contentDE": "Contenido (DE)",
+      "contentES": "Contenido (ES)",
+      "saveButtonCreate": "➕ Crear",
+      "saveButtonEdit": "💾 Guardar",
+      "saving": "⏳ Guardando...",
+      "noResults": "No se encontraron resultados.",
+      "prevPage": "Anterior",
+      "nextPage": "Siguiente",
+      "page": "Página",
+      "of": "de",
+      "cancel": "Cancelar",
+      "author": "Autor/a/e"
     }
   },
 

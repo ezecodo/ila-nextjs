@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
-
+import { useTranslations } from "next-intl";
 const GenericAdminList = ({
-  title,
   endpoint,
   columns,
   editUrlPrefix,
@@ -20,6 +19,7 @@ const GenericAdminList = ({
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const t = useTranslations("dashboard.Aktuelles");
 
   const limit = 20;
 
@@ -107,19 +107,13 @@ const GenericAdminList = ({
     }
   };
 
-  if (loading) return <p className="text-gray-500">Cargando datos...</p>;
+  if (loading) return <p className="text-gray-500">{t("loadingAktuelles")}</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="relative mt-6 bg-white p-4 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center text-purple-600">
-        {title}
-      </h2>
-
       {items.length === 0 ? (
-        <p className="text-center text-gray-500">
-          No se encontraron resultados.
-        </p>
+        <p className="text-center text-gray-500">{t("noResults")}</p>
       ) : (
         <>
           <div className="overflow-x-auto">
@@ -135,9 +129,9 @@ const GenericAdminList = ({
                       {col.label} ⬍
                     </th>
                   ))}
-                  <th className="p-1.5 border text-left">✏️ Editar</th>
+                  <th className="p-1.5 border text-left">✏️ {t("edit")}</th>
                   {deleteUrlPrefix && (
-                    <th className="p-1.5 border text-left">🗑️ Eliminar</th>
+                    <th className="p-1.5 border text-left">🗑️ {t("delete")}</th>
                   )}
                 </tr>
               </thead>
@@ -151,13 +145,15 @@ const GenericAdminList = ({
                   >
                     {columns.map((col) => (
                       <td key={col.key} className="p-1.5 border">
-                        {col.format ? col.format(item[col.key]) : item[col.key]}
+                        {col.format
+                          ? col.format(item[col.key], item) // ✅ pasamos también el item
+                          : item[col.key]}
                       </td>
                     ))}
                     <td className="p-1.5 border text-center">
                       <Link href={`${editUrlPrefix}/${item.id}${editPath}`}>
                         <button className="text-blue-600 hover:underline">
-                          ✏️ Editar
+                          ✏️ {t("edit")}
                         </button>
                       </Link>
                     </td>
@@ -183,17 +179,17 @@ const GenericAdminList = ({
               onClick={() => setPage(page - 1)}
               className="p-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
             >
-              ⬅️ Anterior
+              ⬅️ {t("prevPage") || "Anterior"}
             </button>
             <span>
-              Página {page} de {totalPages}
+              {t("page")} {page} {t("of")} {totalPages}
             </span>
             <button
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
               className="p-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
             >
-              Siguiente ➡️
+              {t("nextPage") || "Siguiente"} ➡️
             </button>
           </div>
         </>
@@ -204,11 +200,11 @@ const GenericAdminList = ({
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full text-center">
             <h3 className="text-lg font-bold text-red-600 mb-3">
-              ¿Eliminar este {itemName}?
+              {t("confirmDelete")}
             </h3>
             <p className="text-sm text-gray-700 mb-4">
-              Esta acción no se puede deshacer. ¿Estás seguro que querés
-              eliminar este {itemName}?
+              {t("confirmDeleteDetail") ||
+                `Esta acción no se puede deshacer. ¿Estás seguro que querés eliminar este ${itemName}?`}
             </p>
             <div className="flex justify-center gap-4">
               <button
@@ -218,13 +214,13 @@ const GenericAdminList = ({
                 }}
                 className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
               >
-                Cancelar
+                {t("cancel") || "Cancelar"}
               </button>
               <button
                 onClick={handleDelete}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
-                Eliminar
+                {t("delete")}
               </button>
             </div>
           </div>

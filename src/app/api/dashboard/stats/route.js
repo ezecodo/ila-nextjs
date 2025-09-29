@@ -8,13 +8,15 @@ export async function GET() {
     const totalUsers = await prisma.user.count();
     const totalLikedArticles = await prisma.favorite.count(); // ✅ Nueva métrica
     const totalEvents = await prisma.event.count();
+    const totalAktuelles = await prisma.aktuelles.count();
 
     return NextResponse.json({
       totalEvents,
       totalArticles,
       totalEditions,
       totalUsers,
-      totalLikedArticles, // ✅ Devolvemos la cantidad de artículos likeados
+      totalLikedArticles,
+      totalAktuelles, // ✅ Devolvemos la cantidad de artículos likeados
     });
   } catch (error) {
     console.error("Error al obtener estadísticas:", error);

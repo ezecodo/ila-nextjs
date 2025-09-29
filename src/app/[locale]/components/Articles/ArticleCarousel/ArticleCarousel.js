@@ -10,6 +10,7 @@ import HoverInfo from "../../../components/HoverInfo/HoverInfo";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import { PrevArrow, NextArrow } from "../CustomArrows/CustomArrows";
 import ArticleLink from "../ArticleLink/ArticleLink";
+import SectionHeader from "../../SectionsHeader/SetionHeader";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -66,11 +67,7 @@ export default function FilteredArticlesCarousel(props) {
   return (
     <section className="relative w-full px-0 py-8 border-t border-gray-200 dark:border-gray-700">
       {title && (
-        <div className="bg-gradient-to-r from-red-50 to-white dark:from-gray-800 dark:to-gray-900 px-4 py-2 rounded mb-6 mx-4">
-          <h2 className="text-2xl font-serif font-bold text-red-800 dark:text-red-300">
-            {title}
-          </h2>
-        </div>
+        <SectionHeader title={title} className="mb-6 mx-4" /> // 👈 Reemplazar esto
       )}
 
       <Slider {...settings}>

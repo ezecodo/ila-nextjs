@@ -69,6 +69,22 @@ model Interviewee {
   articles Article[] @relation("ArticleInterviewees")
 }
 
+model Aktuelles {
+  id          Int      @id @default(autoincrement())
+  title       String
+    titleES     String?
+  content     String   @db.Text   // 👈 soporta hasta ~65k caracteres
+    contentES   String?  @db.Text 
+  date        DateTime @default(now())
+  link        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+}
+
 model Edition {
   id                 Int       @id @default(autoincrement())
   number             Int       @unique
@@ -193,6 +209,7 @@ model User {
   activityLogs  ActivityLog[]
   favorites     Favorite[]
   sessions      Session[]
+  aktuelles     Aktuelles[] 
 
     translationsAssigned Article[] @relation("ArticleTranslator")
   reviewsAssigned      Article[] @relation("ArticleReviewer")

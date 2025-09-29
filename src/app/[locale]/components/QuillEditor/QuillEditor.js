@@ -206,7 +206,9 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         quillRef.current.root.innerHTML = incoming || "";
 
         setTimeout(() => {
-          quillRef.current.setSelection(cursorPosition, 0);
+          if (document.activeElement === quillRef.current.root) {
+            quillRef.current.setSelection(cursorPosition, 0);
+          }
         }, 0);
       }
     }
