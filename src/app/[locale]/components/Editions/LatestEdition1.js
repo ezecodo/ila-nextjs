@@ -11,7 +11,7 @@ import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
 import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 
 import "slick-carousel/slick/slick.css";
@@ -31,13 +31,22 @@ export default function LatestEditionWithArticles() {
   const locale = useLocale();
   const t = useTranslations("dossiers");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // ✅ UI del picker
   const [showNumberPicker, setShowNumberPicker] = useState(false);
   const inputRef = useRef(null);
   const popoverRef = useRef(null);
 
   const currentEdition = editions[currentEditionIndex];
+
+  // ✅ Función helper para actualizar la URL
+  const updateEditionInURL = (index) => {
+    if (editions[index]) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("edition", editions[index].number);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  };
 
   useEffect(() => {
     async function fetchAllEditions() {
@@ -58,7 +67,18 @@ export default function LatestEditionWithArticles() {
           (a, b) => (b?.number ?? -Infinity) - (a?.number ?? -Infinity)
         );
         setEditions(byNumberDesc);
-        if (byNumberDesc.length) setCurrentEditionIndex(0); // 👈 solo setear índice
+
+        // ✅ Restaurar el índice desde la URL
+        const editionParam = searchParams.get("edition");
+        if (editionParam && byNumberDesc.length) {
+          const savedIndex = byNumberDesc.findIndex(
+            (e) => String(e.number) === editionParam
+          );
+          setCurrentEditionIndex(savedIndex >= 0 ? savedIndex : 0);
+        } else if (byNumberDesc.length) {
+          setCurrentEditionIndex(0);
+        }
+
         console.timeEnd("LatestEdition1:editions");
       } catch (e) {
         console.error("Error cargando ediciones:", e);
@@ -66,7 +86,7 @@ export default function LatestEditionWithArticles() {
       }
     }
     fetchAllEditions();
-  }, []);
+  }, []); // Solo depende del montaje inicial
 
   useEffect(() => {
     const ed = editions[currentEditionIndex];
@@ -74,7 +94,6 @@ export default function LatestEditionWithArticles() {
 
     fetchArticles(ed.id);
 
-    // diferir contadores para después del paint
     const id = setTimeout(() => fetchEditionsCount(ed), 0);
     return () => clearTimeout(id);
   }, [currentEditionIndex, editions]);
@@ -92,7 +111,6 @@ export default function LatestEditionWithArticles() {
 
     console.time("LatestEdition1:counts");
 
-    // corre regiones y topics en paralelo
     const [regions, topics] = await Promise.all([
       Promise.all(
         (edition.regions || []).map(async (region) => {
@@ -124,15 +142,11 @@ export default function LatestEditionWithArticles() {
 
   let filteredArticles;
   if (locale === "es") {
-    // 👉 Paso 1: tomar los 10 primeros (base DE)
     const base = articles.slice(0, 10);
-
-    // 👉 Paso 2: filtrar traducidos de esos 10
     let traducidos = base.filter((a) => a.isTranslatedES && !a.needsReviewES);
 
-    // 👉 Paso 3: si no llegamos a 10, buscar en el resto
     if (traducidos.length < 10) {
-      const resto = articles.slice(10); // del 11 en adelante
+      const resto = articles.slice(10);
       const extraTraducidos = resto.filter(
         (a) => a.isTranslatedES && !a.needsReviewES
       );
@@ -144,18 +158,14 @@ export default function LatestEditionWithArticles() {
 
     filteredArticles = traducidos;
   } else {
-    // 👉 En alemán, simplemente mostramos los 10 primeros
     filteredArticles = articles.slice(0, 10);
   }
 
-  // 👉 helper: ¿la 1ª imagen es vertical?
   const isVertical = (img) =>
     img?.width && img?.height && Number(img.height) > Number(img.width);
 
-  // 👉 1ª imagen de cada artículo (puede venir como images[0] o como image simple)
   const firstImg = (a) => a?.images?.[0] || a?.image || null;
 
-  // 👉 separar en tres grupos
   const horizontalArticles = filteredArticles.filter(
     (a) => firstImg(a) && !isVertical(firstImg(a))
   );
@@ -164,14 +174,12 @@ export default function LatestEditionWithArticles() {
   );
   const withoutImage = filteredArticles.filter((a) => !firstImg(a));
 
-  // 👉 orden final: horizontales → verticales → sin imagen
   const orderedArticles = [
     ...horizontalArticles,
     ...verticalArticles,
     ...withoutImage,
   ];
 
-  // 👇 usa el nuevo orden
   const mobileCarouselSettings = {
     infinite: orderedArticles.length > 1,
     speed: 500,
@@ -185,10 +193,8 @@ export default function LatestEditionWithArticles() {
     nextArrow: <NextArrow />,
   };
 
-  // ✅ helpers del picker
   const focusInputSoon = () => setTimeout(() => inputRef.current?.focus(), 0);
 
-  // cerrar popover al click fuera
   useEffect(() => {
     if (!showNumberPicker) return;
     const onClick = (e) => {
@@ -206,21 +212,22 @@ export default function LatestEditionWithArticles() {
           <div className="flex flex-col lg:flex-row gap-2 items-start">
             <div className="relative w-full lg:w-1/3 flex items-start justify-center">
               <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm">
-                {/* Título + flechas */}
                 <div className="relative w-full">
                   <div className="flex items-center justify-center">
                     <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
                       {currentEditionIndex < editions.length - 1 && (
                         <PrevArrow
-                          onClick={() => setCurrentEditionIndex((i) => i + 1)}
+                          onClick={() => {
+                            const newIndex = currentEditionIndex + 1;
+                            setCurrentEditionIndex(newIndex);
+                            updateEditionInURL(newIndex); // ✅ Actualizar URL
+                          }}
                         />
                       )}
                     </div>
 
-                    {/* Centro: número y datos de la edición */}
                     <div className="text-center mx-10 flex flex-col items-center space-y-1">
                       <div className="flex items-baseline justify-center gap-3 leading-none relative">
-                        {/* ✅ botón "ila NNN" que abre el picker */}
                         <button
                           type="button"
                           className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none hover:text-red-700"
@@ -253,7 +260,6 @@ export default function LatestEditionWithArticles() {
                           </span>
                         )}
 
-                        {/* ✅ popover del picker */}
                         {showNumberPicker && (
                           <div
                             ref={popoverRef}
@@ -300,6 +306,7 @@ export default function LatestEditionWithArticles() {
                                   }
                                   if (targetIdx != null && targetIdx >= 0) {
                                     setCurrentEditionIndex(targetIdx);
+                                    updateEditionInURL(targetIdx); // ✅ Actualizar URL
                                     router.push(
                                       `/editions/${editions[targetIdx].id}`
                                     );
@@ -362,6 +369,7 @@ export default function LatestEditionWithArticles() {
                                     ].join(" ")}
                                     onClick={() => {
                                       setCurrentEditionIndex(idx);
+                                      updateEditionInURL(idx); // ✅ Actualizar URL
                                       setShowNumberPicker(false);
                                     }}
                                     title={
@@ -392,7 +400,6 @@ export default function LatestEditionWithArticles() {
                         )}
                       </div>
 
-                      {/* título del dossier */}
                       <div className="font-serif font-bold text-red-800 dark:text-red-400 text-xl md:text-2xl leading-snug">
                         {locale === "es" && currentEdition.titleES
                           ? currentEdition.titleES
@@ -403,14 +410,17 @@ export default function LatestEditionWithArticles() {
                     <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
                       {currentEditionIndex > 0 && (
                         <NextArrow
-                          onClick={() => setCurrentEditionIndex((i) => i - 1)}
+                          onClick={() => {
+                            const newIndex = currentEditionIndex - 1;
+                            setCurrentEditionIndex(newIndex);
+                            updateEditionInURL(newIndex); // ✅ Actualizar URL
+                          }}
                         />
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* Portada */}
                 <div
                   className="relative w-full cursor-pointer"
                   onClick={() => {
@@ -459,7 +469,6 @@ export default function LatestEditionWithArticles() {
             </div>
 
             <div className="w-full lg:w-2/3 flex flex-col gap-6">
-              {/* Artículos en escritorio → máximo 10 */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
                 {orderedArticles.length > 0 ? (
                   orderedArticles.map((article) => (
@@ -472,7 +481,6 @@ export default function LatestEditionWithArticles() {
                 )}
               </div>
 
-              {/* Artículos en móvil → todos los artículos */}
               <div className="block lg:hidden w-full mt-0">
                 {articles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
