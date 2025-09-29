@@ -118,13 +118,17 @@ export async function POST(req) {
     }
 
     // 3) Devolver aktuelles + imágenes
-    const aktuWithImages = await prisma.aktuelles.findUnique({
-      where: { id: aktu.id },
-      include: {
-        createdBy: { select: { id: true, name: true, email: true } },
-        images: true,
-      },
+    const imagesForAktuelles = await prisma.image.findMany({
+      where: { contentType: "NEWS", contentId: aktu.id },
     });
+
+    return NextResponse.json(
+      {
+        ...aktu,
+        images: imagesForAktuelles,
+      },
+      { status: 201 }
+    );
 
     return NextResponse.json(aktuWithImages, { status: 201 });
   } catch (error) {
