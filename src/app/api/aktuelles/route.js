@@ -107,8 +107,6 @@ export async function POST(req) {
             url: finalUrl,
             title: img.title || null, // alt-text
             alt: img.alt || null, // créditos / desc
-            isCover: !!img.isCover,
-            order: typeof img.order === "number" ? img.order : 0,
           },
         });
         createdImages.push(saved);
