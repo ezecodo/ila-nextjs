@@ -101,11 +101,11 @@ export default function AktuellesList() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-16 px-4">
+    <div className="max-w-4xl mx-auto pt-2 pb-16 px-4">
       {/* Cabecera */}
       <SectionHeader
         title={locale === "es" ? "Actualidad" : "Aktuelles"}
-        className="mb-12"
+        className="mb-2"
       />
 
       {/* Lista de Aktuelles */}
@@ -119,7 +119,7 @@ export default function AktuellesList() {
           return (
             <article
               key={item.id}
-              className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 overflow-hidden"
+              className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-6">
                 {/* Fecha en formato destacado */}
@@ -137,7 +137,7 @@ export default function AktuellesList() {
                   className="w-full h-64 object-cover"
                 />
               )}
-              <div className="p-8">
+              <div className="p-4">
                 {/* Encabezado con fecha y badge */}
 
                 {/* Título */}
