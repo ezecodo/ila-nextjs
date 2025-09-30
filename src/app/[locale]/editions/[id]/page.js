@@ -1,20 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+
 import Image from "next/image";
 import CartButton from "../../components/CartButton/CartButton";
 import { useTranslations, useLocale } from "next-intl";
 
 export default function EditionDetails() {
   const { id } = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [edition, setEdition] = useState(null);
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const t = useTranslations("dossiers");
   const locale = useLocale();
+  const articleRefs = useRef({});
+
+  // Restaurar scroll position cuando volvemos de un artículo
+  useEffect(() => {
+    // Primero intentar desde searchParams (si viene de URL)
+    const scrollToArticle = searchParams.get("scrollTo");
+
+    // Si no hay en URL, intentar desde sessionStorage
+    const savedArticle = sessionStorage.getItem("dossierScrollArticle");
+    const savedPath = sessionStorage.getItem("dossierScrollPath");
+
+    const articleToScroll =
+      scrollToArticle ||
+      (savedPath === window.location.pathname ? savedArticle : null);
+
+    if (articleToScroll && articleRefs.current[articleToScroll]) {
+      setTimeout(() => {
+        articleRefs.current[articleToScroll]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        // Limpiar sessionStorage después de usar
+        sessionStorage.removeItem("dossierScrollArticle");
+        sessionStorage.removeItem("dossierScrollPath");
+      }, 100);
+    }
+  }, [searchParams, articles]);
 
   useEffect(() => {
     if (!id) return;
@@ -113,6 +142,19 @@ export default function EditionDetails() {
     return parsedArticles;
   }
 
+  // Función para manejar el click en un artículo
+  function handleArticleClick(article, e) {
+    e.preventDefault();
+    if (article.matchedArticle?.legacyPath) {
+      // Guardar la posición de scroll en sessionStorage
+      sessionStorage.setItem("dossierScrollArticle", `article-${article.id}`);
+      sessionStorage.setItem("dossierScrollPath", window.location.pathname);
+
+      // Navegar al artículo normalmente
+      router.push(article.matchedArticle.legacyPath);
+    }
+  }
+
   function renderTableOfContents() {
     const contents = parseTableOfContents();
     const displayContents = isExpanded ? contents : contents.slice(0, 6);
@@ -122,18 +164,21 @@ export default function EditionDetails() {
         {displayContents.map((article) => (
           <div
             key={article.id}
+            id={`article-${article.id}`}
+            ref={(el) => (articleRefs.current[`article-${article.id}`] = el)}
             className={`group p-5 rounded-xl border-2 transition-all duration-200 ${
               article.isLinked
-                ? "border-blue-200 dark:border-blue-800 bg-gradient-to-r from-red-50 to-red-25 dark:from-red-900/20 dark:to-red-800/10 hover:from-red-100 hover:to-red-50 dark:hover:from-red-900/30 dark:hover:to-red-800/20shadow-sm hover:shadow-md"
+                ? "border-blue-200 dark:border-blue-800 bg-gradient-to-r from-red-50 to-red-25 dark:from-red-900/20 dark:to-red-800/10 hover:from-red-100 hover:to-red-50 dark:hover:from-red-900/30 dark:hover:to-red-800/20 shadow-sm hover:shadow-md"
                 : article.isSection
                   ? "border-red-200 dark:border-red-800 bg-gradient-to-r from-red-50 to-red-25 dark:from-red-900/20 dark:to-red-800/10"
                   : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             {article.isLinked ? (
-              <Link
+              <a
                 href={article.matchedArticle?.legacyPath || "#"}
-                className="block"
+                onClick={(e) => handleArticleClick(article, e)}
+                className="block cursor-pointer"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -163,7 +208,7 @@ export default function EditionDetails() {
                   </div>
                   <div className="ml-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:translate-x-1">
                     <svg
-                      className="w-6 h-6text-red-600 dark:text-red-400"
+                      className="w-6 h-6 text-red-600 dark:text-red-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -177,7 +222,7 @@ export default function EditionDetails() {
                     </svg>
                   </div>
                 </div>
-              </Link>
+              </a>
             ) : (
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -221,7 +266,7 @@ export default function EditionDetails() {
           <div className="text-center pt-6">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="inline-flex items-center px-6 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 border-2 border-red-300 dark:border-red-700over:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="inline-flex items-center px-6 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 border-2 border-red-300 dark:border-red-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 shadow-sm hover:shadow-md"
             >
               {isExpanded ? (
                 <>
