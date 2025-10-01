@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import GenericAdminListAktuelles from "../components/GenericAdminListAktuelles/GenericAdminLIstAktuelles";
+import GenericAdminListAktuelles from "../components/GenericAdminListAktuelles/GenericAdminListAktuelles";
 
 export default function AktuellesDashboardPage() {
   const t = useTranslations("dashboard.Aktuelles");
