@@ -22,6 +22,8 @@ export async function GET(req) {
     const reviewerMode = searchParams.get("reviewer") === "true";
     const unassignedMode = searchParams.get("unassigned") === "true";
     const translatorId = searchParams.get("translatorId");
+    const assigned = searchParams.get("assigned") === "true";
+    const translated = searchParams.get("translated") === "true";
 
     let whereCondition = {};
 
@@ -76,6 +78,7 @@ export async function GET(req) {
         });
       }
       whereCondition = {
+        ...whereCondition, // 👈 mantiene lo que ya había (ej. translatorId, editionId…)
         favorites: { some: { userId: session.user.id } },
       };
     }
@@ -94,7 +97,20 @@ export async function GET(req) {
         some: { id: parseInt(categoryId, 10) },
       };
     }
+    if (assigned) {
+      whereCondition = {
+        ...whereCondition,
+        translatorId: { not: null }, // 👈 artículos ya asignados
+      };
+    }
 
+    if (translated) {
+      whereCondition = {
+        ...whereCondition,
+        isTranslatedES: true, // traducidos
+        needsReviewES: false, // y ya revisados
+      };
+    }
     const articles = await prisma.article.findMany({
       where: whereCondition,
       orderBy: { publicationDate: "desc" },

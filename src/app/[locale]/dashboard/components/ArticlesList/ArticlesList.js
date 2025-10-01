@@ -58,6 +58,20 @@ const ArticlesList = ({ mode = "admin" }) => {
         searchParams.append("limit", limit);
         searchParams.append("sortField", sortField);
         searchParams.append("sortOrder", sortOrder);
+        // 🔒 Filtro por usuario traductor
+        if (mode === "translator" && session?.user?.id) {
+          searchParams.append("translatorId", session.user.id);
+        }
+
+        // 📌 Modo asignación (solo artículos sin traductor)
+        if (mode === "assign") {
+          searchParams.append("unassigned", "true");
+        }
+
+        // 👁️ Modo revisor (si lo usas)
+        if (mode === "reviewer") {
+          searchParams.append("reviewer", "true");
+        }
 
         // 👇 NUEVO filtro por dossier
         if (selectedEdition) {
@@ -65,6 +79,10 @@ const ArticlesList = ({ mode = "admin" }) => {
             searchParams.append("nurOnline", "true");
           } else if (selectedEdition === "unpublished") {
             searchParams.append("unpublished", "true");
+          } else if (selectedEdition === "assigned") {
+            searchParams.append("assigned", "true");
+          } else if (selectedEdition === "translated") {
+            searchParams.append("translated", "true");
           } else {
             searchParams.append("editionId", selectedEdition);
           }
@@ -99,25 +117,33 @@ const ArticlesList = ({ mode = "admin" }) => {
         {mode === "reviewer" && " — Para Revisar"}
         {mode === "assign" && " — Sin Traductor"}
       </h2>
-      <div className="mb-4 flex items-center gap-2">
-        <label className="text-sm font-semibold text-gray-700">
-          Filtrar por Dossier:
-        </label>
-        <select
-          value={selectedEdition}
-          onChange={(e) => setSelectedEdition(e.target.value)}
-          className="p-2 border rounded text-sm"
-        >
-          <option value="">-- Todos --</option>
-          <option value="nur-online">🌐 Nur Online</option>
-          <option value="unpublished">❌ Nicht veröffentlicht</option>
-          {editions.map((ed) => (
-            <option key={ed.id} value={ed.id}>
-              {ed.title} (N° {ed.number})
-            </option>
-          ))}
-        </select>
-      </div>
+      {mode !== "translator" && (
+        <div className="mb-4 flex items-center gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Filtrar por Dossier:
+          </label>
+          <select
+            value={selectedEdition}
+            onChange={(e) => setSelectedEdition(e.target.value)}
+            className="p-2 border rounded text-sm"
+          >
+            <option value="">-- Todos --</option>
+            <option value="nur-online">🌐 Nur Online</option>
+            <option value="unpublished">❌ Nicht veröffentlicht</option>
+            {mode === "assign" && (
+              <>
+                <option value="assigned">👤 Asignados</option>
+                <option value="translated">🌐 Traducidos</option>
+              </>
+            )}
+            {editions.map((ed) => (
+              <option key={ed.id} value={ed.id}>
+                {ed.title} (N° {ed.number})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse shadow-md text-sm">
           <thead>
