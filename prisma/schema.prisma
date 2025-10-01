@@ -31,7 +31,7 @@ model Article {
   articleImage     String?          @db.Text
   beitragsId       Int?
   isTranslatedES   Boolean          @default(false)
-  translationStatus   String   @default("in_progress") 
+ translationStatus String @default("not_assigned")
   additionalInfoES String?          @db.Text
   contentES        String?          @db.LongText
   previewTextES    String?          @db.LongText

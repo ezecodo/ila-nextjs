@@ -82,10 +82,13 @@ export async function GET(req) {
         favorites: { some: { userId: session.user.id } },
       };
     }
-
     if (locale === "es") {
       whereCondition.isTranslatedES = true;
-      whereCondition.needsReviewES = false;
+
+      // Solo aplicamos needsReviewES = false si NO es el filtro "traducidos"
+      if (!translated) {
+        whereCondition.needsReviewES = false;
+      }
     }
 
     if (beitragstypId) {

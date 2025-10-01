@@ -342,7 +342,28 @@ const ArticlesList = ({ mode = "admin" }) => {
                 )}
 
                 <td className="p-1.5 border text-center">
-                  {mode === "assign" ? (
+                  {mode === "assign" && selectedEdition === "translated" ? (
+                    // Vista "Traducidos" → solo nombre + fecha
+                    article.translator ? (
+                      <div className="flex flex-col items-center text-xs">
+                        <span className="px-2 py-0.5 bg-gray-200 rounded-full text-gray-800">
+                          {article.translator.name || article.translator.email}
+                        </span>
+                        {article.assignedAt && (
+                          <span className="text-gray-500 text-[11px]">
+                            {new Date(article.assignedAt).toLocaleDateString(
+                              "es-ES"
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">
+                        Sin traductor
+                      </span>
+                    )
+                  ) : mode === "assign" ? (
+                    // Vista "Asignar traducciones" normal
                     article.translator ? (
                       <div className="flex items-center justify-center gap-2 text-xs">
                         <span className="px-2 py-0.5 bg-gray-200 rounded-full text-gray-800">
@@ -355,7 +376,6 @@ const ArticlesList = ({ mode = "admin" }) => {
                             )}
                           </span>
                         )}
-
                         <AssignTranslatorCell
                           article={article}
                           onAssigned={(updated) => {
