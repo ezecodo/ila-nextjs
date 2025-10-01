@@ -12,11 +12,7 @@ cloudinary.v2.config({
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-
-    // flags / filtros
     const current = searchParams.get("current");
-    const admin = searchParams.get("admin") === "true";
-    const year = searchParams.get("year");
 
     if (current === "true") {
       const edition = await prisma.edition.findFirst({
@@ -28,71 +24,23 @@ export async function GET(req) {
       });
       return new Response(JSON.stringify(edition), { status: 200 });
     }
-
-    // where dinámico (para filtrar por año si viene)
-    let where = undefined;
-    if (year) {
-      const y = Number(year);
-      if (!Number.isNaN(y)) {
-        where = {
-          datePublished: {
-            gte: new Date(`${y}-01-01T00:00:00.000Z`),
-            lte: new Date(`${y}-12-31T23:59:59.999Z`),
-          },
-        };
-      }
-    }
-
-    // Orden seguro
-    const allowedSortFields = new Set([
-      "id",
-      "number",
-      "title",
-      "subtitle",
-      "datePublished",
-      "isCurrent",
-      "isAvailableToOrder",
-      "createdAt",
-    ]);
-    const sortField = searchParams.get("sortField") || "number";
-    const sortOrder = (searchParams.get("sortOrder") || "desc").toLowerCase();
-    const orderBy = allowedSortFields.has(sortField)
-      ? { [sortField]: sortOrder === "asc" ? "asc" : "desc" }
-      : { number: "desc" };
-
-    // Si viene admin=true → devolvemos paginado { items, totalPages }
-    if (admin) {
-      const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
-      const limit = Math.min(
-        Math.max(parseInt(searchParams.get("limit") || "20", 10), 1),
-        100
-      );
-      const skip = (page - 1) * limit;
-
-      const [total, items] = await Promise.all([
-        prisma.edition.count({ where }),
-        prisma.edition.findMany({
-          where,
-          orderBy,
-          skip,
-          take: limit,
-        }),
-      ]);
-
-      const totalPages = Math.max(1, Math.ceil(total / limit));
-
-      return new Response(JSON.stringify({ items, totalPages, page, total }), {
-        status: 200,
-      });
-    }
-
-    // Público (sin admin) → lista plana
     const editions = await prisma.edition.findMany({
-      where,
-      orderBy,
+      orderBy: { number: "desc" },
       include: {
-        regions: { select: { id: true, name: true, nameES: true } },
-        topics: { select: { id: true, name: true, nameES: true } },
+        regions: {
+          select: {
+            id: true,
+            name: true,
+            nameES: true, // ✅ incluimos el campo traducido
+          },
+        },
+        topics: {
+          select: {
+            id: true,
+            name: true,
+            nameES: true, // ✅ incluimos el campo traducido
+          },
+        },
       },
     });
 

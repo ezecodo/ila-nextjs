@@ -32,16 +32,30 @@ export default function EditionDetails() {
       scrollToArticle ||
       (savedPath === window.location.pathname ? savedArticle : null);
 
-    if (articleToScroll && articleRefs.current[articleToScroll]) {
-      setTimeout(() => {
-        articleRefs.current[articleToScroll]?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-        // Limpiar sessionStorage después de usar
-        sessionStorage.removeItem("dossierScrollArticle");
-        sessionStorage.removeItem("dossierScrollPath");
-      }, 100);
+    if (articleToScroll) {
+      // Extraer el número del artículo (article-7 -> 7)
+      const articleIndex = parseInt(articleToScroll.split("-")[1]);
+
+      // Si el artículo está más allá de los primeros 6, expandir la lista primero
+      if (articleIndex >= 6) {
+        setIsExpanded(true);
+      }
+
+      // Esperar a que se renderice (más tiempo si expandimos)
+      setTimeout(
+        () => {
+          if (articleRefs.current[articleToScroll]) {
+            articleRefs.current[articleToScroll]?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            // Limpiar sessionStorage después de usar
+            sessionStorage.removeItem("dossierScrollArticle");
+            sessionStorage.removeItem("dossierScrollPath");
+          }
+        },
+        articleIndex >= 6 ? 300 : 100
+      );
     }
   }, [searchParams, articles]);
 

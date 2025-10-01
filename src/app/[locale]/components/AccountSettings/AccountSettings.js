@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 export default function AccountSettings() {
   const { data: session } = useSession();
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -16,8 +17,8 @@ export default function AccountSettings() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.name) {
-      setName(session.user.name);
+    if (session?.user?.email) {
+      setEmail(session.user.email);
     }
   }, [session]);
 
@@ -27,6 +28,12 @@ export default function AccountSettings() {
     let body = {};
     if (type === "name") {
       body = { name };
+    } else if (type === "email") {
+      if (!email) {
+        setMessage("❌ El email no puede estar vacío.");
+        return;
+      }
+      body = { email };
     } else if (type === "password") {
       if (!currentPassword || !newPassword || !confirmNewPassword) {
         setMessage("❌ Debes completar todos los campos.");
@@ -48,11 +55,17 @@ export default function AccountSettings() {
     const data = await res.json();
 
     if (res.ok) {
-      setMessage(
-        type === "name"
-          ? "✅ Nombre actualizado. La próxima vez que inicies sesión, verás el cambio reflejado."
-          : "✅ Contraseña actualizada correctamente."
-      );
+      if (type === "name") {
+        setMessage(
+          "✅ Nombre actualizado. La próxima vez que inicies sesión, verás el cambio reflejado."
+        );
+      } else if (type === "email") {
+        setMessage(
+          "✅ Email actualizado. Usa el nuevo email en tu próximo inicio de sesión."
+        );
+      } else if (type === "password") {
+        setMessage("✅ Contraseña actualizada correctamente.");
+      }
 
       setTimeout(() => {
         setIsOpen(null);
@@ -77,11 +90,16 @@ export default function AccountSettings() {
 
       <button
         onClick={() => setIsOpen("password")}
-        className="w-full bg-red-500 text-white p-2 rounded"
+        className="w-full bg-blue-500 text-white p-2 rounded mb-4"
       >
         Cambiar Contraseña
       </button>
-
+      <button
+        onClick={() => setIsOpen("email")}
+        className="w-full bg-blue-500 text-white p-2 rounded"
+      >
+        Cambiar Email
+      </button>
       {isOpen === "name" && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded shadow-md w-96">
@@ -95,6 +113,33 @@ export default function AccountSettings() {
             />
             <button
               onClick={() => handleUpdate("name")}
+              className="w-full bg-green-500 text-white p-2 rounded"
+            >
+              Guardar
+            </button>
+            <button
+              onClick={() => setIsOpen(null)}
+              className="w-full bg-gray-500 text-white p-2 rounded mt-2"
+            >
+              Cancelar
+            </button>
+            {message && <p className="mt-2 text-center">{message}</p>}
+          </div>
+        </div>
+      )}
+      {isOpen === "email" && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-md w-96">
+            <h3 className="text-lg font-bold mb-4">Actualizar Email</h3>
+            <input
+              type="email"
+              placeholder="Nuevo Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded mb-2"
+            />
+            <button
+              onClick={() => handleUpdate("email")}
               className="w-full bg-green-500 text-white p-2 rounded"
             >
               Guardar

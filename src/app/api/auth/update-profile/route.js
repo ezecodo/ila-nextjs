@@ -1,20 +1,20 @@
 import { auth } from "../../../auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { verifyPassword, hashPassword } from "@/lib/password"; // ✅ Agregado
+import { verifyPassword, hashPassword } from "@/lib/password";
 
 export async function POST(req) {
   try {
-    // ✅ Obtiene la sesión del usuario autenticado
+    // ✅ Sesión del usuario autenticado
     const session = await auth();
 
     if (!session || !session.user) {
       return NextResponse.json({ error: "No autorizado." }, { status: 401 });
     }
 
-    const { name, currentPassword, newPassword } = await req.json();
+    const { name, email, currentPassword, newPassword } = await req.json();
 
-    // ✅ Si está cambiando solo el nombre
+    // ✅ Cambiar nombre
     if (name) {
       await prisma.user.update({
         where: { email: session.user.email },
@@ -25,7 +25,31 @@ export async function POST(req) {
       });
     }
 
-    // ✅ Si está cambiando la contraseña
+    // ✅ Cambiar email
+    if (email) {
+      // 👀 Comprobar que el nuevo email no esté en uso
+      const existing = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (existing) {
+        return NextResponse.json(
+          { error: "Ese email ya está registrado." },
+          { status: 400 }
+        );
+      }
+
+      await prisma.user.update({
+        where: { email: session.user.email },
+        data: { email },
+      });
+
+      return NextResponse.json({
+        message: "Email actualizado correctamente.",
+      });
+    }
+
+    // ✅ Cambiar contraseña
     if (currentPassword && newPassword) {
       const user = await prisma.user.findUnique({
         where: { email: session.user.email },
@@ -38,7 +62,7 @@ export async function POST(req) {
         );
       }
 
-      // 🔐 Verifica la contraseña actual
+      // 🔐 Verificar la contraseña actual
       const passwordMatch = await verifyPassword(
         currentPassword,
         user.password
@@ -50,7 +74,7 @@ export async function POST(req) {
         );
       }
 
-      // 🔐 Hashea la nueva contraseña y actualiza
+      // 🔐 Hashear la nueva contraseña y actualizar
       const hashedPassword = await hashPassword(newPassword);
       await prisma.user.update({
         where: { email: session.user.email },

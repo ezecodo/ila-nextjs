@@ -44,6 +44,7 @@ const DashboardStats = () => {
         label={t("editions")}
         value={stats.totalEditions}
         color="text-green-600"
+        href="/dashboard/editions"
       />
       <StatCard
         label="Aktuelles"

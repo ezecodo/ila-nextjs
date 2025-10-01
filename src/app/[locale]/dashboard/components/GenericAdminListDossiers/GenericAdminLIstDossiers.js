@@ -1,25 +1,32 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-const GenericAdminList = ({
+
+const GenericAdminListDossiers = ({
   endpoint,
   columns,
   editUrlPrefix,
   editPath = "",
   deleteUrlPrefix,
-  itemName = "elemento",
-  onItemDeleted, // ✅ nuevo prop para actualizar stats
+  itemName = "dossier",
+  onItemDeleted,
+  extraQuery = {},
+  defaultSortField = "id",
+  defaultSortOrder = "desc",
 }) => {
   const [items, setItems] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
-  const [sortField, setSortField] = useState("id");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortField, setSortField] = useState(defaultSortField || "id");
+  const [sortOrder, setSortOrder] = useState(defaultSortOrder || "desc");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-  const t = useTranslations("dashboard.Aktuelles");
+
+  // 👇 usamos traducciones de dossiers
+  const t = useTranslations("dossiers");
 
   const limit = 20;
 
@@ -34,6 +41,12 @@ const GenericAdminList = ({
         url.searchParams.set("limit", limit);
         url.searchParams.set("sortField", sortField);
         url.searchParams.set("sortOrder", sortOrder);
+        // 👇 añade cualquier query extra (por ej. { year: "2025" })
+        Object.entries(extraQuery || {}).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && String(v) !== "") {
+            url.searchParams.set(k, String(v));
+          }
+        });
 
         const res = await fetch(url.toString());
         const data = await res.json();
@@ -48,14 +61,14 @@ const GenericAdminList = ({
         }
       } catch (err) {
         console.error("Error cargando datos:", err);
-        setError("Error al cargar los datos.");
+        setError(t("editionsError"));
       } finally {
         setLoading(false);
       }
     };
 
     fetchItems();
-  }, [endpoint, page, sortField, sortOrder]);
+  }, [endpoint, page, sortField, sortOrder, JSON.stringify(extraQuery)]);
 
   const handleSort = (field) => {
     setSortOrder(
@@ -82,38 +95,35 @@ const GenericAdminList = ({
         setShowModal(false);
         setItemToDelete(null);
 
-        if (onItemDeleted) {
-          onItemDeleted();
-        }
-
+        if (onItemDeleted) onItemDeleted();
         return;
       }
 
-      // Si el servidor responde con error, intentamos mostrar el mensaje
-      let message = "Error al eliminar el elemento.";
+      let message = "Error al eliminar el dossier.";
       const contentType = res.headers.get("content-type");
-
       if (contentType && contentType.includes("application/json")) {
         const data = await res.json();
-        if (data?.error) {
-          message = data.error;
-        }
+        if (data?.error) message = data.error;
       }
-
       throw new Error(message);
     } catch (err) {
       console.error("🔥 Error al eliminar:", err);
-      alert(err.message || "Error al eliminar el elemento.");
+      alert(err.message || "Error al eliminar el dossier.");
     }
   };
 
-  if (loading) return <p className="text-gray-500">{t("loadingAktuelles")}</p>;
+  if (loading)
+    return (
+      <p className="text-gray-500">
+        {t("loadingEditions") || "Lade Dossiers..."}
+      </p>
+    );
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (
     <div className="relative mt-6 bg-white p-4 rounded-lg shadow-lg">
       {items.length === 0 ? (
-        <p className="text-center text-gray-500">{t("noResults")}</p>
+        <p className="text-center text-gray-500">{t("noEditions")}</p>
       ) : (
         <>
           <div className="overflow-x-auto">
@@ -146,7 +156,7 @@ const GenericAdminList = ({
                     {columns.map((col) => (
                       <td key={col.key} className="p-1.5 border">
                         {col.format
-                          ? col.format(item[col.key], item) // ✅ pasamos también el item
+                          ? col.format(item[col.key], item)
                           : item[col.key]}
                       </td>
                     ))}
@@ -230,4 +240,4 @@ const GenericAdminList = ({
   );
 };
 
-export default GenericAdminList;
+export default GenericAdminListDossiers;

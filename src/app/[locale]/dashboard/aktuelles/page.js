@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import GenericAdminList from "@/app/[locale]/dashboard/components/GenericAdminList/GenericAdminList";
+import GenericAdminListAktuelles from "../components/GenericAdminListAktuelles/GenericAdminLIstAktuelles";
 
 export default function AktuellesDashboardPage() {
   const t = useTranslations("dashboard.Aktuelles");
@@ -22,7 +22,7 @@ export default function AktuellesDashboardPage() {
       </Link>
 
       {/* Lista genérica */}
-      <GenericAdminList
+      <GenericAdminListAktuelles
         title={t("listTitle")}
         endpoint="/api/aktuelles"
         editUrlPrefix="/dashboard/aktuelles/edit/"

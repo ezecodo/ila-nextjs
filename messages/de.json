@@ -100,7 +100,11 @@
     "loading": "Artikel wird geladen..."
   },
   "dossiers": {
+    "editionListTitle": "Dossier-Liste",
     "dossiers": "Dossiers",
+    "number": "Nummer",
+    "title": "Titel",
+    "subtitle": "Untertitel",
     "editionsError": "Fehler beim Laden der Dossiers",
     "noEditions": "Es gibt keine Dossiers",
     "readMore": " Mehr lesen",
@@ -125,7 +129,27 @@
     "noRegions": "Keine Regionen zugeordnet",
     "noTopics": "Keine Themen zugeordnet",
     "linkArticle": "Artikel verknüpfen...",
-    "confirm": "Bestätigen"
+    "confirm": "Bestätigen",
+
+    "loadingEditions": "Lade Dossiers...",
+    "noResults": "Keine Ergebnisse",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "prevPage": "Zurück",
+
+    "of": "von",
+    "nextPage": "Weiter",
+    "confirmDelete": "Löschen bestätigen",
+    "confirmDeleteDetail": "Dies kann nicht rückgängig gemacht werden. Bist du sicher, dass du dieses Dossier löschen möchtest?",
+    "cancel": "Abbrechen",
+    "date": "Datum",
+    "isCurrent": "Ist aktuelle Ausgabe?",
+    "isAvailable": "Bestellbar?",
+    "dossierItemName": "Dossier",
+    "createNew": "Neues Dossier erstellen",
+    "listTitle": "Dossiers verwalten",
+    "filterByYear": "Nach Jahr filtern",
+    "allYears": "Alle Jahre"
   },
   "main": {
     "prev": "Vorherige",
