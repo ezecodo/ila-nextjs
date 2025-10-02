@@ -92,6 +92,19 @@ export async function POST(req) {
         image: uploadResponse.secure_url, // 👈 URL directa de Cloudinary
       },
     });
+    // 🔹 Crear log
+    await prisma.activityLog.create({
+      data: {
+        userId: formData.get("userId"), // 👈 igual que en artículos
+        action: "CREATE_EVENT",
+        metadata: JSON.stringify({
+          title: newEvent.title,
+          date: newEvent.date,
+          eventId: newEvent.id,
+          createdAt: new Date().toISOString(),
+        }),
+      },
+    });
 
     return NextResponse.json(newEvent, { status: 201 });
   } catch (error) {

@@ -202,9 +202,43 @@
     "signupLink": "Hier registrieren",
     "error": "Ungültige Anmeldedaten. Bitte versuche es erneut."
   },
+  "account": {
+    "title": "Kontoeinstellungen",
+    "changeName": "Namen ändern",
+    "changePassword": "Passwort ändern",
+    "changeEmail": "E-Mail ändern",
+    "modal": {
+      "updateName": "Name aktualisieren",
+      "updateEmail": "E-Mail aktualisieren",
+      "updatePassword": "Passwort aktualisieren"
+    },
+    "placeholders": {
+      "newName": "Neuer Name",
+      "newEmail": "Neue E-Mail",
+      "currentPassword": "Aktuelles Passwort",
+      "newPassword": "Neues Passwort",
+      "confirmPassword": "Neues Passwort bestätigen"
+    },
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "success": {
+      "name": "✅ Name aktualisiert. Die Änderung wird beim nächsten Login sichtbar sein.",
+      "email": "✅ E-Mail aktualisiert. Verwende die neue E-Mail beim nächsten Login.",
+      "password": "✅ Passwort erfolgreich aktualisiert."
+    },
+    "errors": {
+      "emptyEmail": "❌ Die E-Mail darf nicht leer sein.",
+      "emptyPasswordFields": "❌ Bitte alle Felder ausfüllen.",
+      "passwordMismatch": "❌ Die Passwörter stimmen nicht überein.",
+      "generic": "❌ Ein Fehler ist aufgetreten."
+    }
+  },
+
   "dashboard": {
     "title": "Admin-Dashboard",
     "menu": {
+      "newArticle": "Neuer Artikel",
+      "listTitle": "Artikelliste",
       "inicio": "Startseite",
       "articles": "Artikel eingeben",
       "orders": "Bestellungen",
@@ -305,11 +339,16 @@
     "loading": "Lade Statistiken...",
     "error": "Fehler beim Laden der Statistiken.",
     "notFound": "Keine Statistiken gefunden.",
-    "articles": "📄 Artikel",
-    "editions": "📚 Ausgaben",
+    "assignTranslations": "Übersetzungen zuweisen",
+    "reviewTranslations": "Übersetzungen überprüfen",
+    "articles": "Artikel",
+    "editions": "Dossiers",
+    "translations": "Übersetzungen",
     "users": "👤 Benutzer",
     "events": "🎤 Veranstaltungen",
-    "favorites": "Favoriten"
+    "favorites": "Favoriten",
+    "account": "Konto",
+    "orders": "Bestellungen"
   },
   "newArticle": {
     "form": {
@@ -454,6 +493,7 @@
     "cta": "Jetzt spenden"
   },
   "activity": {
+    "title": "ila Aktivität",
     "createdArticle": "hat einen Artikel angelegt",
     "recent": "📝 Letzte Aktivitäten",
     "none": "🔍 Keine aktuellen Aktivitäten.",
@@ -466,7 +506,12 @@
     "updatedArticle": "hat den Artikel bearbeitet",
     "default": "führte eine Aktion aus –",
     "untitled": "ohne Titel",
-    "inEdition": "in Dossier"
+    "inEdition": "in Dossier",
+    "createdEvent": "erstellte das Event",
+    "pagination": {
+      "prev": "Zurück",
+      "next": "Weiter"
+    }
   },
   "ShareBar": {
     "defaultShareTitle": "Schau dir diesen ILA-Artikel an:",

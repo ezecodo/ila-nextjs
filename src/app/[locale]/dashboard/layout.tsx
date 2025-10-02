@@ -4,15 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import DashboardStats from "../dashboard/components/DashboardStats/DashboardStats";
-import {
-  FaHome,
-  FaFileAlt,
-  FaBook,
-  FaUserCog,
-  FaCalendarAlt,
-  FaSlidersH,
-  FaShoppingCart,
-} from "react-icons/fa";
+import { FaHome, FaFileAlt, FaUserCog } from "react-icons/fa";
 import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -37,54 +29,6 @@ export default function DashboardLayout({
       label: t("menu.inicio"),
       href: "/dashboard",
       icon: <FaHome />,
-    },
-    {
-      key: "articles",
-      label: t("menu.articles"),
-      href: "/dashboard/articles/new",
-      icon: <FaFileAlt />,
-    },
-    {
-      key: "editions",
-      label: t("menu.editions"),
-      href: "/dashboard/editions/new",
-      icon: <FaBook />,
-    },
-    {
-      key: "events",
-      label: t("menu.events"),
-      href: "/dashboard/events",
-      icon: <FaCalendarAlt />,
-    },
-    {
-      key: "carousels",
-      label: t("menu.carousels"),
-      href: "/dashboard/carousels",
-      icon: <FaSlidersH />,
-    },
-    {
-      key: "orders",
-      label: t("menu.orders"), // 👉 si quieres traducible: t("menu.orders")
-      href: "/dashboard/orders",
-      icon: <FaShoppingCart />,
-    },
-    {
-      key: "assignTranslations",
-      label: "Asignar traducciones",
-      href: "/dashboard/reviewer/assign",
-      icon: <FaFileAlt />,
-    },
-    {
-      key: "reviewTranslations",
-      label: "Revisar traducciones",
-      href: "/dashboard/reviewer/review",
-      icon: <FaFileAlt />,
-    },
-    {
-      key: "account",
-      label: t("menu.account"),
-      href: "/dashboard/account",
-      icon: <FaUserCog />,
     },
   ];
 
@@ -180,45 +124,45 @@ export default function DashboardLayout({
           {menuOpen ? t("closeMenu") : t("openMenu")}
         </button>
 
-        {/* Sidebar */}
-        <aside
-          className={`w-full md:w-52 xl:w-64 bg-white shadow-md px-4 py-6 md:block ${
-            menuOpen ? "block" : "hidden"
-          }`}
-        >
-          <h2 className="text-xl font-semibold mb-6">
-            {role === "admin"
-              ? "Admin-Dashboard"
-              : role === "translator"
+        {/* Sidebar → solo si NO es admin */}
+        {role !== "admin" && (
+          <aside
+            className={`w-full md:w-52 xl:w-64 bg-white shadow-md px-4 py-6 md:block ${
+              menuOpen ? "block" : "hidden"
+            }`}
+          >
+            <h2 className="text-xl font-semibold mb-6">
+              {role === "translator"
                 ? "Traducción Dashboard"
                 : role === "k2"
                   ? "K2 Dashboard"
                   : "User Dashboard"}
-          </h2>
+            </h2>
 
-          <ul>
-            {menuItems.map((item) => {
-              const fullHref = `/${locale}${item.href}`;
-              const isActive = pathname === fullHref;
+            <ul>
+              {menuItems.map((item) => {
+                const fullHref = `/${locale}${item.href}`;
+                const isActive = pathname === fullHref;
 
-              return (
-                <li key={item.key}>
-                  <Link
-                    href={fullHref}
-                    className={`flex items-center gap-2 p-2 rounded-md mb-2 text-sm transition ${
-                      isActive
-                        ? "bg-red-100 text-red-700 font-semibold"
-                        : "text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    <span className="text-lg">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </aside>
+                return (
+                  <li key={item.key}>
+                    <Link
+                      href={fullHref}
+                      className={`flex items-center gap-2 p-2 rounded-md mb-2 text-sm transition ${
+                        isActive
+                          ? "bg-red-100 text-red-700 font-semibold"
+                          : "text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      <span className="text-lg">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </aside>
+        )}
 
         {/* Contenido principal */}
         <main

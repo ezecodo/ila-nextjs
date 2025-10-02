@@ -200,10 +200,43 @@
     "signupLink": "Regístrate aquí",
     "error": "Credenciales incorrectas. Inténtalo de nuevo."
   },
+  "account": {
+    "title": "Configuración de Cuenta",
+    "changeName": "Cambiar Nombre",
+    "changePassword": "Cambiar Contraseña",
+    "changeEmail": "Cambiar Email",
+    "modal": {
+      "updateName": "Actualizar Nombre",
+      "updateEmail": "Actualizar Email",
+      "updatePassword": "Actualizar Contraseña"
+    },
+    "placeholders": {
+      "newName": "Nuevo Nombre",
+      "newEmail": "Nuevo Email",
+      "currentPassword": "Contraseña Actual",
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Nueva Contraseña"
+    },
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "success": {
+      "name": "✅ Nombre actualizado. Se reflejará en el próximo inicio de sesión.",
+      "email": "✅ Email actualizado. Usa el nuevo email la próxima vez que inicies sesión.",
+      "password": "✅ Contraseña actualizada correctamente."
+    },
+    "errors": {
+      "emptyEmail": "❌ El email no puede estar vacío.",
+      "emptyPasswordFields": "❌ Debes completar todos los campos.",
+      "passwordMismatch": "❌ Las contraseñas no coinciden.",
+      "generic": "❌ Ocurrió un error."
+    }
+  },
 
   "dashboard": {
     "title": "Dashboard Admin",
     "menu": {
+      "newArticle": "Nuevo Artículo",
+      "listTitle": "Lista de Artículos",
       "inicio": "Inicio",
       "articles": "Ingresar Artículo",
       "orders": "Pedidos",
@@ -304,12 +337,17 @@
     "title": "📊 Dashboard",
     "loading": "Cargando estadísticas...",
     "error": "Error al cargar estadísticas.",
+    "assignTranslations": "Asignar Traducciones",
     "notFound": "No se encontraron estadísticas.",
-    "articles": "📄 Artículos",
-    "editions": "📚 Ediciones",
+    "reviewTranslations": "Revisar Traducciones",
+    "articles": "Artículos",
+    "editions": "Dossiers",
+    "translations": "Traducciones",
     "users": "👤 Usuarios",
     "events": "🎤 Eventos",
-    "favorites": "Favoritos"
+    "favorites": "Favoritos",
+    "account": "Cuenta",
+    "orders": "Pedidos"
   },
   "newArticle": {
     "form": {
@@ -454,6 +492,7 @@
     "cta": "Donar"
   },
   "activity": {
+    "title": "ila Actividad",
     "createdArticle": "creó un artículo",
     "recent": "📝 Actividad reciente",
     "none": "🔍 No hay actividad reciente.",
@@ -466,7 +505,12 @@
     "updatedArticle": "editó el artículo",
     "default": "realizó una acción –",
     "untitled": "sin título",
-    "inEdition": "en la edición"
+    "inEdition": "en la edición",
+    "createdEvent": "creó el evento",
+    "pagination": {
+      "prev": "Anterior",
+      "next": "Siguiente"
+    }
   },
   "ShareBar": {
     "defaultShareTitle": "Mirá este artículo de ILA:",

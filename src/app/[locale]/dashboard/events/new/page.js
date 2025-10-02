@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import EventForm from "../EventForm";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 
 export default function CreateEventPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const t = useTranslations("events.dashboard");
+  const { data: session } = useSession();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -49,6 +51,7 @@ export default function CreateEventPage() {
 
       // 🔹 Crear FormData
       const formData = new FormData();
+      formData.append("userId", session?.user?.id || "admin");
       formData.append("title", data.title || "");
       formData.append("titleES", data.titleES || "");
       formData.append("description", data.description || "");

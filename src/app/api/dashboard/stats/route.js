@@ -9,6 +9,7 @@ export async function GET() {
     const totalLikedArticles = await prisma.favorite.count(); // ✅ Nueva métrica
     const totalEvents = await prisma.event.count();
     const totalAktuelles = await prisma.aktuelles.count();
+    const totalOrders = await prisma.order.count();
 
     return NextResponse.json({
       totalEvents,
@@ -16,7 +17,8 @@ export async function GET() {
       totalEditions,
       totalUsers,
       totalLikedArticles,
-      totalAktuelles, // ✅ Devolvemos la cantidad de artículos likeados
+      totalAktuelles,
+      totalOrders,
     });
   } catch (error) {
     console.error("Error al obtener estadísticas:", error);
