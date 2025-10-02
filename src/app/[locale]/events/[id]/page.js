@@ -74,11 +74,15 @@ export default function EventPage() {
           <span className="ml-2 text-gray-700">🕒 {event.time}</span>
         )}
       </p>
-      <p className="mt-2 text-gray-800">
-        {locale === "es"
-          ? event.descriptionES || event.description
-          : event.description}
-      </p>
+      <div
+        className="mt-2 text-gray-800 prose prose-lg max-w-none"
+        dangerouslySetInnerHTML={{
+          __html:
+            locale === "es"
+              ? event.descriptionES || event.description
+              : event.description,
+        }}
+      />
       <p className="mt-4 font-semibold text-gray-900">
         📍{" "}
         <a

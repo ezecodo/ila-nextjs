@@ -1,156 +1,100 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image"; // ✅ Importar el componente de Next.js
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import DashboardSectionHeader from "../components/DashboardSectionHeader/DashboardSectionHeader";
 
-export default function CreateEventPage() {
-  const [eventData, setEventData] = useState({
-    title: "",
-    description: "",
-    date: "",
-    time: "",
-    location: "",
-    image: null, // Se cambiará con la imagen seleccionada
-  });
-
-  const [preview, setPreview] = useState(null); // Para la vista previa de la imagen
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+export default function EventsDashboardPage() {
+  const t = useTranslations("events.dashboard");
+  const locale = useLocale();
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    if (!eventData.image) return;
-    const objectUrl = URL.createObjectURL(eventData.image);
-    setPreview(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl); // Limpiar memoria al cambiar imagen
-  }, [eventData.image]);
-
-  const handleChange = (e) => {
-    setEventData({ ...eventData, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    setEventData({ ...eventData, image: e.target.files[0] });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const formData = new FormData();
-      formData.append("title", eventData.title);
-      formData.append("description", eventData.description);
-      formData.append("date", eventData.date);
-      formData.append("time", eventData.time);
-      formData.append("location", eventData.location);
-      formData.append("image", eventData.image);
-
-      const res = await fetch("/api/events", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al agregar evento");
-
-      setMessage("✅ Evento agregado correctamente");
-      setEventData({
-        title: "",
-        description: "",
-        date: "",
-        location: "",
-        image: null,
-      });
-      setPreview(null); // Limpiar vista previa
-    } catch (error) {
-      console.error(error);
-      setMessage("❌ Error al agregar evento");
-    } finally {
-      setLoading(false);
+    async function fetchEvents() {
+      try {
+        const res = await fetch("/api/events");
+        if (!res.ok) throw new Error("Error al obtener eventos");
+        const data = await res.json();
+        setEvents(data);
+      } catch (err) {
+        console.error("❌ Error cargando eventos:", err);
+      }
     }
-  };
+    fetchEvents();
+  }, []);
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Agregar Nuevo Evento</h1>
+    <div className="max-w-7xl mx-auto py-10 px-6">
+      {/* ✅ Header reutilizable */}
+      <DashboardSectionHeader
+        title={t("manageTitle")}
+        createUrl={`/${locale}/dashboard/events/new`}
+        createLabel={t("newEvent")}
+        color="red"
+      />
 
-      {message && <p className="mb-4">{message}</p>}
+      {/* Tabla con estética moderna */}
+      <div className="overflow-x-auto rounded-lg shadow-lg">
+        <table className="w-full border-collapse bg-white dark:bg-gray-900 text-sm">
+          <thead>
+            <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">
+              <th className="px-5 py-3 text-left">{t("title")}</th>
+              <th className="px-5 py-3 text-left">{t("date")}</th>
+              <th className="px-5 py-3 text-left">{t("time")}</th>
+              <th className="px-5 py-3 text-left">{t("location")}</th>
+              <th className="px-5 py-3 text-center">🖼️</th>
+              <th className="px-5 py-3 text-center">{t("edit")}</th>
+              <th className="px-5 py-3 text-center">{t("delete")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((event) => (
+              <tr
+                key={event.id}
+                className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+              >
+                <td className="px-5 py-3">
+                  {locale === "es" && event.titleES
+                    ? event.titleES
+                    : event.title}
+                </td>
+                <td className="px-5 py-3">
+                  {new Date(event.date).toLocaleDateString(locale)}
+                </td>
+                <td className="px-5 py-3">{event.time || "-"}</td>
+                <td className="px-5 py-3">{event.location}</td>
+                <td className="px-5 py-3 text-center">
+                  {event.image ? "✔️" : "❌"}
+                </td>
+                <td className="px-5 py-3 text-center">
+                  <Link href={`/${locale}/dashboard/events/edit/${event.id}`}>
+                    <button className="text-blue-600 hover:underline">
+                      {t("edit")}
+                    </button>
+                  </Link>
+                </td>
+                <td className="px-5 py-3 text-center">
+                  <button className="text-red-600 hover:text-red-800 font-bold">
+                    {t("delete")}
+                  </button>
+                </td>
+              </tr>
+            ))}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="title"
-          placeholder="Título del evento"
-          value={eventData.title}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <textarea
-          name="description"
-          placeholder="Descripción del evento"
-          value={eventData.description}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="date"
-          name="date"
-          value={eventData.date}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="time"
-          name="time"
-          value={eventData.time || ""}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="text"
-          name="location"
-          placeholder="Ubicación del evento"
-          value={eventData.location}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-
-        {/* Input para subir imagen */}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="w-full p-2 border rounded"
-          required
-        />
-
-        {/* ✅ Mostrar vista previa con next/image */}
-        {preview && (
-          <div className="relative w-full h-40 mt-4">
-            <Image
-              src={preview}
-              alt="Vista previa del flyer"
-              layout="fill"
-              objectFit="cover"
-              className="rounded-md"
-            />
-          </div>
-        )}
-
-        <button
-          type="submit"
-          className="w-full p-2 bg-blue-600 text-white rounded"
-          disabled={loading}
-        >
-          {loading ? "Guardando..." : "Agregar Evento"}
-        </button>
-      </form>
+            {events.length === 0 && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-5 py-6 text-center text-gray-500 dark:text-gray-400"
+                >
+                  {t("noEvents")}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

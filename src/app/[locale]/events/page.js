@@ -216,11 +216,15 @@ export default function EventsPage() {
                         </span>
                       )}
                     </p>
-                    <p className="mt-1 text-gray-700 text-sm line-clamp-2">
-                      {locale === "es"
-                        ? event.descriptionES || event.description
-                        : event.description}
-                    </p>
+                    <div
+                      className="mt-1 text-gray-700 text-sm line-clamp-2"
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          locale === "es"
+                            ? event.descriptionES || event.description
+                            : event.description,
+                      }}
+                    />
                     <p className="mt-2 text-blue-500 font-semibold text-sm">
                       📍 <span className="underline">{event.location}</span>
                     </p>

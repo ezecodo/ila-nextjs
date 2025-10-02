@@ -160,7 +160,33 @@
     "more": "más",
     "noEvents": "No hay eventos este mes",
     "eventImageAlt": "Imagen del evento",
-    "backToEvents": "Volver a eventos"
+    "backToEvents": "Volver a eventos",
+    "dashboard": {
+      "manageTitle": "Eventos — Administrar",
+      "newEvent": "Crear nuevo evento",
+      "title": "Título",
+      "date": "Fecha",
+      "time": "Hora",
+      "location": "Ubicación",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "noEvents": "No hay eventos.",
+      "createTitle": "Agregar Nuevo Evento",
+      "deSection": "Contenido en alemán (DE)",
+      "esSection": "Contenido en español (ES)",
+      "titleDE": "Título (DE)",
+      "titleES": "Título (ES)",
+      "descDE": "Descripción (DE)",
+      "descES": "Descripción (ES)",
+      "image": "Flyer / Imagen",
+      "preview": "Vista previa",
+      "autotranslate": "Autotraducir DE ↔ ES",
+      "autotranslateHint": "Usa DeepL para traducir título y descripción al español.",
+      "saving": "Guardando…",
+      "submit": "Agregar Evento"
+    }
   },
 
   "auth": {

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import cloudinary from "cloudinary";
 
-// 🔹 Configurar Cloudinary
+// ⚙️ Config Cloudinary
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -39,20 +39,22 @@ export async function GET(req) {
   }
 }
 
-// 🔹 Crear un nuevo evento (POST) con subida a Cloudinary
+// 📌 POST: crear nuevo evento
 export async function POST(req) {
   try {
     const formData = await req.formData();
     const title = formData.get("title");
+    const titleES = formData.get("titleES");
     const description = formData.get("description");
+    const descriptionES = formData.get("descriptionES");
     const date = formData.get("date");
     const time = formData.get("time");
     const location = formData.get("location");
-    const file = formData.get("image"); // Obtener archivo de la imagen
+    const file = formData.get("image"); // 👈 Archivo de imagen
 
     if (!title || !description || !date || !location || !file) {
       return NextResponse.json(
-        { error: "Todos los campos son obligatorios" },
+        { error: "Faltan campos obligatorios" },
         { status: 400 }
       );
     }
@@ -60,9 +62,10 @@ export async function POST(req) {
     // 🔹 Subir la imagen a Cloudinary
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
     const uploadResponse = await new Promise((resolve, reject) => {
       cloudinary.v2.uploader
-        .upload_stream({ folder: "ila-events" }, (error, result) => {
+        .upload_stream({ folder: "ila/events" }, (error, result) => {
           if (error) reject(error);
           else resolve(result);
         })
@@ -76,23 +79,25 @@ export async function POST(req) {
       );
     }
 
-    // 🔹 Guardar el evento en la base de datos con la URL de la imagen subida
+    // 🔹 Guardar el evento en la base de datos con la URL de Cloudinary
     const newEvent = await prisma.event.create({
       data: {
         title,
+        titleES,
         description,
+        descriptionES,
         date: new Date(date),
         time,
         location,
-        image: uploadResponse.secure_url, // Guardamos la URL de Cloudinary
+        image: uploadResponse.secure_url, // 👈 URL directa de Cloudinary
       },
     });
 
     return NextResponse.json(newEvent, { status: 201 });
   } catch (error) {
-    console.error("Error al agregar evento:", error);
+    console.error("❌ Error al crear evento:", error);
     return NextResponse.json(
-      { error: "Error al agregar evento" },
+      { error: "Error al crear evento" },
       { status: 500 }
     );
   }
