@@ -75,7 +75,32 @@ export default function EventsDashboardPage() {
                   </Link>
                 </td>
                 <td className="px-5 py-3 text-center">
-                  <button className="text-red-600 hover:text-red-800 font-bold">
+                  <button
+                    onClick={async () => {
+                      if (
+                        !confirm("⚠️ ¿Seguro que quieres eliminar este evento?")
+                      )
+                        return;
+
+                      try {
+                        const res = await fetch(`/api/events/${event.id}`, {
+                          method: "DELETE",
+                        });
+
+                        if (!res.ok)
+                          throw new Error("Error al eliminar evento");
+
+                        // ✅ quitar de la tabla sin recargar
+                        setEvents((prev) =>
+                          prev.filter((e) => e.id !== event.id)
+                        );
+                      } catch (err) {
+                        console.error("❌ Error eliminando evento:", err);
+                        alert("No se pudo eliminar el evento.");
+                      }
+                    }}
+                    className="text-red-600 hover:text-red-800 font-bold"
+                  >
                     {t("delete")}
                   </button>
                 </td>

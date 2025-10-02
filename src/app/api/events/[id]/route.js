@@ -2,10 +2,18 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import cloudinary from "cloudinary";
+
+// ⚙️ Config Cloudinary
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function GET(req, { params }) {
   try {
-    const { id } = params; // ✅ Ahora el ID se trata como un String
+    const { id } = await params; // ✅ Ahora el ID se trata como un String
 
     if (!id) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
@@ -32,52 +40,65 @@ export async function GET(req, { params }) {
   }
 }
 
+// 📌 PUT: actualizar evento
+// 📌 PUT: actualizar evento
 export async function PUT(req, { params }) {
   try {
-    const { id } = params;
-
+    const { id } = await params;
     if (!id) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    const formData = await req.formData();
-    const title = formData.get("title");
-    const description = formData.get("description");
-    const date = formData.get("date");
-    const location = formData.get("location");
-    const file = formData.get("image"); // Puede ser null si no se cambia
+    const data = await req.json();
+    const {
+      title,
+      titleES,
+      description,
+      descriptionES,
+      date,
+      time,
+      location,
+      images = [],
+    } = data;
 
+    // 🔹 Datos base
     let updatedData = {
       title,
+      titleES,
       description,
+      descriptionES,
       date: new Date(date),
+      time,
       location,
     };
 
-    if (file && typeof file === "object") {
-      // Subir nueva imagen si se seleccionó otra
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+    // 🔹 Procesar imágenes
+    let firstImageUrl = null;
 
-      const uploadResponse = await new Promise((resolve, reject) => {
-        cloudinary.v2.uploader
-          .upload_stream({ folder: "ila-events" }, (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          })
-          .end(buffer);
-      });
+    for (const img of images) {
+      let finalUrl = img.url || null;
 
-      if (!uploadResponse.secure_url) {
-        return NextResponse.json(
-          { error: "Error al subir imagen" },
-          { status: 500 }
-        );
+      if (!finalUrl && img.fileDataUrl) {
+        try {
+          finalUrl = await uploadDataUrlToCloudinary(img.fileDataUrl);
+        } catch (e) {
+          console.error("❌ Error subiendo a Cloudinary:", e);
+          continue;
+        }
       }
 
-      updatedData.image = uploadResponse.secure_url;
+      if (!finalUrl) continue;
+      if (!firstImageUrl) firstImageUrl = finalUrl;
     }
 
+    // 🔹 Actualizar imagen según lo que venga del form
+    if (images.length === 0) {
+      updatedData.image = null; // 👉 eliminaste todas
+    } else if (firstImageUrl) {
+      updatedData.image = firstImageUrl; // 👉 nueva o existente
+    }
+
+    // 🔹 Actualizar evento
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: updatedData,
@@ -85,7 +106,7 @@ export async function PUT(req, { params }) {
 
     return NextResponse.json(updatedEvent);
   } catch (error) {
-    console.error("Error al actualizar evento:", error);
+    console.error("❌ Error al actualizar evento:", error);
     return NextResponse.json(
       { error: "Error al actualizar evento" },
       { status: 500 }
@@ -93,6 +114,14 @@ export async function PUT(req, { params }) {
   }
 }
 
+// 👇 Helper que faltaba
+async function uploadDataUrlToCloudinary(dataUrl) {
+  const res = await cloudinary.v2.uploader.upload(dataUrl, {
+    folder: "ila/events",
+    resource_type: "image",
+  });
+  return res.secure_url;
+}
 export async function DELETE(req, { params }) {
   try {
     const { id } = params;

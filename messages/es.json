@@ -185,7 +185,8 @@
       "autotranslate": "Autotraducir DE ↔ ES",
       "autotranslateHint": "Usa DeepL para traducir título y descripción al español.",
       "saving": "Guardando…",
-      "submit": "Agregar Evento"
+      "submit": "Agregar Evento",
+      "loading": "Cargando..."
     }
   },
 

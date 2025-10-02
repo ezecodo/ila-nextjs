@@ -12,6 +12,12 @@ const QuillEditor = dynamic(
   { ssr: false }
 );
 
+// Helper para normalizar fecha al formato que necesita <input type="date">
+function formatDateForInput(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString().split("T")[0]; // 👉 "YYYY-MM-DD"
+}
 export default function EventForm({
   initialData = {},
   onSubmit,
@@ -24,10 +30,12 @@ export default function EventForm({
   const [descriptionES, setDescriptionES] = useState(
     initialData.descriptionES || ""
   );
-  const [date, setDate] = useState(initialData.date || "");
+  const [date, setDate] = useState(formatDateForInput(initialData.date));
   const [time, setTime] = useState(initialData.time || "");
   const [location, setLocation] = useState(initialData.location || "");
-  const [gallery, setGallery] = useState(initialData.images || []);
+  const [gallery, setGallery] = useState(
+    initialData.image ? [{ url: initialData.image, title: "", alt: "" }] : []
+  );
 
   const descriptionESRef = useRef(null);
   const descriptionDERef = useRef(null);

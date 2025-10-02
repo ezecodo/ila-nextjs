@@ -188,7 +188,8 @@
       "autotranslate": "Automatisch übersetzen DE ↔ ES",
       "autotranslateHint": "Mit DeepL Titel und Beschreibung auf Spanisch übersetzen.",
       "saving": "Speichern…",
-      "submit": "Event hinzufügen"
+      "submit": "Event hinzufügen",
+      "loading": "Wird geladen..."
     }
   },
   "auth": {
