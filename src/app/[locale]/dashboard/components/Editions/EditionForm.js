@@ -54,6 +54,7 @@ export default function EditionForm({ edition = null }) {
   );
   const [isCurrent, setIsCurrent] = useState(edition?.isCurrent || false);
   const [coverImage, setCoverImage] = useState(null);
+  const [removeCover, setRemoveCover] = useState(false);
   const [regions, setRegions] = useState(
     edition?.regions?.map((r) => ({ value: r.id, label: r.name })) || []
   );
@@ -195,7 +196,15 @@ export default function EditionForm({ edition = null }) {
     formData.append("summary", summary);
     formData.append("tableOfContents", tableOfContents);
     formData.append("isCurrent", isCurrent);
-    if (coverImage) formData.append("coverImage", coverImage);
+
+    if (removeCover) {
+      formData.append("removeCover", "true");
+    }
+    // 👉 aquí portada
+    if (coverImage) {
+      formData.append("coverImage", coverImage);
+    }
+
     formData.append("regions", JSON.stringify(regionIds));
     formData.append("topics", JSON.stringify(topicIds));
 
@@ -356,7 +365,10 @@ export default function EditionForm({ edition = null }) {
             type="file"
             id="coverImage"
             ref={coverImageRef}
-            onChange={(e) => setCoverImage(e.target.files[0])}
+            onChange={(e) => {
+              setCoverImage(e.target.files[0]);
+              setRemoveCover(false);
+            }}
             className={styles.input}
             required={!edition}
           />
@@ -372,6 +384,19 @@ export default function EditionForm({ edition = null }) {
                 height={200}
                 className="rounded shadow-md mt-1"
               />
+
+              {/* Botón eliminar portada */}
+              <button
+                type="button"
+                onClick={() => {
+                  setCoverImage(null);
+                  setRemoveCover(true); // 👈 marcamos que hay que eliminar
+                  if (coverImageRef.current) coverImageRef.current.value = "";
+                }}
+                className="text-red-600 hover:underline text-sm mt-2"
+              >
+                {t("removeCover")}
+              </button>
             </div>
           )}
         </div>

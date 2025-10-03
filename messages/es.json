@@ -556,7 +556,8 @@
     "bgLabel": "Imagen de Fondo:",
     "submit": "Crear Edición",
     "updateButton": "Guardar Cambios",
-    "currentCover": "Imagen de portada actual"
+    "currentCover": "Imagen de portada actual",
+    "removeCover": "Eliminar imagen de portada"
   },
   "orderForm": {
     "add": "Añadir al carrito",

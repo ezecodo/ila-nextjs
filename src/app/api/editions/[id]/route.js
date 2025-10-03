@@ -49,6 +49,7 @@ export async function GET(req, context) {
   }
 }
 // 📌 PUT (actualizar edición)
+// 📌 PUT (actualizar edición)
 export async function PUT(req, { params }) {
   try {
     const editionId = parseInt(params.id, 10);
@@ -72,11 +73,32 @@ export async function PUT(req, { params }) {
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
 
+    const removeCover = formData.get("removeCover") === "true";
     const coverImageFile = formData.get("coverImage");
 
-    // ✅ Subir nueva portada si existe
     let coverImageUrl = null;
-    if (coverImageFile && typeof coverImageFile === "object") {
+
+    if (removeCover) {
+      // 🟥 Eliminar portada existente
+      const existing = await prisma.edition.findUnique({
+        where: { id: editionId },
+        select: { coverImage: true },
+      });
+
+      if (existing?.coverImage) {
+        try {
+          const urlParts = existing.coverImage.split("/");
+          const fileName = urlParts[urlParts.length - 1];
+          const publicId = `ila/editions/${fileName.split(".")[0]}`;
+          await cloudinary.v2.uploader.destroy(publicId);
+        } catch (err) {
+          console.error("⚠️ Error eliminando portada en Cloudinary:", err);
+        }
+      }
+
+      coverImageUrl = null;
+    } else if (coverImageFile && typeof coverImageFile !== "string") {
+      // 🟦 Subir nueva portada
       const buffer = Buffer.from(await coverImageFile.arrayBuffer());
       const uploadResult = await cloudinary.v2.uploader.upload(
         `data:image/jpeg;base64,${buffer.toString("base64")}`,
@@ -87,9 +109,16 @@ export async function PUT(req, { params }) {
         }
       );
       coverImageUrl = uploadResult.secure_url;
+    } else {
+      // 🟩 Mantener la portada actual
+      const existing = await prisma.edition.findUnique({
+        where: { id: editionId },
+        select: { coverImage: true },
+      });
+      coverImageUrl = existing?.coverImage || null;
     }
 
-    // ✅ Actualizar edición
+    // ✅ Actualizar edición en DB
     const updatedEdition = await prisma.edition.update({
       where: { id: editionId },
       data: {
@@ -101,13 +130,9 @@ export async function PUT(req, { params }) {
         tableOfContents,
         isCurrent,
         isAvailableToOrder,
-        ...(coverImageUrl ? { coverImage: coverImageUrl } : {}), // solo si hay nueva imagen
-        regions: {
-          set: regions.map((id) => ({ id })), // Reemplaza asociaciones
-        },
-        topics: {
-          set: topics.map((id) => ({ id })),
-        },
+        coverImage: coverImageUrl,
+        regions: { set: regions.map((id) => ({ id })) },
+        topics: { set: topics.map((id) => ({ id })) },
       },
       include: { regions: true, topics: true },
     });
@@ -124,7 +149,6 @@ export async function PUT(req, { params }) {
     );
   }
 }
-
 // 📌 DELETE (eliminar edición)
 export async function DELETE(req, { params }) {
   try {
