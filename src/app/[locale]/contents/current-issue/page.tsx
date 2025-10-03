@@ -404,13 +404,21 @@ export default function CurrentIssuePage() {
 
         {/* Texto del summary que fluye alrededor de la imagen */}
         <div className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200">
-          {edition.summary
-            ? edition.summary.split("\n").map((line, i) => (
+          {edition.summary ? (
+            // Si contiene etiquetas HTML, renderizar como HTML
+            /<\/?[a-z][\s\S]*>/i.test(edition.summary) ? (
+              <div dangerouslySetInnerHTML={{ __html: edition.summary }} />
+            ) : (
+              // Si es texto plano, dividir en párrafos por saltos de línea
+              edition.summary.split("\n").map((line, i) => (
                 <p key={i} className="mb-4">
                   {line}
                 </p>
               ))
-            : t("noSummary")}
+            )
+          ) : (
+            <p>{t("noSummary")}</p>
+          )}
         </div>
 
         {/* Clearfix para asegurar que los elementos siguientes no se monten */}
