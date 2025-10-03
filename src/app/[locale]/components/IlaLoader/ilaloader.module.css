@@ -1,38 +1,236 @@
+/* Contenedor principal */
 .loader {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px; /* ajusta al espacio que quieras */
-  background: white;
 }
 
-.text {
-  font-size: 100px;
-  font-weight: bold;
+/* Contenedor para SVG */
+.svgContainer {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
 
-  background: linear-gradient(
-    to top,
-    #e63946 0%,
-    #e63946 50%,
-    transparent 50%,
-    transparent 100%
+.svgContainer svg {
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+}
+
+/* Círculo/borde animado */
+.circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 6px solid #e63946;
+  border-top: 6px solid transparent;
+  animation: spin linear infinite;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+/* ========== FORMAS ========== */
+.round {
+  border-radius: 50%;
+}
+
+.square {
+  border-radius: 0;
+}
+
+.rounded {
+  border-radius: 20%;
+}
+
+.latinamerica {
+  /* Ya no usamos clip-path, usamos SVG */
+  border: none !important;
+  background: transparent !important;
+}
+
+/* ========== EFECTOS ========== */
+.glow {
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+/* 🌈 Efecto Rainbow - compatible con todas las formas */
+.rainbow {
+  border: none !important;
+  background: conic-gradient(
+    from 0deg,
+    #ff0000 0deg,
+    #ff7f00 51.43deg,
+    #ffff00 102.86deg,
+    #00ff00 154.29deg,
+    #0000ff 205.71deg,
+    #4b0082 257.14deg,
+    #9400d3 308.57deg,
+    #ff0000 360deg
   );
-
-  -webkit-background-clip: text; /* Chrome, Safari */
-  background-clip: text; /* Firefox */
-  -webkit-text-fill-color: transparent; /* Necesario en Safari */
-  color: transparent; /* fallback */
-
-  background-size: 100% 200%;
-  background-position: bottom;
-  animation: fillText 1s linear infinite alternate;
+  animation: rainbow-spin linear infinite !important;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-@keyframes fillText {
+/* Máscara interna para crear el efecto de borde */
+.rainbow::before {
+  content: "";
+  position: absolute;
+  inset: 6px; /* Grosor del "borde" rainbow */
+  background: transparent;
+  border-radius: inherit; /* Hereda el border-radius del padre */
+  z-index: 2;
+}
+
+/* Ajuste para el glow en rainbow */
+.rainbow.glow {
+  filter: drop-shadow(0 0 15px rgba(255, 0, 255, 0.6))
+    drop-shadow(0 0 25px rgba(0, 255, 255, 0.4));
+}
+
+/* Texto con animación de relleno */
+.text {
+  font-weight: bold;
+  animation: fillText 1s linear infinite alternate;
+  z-index: 3; /* Mayor z-index para estar encima del rainbow */
+  position: relative;
+}
+
+/* ========== ANIMACIONES ========== */
+
+/* Rotación clásica */
+@keyframes spin {
   from {
-    background-position: bottom;
+    transform: rotate(0deg);
   }
   to {
-    background-position: top;
+    transform: rotate(360deg);
   }
+}
+
+/* Rotación rainbow */
+@keyframes rainbow-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Relleno del texto - simplificada */
+@keyframes fillText {
+  from {
+    background-position: 0% 100%;
+  }
+  to {
+    background-position: 0% 0%;
+  }
+}
+
+/* Pulso (escala + rotación) */
+@keyframes pulse {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Rebote con rotación */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  25% {
+    transform: rotate(90deg) translateY(-8px);
+  }
+  50% {
+    transform: rotate(180deg) translateY(0);
+  }
+  75% {
+    transform: rotate(270deg) translateY(-8px);
+  }
+}
+
+/* Oscilación suave */
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(5deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+}
+
+/* ========== VARIANTES DE ANIMACIÓN ========== */
+.spin {
+  animation: spin linear infinite;
+}
+
+.pulse {
+  animation: pulse ease-in-out infinite;
+}
+
+.bounce {
+  animation: bounce ease-in-out infinite;
+}
+
+.wobble {
+  animation: wobble ease-in-out infinite;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 640px) {
+  .loader {
+    /* Ajustes para móviles si es necesario */
+  }
+}
+
+/* ========== ACCESIBILIDAD ========== */
+@media (prefers-reduced-motion: reduce) {
+  .circle,
+  .text,
+  .svgContainer {
+    animation-duration: 3s;
+  }
+
+  .bounce,
+  .pulse {
+    animation: spin linear infinite;
+  }
+}
+
+/* ========== UTILIDADES ========== */
+.no-animation {
+  animation: none !important;
+}
+
+.paused {
+  animation-play-state: paused !important;
+}
+
+/* Máscara interna para crear el efecto de borde rainbow */
+.rainbow::before {
+  content: "";
+  position: absolute;
+  inset: var(--border-width, 6px); /* Usa la variable CSS o 6px por defecto */
+  background: inherit; /* Hereda el fondo del contenedor padre */
+  border-radius: inherit;
+  z-index: 2;
 }
