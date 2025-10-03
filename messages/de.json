@@ -556,7 +556,8 @@
     "coverLabel": "Titelbild:",
     "bgLabel": "Hintergrundbild:",
     "submit": "Ausgabe erstellen",
-    "updateButton": "Änderungen speichern"
+    "updateButton": "Änderungen speichern",
+    "currentCover": "Aktuelles Titelbild"
   },
   "orderForm": {
     "add": "Zum Warenkorb hinzufügen",

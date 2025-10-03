@@ -7,6 +7,7 @@ import TextAreaField from "../../../components/Articles/NewArticle/TextAreaField
 import ToggleSwitch from "../../../components/Articles/NewArticle/ToggleSwitch";
 import SubmitButton from "../../../components/Articles/NewArticle/SubmitButton";
 import FormMessage from "../../../components/Articles/NewArticle/FormMessage";
+import Image from "next/image";
 
 import "react-datepicker/dist/react-datepicker.css";
 import styles from "../../../../styles/global.module.css";
@@ -359,6 +360,20 @@ export default function EditionForm({ edition = null }) {
             className={styles.input}
             required={!edition}
           />
+
+          {/* 👇 Mostrar preview de la portada existente si hay edición */}
+          {edition?.coverImage && !coverImage && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">{t("currentCover")}</p>
+              <Image
+                src={edition.coverImage}
+                alt={`Portada de ${edition.title}`}
+                width={150}
+                height={200}
+                className="rounded shadow-md mt-1"
+              />
+            </div>
+          )}
         </div>
         <SubmitButton label={edition ? t("updateButton") : t("submit")} />
       </form>
