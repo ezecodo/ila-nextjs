@@ -100,7 +100,7 @@ export default function EditionListPage() {
         key={selectedYear} // 🔥 Esto fuerza a recrear el componente
         endpoint="/api/editions"
         columns={columns}
-        editUrlPrefix="/dashboard/editions"
+        editUrlPrefix="/dashboard/editions/edit"
         deleteUrlPrefix="/api/editions"
         itemName={t("dossierItemName")}
         extraQuery={{ year: selectedYear || undefined }}

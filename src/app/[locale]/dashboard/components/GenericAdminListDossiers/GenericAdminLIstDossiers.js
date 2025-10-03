@@ -6,7 +6,7 @@ const GenericAdminListDossiers = ({
   endpoint,
   columns,
   editUrlPrefix,
-  editPath = "",
+
   deleteUrlPrefix,
   itemName = "dossier",
   onItemDeleted,
@@ -161,7 +161,7 @@ const GenericAdminListDossiers = ({
                       </td>
                     ))}
                     <td className="p-1.5 border text-center">
-                      <Link href={`${editUrlPrefix}/${item.id}${editPath}`}>
+                      <Link href={`${editUrlPrefix}/${item.id}`}>
                         <button className="text-blue-600 hover:underline">
                           ✏️ {t("edit")}
                         </button>
