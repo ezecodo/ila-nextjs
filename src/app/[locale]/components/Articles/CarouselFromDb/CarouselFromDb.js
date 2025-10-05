@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ArticleCarousel from "../ArticleCarousel/ArticleCarousel";
+import IlaLoader from "../../IlaLoader/IlaLoader";
 
 export default function CarouselFromDb() {
   const [carousels, setCarousels] = useState([]);
@@ -20,7 +21,13 @@ export default function CarouselFromDb() {
       });
   }, []);
 
-  if (loading) return <p className="text-center">Cargando carruseles...</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <IlaLoader />
+      </div>
+    );
+  }
 
   return (
     <>

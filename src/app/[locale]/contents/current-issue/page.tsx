@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CartButton from "../../components/CartButton/CartButton";
+import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import { useTranslations, useLocale } from "next-intl";
 
 export default function CurrentIssuePage() {
@@ -331,7 +332,13 @@ export default function CurrentIssuePage() {
   }
 
   if (error) return <p className="text-red-500">{error}</p>;
-  if (!edition) return <p>Cargando edición...</p>;
+  if (!edition) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <IlaLoader />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">

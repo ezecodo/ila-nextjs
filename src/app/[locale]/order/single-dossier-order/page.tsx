@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import EditionsCarousel from "../../components/Editions/EditionsCarousel/EditionsCarousel";
 import OrderForm from "../../components/OrderForm/OrderForm";
+import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 
@@ -86,7 +87,13 @@ export default function SingleDossierOrderPage() {
       });
   }, []);
 
-  if (loading) return <p className="text-center">Loading...</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <IlaLoader />
+      </div>
+    );
+  }
 
   // 👉 Años para normales
   const yearsNormal: number[] = Array.from(

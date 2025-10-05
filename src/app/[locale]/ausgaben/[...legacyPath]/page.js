@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import ImageModal from "../../components/ImageModal/ImageModal";
 import Link from "next/link";
+import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import HoverInfo from "../../components/HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
@@ -85,7 +86,13 @@ export default function LegacyArticlePage() {
   }, [fullPath]);
 
   if (error) return <p className="text-red-500">{t("notFound")}</p>;
-  if (!article) return <p>{t("loading")}</p>;
+  if (!article) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <IlaLoader />
+      </div>
+    );
+  }
   // ✅ Función auxiliar para detectar títulos en párrafos normales
   function autoDetectHeadings(html) {
     if (!html) return "";

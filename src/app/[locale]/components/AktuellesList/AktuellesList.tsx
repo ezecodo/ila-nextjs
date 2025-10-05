@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import SectionHeader from "../SectionsHeader/SetionHeader";
+import IlaLoader from "../IlaLoader/IlaLoader";
 import Image from "next/image";
 
 interface Aktuelles {
@@ -77,10 +78,8 @@ export default function AktuellesList() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        <div className="flex justify-center items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-        </div>
+      <div className="flex justify-center items-center py-20">
+        <IlaLoader />
       </div>
     );
   }

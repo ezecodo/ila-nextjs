@@ -228,7 +228,7 @@ export default function Header() {
             {/* Controles a la derecha - siempre visibles */}
             <div className="flex items-center gap-2 shrink-0 ml-auto">
               {session && (
-                <span className="text-sm text-gray-700 dark:text-gray-300 mr-2 hidden xl:inline">
+                <span className={styles.welcomeText}>
                   {t("greeting", { name: session.user?.name || "Usuario" })}
                 </span>
               )}
