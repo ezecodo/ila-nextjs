@@ -100,10 +100,9 @@ const ArticlesList = ({ mode = "admin" }) => {
 
     if (mode === "translator" && !session?.user?.id) return;
     fetchArticles();
-  }, [page, sortField, sortOrder, mode, session?.user?.id, selectedEdition]); // 👈 añadimos selectedEdition
+  }, [page, sortField, sortOrder, mode, session?.user?.id, selectedEdition]);
 
   const handleSort = (field) => {
-    // En modo reviewer puedes seguir ordenando si tu API lo soporta; si no, puedes early-return aquí.
     setSortOrder(
       sortField === field ? (sortOrder === "asc" ? "desc" : "asc") : "asc"
     );
@@ -111,21 +110,16 @@ const ArticlesList = ({ mode = "admin" }) => {
   };
 
   return (
-    <div className="mt-6 bg-white p-4 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center text-red-600">
-        📄 Lista de Artículos
-        {mode === "reviewer" && " — Para Revisar"}
-        {mode === "assign" && " — Sin Traductor"}
-      </h2>
+    <div className="w-full py-6">
       {mode !== "translator" && (
         <div className="mb-4 flex items-center gap-2">
-          <label className="text-sm font-semibold text-gray-700">
+          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
             Filtrar por Dossier:
           </label>
           <select
             value={selectedEdition}
             onChange={(e) => setSelectedEdition(e.target.value)}
-            className="p-2 border rounded text-sm"
+            className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           >
             <option value="">-- Todos --</option>
             <option value="nur-online">🌐 Nur Online</option>
@@ -144,90 +138,93 @@ const ArticlesList = ({ mode = "admin" }) => {
           </select>
         </div>
       )}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse shadow-md text-sm">
+
+      {/* Tabla con estética moderna */}
+      <div className="overflow-x-auto rounded-lg shadow-lg">
+        <table className="min-w-full border-collapse bg-white dark:bg-gray-900 text-sm">
           <thead>
-            <tr className="bg-red-600 text-white text-xs">
+            <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">
               <th
-                className="p-1.5 border cursor-pointer text-left"
+                className="px-5 py-3 text-left cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                 onClick={() => handleSort("id")}
               >
                 ID ⬍
               </th>
               <th
-                className="p-1.5 border cursor-pointer text-center"
+                className="px-5 py-3 text-center cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                 onClick={() => handleSort("isPublished")}
                 title={locale === "de" ? "Veröffentlicht" : "Publicado"}
               >
                 📢
               </th>
               <th
-                className="p-1.5 border cursor-pointer text-left"
+                className="px-5 py-3 text-left cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                 onClick={() => handleSort("title")}
               >
                 Título ⬍
               </th>
               {mode === "reviewer" && (
-                <th className="p-1.5 border text-left">Traductor</th>
+                <th className="px-5 py-3 text-left">Traductor</th>
               )}
               {mode === "reviewer" && (
-                <th className="p-1.5 border text-left">Estado</th>
+                <th className="px-5 py-3 text-left">Estado</th>
               )}
 
-              {/* Columnas solo para admin (tu lista original) */}
+              {/* Columnas solo para admin */}
               {mode === "admin" && (
                 <>
                   <th
-                    className="p-1.5 border cursor-pointer text-left"
+                    className="px-5 py-3 text-left cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition whitespace-nowrap"
                     onClick={() => handleSort("authors")}
                   >
                     Autor ⬍
                   </th>
                   <th
-                    className="p-1.5 border cursor-pointer text-left"
+                    className="px-5 py-3 text-left cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition whitespace-nowrap"
                     onClick={() => handleSort("categories")}
                   >
                     Categoría ⬍
                   </th>
                   <th
-                    className="p-1.5 border cursor-pointer text-left"
+                    className="px-5 py-3 text-left cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition whitespace-nowrap"
                     onClick={() => handleSort("publicationDate")}
                   >
                     📅 Publicación ⬍
                   </th>
                   <th
-                    className="p-1.5 border cursor-pointer text-left"
+                    className="px-5 py-3 text-left cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition whitespace-nowrap"
                     onClick={() => handleSort("edition")}
                   >
                     📚 Edición ⬍
                   </th>
-                  <th className="p-1.5 border text-center" title="Imagen">
+                  <th className="px-5 py-3 text-center" title="Imagen">
                     🖼️
                   </th>
-                  <th className="p-1.5 border text-left">✏️ Editar</th>
-                  <th className="p-1.5 border text-left">🗑️ </th>
+                  <th className="px-5 py-3 text-center">Editar</th>
+                  <th className="px-5 py-3 text-center">Eliminar</th>
                 </>
               )}
 
-              <th className="p-1.5 border text-left">
+              <th className="px-5 py-3 text-center">
                 {mode === "reviewer" ? "Acciones" : "🌐 Tra"}
               </th>
             </tr>
           </thead>
 
           <tbody>
-            {articles.map((article, index) => (
+            {articles.map((article) => (
               <tr
                 key={article.id}
-                className={`text-gray-700 text-xs ${
-                  index % 2 === 0 ? "bg-gray-100" : "bg-white"
-                } hover:bg-red-100`}
+                className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
               >
-                <td className="p-1.5 border">{article.id}</td>
-                <td className="p-1.5 border text-center">
+                <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
+                  {article.id}
+                </td>
+                <td className="px-5 py-3 text-center">
                   {article.isPublished ? (
                     <span
                       title={locale === "de" ? "Veröffentlicht" : "Publicado"}
+                      className="text-green-600"
                     >
                       ✅
                     </span>
@@ -238,20 +235,21 @@ const ArticlesList = ({ mode = "admin" }) => {
                           ? "Nicht veröffentlicht"
                           : "No publicado"
                       }
+                      className="text-red-600"
                     >
                       ❌
                     </span>
                   )}
                 </td>
 
-                <td className="p-1.5 border">
+                <td className="px-5 py-3">
                   <Link
                     href={
                       article.legacyPath
                         ? `/${locale}${article.legacyPath}`
                         : `/${locale}/articles/${article.id}`
                     }
-                    className="text-blue-600 hover:underline"
+                    className="text-blue-600 hover:underline font-medium"
                     target="_blank"
                   >
                     {locale === "es" && article.isTranslatedES
@@ -259,74 +257,77 @@ const ArticlesList = ({ mode = "admin" }) => {
                       : article.title}
                   </Link>
                 </td>
+
                 {mode === "reviewer" && (
-                  <td className="p-1.5 border text-center text-xs">
+                  <td className="px-5 py-3 text-center">
                     {article.translator ? (
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
                         {article.translator.name || article.translator.email}
                       </span>
                     ) : (
-                      <span className="text-gray-400 italic">
+                      <span className="text-gray-400 italic text-xs">
                         Sin traductor
                       </span>
                     )}
                   </td>
                 )}
+
                 {mode === "reviewer" && (
-                  <td className="p-1.5 border text-center text-xs">
+                  <td className="px-5 py-3 text-center">
                     {article.translationStatus === "submitted" ? (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-800 rounded-full">
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
                         Enviado
                       </span>
                     ) : article.translationStatus === "approved" ? (
-                      <span className="px-2 py-0.5 bg-green-200 text-green-900 rounded-full">
+                      <span className="px-2 py-1 bg-green-200 text-green-900 rounded-full text-xs">
                         Revisado
                         {article.reviewedAt
                           ? ` — ${formatDateTime(article.reviewedAt)}`
                           : ""}
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full">
+                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
                         En progreso
                       </span>
                     )}
                   </td>
                 )}
-                {/* 👇 Aquí añadimos la celda de traductor, solo en modo reviewer */}
 
                 {mode === "admin" && (
                   <>
-                    <td className="p-1.5 border">
+                    <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
                       {article.authors.map((a) => a.name).join(", ")}
                     </td>
-                    <td className="p-1.5 border">
+                    <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
                       {article.categories.map((c) => c.name).join(", ")}
                     </td>
-                    <td className="p-1.5 border">
+                    <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
                       {article.publicationDate
                         ? new Date(article.publicationDate).toLocaleDateString(
                             "es-ES"
                           )
                         : "Sin fecha"}
                     </td>
-                    <td className="p-1.5 border">
+                    <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
                       {article.edition
                         ? `${article.edition.title} (N° ${article.edition.number})`
                         : "Sin edición"}
                     </td>
-                    <td className="p-1.5 border text-center">
-                      {article.images && article.images.length > 0
-                        ? "✔️"
-                        : "❌"}
+                    <td className="px-5 py-3 text-center">
+                      {article.images && article.images.length > 0 ? (
+                        <span className="text-green-600">✔️</span>
+                      ) : (
+                        <span className="text-red-600">❌</span>
+                      )}
                     </td>
-                    <td className="p-1.5 border text-center">
+                    <td className="px-5 py-3 text-center">
                       <Link href={`/dashboard/articles/edit/${article.id}`}>
                         <button className="text-blue-600 hover:underline">
-                          ✏️ Editar
+                          Editar
                         </button>
                       </Link>
                     </td>
-                    <td className="p-1.5 border text-center">
+                    <td className="px-5 py-3 text-center">
                       <button
                         onClick={() => {
                           setArticleToDelete(article);
@@ -335,18 +336,17 @@ const ArticlesList = ({ mode = "admin" }) => {
                         className="text-red-600 hover:text-red-800 font-bold"
                         title="Eliminar artículo"
                       >
-                        ❌
+                        Eliminar
                       </button>
                     </td>
                   </>
                 )}
 
-                <td className="p-1.5 border text-center">
+                <td className="px-5 py-3 text-center">
                   {mode === "assign" && selectedEdition === "translated" ? (
-                    // Vista "Traducidos" → solo nombre + fecha
                     article.translator ? (
                       <div className="flex flex-col items-center text-xs">
-                        <span className="px-2 py-0.5 bg-gray-200 rounded-full text-gray-800">
+                        <span className="px-2 py-1 bg-gray-200 rounded-full text-gray-800">
                           {article.translator.name || article.translator.email}
                         </span>
                         {article.assignedAt && (
@@ -363,10 +363,9 @@ const ArticlesList = ({ mode = "admin" }) => {
                       </span>
                     )
                   ) : mode === "assign" ? (
-                    // Vista "Asignar traducciones" normal
                     article.translator ? (
                       <div className="flex items-center justify-center gap-2 text-xs">
-                        <span className="px-2 py-0.5 bg-gray-200 rounded-full text-gray-800">
+                        <span className="px-2 py-1 bg-gray-200 rounded-full text-gray-800">
                           {article.translator.name || article.translator.email}
                         </span>
                         {article.assignedAt && (
@@ -416,7 +415,7 @@ const ArticlesList = ({ mode = "admin" }) => {
                       <div className="flex items-center justify-center gap-2">
                         <Link
                           href={`/dashboard/articles/translate/${article.id}?mode=review`}
-                          className="px-2 py-1 text-xs border rounded hover:bg-gray-100"
+                          className="px-3 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                           title="Revisar traducción"
                         >
                           👁️ Revisar
@@ -426,25 +425,24 @@ const ArticlesList = ({ mode = "admin" }) => {
                       <div className="flex items-center justify-center gap-2">
                         <Link
                           href={`/dashboard/articles/translate/${article.id}?mode=review`}
-                          className="px-2 py-1 text-xs border rounded hover:bg-gray-100"
+                          className="px-3 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                           title="Revisar nuevamente"
                         >
-                          🔁 Volver a revisar
+                          🔁 Revisar
                         </Link>
                       </div>
                     ) : (
-                      <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                      <span className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg">
                         En progreso
                       </span>
                     )
                   ) : article.isTranslatedES ? (
-                    <div className="flex flex-col items-center justify-center gap-0.5">
+                    <div className="flex flex-col items-center justify-center gap-1">
                       <Check
                         className="w-4 h-4 text-green-600"
                         title="Traducido"
                       />
                       {article.needsReviewES ? (
-                        // 👇 Ocultar "Revisión" para traductor
                         mode === "translator" ? null : (
                           <Link
                             href={`/dashboard/articles/translate/${article.id}?mode=review`}
@@ -488,33 +486,35 @@ const ArticlesList = ({ mode = "admin" }) => {
         </table>
       </div>
 
-      <div className="flex justify-between mt-4">
+      {/* Paginación */}
+      <div className="flex justify-between items-center mt-6">
         <button
           disabled={page === 1}
           onClick={() => setPage(page - 1)}
-          className="p-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+          className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition"
         >
           ⬅️ Anterior
         </button>
-        <span>
+        <span className="text-gray-700 dark:text-gray-300">
           Página {page} de {totalPages}
         </span>
         <button
           disabled={page === totalPages}
           onClick={() => setPage(page + 1)}
-          className="p-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+          className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition"
         >
           Siguiente ➡️
         </button>
       </div>
-      {/* 👇 Modal de confirmación */}
+
+      {/* Modal de confirmación */}
       {isDeleteOpen && articleToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md">
             <h3 className="text-lg font-bold mb-4 text-red-600">
               ¿De veras quieres eliminar este artículo?
             </h3>
-            <p className="mb-4 text-sm text-gray-700">
+            <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
               <span className="block">
                 <strong>Título:</strong> {articleToDelete.title}
               </span>
@@ -530,7 +530,7 @@ const ArticlesList = ({ mode = "admin" }) => {
             <div className="flex justify-end gap-4">
               <button
                 onClick={() => setIsDeleteOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition"
               >
                 Cancelar
               </button>
@@ -554,7 +554,7 @@ const ArticlesList = ({ mode = "admin" }) => {
                     alert("Error al eliminar artículo");
                   }
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
               >
                 Sí, eliminar
               </button>

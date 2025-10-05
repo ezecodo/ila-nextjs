@@ -6,7 +6,6 @@ const GenericAdminListDossiers = ({
   endpoint,
   columns,
   editUrlPrefix,
-
   deleteUrlPrefix,
   itemName = "dossier",
   onItemDeleted,
@@ -19,15 +18,12 @@ const GenericAdminListDossiers = ({
   const [page, setPage] = useState(1);
   const [sortField, setSortField] = useState(defaultSortField || "id");
   const [sortOrder, setSortOrder] = useState(defaultSortOrder || "desc");
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
-  // 👇 usamos traducciones de dossiers
   const t = useTranslations("dossiers");
-
   const limit = 20;
 
   useEffect(() => {
@@ -41,7 +37,7 @@ const GenericAdminListDossiers = ({
         url.searchParams.set("limit", limit);
         url.searchParams.set("sortField", sortField);
         url.searchParams.set("sortOrder", sortOrder);
-        // 👇 añade cualquier query extra (por ej. { year: "2025" })
+
         Object.entries(extraQuery || {}).forEach(([k, v]) => {
           if (v !== undefined && v !== null && String(v) !== "") {
             url.searchParams.set(k, String(v));
@@ -114,66 +110,72 @@ const GenericAdminListDossiers = ({
 
   if (loading)
     return (
-      <p className="text-gray-500">
-        {t("loadingEditions") || "Lade Dossiers..."}
+      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+        {t("loadingEditions") || "Cargando dossiers..."}
       </p>
     );
-  if (error) return <p className="text-red-500">{error}</p>;
+  if (error) return <p className="text-red-500 text-center py-4">{error}</p>;
 
   return (
-    <div className="relative mt-6 bg-white p-4 rounded-lg shadow-lg">
+    <div className="w-full py-6 -mx-2">
+      {" "}
+      {/* ✅ Cambiado: w-full en lugar de max-w-7xl */}
       {items.length === 0 ? (
-        <p className="text-center text-gray-500">{t("noEditions")}</p>
+        <p className="text-center text-gray-500 dark:text-gray-400 py-6">
+          {t("noEditions") || "No hay dossiers disponibles"}
+        </p>
       ) : (
         <>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse shadow-md text-sm">
+          {/* Tabla con estética moderna - ahora ocupará todo el ancho */}
+          <div className="overflow-x-auto rounded-lg shadow-lg min-w-max">
+            <table className="w-max border-collapse bg-white dark:bg-gray-900 text-sm">
               <thead>
-                <tr className="bg-purple-600 text-white text-xs">
+                <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">
                   {columns.map((col) => (
                     <th
                       key={col.key}
-                      className="p-1.5 border cursor-pointer text-left"
+                      className="px-5 py-3 text-left cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition whitespace-nowrap"
                       onClick={() => handleSort(col.key)}
                     >
                       {col.label} ⬍
                     </th>
                   ))}
-                  <th className="p-1.5 border text-left">✏️ {t("edit")}</th>
+                  <th className="px-5 py-3 text-center">Editar</th>
                   {deleteUrlPrefix && (
-                    <th className="p-1.5 border text-left">🗑️ {t("delete")}</th>
+                    <th className="px-5 py-3 text-center">Eliminar</th>
                   )}
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, index) => (
+                {items.map((item) => (
                   <tr
                     key={item.id}
-                    className={`text-gray-700 text-xs ${
-                      index % 2 === 0 ? "bg-gray-100" : "bg-white"
-                    } hover:bg-purple-100`}
+                    className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                   >
                     {columns.map((col) => (
-                      <td key={col.key} className="p-1.5 border">
+                      <td
+                        key={col.key}
+                        className="px-5 py-3 text-gray-900 dark:text-gray-100 whitespace-normal"
+                      >
                         {col.format
                           ? col.format(item[col.key], item)
                           : item[col.key]}
                       </td>
                     ))}
-                    <td className="p-1.5 border text-center">
+                    <td className="px-5 py-3 text-center">
                       <Link href={`${editUrlPrefix}/${item.id}`}>
                         <button className="text-blue-600 hover:underline">
-                          ✏️ {t("edit")}
+                          {t("edit") || "Editar"}
                         </button>
                       </Link>
                     </td>
                     {deleteUrlPrefix && (
-                      <td className="p-1.5 border text-center">
+                      <td className="px-5 py-3 text-center">
                         <button
                           onClick={() => confirmDelete(item)}
-                          className="text-red-500 hover:underline"
+                          className="text-red-600 hover:text-red-800 font-bold"
                         >
-                          ❌
+                          {t("delete") || "Eliminar"}
                         </button>
                       </td>
                     )}
@@ -183,54 +185,54 @@ const GenericAdminListDossiers = ({
             </table>
           </div>
 
-          <div className="flex justify-between mt-4">
+          {/* Paginación */}
+          <div className="flex justify-between items-center mt-6">
             <button
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
-              className="p-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition"
             >
               ⬅️ {t("prevPage") || "Anterior"}
             </button>
-            <span>
-              {t("page")} {page} {t("of")} {totalPages}
+            <span className="text-gray-700 dark:text-gray-300">
+              {t("page") || "Página"} {page} {t("of") || "de"} {totalPages}
             </span>
             <button
               disabled={page === totalPages}
               onClick={() => setPage(page + 1)}
-              className="p-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition"
             >
               {t("nextPage") || "Siguiente"} ➡️
             </button>
           </div>
         </>
       )}
-
-      {/* 🔥 Modal de confirmación */}
+      {/* Modal de confirmación */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg max-w-sm w-full text-center">
-            <h3 className="text-lg font-bold text-red-600 mb-3">
-              {t("confirmDelete")}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md">
+            <h3 className="text-lg font-bold mb-4 text-red-600">
+              {t("confirmDelete") || "Confirmar eliminación"}
             </h3>
-            <p className="text-sm text-gray-700 mb-4">
+            <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
               {t("confirmDeleteDetail") ||
-                `Esta acción no se puede deshacer. ¿Estás seguro que querés eliminar este ${itemName}?`}
+                `Esta acción no se puede deshacer. ¿Estás seguro que quieres eliminar este ${itemName}?`}
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={() => {
                   setShowModal(false);
                   setItemToDelete(null);
                 }}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition"
               >
                 {t("cancel") || "Cancelar"}
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
               >
-                {t("delete")}
+                {t("delete") || "Eliminar"}
               </button>
             </div>
           </div>

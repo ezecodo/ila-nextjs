@@ -65,7 +65,7 @@ export default function EditionListPage() {
   ];
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 w-full max-w-full">
       <h1 className="text-2xl font-bold mb-2 text-purple-700">
         {t("listTitle")}
       </h1>

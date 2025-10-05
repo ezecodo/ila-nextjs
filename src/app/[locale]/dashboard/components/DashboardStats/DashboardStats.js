@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-/* import { Heart } from "lucide-react"; */
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
@@ -21,6 +21,10 @@ const DashboardStats = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const t = useTranslations("stats");
+  const fullPathname = usePathname();
+
+  // Remover el locale del pathname (ej: /de/dashboard/articles -> /dashboard/articles)
+  const pathname = fullPathname?.replace(/^\/(de|es)/, "") || fullPathname;
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -48,59 +52,53 @@ const DashboardStats = () => {
       <StatCard
         icon={
           <span
-            className="font-serif text-lg font-bold text-red-600"
-            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }} // 👈 reemplazar con la futura fuente
+            className="font-serif text-lg font-bold"
+            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
           >
             ila
           </span>
         }
         label=""
         value=""
-        color="text-purple-600"
         href="/dashboard/activity"
+        pathname={pathname}
       />
       <StatCard
-        icon={<FaFileAlt size={18} className="text-blue-600" />}
+        icon={<FaFileAlt size={18} />}
         label={t("articles")}
         value={stats.totalArticles}
-        color="text-blue-600"
         href="/dashboard/articles"
+        pathname={pathname}
       />
       <StatCard
-        icon={<FaBook size={18} className="text-green-600" />}
+        icon={<FaBook size={18} />}
         label={t("editions")}
         value={stats.totalEditions}
-        color="text-green-600"
         href="/dashboard/editions"
-      />{" "}
+        pathname={pathname}
+      />
       <StatCard
-        icon={<FaRegNewspaper size={18} className="text-indigo-600" />}
+        icon={<FaRegNewspaper size={18} />}
         label="Aktuelles"
         value={stats.totalAktuelles}
-        color="text-indigo-600"
         href="/dashboard/aktuelles"
+        pathname={pathname}
       />
-      {/*  <StatCard
-        label={t("users")}
-        value={stats.totalUsers}
-        color="text-yellow-600"
-      /> */}
       <StatCard
         label={t("events")}
         value={stats.totalEvents}
-        color="text-purple-600"
         href="/dashboard/events"
+        pathname={pathname}
       />
       <StatCard
-        icon={<FaSlidersH size={18} className="text-pink-600" />}
+        icon={<FaSlidersH size={18} />}
         label="Carruseles"
-        color="text-pink-600"
         href="/dashboard/carousels"
+        pathname={pathname}
       />
       <StatCardDropdown
-        icon={<FaLanguage size={18} className="text-teal-600" />}
+        icon={<FaLanguage size={18} />}
         label={t("translations")}
-        color="text-teal-600"
         items={[
           {
             label: t("assignTranslations"),
@@ -111,53 +109,65 @@ const DashboardStats = () => {
             href: "/dashboard/reviewer/review",
           },
         ]}
+        pathname={pathname}
       />
-      {/*  <StatCard
-        label={t("favorites")}
-        value={stats.totalLikedArticles}
-        icon={<Heart size={18} className="text-red-500 ml-1" />}
-        color="text-red-600"
-      /> */}
       <StatCard
-        icon={<FaShoppingCart size={18} className="text-orange-600" />}
-        label={t("orders")} // 👈 puedes traducir con t("orders") si lo agregamos al i18n
+        icon={<FaShoppingCart size={18} />}
+        label={t("orders")}
         value={stats.totalOrders}
-        color="text-orange-600"
-        href="/dashboard/orders" // 👈 futura página de administración de pedidos
+        href="/dashboard/orders"
+        pathname={pathname}
       />
       <StatCard
-        icon={<FaCog size={18} className="text-gray-600" />}
+        icon={<FaCog size={18} />}
         label={t("account")}
-        color="text-gray-600"
-        href="/dashboard/account" // 👈 ajusta la ruta a donde esté tu Configuración
+        href="/dashboard/account"
+        pathname={pathname}
       />
       <StatCard
-        icon={<FaQuestionCircle size={18} className="text-blue-600" />}
-        label="" // 👈 vacío
-        value="" // 👈 sin número
-        color="text-blue-600"
+        icon={<FaQuestionCircle size={18} />}
+        label=""
+        value=""
         href="/dashboard/faq"
+        pathname={pathname}
       />
     </div>
   );
 };
 
 // 🧩 Componente reutilizable
-function StatCard({ label, value, color, icon, onClick, href }) {
-  const isCompact = !label && !value; // 👈 detectar FAQ
+function StatCard({ label, value, color, icon, onClick, href, pathname }) {
+  const isCompact = !label && !value;
+
+  // Detectar si la ruta actual coincide con el href
+  const isActive = pathname?.startsWith(href);
 
   const content = (
     <div
       onClick={onClick}
       className={`cursor-pointer flex-shrink-0 ${
         isCompact ? "w-10 h-10 justify-center" : "min-w-[110px] px-4 py-3"
-      } bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 flex items-center gap-2 text-sm`}
+      } bg-white rounded-md shadow-sm border-2 ${
+        isActive
+          ? "border-red-500 bg-red-50 dark:bg-red-900/20" // 🔴 Cambiado a rojo
+          : "border-gray-200 hover:bg-gray-50"
+      } flex items-center gap-2 text-sm transition-all`}
     >
-      {icon && <span>{icon}</span>}
+      {icon && (
+        <span className={isActive ? "font-bold text-red-600" : ""}>{icon}</span>
+      )}
       {!isCompact && (
         <>
-          <span className={`font-bold ${color}`}>{value}</span>
-          <span className="text-gray-600 whitespace-nowrap">{label}</span>
+          <span
+            className={`font-bold ${isActive ? "font-bold text-red-600" : ""} ${color}`}
+          >
+            {value}
+          </span>
+          <span
+            className={`whitespace-nowrap ${isActive ? "font-bold text-red-600" : "text-gray-600"}`}
+          >
+            {label}
+          </span>
         </>
       )}
     </div>
@@ -165,8 +175,12 @@ function StatCard({ label, value, color, icon, onClick, href }) {
 
   return href ? <Link href={href}>{content}</Link> : content;
 }
-export function StatCardDropdown({ icon, label, color, items }) {
+
+export function StatCardDropdown({ icon, label, color, items, pathname }) {
   const [open, setOpen] = useState(false);
+
+  // Detectar si algún item del dropdown está activo
+  const isActive = items.some((item) => pathname?.startsWith(item.href));
 
   return (
     <div
@@ -174,26 +188,46 @@ export function StatCardDropdown({ icon, label, color, items }) {
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
+      {/* Puente invisible para mantener hover */}
+      <div className="absolute left-0 top-full w-full h-1 opacity-0 group-hover:opacity-100" />
+
       {/* Botón */}
-      <div className="cursor-pointer min-w-[140px] px-4 py-3 bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 flex items-center gap-3 text-sm">
-        {icon && <span>{icon}</span>}
-        <span className={`font-bold ${color}`}>{label}</span>
+      <div
+        className={`cursor-pointer min-w-[140px] px-4 py-3 bg-white rounded-md shadow-sm border-2 ${
+          isActive
+            ? "border-red-500 bg-red-50 dark:bg-red-900/20" // 🔴 Cambiado a rojo
+            : "border-gray-200 hover:bg-gray-50"
+        } flex items-center gap-3 text-sm transition-all`}
+      >
+        {icon && <span className={isActive ? "text-red-600" : ""}>{icon}</span>}
+        <span
+          className={`${isActive ? "font-bold text-red-600" : "font-normal text-gray-900"} ${color}`}
+        >
+          {label}
+        </span>
       </div>
 
       {/* Dropdown */}
       {open && (
         <div className="absolute left-0 top-full mt-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-56">
           <ul className="py-2 text-sm text-gray-700">
-            {items.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="block px-4 py-2 hover:bg-gray-100"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            {items.map((item) => {
+              const isItemActive = pathname?.startsWith(item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`block px-4 py-2 ${
+                      isItemActive
+                        ? "bg-blue-100 text-blue-700 font-semibold"
+                        : "hover:bg-gray-100"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

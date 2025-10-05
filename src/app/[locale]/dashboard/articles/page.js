@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 export default function ArticlesPage() {
   const t = useTranslations("dashboard.menu");
   return (
-    <div className="max-w-7xl mx-auto py-10 px-6">
+    <div className="w-full py-4">
       {/* ✅ Header unificado */}
       <DashboardSectionHeader
         title={t("listTitle")} // 👈 Ej: "Lista de Artículos"
