@@ -151,6 +151,32 @@
     "filterByYear": "Nach Jahr filtern",
     "allYears": "Alle Jahre"
   },
+  "editionTranslate": {
+    "pageTitle": "Ausgabe übersetzen",
+    "translationMode": "Übersetzungsmodus",
+    "savedAgo": "Gespeichert vor {time}",
+    "notSaved": "Nicht gespeichert",
+    "saving": "Speichern...",
+    "progress": "{completed} von {total} ausgefüllt",
+    "saveNow": "Jetzt speichern",
+    "saveDraft": "Entwurf speichern",
+    "submitTranslation": "Übersetzung absenden",
+    "back": "Zurück",
+    "titleLabel": "Titel auf Spanisch",
+    "subtitleLabel": "Untertitel auf Spanisch",
+    "summaryLabel": "Zusammenfassung auf Spanisch",
+    "tableOfContentsLabel": "Inhaltsverzeichnis auf Spanisch",
+    "original": "Original",
+    "viewOriginal": "Original ansehen",
+    "hideOriginal": "Original ausblenden",
+    "pending": "Noch zu übersetzen",
+    "translated": "Übersetzt ({count} Zeichen)",
+    "confirmSubmit": "Sind Sie sicher, dass Sie diese Übersetzung absenden möchten?",
+    "missingFields": "Fehlende Pflichtfelder: Titel und Zusammenfassung",
+    "submitSuccess": "Übersetzung erfolgreich abgesendet",
+    "submitError": "Fehler beim Absenden der Übersetzung",
+    "publishedOn": "Veröffentlicht am"
+  },
   "main": {
     "prev": "Vorherige",
     "next": "Nächste"

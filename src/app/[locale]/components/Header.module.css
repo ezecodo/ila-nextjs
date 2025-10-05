@@ -11,8 +11,8 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-
   width: 100%;
+  overflow: visible; /* ← AÑADIDO */
 }
 
 /* 🔥 Contenedor superior con logo y botones */
@@ -264,6 +264,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  overflow: visible; /* ← AÑADIDO */
 }
 
 .compact .desktopMain,
@@ -276,10 +277,30 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  overflow: visible; /* ← AÑADIDO */
 }
 
 .compact .logo {
   width: 40px;
   height: auto;
   max-height: 40px;
+}
+/* 🔥 FIX para dropdowns en header compacto */
+.compact > div {
+  overflow: visible !important;
+}
+
+.compact * {
+  overflow: visible !important;
+}
+/* 🔥 FIX CRÍTICO: Asegurar que dropdowns sean visibles */
+.compact > div,
+.compact > div > div {
+  overflow: visible !important;
+}
+
+/* Permitir que elementos dentro del compact sean visibles */
+.compact nav,
+.compact nav > div {
+  overflow: visible !important;
 }

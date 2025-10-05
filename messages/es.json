@@ -147,6 +147,34 @@
     "filterByYear": "Filtrar por año",
     "allYears": "Todos los años"
   },
+
+  "editionTranslate": {
+    "pageTitle": "Traducir edición",
+    "translationMode": "Modo traducción",
+    "savedAgo": "Guardado hace {time}",
+    "notSaved": "Sin guardar",
+    "saving": "Guardando...",
+    "progress": "{completed} de {total} completo",
+    "saveNow": "Guardar ahora",
+    "saveDraft": "Guardar borrador",
+    "submitTranslation": "Enviar traducción",
+    "back": "Volver",
+    "titleLabel": "Título en español",
+    "subtitleLabel": "Subtítulo en español",
+    "summaryLabel": "Resumen en español",
+    "tableOfContentsLabel": "Tabla de contenidos en español",
+    "original": "Original",
+    "viewOriginal": "Ver original",
+    "hideOriginal": "Ocultar original",
+    "pending": "Pendiente de traducir",
+    "translated": "Traducido ({count} caracteres)",
+    "confirmSubmit": "¿Estás seguro de enviar esta traducción?",
+    "missingFields": "Faltan campos obligatorios: Título y Resumen",
+    "submitSuccess": "Traducción enviada correctamente",
+    "submitError": "Error al enviar la traducción",
+    "publishedOn": "Publicado el"
+  },
+
   "main": {
     "prev": "Anterior",
     "next": "Siguiente"

@@ -15,12 +15,14 @@ import { useLocale } from "next-intl";
 import DesktopNavMenu from "./DesktopNavMenu/DesktopNavMenu";
 
 export default function Header() {
-  const [isCompact, setIsCompact] = useState(false);
+  const pathname = usePathname();
+  const isDashboard = pathname?.includes("/dashboard");
+
+  const [isCompact, setIsCompact] = useState(isDashboard);
   const [lastScrollY, setLastScrollY] = useState(0);
   const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
   const t = useTranslations("header");
   const searchParams = useSearchParams();
   const query = searchParams.get("query");
@@ -32,11 +34,9 @@ export default function Header() {
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
       const savedTheme = localStorage.getItem("theme");
-      // Si el sistema está en DARK → activar dark mode
       if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
         return true;
       }
-      // Si el sistema está en LIGHT → respetar toggle guardado
       return savedTheme === "dark";
     }
     return false;
@@ -46,15 +46,23 @@ export default function Header() {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
+    if (isDashboard) {
+      setIsCompact(true);
+    } else {
+      setIsCompact(window.scrollY > 150);
+    }
+  }, [isDashboard]);
+
+  useEffect(() => {
+    if (isDashboard) return;
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // 🔽 Si estás muy abajo y bajando → compactar
       if (currentScrollY > 150 && currentScrollY > lastScrollY) {
         setIsCompact(true);
       }
 
-      // 🔼 Si estás completamente arriba (top 0) → expandir
       if (currentScrollY <= 0) {
         setIsCompact(false);
       }
@@ -64,7 +72,7 @@ export default function Header() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, isDashboard]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -75,19 +83,16 @@ export default function Header() {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode, mounted]);
-  // Escuchar cuando el sistema cambia a dark mode
+
   useEffect(() => {
     if (!mounted) return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const handleSystemThemeChange = (e) => {
-      // Cuando el sistema cambia a DARK → activar nuestro dark mode
       if (e.matches) {
         setDarkMode(true);
       }
-      // Cuando el sistema cambia a LIGHT → mantener toggle actual
-      // (no forzar light mode)
     };
 
     mediaQuery.addEventListener("change", handleSystemThemeChange);
@@ -99,7 +104,8 @@ export default function Header() {
     await signOut({ redirect: false });
     router.push("/");
   };
-  let dashboardRoute = "/dashboard-users"; // por defecto
+
+  let dashboardRoute = "/dashboard-users";
 
   if (session?.user?.role === "admin") {
     dashboardRoute = "/dashboard";
@@ -112,10 +118,7 @@ export default function Header() {
   return (
     <header className={`${styles.header} ${isCompact ? styles.compact : ""}`}>
       {/* Mobile top */}
-      {/* Mobile top */}
-      {/* Mobile top */}
       <div className="w-full flex md:hidden items-center px-4 py-2">
-        {/* Logo + tagline a la IZQ */}
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <Image src="/ila-logo.png" alt="ila Logo" width={45} height={45} />
           <span
@@ -126,9 +129,7 @@ export default function Header() {
           </span>
         </Link>
 
-        {/* Idiomas encima del toggle */}
         <div className="ml-auto flex flex-col items-center gap-1 w-10">
-          {/* Selector idioma */}
           <div className="text-xs font-semibold uppercase tracking-wide text-center">
             {locale === "de" && (
               <button
@@ -150,7 +151,6 @@ export default function Header() {
             )}
           </div>
 
-          {/* Botón hamburguesa */}
           <button
             className="p-2 text-current"
             onClick={toggleMenu}
@@ -160,16 +160,15 @@ export default function Header() {
           </button>
         </div>
       </div>
+
       {/* Mobile menu */}
       {menuOpen && (
         <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-md flex flex-col gap-4">
-          {/* Menú principal */}
           <DesktopNavMenu
             isMobile={true}
             onLinkClick={() => setMenuOpen(false)}
           />
 
-          {/* Botones de usuario */}
           <div className="flex items-center justify-center gap-4 mt-4">
             {session ? (
               <>
@@ -203,12 +202,12 @@ export default function Header() {
         </div>
       )}
 
-      {/* Desktop compact */}
+      {/* Desktop compact - ACTUALIZADO con controles a la derecha */}
       {isCompact && (
-        <div className="hidden md:flex w-full px-4 py-2">
-          <div className="max-w-7xl mx-auto w-full grid grid-cols-[auto,1fr,auto] items-center">
+        <div className="hidden md:flex w-full px-4 py-2 overflow-visible">
+          <div className="max-w-7xl mx-auto w-full flex items-center gap-4 overflow-visible">
             {/* Logo a la izquierda */}
-            <Link href="/" className="justify-self-start">
+            <Link href="/" className="shrink-0">
               <Image
                 src="/ila-logo.png"
                 alt="ILA Logo"
@@ -217,13 +216,97 @@ export default function Header() {
               />
             </Link>
 
-            {/* Menú perfectamente CENTRADO */}
-            <div className="justify-self-center overflow-x-visible whitespace-nowrap">
-              <DesktopNavMenu />
+            {/* 🎯 SOLUCIÓN FLEXBOX: Menú ocupa todo el espacio disponible */}
+            <div className="flex-1 flex justify-center min-w-0">
+              <div className="whitespace-nowrap min-w-0">
+                <div className="overflow-x-auto overflow-y-visible">
+                  <DesktopNavMenu />
+                </div>
+              </div>
             </div>
 
-            {/* Espaciador a la derecha (si luego quieres, pon aquí SearchBar u otro control) */}
-            <div className="justify-self-end" />
+            {/* Controles a la derecha - siempre visibles */}
+            <div className="flex items-center gap-2 shrink-0 ml-auto">
+              {session && (
+                <span className="text-sm text-gray-700 dark:text-gray-300 mr-2 hidden xl:inline">
+                  {t("greeting", { name: session.user?.name || "Usuario" })}
+                </span>
+              )}
+
+              {/* Menú de usuario unificado con dropdown */}
+              {session ? (
+                <div className="relative group pointer-events-none">
+                  <button
+                    className={`${styles.iconButton} pointer-events-auto`}
+                  >
+                    <FaUser />
+                  </button>
+                  <div className="hidden group-hover:block absolute right-0 top-full bg-white dark:bg-gray-800 shadow-lg rounded-md py-1 min-w-[140px] z-50 pointer-events-auto">
+                    <Link
+                      href={dashboardRoute}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <FaTachometerAlt className="text-xs" />
+                      <span>Dashboard</span>
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+                    >
+                      <FaSignOutAlt className="text-xs" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button className={styles.iconButton} onClick={() => signIn()}>
+                  <FaUser />
+                </button>
+              )}
+
+              {/* Dark mode toggle */}
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={darkMode}
+                  onChange={() => setDarkMode(!darkMode)}
+                  aria-label="Toggle dark mode"
+                />
+                <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-black transition-colors" />
+                <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white dark:bg-gray-200 flex items-center justify-center text-[10px]">
+                  {mounted ? (darkMode ? "🌙" : "☀️") : "☀️"}
+                </div>
+              </label>
+
+              {/* Language switcher */}
+              <div className={styles.languageSwitcher}>
+                {locale === "de" && (
+                  <button
+                    onClick={() =>
+                      router.replace(`${pathname}${queryParam}`, {
+                        locale: "es",
+                      })
+                    }
+                    className={styles.langButton}
+                  >
+                    ES
+                  </button>
+                )}
+                {locale === "es" && (
+                  <button
+                    onClick={() =>
+                      router.replace(`${pathname}${queryParam}`, {
+                        locale: "de",
+                      })
+                    }
+                    className={styles.langButton}
+                  >
+                    DE
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -295,13 +378,11 @@ export default function Header() {
         </div>
       )}
 
-      {/* Desktop main - LAYOUT ARREGLADO */}
+      {/* Desktop main */}
       {!isCompact && (
         <div className="w-full hidden md:flex px-4 pt-2 pb-0">
           <div className="max-w-7xl mx-auto w-full">
-            {/* NUEVA estructura responsiva con Grid */}
             <div className="flex items-center justify-center gap-4 h-[96px] lg:gap-6">
-              {/* Columna izquierda: Logo */}
               <div className="justify-self-start">
                 <Link
                   href="/"
@@ -318,7 +399,6 @@ export default function Header() {
                 </Link>
               </div>
 
-              {/* Columna central: Tagline */}
               <div className="text-center xl:whitespace-nowrap whitespace-normal">
                 <span
                   className="text-[1.4rem] lg:text-[1.9rem] xl:text-[2.4rem] font-bold leading-tight"
@@ -361,7 +441,6 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Fila inferior: menú centrado */}
             <div className="flex items-center justify-center py-2">
               <div className="shrink-0 overflow-x-visible whitespace-nowrap">
                 <DesktopNavMenu />

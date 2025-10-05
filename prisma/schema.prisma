@@ -89,12 +89,16 @@ model Edition {
   id                 Int       @id @default(autoincrement())
   number             Int       @unique
   title              String
+   isTranslatedES    Boolean   @default(false)
   createdAt          DateTime  @default(now())
   datePublished      DateTime  @default(now())
   subtitle           String?
+  subtitleES        String?
   summary            String    @db.Text
+  summaryES         String?   @db.Text
   isCurrent          Boolean   @default(false)
   tableOfContents    String?   @db.Text
+   tableOfContentsES String?   @db.Text
   backgroundImage    String?
   coverImage         String?
   isAvailableToOrder Boolean?

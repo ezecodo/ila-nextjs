@@ -30,17 +30,14 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
     return (
       <nav>
         <ul className="flex flex-col gap-1 text-lg font-medium text-center">
-          {/* 1) Saludo */}
           {session && (
             <li className="py-2 text-base font-semibold">
               {t("greeting", { name: session.user.name })}
             </li>
           )}
 
-          {/* 2) Secciones desplegables */}
           {navSections.map((sec) => (
             <React.Fragment key={sec.labelKey}>
-              {/* Caso especial: Home → Link directo */}
               {!sec.items ? (
                 <li className="py-2">
                   <Link
@@ -56,7 +53,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                 </li>
               ) : (
                 <>
-                  {/* Sección con items o sub-items */}
                   <li
                     className="py-2 cursor-pointer hover:text-red-600 transition-colors"
                     onClick={() => toggleSection(sec.labelKey)}
@@ -72,7 +68,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                       {sec.items.map((item) => (
                         <React.Fragment key={item.labelKey}>
                           {item.items ? (
-                            // 👉 Caso submenú (ej: Service)
                             <>
                               <li
                                 className="py-1 cursor-pointer hover:text-red-600 transition-colors flex items-center justify-between"
@@ -103,7 +98,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                               )}
                             </>
                           ) : (
-                            // 👉 Caso link normal
                             <li key={item.href}>
                               <Link
                                 href={item.href}
@@ -126,12 +120,10 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
             </React.Fragment>
           ))}
 
-          {/* 3) SearchBar */}
           <li className="pt-4 px-4">
             <SearchBar />
           </li>
 
-          {/* 4) Separador */}
           <li>
             <hr className="border-gray-200 dark:border-gray-700 my-4" />
           </li>
@@ -142,24 +134,35 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
 
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   return (
-    <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-6 py-2 rounded-lg shadow-md dark:shadow-lg">
-      <div className="flex items-center justify-center gap-8">
+    <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-4 py-2 rounded-lg shadow-md dark:shadow-lg relative inline-block">
+      <div className="flex items-center gap-6 relative">
         {navSections.map((sec) =>
           sec.items ? (
-            <div key={sec.labelKey} className="relative group">
-              <span className="font-semibold text-gray-800 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer">
+            <div key={sec.labelKey} className="relative group static">
+              <span className="font-semibold text-gray-800 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer py-2">
                 {t(sec.labelKey)}
               </span>
 
-              <ul className="absolute left-0 top-full w-56 bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-opacity">
+              {/* Puente invisible para mantener hover */}
+              <div className="absolute left-0 top-full w-full h-2 opacity-0 group-hover:opacity-100" />
+
+              {/* Dropdown con delay reducido */}
+              <ul className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-150 z-[100]">
                 {sec.items.map((item) =>
                   item.items ? (
-                    // 👉 Submenú "Service"
-                    <li key={item.labelKey} className="relative group/item">
+                    <li
+                      key={item.labelKey}
+                      className="relative group/item static"
+                    >
                       <span className="block px-4 py-2 font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                         {t(item.labelKey)} →
                       </span>
-                      <ul className="absolute left-full top-0 min-w-[16rem] bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-opacity whitespace-normal">
+
+                      {/* Puente invisible para submenú */}
+                      <div className="absolute left-full top-0 w-2 h-full opacity-0 group-hover/item:opacity-100" />
+
+                      {/* Submenú con delay reducido */}
+                      <ul className="absolute left-full top-0 min-w-[16rem] bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-all duration-150 whitespace-normal z-[101]">
                         {item.items.map((sub) => (
                           <li key={sub.href}>
                             <Link
@@ -173,7 +176,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
                       </ul>
                     </li>
                   ) : (
-                    // 👉 Item normal
                     <li key={item.href}>
                       <Link
                         href={item.href}
@@ -187,7 +189,6 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
               </ul>
             </div>
           ) : (
-            // 👉 Caso "Home" (sin items)
             <Link
               key={sec.labelKey}
               href={sec.href}
@@ -198,8 +199,7 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
           )
         )}
 
-        {/* SearchBar al final, mismo look */}
-        <div className="ml-8 w-64">
+        <div className="pl-6 border-l border-gray-300 dark:border-gray-600">
           <SearchBar />
         </div>
       </div>
