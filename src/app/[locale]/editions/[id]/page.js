@@ -175,17 +175,17 @@ export default function EditionDetails() {
     const displayContents = isExpanded ? contents : contents.slice(0, 6);
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-2">
         {displayContents.map((article) => (
           <div
             key={article.id}
             id={`article-${article.id}`}
             ref={(el) => (articleRefs.current[`article-${article.id}`] = el)}
-            className={`group p-5 rounded-xl border-2 transition-all duration-200 ${
+            className={`group p-3 rounded-lg border transition-all duration-200 ${
               article.isLinked
-                ? "border-blue-200 dark:border-blue-800 bg-gradient-to-r from-red-50 to-red-25 dark:from-red-900/20 dark:to-red-800/10 hover:from-red-100 hover:to-red-50 dark:hover:from-red-900/30 dark:hover:to-red-800/20 shadow-sm hover:shadow-md"
+                ? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 shadow-sm hover:shadow cursor-pointer"
                 : article.isSection
-                  ? "border-red-200 dark:border-red-800 bg-gradient-to-r from-red-50 to-red-25 dark:from-red-900/20 dark:to-red-800/10"
+                  ? "border-red-300 dark:border-red-700 bg-red-100 dark:bg-red-900/20"
                   : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
@@ -193,37 +193,48 @@ export default function EditionDetails() {
               <a
                 href={article.matchedArticle?.legacyPath || "#"}
                 onClick={(e) => handleArticleClick(article, e)}
-                className="block cursor-pointer"
+                className="block"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      {article.pageNumber && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-600 text-white">
-                          {t("page")} {article.pageNumber}
-                        </span>
-                      )}
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                        {t("article")}
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200">
+                        Artikel
                       </span>
                     </div>
-                    <h3 className="text-lg font-bold text-red-800 dark:text-red-200 group-hover:text-red-900 dark:group-hover:text-blue-100 leading-tight mb-2">
+
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-red-700 dark:group-hover:text-red-300 leading-snug mb-1">
                       {article.title}
                     </h3>
+
                     {article.subtitle && (
-                      <p className="text-sm text-gray-700 dark:text-gray-300 italic mb-2 leading-relaxed">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed mb-1">
                         {article.subtitle}
                       </p>
                     )}
-                    {article.author && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                        {article.author}
-                      </p>
-                    )}
+
+                    <div className="flex items-center gap-2 text-xs">
+                      {article.author && (
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">
+                          {article.author}
+                        </span>
+                      )}
+                      {article.pageNumber && (
+                        <>
+                          {article.author && (
+                            <span className="text-gray-400">•</span>
+                          )}
+                          <span className="text-gray-400 dark:text-gray-600">
+                            S. {article.pageNumber}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="ml-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200 transform group-hover:translate-x-1">
+
+                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <svg
-                      className="w-6 h-6 text-red-600 dark:text-red-400"
+                      className="w-4 h-4 text-red-600 dark:text-red-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -239,22 +250,18 @@ export default function EditionDetails() {
                 </div>
               </a>
             ) : (
-              <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-3">
-                    {article.pageNumber && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gray-600 text-white">
-                        {t("page")} {article.pageNumber}
+                  {article.isSection && (
+                    <div className="mb-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-600 text-white">
+                        Aktuelles
                       </span>
-                    )}
-                    {article.isSection && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-600 text-white">
-                        {t("section")}
-                      </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
                   <h3
-                    className={`text-lg leading-tight mb-2 ${
+                    className={`text-sm leading-snug mb-1 ${
                       article.isSection
                         ? "font-bold text-red-800 dark:text-red-200"
                         : "font-semibold text-gray-800 dark:text-gray-200"
@@ -262,31 +269,46 @@ export default function EditionDetails() {
                   >
                     {article.title}
                   </h3>
+
                   {article.subtitle && (
-                    <p className="text-sm text-gray-700 dark:text-gray-300 italic mb-2 leading-relaxed">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed mb-1">
                       {article.subtitle}
                     </p>
                   )}
-                  {article.author && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                      {article.author}
-                    </p>
-                  )}
+
+                  <div className="flex items-center gap-2 text-xs">
+                    {article.author && (
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">
+                        {article.author}
+                      </span>
+                    )}
+                    {article.pageNumber && (
+                      <>
+                        {article.author && (
+                          <span className="text-gray-400">•</span>
+                        )}
+                        <span className="text-gray-400 dark:text-gray-600">
+                          S. {article.pageNumber}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
           </div>
         ))}
+
         {contents.length > 6 && (
-          <div className="text-center pt-6">
+          <div className="text-center pt-4">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="inline-flex items-center px-6 py-3 text-sm font-medium text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 border-2 border-red-300 dark:border-red-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="inline-flex items-center px-4 py-2 text-xs font-medium text-red-700 dark:text-red-300 bg-white dark:bg-gray-800 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 shadow-sm hover:shadow rounded"
             >
               {isExpanded ? (
                 <>
                   <svg
-                    className="w-5 h-5 mr-2"
+                    className="w-4 h-4 mr-1.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -303,7 +325,7 @@ export default function EditionDetails() {
               ) : (
                 <>
                   <svg
-                    className="w-5 h-5 mr-2"
+                    className="w-4 h-4 mr-1.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"

@@ -18,8 +18,8 @@ const Footer = () => {
           />
         </div>
         <p className={styles.text}>
-          © 2025 <span className={styles.logoText}>ila</span> –
-          Informationsstelle Lateinamerika e.V. Bonn
+          © <span className={styles.logoText}>ila</span> – Informationsstelle
+          Lateinamerika e.V. Bonn 2025
         </p>
         <ul className={styles.socials}>
           <li>
