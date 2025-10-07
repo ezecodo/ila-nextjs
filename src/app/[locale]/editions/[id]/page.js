@@ -456,7 +456,7 @@ export default function EditionDetails() {
             </button>
           </div>
         </div>
-        <div className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200">
+        <div className="article-content font-serif text-lg md:text-xlleading-normal text-gray-800 dark:text-gray-200">
           {edition.summary ? (
             // Si contiene etiquetas HTML, renderizar como HTML
             /<\/?[a-z][\s\S]*>/i.test(edition.summary) ? (
@@ -464,7 +464,7 @@ export default function EditionDetails() {
             ) : (
               // Si es texto plano, dividir en párrafos por saltos de línea
               edition.summary.split("\n").map((line, i) => (
-                <p key={i} className="mb-4">
+                <p key={i} className="mb-1">
                   {line}
                 </p>
               ))
