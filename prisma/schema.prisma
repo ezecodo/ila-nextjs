@@ -142,6 +142,70 @@ model OrderItem {
 
   qty       Int      @default(1)
 }
+model Subscription {
+  id                  String   @id @default(uuid())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  type                SubscriptionType
+  format              SubscriptionFormat
+  donationExtra       Float?
+  isGift              Boolean        @default(false)
+  startYear           Int            @default(2025)
+
+  salutation          String?
+  firstName           String
+  lastName            String
+  institution         String?
+  street              String
+  addressExtra        String?
+  zip                 String
+  city                String
+  country             String
+  phone               String?
+  email               String
+  message             String?
+
+  giftRecipientName    String?
+  giftRecipientEmail   String?
+  giftRecipientStreet  String?
+  giftRecipientZip     String?
+  giftRecipientCity    String?
+  giftRecipientCountry String?
+
+  giftId              String?
+  gift                Gift?          @relation(fields: [giftId], references: [id])
+
+  termsAccepted       Boolean
+  withdrawalAccepted  Boolean
+  dataConsentAccepted Boolean
+}
+
+enum SubscriptionType {
+  NORMAL
+  NORMAL_PDF
+  SUPPORTER
+  REDUCED
+  TRIAL
+}
+
+enum SubscriptionFormat {
+  PRINT
+  PDF
+}
+
+model Gift {
+  id              String          @id @default(cuid())
+  name            String
+  description     String?
+  imageUrl        String?
+  isActive        Boolean         @default(true)
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  subscriptions   Subscription[]
+}
 model Beitragstyp {
   id        Int              @id @default(autoincrement())
   name      String           @unique
