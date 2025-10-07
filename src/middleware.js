@@ -4,55 +4,78 @@ import { NextResponse } from "next/server";
 import NextAuth from "next-auth";
 import authConfig from "@/auth.config";
 
+// ✅ Inicializamos middlewares
 const intlMiddleware = createMiddleware(routing);
 export const { auth: middlewareAuth } = NextAuth(authConfig);
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // 👮 Rutas protegidas (dashboard)
-  const isProtectedRoute =
+  // 🧱 Zonas del dashboard
+  const isAdminArea =
     pathname.startsWith("/es/dashboard") ||
-    pathname.startsWith("/de/dashboard") ||
+    pathname.startsWith("/de/dashboard");
+
+  const isTranslatorArea =
+    pathname.startsWith("/es/dashboard/translators") ||
+    pathname.startsWith("/de/dashboard/translators");
+
+  const isUserArea =
     pathname.startsWith("/es/dashboard-users") ||
     pathname.startsWith("/de/dashboard-users");
 
+  const isProtectedRoute = isAdminArea || isTranslatorArea || isUserArea;
+
+  // 🧩 Si la ruta está protegida
   if (isProtectedRoute) {
     const session = await middlewareAuth();
+
+    // 🚫 No autenticado
     if (!session) {
       return NextResponse.redirect(
         new URL(`/${req.nextUrl.locale}/auth/signin`, req.url)
       );
     }
-  }
 
-  // 🌐 Detectar si es una URL legacy sin prefijo de idioma
-  const hasLocale = pathname.startsWith("/es") || pathname.startsWith("/de");
-  const isLegacyPath = pathname.startsWith("/ausgaben/") && !hasLocale;
+    const role = session.user?.role || "guest";
 
-  if (isLegacyPath) {
-    // Chequear si existe ese legacyPath en la base de datos
-    try {
-      const apiUrl = new URL(`/api/articles/by-legacy-path`, req.url);
-      apiUrl.searchParams.set("path", pathname);
+    // ✅ Admin accede a todo
+    if (role === "admin") {
+      return intlMiddleware(req);
+    }
 
-      const res = await fetch(apiUrl.toString());
-      if (res.ok) {
-        // Si existe, redirigimos a la versión con /de (por defecto)
-        const locale = "de"; // o "es" si prefieres
-        const rewriteUrl = new URL(`/${locale}${pathname}`, req.url);
-        return NextResponse.rewrite(rewriteUrl);
+    // ✅ Translator solo a su zona
+    if (role === "translator") {
+      if (!isTranslatorArea) {
+        console.warn(
+          "🚫 Translator intentó acceder a zona restringida:",
+          pathname
+        );
+        return NextResponse.redirect(
+          new URL(`/${req.nextUrl.locale}/dashboard/translators`, req.url)
+        );
       }
-    } catch (err) {
-      console.error("Error verificando legacyPath en middleware:", err);
+    }
+
+    // ✅ User solo a dashboard-users
+    if (role === "user") {
+      if (!isUserArea) {
+        console.warn(
+          "🚫 User intentó acceder a dashboard restringido:",
+          pathname
+        );
+        return NextResponse.redirect(
+          new URL(`/${req.nextUrl.locale}/dashboard-users`, req.url)
+        );
+      }
     }
   }
 
-  // 🌍 Pasar por middleware de internacionalización
+  // 🌍 Pasar por middleware de internacionalización para todo lo demás
   return intlMiddleware(req);
 }
 
-// ✅ Evita /api, /_next, /_vercel, etc.
+// ✅ Evitar /api, _next, _vercel, archivos estáticos, etc.
 export const config = {
-  matcher: "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
+  matcher: ["/((?!api|trpc|_next|_vercel|.*\\..*).*)"],
 };

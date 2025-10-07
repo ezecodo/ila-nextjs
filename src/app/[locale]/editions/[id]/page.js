@@ -108,8 +108,17 @@ export default function EditionDetails() {
         }
 
         const titleWithoutPage = line.replace(/^\d+\s*/, "");
+        function normalizeText(str) {
+          return str
+            ?.normalize("NFC") // Fuerza forma canónica (ó → ó)
+            .toLowerCase()
+            .trim();
+        }
+
+        const normalizedTitle = normalizeText(titleWithoutPage);
+
         let matchedArticle = articles.find((article) =>
-          titleWithoutPage.toLowerCase().includes(article.title.toLowerCase())
+          normalizeText(article.title).includes(normalizedTitle)
         );
 
         if (!matchedArticle && lines[i + 1]) {
@@ -134,6 +143,11 @@ export default function EditionDetails() {
         if (line.toLowerCase().startsWith("von ")) {
           currentArticle.author = line;
         } else if (!currentArticle.subtitle) {
+          // 🚫 Evitar líneas que no son subtítulos reales (Titelfoto, Foto, Bild, Abbildung, etc.)
+          if (/^(titelfoto|foto|bild|abbildung)\s*[:]/i.test(line)) {
+            continue; // saltamos esta línea sin guardarla
+          }
+
           currentArticle.subtitle = line;
         }
       } else {
@@ -197,12 +211,6 @@ export default function EditionDetails() {
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-200">
-                        Artikel
-                      </span>
-                    </div>
-
                     <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-red-700 dark:group-hover:text-red-300 leading-snug mb-1">
                       {article.title}
                     </h3>
@@ -252,19 +260,11 @@ export default function EditionDetails() {
             ) : (
               <div className="flex items-start gap-3">
                 <div className="flex-1">
-                  {article.isSection && (
-                    <div className="mb-1">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-600 text-white">
-                        Aktuelles
-                      </span>
-                    </div>
-                  )}
-
                   <h3
-                    className={`text-sm leading-snug mb-1 ${
+                    className={`leading-snug mb-1 ${
                       article.isSection
-                        ? "font-bold text-red-800 dark:text-red-200"
-                        : "font-semibold text-gray-800 dark:text-gray-200"
+                        ? "text-base font-bold text-gray-900 dark:text-gray-100 tracking-normal"
+                        : "text-sm font-semibold text-gray-800 dark:text-gray-200"
                     }`}
                   >
                     {article.title}
@@ -416,6 +416,45 @@ export default function EditionDetails() {
               day: "numeric",
             })}
           </p>
+          <div className="flex justify-end mb-6">
+            <button
+              onClick={() => {
+                const element = document.querySelector("#tableOfContents h2");
+                if (element) {
+                  const offset = -80; // 👈 ajusta según altura del header
+                  const top =
+                    element.getBoundingClientRect().top +
+                    window.scrollY +
+                    offset;
+                  window.scrollTo({ top, behavior: "smooth" });
+                }
+              }}
+              className="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full 
+    border border-red-300/70 dark:border-red-700/70 
+    bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm
+    text-red-700 dark:text-red-300 
+    hover:bg-red-600 hover:text-white dark:hover:bg-red-500 
+    transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-[2px]"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 transition-transform group-hover:-translate-y-[1px]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              {locale === "de"
+                ? "Zum Inhaltsverzeichnis"
+                : "Ir al índice de contenidos"}
+            </button>
+          </div>
         </div>
         <div className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200">
           {edition.summary ? (
@@ -437,7 +476,7 @@ export default function EditionDetails() {
         <div className="clear-both"></div>
       </div>
       {edition.tableOfContents && (
-        <div className="my-8">
+        <div id="tableOfContents" className="my-8 scroll-mt-24">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg">
               <svg
