@@ -155,6 +155,24 @@
     "filterByYear": "Nach Jahr filtern",
     "allYears": "Alle Jahre"
   },
+  "gifts": {
+    "title": "🎁 Prämien verwalten",
+    "addNew": "Neue Prämie hinzufügen",
+    "cancel": "Abbrechen",
+    "name": "Name der Prämie",
+    "description": "Beschreibung",
+    "save": "Speichern",
+    "noGifts": "Keine Prämien gefunden.",
+    "loading": "Lade Prämien...",
+    "successCreate": "Prämie wurde erfolgreich erstellt!",
+    "errorCreate": "Fehler beim Erstellen der Prämie.",
+    "imageLabel": "Bild der Prämie",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "confirmDelete": "Möchtest du diese Prämie wirklich löschen?"
+  },
   "editionTranslate": {
     "pageTitle": "Ausgabe übersetzen",
     "translationMode": "Übersetzungsmodus",
@@ -496,6 +514,7 @@
   },
   "galleryManager": {
     "sectionTitle": "Bildergalerie",
+    "coverLabel": "Titelbild",
     "selectFileFirst": "Bitte zuerst eine Bilddatei auswählen",
     "altTextLabel": "Alternativtext (Barrierefreiheit)",
     "altTextPlaceholder": "Bild kurz für Screenreader beschreiben",

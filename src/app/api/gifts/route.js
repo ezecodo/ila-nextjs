@@ -31,15 +31,44 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { name, description, imageUrl, isActive = true } = body;
+    // ✅ Procesar FormData
+    const formData = await req.formData();
+    const name = formData.get("name");
+    const description = formData.get("description");
+    const file = formData.get("image");
 
     if (!name || name.trim() === "") {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
+    // ✅ Subir imagen a Cloudinary (si existe)
+    let imageUrl = null;
+    if (file && file.size > 0) {
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      const cloudinary = (await import("cloudinary")).v2;
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      const uploadResult = await new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream({ folder: "gifts" }, (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          })
+          .end(buffer);
+      });
+
+      imageUrl = uploadResult.secure_url;
+    }
+
+    // ✅ Crear registro en la base de datos
     const newGift = await prisma.gift.create({
-      data: { name, description, imageUrl, isActive },
+      data: { name, description, imageUrl, isActive: true },
     });
 
     return NextResponse.json(

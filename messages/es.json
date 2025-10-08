@@ -151,6 +151,24 @@
     "filterByYear": "Filtrar por año",
     "allYears": "Todos los años"
   },
+  "gifts": {
+    "title": "🎁 Administrar Premios",
+    "addNew": "Agregar nuevo premio",
+    "cancel": "Cancelar",
+    "name": "Nombre del premio",
+    "description": "Descripción",
+    "save": "Guardar",
+    "noGifts": "No se encontraron premios.",
+    "loading": "Cargando premios...",
+    "successCreate": "Premio creado exitosamente.",
+    "errorCreate": "Error al crear el premio.",
+    "imageLabel": "Imagen del premio",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Estás seguro de que deseas eliminar este premio?"
+  },
 
   "editionTranslate": {
     "pageTitle": "Traducir edición",
@@ -497,6 +515,7 @@
   },
   "galleryManager": {
     "sectionTitle": "Galería de imágenes",
+    "coverLabel": "Imagen de portada",
     "selectFileFirst": "Selecciona un archivo de imagen primero",
     "altTextLabel": "Texto alternativo (accesibilidad)",
     "altTextPlaceholder": "Describe brevemente la imagen para lectores de pantalla",
