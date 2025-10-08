@@ -140,26 +140,22 @@ export default function LatestEditionWithArticles() {
     console.timeEnd("LatestEdition1:counts");
   }
 
-  let filteredArticles;
+  let filteredArticles = [];
+
+  // 🌍 Filtrado base según idioma
   if (locale === "es") {
-    const base = articles.slice(0, 10);
-    let traducidos = base.filter((a) => a.isTranslatedES && !a.needsReviewES);
-
-    if (traducidos.length < 10) {
-      const resto = articles.slice(10);
-      const extraTraducidos = resto.filter(
-        (a) => a.isTranslatedES && !a.needsReviewES
-      );
-      traducidos = [
-        ...traducidos,
-        ...extraTraducidos.slice(0, 10 - traducidos.length),
-      ];
-    }
-
-    filteredArticles = traducidos;
+    filteredArticles = articles.filter(
+      (a) => a.isTranslatedES && !a.needsReviewES
+    );
   } else {
-    filteredArticles = articles.slice(0, 10);
+    filteredArticles = articles;
   }
+
+  // 💻 Versión desktop → limitar a 10 artículos
+  const desktopArticles = filteredArticles.slice(0, 10);
+
+  // 📱 Versión mobile → sin límite
+  const mobileArticles = filteredArticles;
 
   const isVertical = (img) =>
     img?.width && img?.height && Number(img.height) > Number(img.width);
@@ -469,9 +465,10 @@ export default function LatestEditionWithArticles() {
             </div>
 
             <div className="w-full lg:w-2/3 flex flex-col gap-6">
+              {/* Desktop */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
-                {orderedArticles.length > 0 ? (
-                  orderedArticles.map((article) => (
+                {desktopArticles.length > 0 ? (
+                  desktopArticles.map((article) => (
                     <MiniArticleCardGrid key={article.id} article={article} />
                   ))
                 ) : (
@@ -481,10 +478,12 @@ export default function LatestEditionWithArticles() {
                 )}
               </div>
 
+              {/* ✅ Carrusel móvil corregido */}
+              {/* Mobile */}
               <div className="block lg:hidden w-full mt-0">
-                {articles.length > 0 ? (
+                {mobileArticles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
-                    {articles.map((article) => (
+                    {mobileArticles.map((article) => (
                       <div key={article.id} className="w-full">
                         <MiniArticleCardGrid article={article} />
                       </div>
