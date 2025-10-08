@@ -7,7 +7,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { FaBars, FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
-import { useSearchParams } from "next/navigation";
 
 import styles from "./Header.module.css";
 
@@ -24,9 +23,6 @@ export default function Header() {
   const { data: session } = useSession();
   const router = useRouter();
   const t = useTranslations("header");
-  const searchParams = useSearchParams();
-  const query = searchParams.get("query");
-  const queryParam = query ? `?query=${encodeURIComponent(query)}` : "";
 
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -114,6 +110,18 @@ export default function Header() {
   } else if (session?.user?.role === "k2") {
     dashboardRoute = "/dashboard/k2";
   }
+  const handleLocaleSwitch = (newLocale) => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const edition = params.get("edition");
+      if (edition) {
+        sessionStorage.setItem("preferredEditionNumber", edition);
+      }
+      const current = new URL(window.location.href);
+      const destPath = `${pathname}${current.search || ""}`;
+      router.replace(destPath, { locale: newLocale });
+    }
+  };
 
   return (
     <header className={`${styles.header} ${isCompact ? styles.compact : ""}`}>
@@ -132,22 +140,10 @@ export default function Header() {
         <div className="ml-auto flex flex-col items-center gap-1 w-10">
           <div className="text-xs font-semibold uppercase tracking-wide text-center">
             {locale === "de" && (
-              <button
-                onClick={() =>
-                  router.replace(`${pathname}${queryParam}`, { locale: "es" })
-                }
-              >
-                ES
-              </button>
+              <button onClick={() => handleLocaleSwitch("es")}>ES</button>
             )}
             {locale === "es" && (
-              <button
-                onClick={() =>
-                  router.replace(`${pathname}${queryParam}`, { locale: "de" })
-                }
-              >
-                DE
-              </button>
+              <button onClick={() => handleLocaleSwitch("de")}>DE</button>
             )}
           </div>
 
@@ -283,11 +279,7 @@ export default function Header() {
               <div className={styles.languageSwitcher}>
                 {locale === "de" && (
                   <button
-                    onClick={() =>
-                      router.replace(`${pathname}${queryParam}`, {
-                        locale: "es",
-                      })
-                    }
+                    onClick={() => handleLocaleSwitch("es")}
                     className={styles.langButton}
                   >
                     ES
@@ -295,11 +287,7 @@ export default function Header() {
                 )}
                 {locale === "es" && (
                   <button
-                    onClick={() =>
-                      router.replace(`${pathname}${queryParam}`, {
-                        locale: "de",
-                      })
-                    }
+                    onClick={() => handleLocaleSwitch("de")}
                     className={styles.langButton}
                   >
                     DE
@@ -355,9 +343,7 @@ export default function Header() {
             <div className={styles.languageSwitcher}>
               {locale === "de" && (
                 <button
-                  onClick={() =>
-                    router.replace(`${pathname}${queryParam}`, { locale: "es" })
-                  }
+                  onClick={() => handleLocaleSwitch("es")}
                   className={styles.langButton}
                 >
                   ES
@@ -365,9 +351,7 @@ export default function Header() {
               )}
               {locale === "es" && (
                 <button
-                  onClick={() =>
-                    router.replace(`${pathname}${queryParam}`, { locale: "de" })
-                  }
+                  onClick={() => handleLocaleSwitch("de")}
                   className={styles.langButton}
                 >
                   DE
