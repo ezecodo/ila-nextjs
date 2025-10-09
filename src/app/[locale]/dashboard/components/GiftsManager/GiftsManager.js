@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import GiftForm from "../components/GiftsForm/GiftsForm";
+import GiftForm from "../GiftsForm/GiftsForm";
 import { useTranslations, useLocale } from "next-intl";
 import { FaPlus, FaTimes, FaEdit, FaGift, FaImage } from "react-icons/fa";
 
