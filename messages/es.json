@@ -3,7 +3,7 @@
     "writeHere": "Escribe aquí..."
   },
   "header": {
-    "tagline": "La revista América Latina",
+    "tagline": "La revista de América Latina",
     "greeting": "Hola, {name}",
     "login": "Iniciar sesión",
     "signup": "Registrarse",
@@ -153,21 +153,24 @@
   },
   "gifts": {
     "title": "🎁 Administrar Premios",
+    "subtitle": "Crear, editar y eliminar premios",
+    "totalGifts": "Cantidad total de premios:",
+    "translated": "Traducido ({count} caracteres)",
     "addNew": "Agregar nuevo premio",
     "cancel": "Cancelar",
-    "name": "Nombre del premio",
-    "description": "Descripción",
     "save": "Guardar",
-    "noGifts": "No se encontraron premios.",
+    "nameDE": "Nombre (Alemán)",
+    "subtitleDE": "Subtítulo (Alemán)",
+    "descriptionDE": "Descripción (Alemán)",
+    "spanishVersion": "Versión en Español",
+    "nameES": "Nombre (Español)",
+    "subtitleES": "Subtítulo (Español)",
+    "descriptionES": "Descripción (Español)",
+    "successCreate": "Premio creado correctamente",
+    "errorCreate": "Error al crear el premio",
     "loading": "Cargando premios...",
-    "successCreate": "Premio creado exitosamente.",
-    "errorCreate": "Error al crear el premio.",
-    "imageLabel": "Imagen del premio",
-    "active": "Activo",
-    "inactive": "Inactivo",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "confirmDelete": "¿Estás seguro de que deseas eliminar este premio?"
+    "noGifts": "No se encontraron premios.",
+    "edit": "Editar"
   },
 
   "editionTranslate": {
@@ -397,7 +400,8 @@
     "events": "🎤 Eventos",
     "favorites": "Favoritos",
     "account": "Cuenta",
-    "orders": "Pedidos"
+    "orders": "Pedidos",
+    "viewOrders": "Ver Pedidos"
   },
   "newArticle": {
     "form": {

@@ -31,19 +31,30 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // ✅ Procesar FormData
+    // ✅ Procesar FormData (para imagen + campos multilanguage + ID)
     const formData = await req.formData();
+    const id = formData.get("id"); // <-- Determina si es UPDATE
+    const currentImageUrl = formData.get("currentImageUrl"); // <-- Imagen existente
+
     const name = formData.get("name");
-    const description = formData.get("description");
+    const subtitle = formData.get("subtitle") || null;
+    const description = formData.get("description") || null;
+
+    const nameES = formData.get("nameES") || null;
+    const subtitleES = formData.get("subtitleES") || null;
+    const descriptionES = formData.get("descriptionES") || null;
+
     const file = formData.get("image");
 
     if (!name || name.trim() === "") {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    // ✅ Subir imagen a Cloudinary (si existe)
-    let imageUrl = null;
+    // ✅ Lógica de Imagen y Cloudinary
+    let imageUrl = currentImageUrl || null; // Inicia con la URL actual o null
+
     if (file && file.size > 0) {
+      // Subir nueva imagen
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
@@ -64,19 +75,56 @@ export async function POST(req) {
       });
 
       imageUrl = uploadResult.secure_url;
+      // TODO: Agregar lógica para ELIMINAR la imagen antigua de Cloudinary si existe
+      // y estamos actualizando.
     }
 
-    // ✅ Crear registro en la base de datos
-    const newGift = await prisma.gift.create({
-      data: { name, description, imageUrl, isActive: true },
-    });
+    // ✅ Datos para la DB
+    const isTranslatedES = !!(nameES || subtitleES || descriptionES);
+    const giftData = {
+      name,
+      subtitle,
+      description,
+      nameES,
+      subtitleES,
+      descriptionES,
+      isTranslatedES,
+      imageUrl,
+      isActive: true, // Asume que es activo
+    };
 
-    return NextResponse.json(
-      { success: true, message: "Gift created successfully", gift: newGift },
-      { status: 201 }
-    );
+    let giftResult;
+
+    if (id) {
+      // ES UNA ACTUALIZACIÓN
+      giftResult = await prisma.gift.update({
+        where: { id },
+        data: giftData,
+      });
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Gift updated successfully",
+          gift: giftResult,
+        },
+        { status: 200 }
+      );
+    } else {
+      // ES UNA CREACIÓN
+      giftResult = await prisma.gift.create({
+        data: giftData,
+      });
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Gift created successfully",
+          gift: giftResult,
+        },
+        { status: 201 }
+      );
+    }
   } catch (error) {
-    console.error("❌ Error creating gift:", error);
+    console.error("❌ Error processing gift:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -85,37 +133,6 @@ export async function POST(req) {
 }
 
 // ✅ PUT — actualizar (solo admin)
-export async function PUT(req) {
-  try {
-    const session = await auth();
-    if (session?.user?.role !== "admin") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-    }
-
-    const body = await req.json();
-    const { id, name, description, imageUrl, isActive } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "Gift ID required" }, { status: 400 });
-    }
-
-    const updated = await prisma.gift.update({
-      where: { id },
-      data: { name, description, imageUrl, isActive },
-    });
-
-    return NextResponse.json(
-      { success: true, message: "Gift updated", gift: updated },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("❌ Error updating gift:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
 
 // ✅ DELETE — eliminar (solo admin)
 export async function DELETE(req) {

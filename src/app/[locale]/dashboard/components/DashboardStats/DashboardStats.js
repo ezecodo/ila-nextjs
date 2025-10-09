@@ -111,11 +111,16 @@ const DashboardStats = () => {
         ]}
         pathname={pathname}
       />
-      <StatCard
+      <StatCardDropdown
         icon={<FaShoppingCart size={18} />}
         label={t("orders")}
-        value={stats.totalOrders}
-        href="/dashboard/orders"
+        items={[
+          {
+            label: t("viewOrders") || "Bestellungen",
+            href: "/dashboard/orders",
+          },
+          { label: "Prämien", href: "/dashboard/orders/praemien" }, // 👈 nuestro nuevo dropdown
+        ]}
         pathname={pathname}
       />
       <StatCard

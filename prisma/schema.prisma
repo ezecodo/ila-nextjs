@@ -197,7 +197,12 @@ enum SubscriptionFormat {
 model Gift {
   id              String          @id @default(cuid())
   name            String
+    nameES          String?
+    subtitle        String?
+    subtitleES      String?
   description     String? @db.Text
+    descriptionES   String? @db.Text
+    isTranslatedES  Boolean         @default(false)
   imageUrl        String?
   isActive        Boolean         @default(true)
 

@@ -10,21 +10,29 @@ export const { auth: middlewareAuth } = NextAuth(authConfig);
 
 export async function middleware(req) {
   const { pathname } = req.nextUrl;
+  const locale = req.nextUrl.locale || "es";
 
-  // 🧱 Zonas del dashboard
+  // 🧱 Rutas del dashboard
   const isAdminArea =
     pathname.startsWith("/es/dashboard") ||
     pathname.startsWith("/de/dashboard");
 
   const isTranslatorArea =
     pathname.startsWith("/es/dashboard/translators") ||
-    pathname.startsWith("/de/dashboard/translators");
+    pathname.startsWith("/de/dashboard/translators") ||
+    pathname.startsWith("/es/dashboard/articles/translate") ||
+    pathname.startsWith("/de/dashboard/articles/translate");
+
+  const isAccountArea =
+    pathname.startsWith("/es/dashboard/account") ||
+    pathname.startsWith("/de/dashboard/account");
 
   const isUserArea =
     pathname.startsWith("/es/dashboard-users") ||
     pathname.startsWith("/de/dashboard-users");
 
-  const isProtectedRoute = isAdminArea || isTranslatorArea || isUserArea;
+  const isProtectedRoute =
+    isAdminArea || isTranslatorArea || isAccountArea || isUserArea;
 
   // 🧩 Si la ruta está protegida
   if (isProtectedRoute) {
@@ -32,32 +40,30 @@ export async function middleware(req) {
 
     // 🚫 No autenticado
     if (!session) {
-      return NextResponse.redirect(
-        new URL(`/${req.nextUrl.locale}/auth/signin`, req.url)
-      );
+      return NextResponse.redirect(new URL(`/${locale}/auth/signin`, req.url));
     }
 
     const role = session.user?.role || "guest";
 
     // ✅ Admin accede a todo
-    if (role === "admin") {
-      return intlMiddleware(req);
-    }
+    if (role === "admin") return intlMiddleware(req);
 
-    // ✅ Translator solo a su zona
+    // ✅ Translator: acceso limitado
     if (role === "translator") {
-      if (!isTranslatorArea) {
+      // Puede entrar solo a /dashboard/translators/* y /dashboard/account
+      if (!(isTranslatorArea || isAccountArea)) {
         console.warn(
           "🚫 Translator intentó acceder a zona restringida:",
           pathname
         );
         return NextResponse.redirect(
-          new URL(`/${req.nextUrl.locale}/dashboard/translators`, req.url)
+          new URL(`/${locale}/dashboard/translators`, req.url)
         );
       }
+      return intlMiddleware(req);
     }
 
-    // ✅ User solo a dashboard-users
+    // ✅ User: solo a dashboard-users
     if (role === "user") {
       if (!isUserArea) {
         console.warn(
@@ -65,13 +71,14 @@ export async function middleware(req) {
           pathname
         );
         return NextResponse.redirect(
-          new URL(`/${req.nextUrl.locale}/dashboard-users`, req.url)
+          new URL(`/${locale}/dashboard-users`, req.url)
         );
       }
+      return intlMiddleware(req);
     }
   }
 
-  // 🌍 Pasar por middleware de internacionalización para todo lo demás
+  // 🌍 Middleware de internacionalización para todo lo demás
   return intlMiddleware(req);
 }
 

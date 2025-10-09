@@ -157,21 +157,24 @@
   },
   "gifts": {
     "title": "🎁 Prämien verwalten",
+    "subtitle": "Erstellen, bearbeiten und löschen von Prämien",
+    "totalGifts": "Gesamtanzahl der Prämien:",
+    "translated": "Übersetzt ({count} Zeichen)",
     "addNew": "Neue Prämie hinzufügen",
     "cancel": "Abbrechen",
-    "name": "Name der Prämie",
-    "description": "Beschreibung",
     "save": "Speichern",
-    "noGifts": "Keine Prämien gefunden.",
+    "nameDE": "Name (Deutsch)",
+    "subtitleDE": "Untertitel (Deutsch)",
+    "descriptionDE": "Beschreibung (Deutsch)",
+    "spanishVersion": "Spanische Version",
+    "nameES": "Name (Spanisch)",
+    "subtitleES": "Untertitel (Spanisch)",
+    "descriptionES": "Beschreibung (Spanisch)",
+    "successCreate": "Prämie erfolgreich erstellt!",
+    "errorCreate": "Fehler beim Erstellen",
     "loading": "Lade Prämien...",
-    "successCreate": "Prämie wurde erfolgreich erstellt!",
-    "errorCreate": "Fehler beim Erstellen der Prämie.",
-    "imageLabel": "Bild der Prämie",
-    "active": "Aktiv",
-    "inactive": "Inaktiv",
-    "edit": "Bearbeiten",
-    "delete": "Löschen",
-    "confirmDelete": "Möchtest du diese Prämie wirklich löschen?"
+    "noGifts": "Keine Prämien gefunden.",
+    "edit": "Bearbeiten"
   },
   "editionTranslate": {
     "pageTitle": "Ausgabe übersetzen",
@@ -396,7 +399,8 @@
     "events": "🎤 Veranstaltungen",
     "favorites": "Favoriten",
     "account": "Konto",
-    "orders": "Bestellungen"
+    "orders": "Bestellungen",
+    "viewOrders": "Ver Pedidos"
   },
   "newArticle": {
     "form": {

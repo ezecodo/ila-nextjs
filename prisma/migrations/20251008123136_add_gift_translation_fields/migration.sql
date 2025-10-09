@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE `Gift` ADD COLUMN `descriptionES` TEXT NULL,
+    ADD COLUMN `isTranslatedES` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `nameES` VARCHAR(191) NULL,
+    ADD COLUMN `subtitle` VARCHAR(191) NULL,
+    ADD COLUMN `subtitleES` VARCHAR(191) NULL;
