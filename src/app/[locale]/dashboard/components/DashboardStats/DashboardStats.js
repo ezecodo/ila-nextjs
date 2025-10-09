@@ -119,7 +119,7 @@ const DashboardStats = () => {
             label: t("viewOrders") || "Bestellungen",
             href: "/dashboard/orders",
           },
-          { label: "Prämien", href: "/dashboard/orders/praemien" }, // 👈 nuestro nuevo dropdown
+          { label: "Prämien", href: "/dashboard/gifts" }, // 👈 nuestro nuevo dropdown
         ]}
         pathname={pathname}
       />
