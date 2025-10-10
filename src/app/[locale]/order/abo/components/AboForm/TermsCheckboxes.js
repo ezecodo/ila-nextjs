@@ -1,52 +1,62 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
+
 export default function TermsCheckboxes({ form, handleChange }) {
+  const t = useTranslations("abo");
+  const locale = useLocale(); // 👈 idioma actual ("es" o "de")
+
+  const privacyLink = locale === "es" ? "/es/datenschutz" : "/datenschutz";
+  const termsLink = locale === "es" ? "/es/agb" : "/agb";
+
   return (
-    <div className="space-y-3 mt-6">
-      <label className="flex items-start gap-2">
+    <div
+      key={locale}
+      className="space-y-4 p-6 border rounded-xl bg-white dark:bg-gray-800"
+    >
+      {/* Términos y condiciones */}
+      <label className="flex items-start gap-3 text-sm text-gray-800 dark:text-gray-200">
         <input
           type="checkbox"
           checked={form.termsAccepted}
           onChange={(e) => handleChange("termsAccepted", e.target.checked)}
-          className="mt-1"
+          className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
         />
-        <span className="text-sm">
-          Acepto los{" "}
-          <a href="/terms" target="_blank" className="text-red-600 underline">
-            Términos y Condiciones
-          </a>
-        </span>
+        <span
+          dangerouslySetInnerHTML={{
+            __html: t.raw("termsCheckbox").replaceAll("/agb", termsLink), // 👈 ajusta link por idioma
+          }}
+        />
       </label>
 
-      <label className="flex items-start gap-2">
+      {/* Derecho de desistimiento */}
+      <label className="flex items-start gap-3 text-sm text-gray-800 dark:text-gray-200">
         <input
           type="checkbox"
           checked={form.withdrawalAccepted}
           onChange={(e) => handleChange("withdrawalAccepted", e.target.checked)}
-          className="mt-1"
+          className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
         />
-        <span className="text-sm">
-          Confirmo que he sido informado sobre mi derecho de desistimiento.
-        </span>
+        <span>{t("withdrawalCheckbox")}</span>
       </label>
 
-      <label className="flex items-start gap-2">
+      {/* Política de privacidad */}
+      <label className="flex items-start gap-3 text-sm text-gray-800 dark:text-gray-200">
         <input
           type="checkbox"
           checked={form.dataConsentAccepted}
           onChange={(e) =>
             handleChange("dataConsentAccepted", e.target.checked)
           }
-          className="mt-1"
+          className="mt-1 w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
         />
-        <span className="text-sm">
-          Doy mi consentimiento para el tratamiento de mis datos personales
-          conforme a la{" "}
-          <a href="/privacy" target="_blank" className="text-red-600 underline">
-            política de privacidad
-          </a>
-          .
-        </span>
+        <span
+          dangerouslySetInnerHTML={{
+            __html: t
+              .raw("privacyCheckbox")
+              .replaceAll("/datenschutz", privacyLink), // 👈 ajusta link por idioma
+          }}
+        />
       </label>
     </div>
   );

@@ -7,9 +7,64 @@ import TermsCheckboxes from "./TermsCheckboxes";
 
 function InfoBox({ children }) {
   return (
-    <div className="rounded-xl border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 p-4 text-red-900 dark:text-red-100 whitespace-pre-line text-sm sm:text-base">
+    <div className="rounded-xl border-l-4 border-red-500 bg-gradient-to-r from-red-50 to-red-50/50 dark:from-red-900/20 dark:to-red-900/10 p-5 text-red-900 dark:text-red-100 whitespace-pre-line text-sm sm:text-base shadow-sm">
       {children}
     </div>
+  );
+}
+
+function Card({ children, className = "" }) {
+  return (
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
+function SectionTitle({ children }) {
+  return (
+    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+      <span className="w-1 h-6 bg-red-500 rounded-full"></span>
+      {children}
+    </h3>
+  );
+}
+
+function InputField({ label, required, error, ...props }) {
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <input
+        {...props}
+        className={`w-full px-4 py-2.5 rounded-lg border ${
+          error
+            ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+            : "border-gray-300 dark:border-gray-600 focus:border-red-500 focus:ring-red-500"
+        } bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all`}
+      />
+      {error && (
+        <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+      )}
+    </div>
+  );
+}
+
+function RadioButton({ label, ...props }) {
+  return (
+    <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
+      <input
+        type="radio"
+        {...props}
+        className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500 focus:ring-2"
+      />
+      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
+        {label}
+      </span>
+    </label>
   );
 }
 
@@ -19,17 +74,27 @@ export default function AboForm({ gifts }) {
   const [form, setForm] = useState({
     type: "NORMAL",
     format: "PRINT",
+    salutation: "",
+    institution: "",
+    addressExtra: "",
     firstName: "",
     lastName: "",
     street: "",
     zip: "",
     city: "",
-    country: "",
+    country: "Deutschland",
+    phone: "",
     email: "",
     giftId: null,
     donationExtra: "",
     trialVariant: "NORMAL",
-    isGift: false, // 👈 nuevo campo
+    isGift: false,
+    giftRecipientName: "",
+    giftRecipientEmail: "",
+    giftRecipientStreet: "",
+    giftRecipientZip: "",
+    giftRecipientCity: "",
+    giftRecipientCountry: "Deutschland",
     termsAccepted: false,
     withdrawalAccepted: false,
     dataConsentAccepted: false,
@@ -149,77 +214,153 @@ export default function AboForm({ gifts }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Tipo de Abo */}
-      <div>
-        <label className="font-semibold block mb-1">{t("type")}</label>
-        <select
-          value={form.type}
-          onChange={(e) => handleChange("type", e.target.value)}
-          className="block w-full border p-2 rounded"
-        >
-          <option value="NORMAL">{t("normal")}</option>
-          <option value="NORMAL_PDF">{t("normal_pdf")}</option>
-          <option value="SUPPORTER">{t("supporter")}</option>
-          <option value="REDUCED">{t("reduced")}</option>
-          <option value="TRIAL">{t("trial")}</option>
-        </select>
-      </div>
+    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+      {/* Tipo de Suscripción */}
+      <Card>
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            {t("type")}
+          </label>
+          <select
+            value={form.type}
+            onChange={(e) => handleChange("type", e.target.value)}
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
+          >
+            <option value="NORMAL">{t("normal")}</option>
+            <option value="NORMAL_PDF">{t("normal_pdf")}</option>
+            <option value="SUPPORTER">{t("supporter")}</option>
+            <option value="REDUCED">{t("reduced")}</option>
+            <option value="TRIAL">{t("trial")}</option>
+          </select>
+        </div>
 
-      {/* Abo verschenken (no se muestra en ProbeAbo) */}
-      {form.type !== "TRIAL" && (
-        <div>
-          <label className="font-semibold block mb-2">Abo verschenken?</label>
-          <div className="flex gap-6">
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="radio"
+        {/* Regalo */}
+        {form.type !== "TRIAL" && (
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              {t("giftQuestion")}
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <RadioButton
+                label={t("giftYes")}
                 name="isGift"
                 value="true"
                 checked={form.isGift === true}
                 onChange={() => handleChange("isGift", true)}
               />
-              <span>Ja</span>
-            </label>
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="radio"
+              <RadioButton
+                label={t("giftNo")}
                 name="isGift"
                 value="false"
                 checked={form.isGift === false}
                 onChange={() => handleChange("isGift", false)}
               />
-              <span>Nein</span>
-            </label>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+        {form.isGift && (
+          <div className="mt-6 p-5 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900/30 transition-all duration-300 ease-in-out">
+            <h4 className="text-md font-semibold mb-4 text-gray-800 dark:text-gray-200">
+              {t("giftRecipientTitle")}
+            </h4>
 
-      {/* Info dinámica por tipo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputField
+                label={t("giftRecipientName")}
+                type="text"
+                placeholder={t("giftRecipientName")}
+                value={form.giftRecipientName}
+                onChange={(e) =>
+                  handleChange("giftRecipientName", e.target.value)
+                }
+                required
+              />
+
+              <InputField
+                label={t("giftRecipientEmail")}
+                type="email"
+                placeholder={t("giftRecipientEmail")}
+                value={form.giftRecipientEmail}
+                onChange={(e) =>
+                  handleChange("giftRecipientEmail", e.target.value)
+                }
+              />
+
+              <InputField
+                label={t("giftRecipientStreet")}
+                type="text"
+                placeholder={t("giftRecipientStreet")}
+                value={form.giftRecipientStreet}
+                onChange={(e) =>
+                  handleChange("giftRecipientStreet", e.target.value)
+                }
+              />
+
+              <InputField
+                label={t("giftRecipientZip")}
+                type="text"
+                placeholder={t("giftRecipientZip")}
+                value={form.giftRecipientZip}
+                onChange={(e) =>
+                  handleChange("giftRecipientZip", e.target.value)
+                }
+              />
+
+              <InputField
+                label={t("giftRecipientCity")}
+                type="text"
+                placeholder={t("giftRecipientCity")}
+                value={form.giftRecipientCity}
+                onChange={(e) =>
+                  handleChange("giftRecipientCity", e.target.value)
+                }
+              />
+
+              <InputField
+                label={t("giftRecipientCountry")}
+                type="text"
+                placeholder={t("giftRecipientCountry")}
+                value={form.giftRecipientCountry}
+                onChange={(e) =>
+                  handleChange("giftRecipientCountry", e.target.value)
+                }
+              />
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Info dinámica */}
       {form.type === "NORMAL_PDF" && (
-        <InfoBox>{t("details.normal_pdf.text")}</InfoBox>
+        <InfoBox>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: t.raw("details.normal_pdf.text"),
+            }}
+          />
+        </InfoBox>
       )}
 
       {form.type === "SUPPORTER" && (
-        <div className="space-y-3">
+        <Card>
           <InfoBox>{t("details.supporter.intro")}</InfoBox>
 
           <button
             type="button"
             onClick={() => setSupporterOpen((v) => !v)}
-            className="text-sm underline text-red-700 dark:text-red-300"
+            className="mt-4 text-sm font-medium underline text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
           >
             {t("details.supporter.adjustToggle")}
           </button>
 
           {supporterOpen && (
-            <div className="space-y-3">
+            <div className="mt-4 space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                 {t("details.supporter.adjustText")}
               </p>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t("details.supporter.amountLabel")}
                 </label>
                 <div className="flex items-center gap-2">
@@ -229,20 +370,24 @@ export default function AboForm({ gifts }) {
                     value={form.donationExtra}
                     onChange={(e) => onDonationChange(e.target.value)}
                     placeholder="10"
-                    className="border p-2 rounded w-28 text-right"
+                    className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-32 text-right bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
-                  <span>€</span>
+                  <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    €
+                  </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   {t("details.supporter.amountHint")}
                 </p>
                 {donationError && (
-                  <p className="text-xs text-red-600 mt-1">{donationError}</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">
+                    {donationError}
+                  </p>
                 )}
               </div>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {form.type === "REDUCED" && (
@@ -250,100 +395,171 @@ export default function AboForm({ gifts }) {
       )}
 
       {form.type === "TRIAL" && (
-        <div className="space-y-3">
+        <Card>
           <InfoBox>{t("details.trial.info")}</InfoBox>
 
-          <div className="flex flex-col gap-2">
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="radio"
-                name="trialVariant"
-                value="NORMAL"
-                checked={form.trialVariant === "NORMAL"}
-                onChange={(e) => handleChange("trialVariant", e.target.value)}
-              />
-              <span>{t("details.trial.variantNormal")}</span>
-            </label>
-            <label className="inline-flex items-center gap-2">
-              <input
-                type="radio"
-                name="trialVariant"
-                value="REDUCED"
-                checked={form.trialVariant === "REDUCED"}
-                onChange={(e) => handleChange("trialVariant", e.target.value)}
-              />
-              <span>{t("details.trial.variantReduced")}</span>
-            </label>
+          <div className="mt-4 space-y-3">
+            <RadioButton
+              label={t("details.trial.variantNormal")}
+              name="trialVariant"
+              value="NORMAL"
+              checked={form.trialVariant === "NORMAL"}
+              onChange={(e) => handleChange("trialVariant", e.target.value)}
+            />
+            <RadioButton
+              label={t("details.trial.variantReduced")}
+              name="trialVariant"
+              value="REDUCED"
+              checked={form.trialVariant === "REDUCED"}
+              onChange={(e) => handleChange("trialVariant", e.target.value)}
+            />
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* Datos personales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input
-          type="text"
-          placeholder={t("firstName")}
-          value={form.firstName}
-          onChange={(e) => handleChange("firstName", e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          placeholder={t("lastName")}
-          value={form.lastName}
-          onChange={(e) => handleChange("lastName", e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          placeholder={t("street")}
-          value={form.street}
-          onChange={(e) => handleChange("street", e.target.value)}
-          className="border p-2 rounded md:col-span-2"
-          required
-        />
-        <input
-          type="text"
-          placeholder={t("zip")}
-          value={form.zip}
-          onChange={(e) => handleChange("zip", e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="text"
-          placeholder={t("city")}
-          value={form.city}
-          onChange={(e) => handleChange("city", e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-        <input
-          type="email"
-          placeholder="E-Mail"
-          value={form.email}
-          onChange={(e) => handleChange("email", e.target.value)}
-          className="border p-2 rounded md:col-span-2"
-          required
-        />
-      </div>
+      {/* Datos Personales */}
+      <Card>
+        <SectionTitle>
+          {form.isGift ? t("payerTitle") : t("personalDataTitle")}
+        </SectionTitle>
+        <div className="space-y-4">
+          {/* Primera fila: Saludo, Nombre, Apellido */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t("salutation")}
+              </label>
+              <select
+                value={form.salutation}
+                onChange={(e) => handleChange("salutation", e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              >
+                <option value="">{t("salutation_none")}</option>
+                <option value="Herr">Sr.</option>
+                <option value="Frau">Sra.</option>
+                <option value="Divers">Otro</option>
+              </select>
+            </div>
 
+            <InputField
+              label={t("firstName")}
+              type="text"
+              placeholder={t("firstName")}
+              value={form.firstName}
+              onChange={(e) => handleChange("firstName", e.target.value)}
+              required
+            />
+
+            <InputField
+              label={t("lastName")}
+              type="text"
+              placeholder={t("lastName")}
+              value={form.lastName}
+              onChange={(e) => handleChange("lastName", e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Segunda fila: Institución y Dirección extra */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+              label={t("institution")}
+              type="text"
+              placeholder={t("institution")}
+              value={form.institution}
+              onChange={(e) => handleChange("institution", e.target.value)}
+            />
+
+            <InputField
+              label={t("addressExtra")}
+              type="text"
+              placeholder={t("addressExtra")}
+              value={form.addressExtra}
+              onChange={(e) => handleChange("addressExtra", e.target.value)}
+            />
+          </div>
+
+          {/* Tercera fila: Calle y Código Postal */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+              label={t("street")}
+              type="text"
+              placeholder={t("street")}
+              value={form.street}
+              onChange={(e) => handleChange("street", e.target.value)}
+              required
+            />
+
+            <InputField
+              label={t("zip")}
+              type="text"
+              placeholder={t("zip")}
+              value={form.zip}
+              onChange={(e) => handleChange("zip", e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Cuarta fila: Ciudad y País */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+              label={t("city")}
+              type="text"
+              placeholder={t("city")}
+              value={form.city}
+              onChange={(e) => handleChange("city", e.target.value)}
+              required
+            />
+
+            <InputField
+              label={t("country")}
+              type="text"
+              placeholder={t("country")}
+              value={form.country}
+              onChange={(e) => handleChange("country", e.target.value)}
+            />
+          </div>
+
+          {/* Quinta fila: Teléfono y Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+              label={t("phone")}
+              type="tel"
+              placeholder={t("phone")}
+              value={form.phone}
+              onChange={(e) => handleChange("phone", e.target.value)}
+            />
+
+            <InputField
+              label={t("email")}
+              type="email"
+              placeholder={t("email")}
+              value={form.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              required
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* Regalo y Términos */}
       <GiftSelector
         gifts={gifts}
         onSelect={(id) => handleChange("giftId", id)}
       />
 
-      <TermsCheckboxes form={form} handleChange={handleChange} />
+      <Card>
+        <TermsCheckboxes form={form} handleChange={handleChange} />
+      </Card>
 
+      {/* Botón de envío */}
       <button
         type="submit"
         disabled={!canSubmit}
-        className={`w-full py-3 rounded-lg transition ${
+        className={`w-full py-4 rounded-xl font-semibold text-base transition-all transform ${
           canSubmit
-            ? "bg-red-600 text-white hover:bg-red-700"
-            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+            : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
         }`}
       >
         {t("submit")}
