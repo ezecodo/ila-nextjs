@@ -35,6 +35,12 @@ export default function EditorialPage() {
         bis heute das gesamte Layout der ila um.
       </p>
       <p>
+        <strong>Laura Held</strong> ist Bibliothekarin und seit 1997 bei der ila
+        aktiv. Sie hat Spaß am Schreiben, Lesen und Übersetzen. Bevorzugte
+        Regionen: Brasilien und Zentralamerika. Themen: alles, was der
+        Mainstream und die Aktualität gerne übersehen.
+      </p>
+      <p>
         <strong>Mirjana Jandik</strong> ist freie Journalistin und
         Kulturanthropologin. Sie promoviert zum antifaschistischen Exil in
         Mexiko und interessiert sich für feministische Bewegungen, Klima,
@@ -54,6 +60,7 @@ export default function EditorialPage() {
         wissen, wie weibliche und männliche Rollen jeweils verteilt sind, wer
         sie aushandelt und wie darüber gesprochen wird oder nicht.
       </p>
+
       <p>
         <strong>Verena Lucía Landes</strong> ist seit 2015 Redaktionsmitglied
         und seit 2022 im Vorstand der ila. Sie schreibt, netzwerkt und
@@ -81,6 +88,12 @@ export default function EditorialPage() {
         Mitgründer der Informationsstelle El Salvador in München 1980 und seit
         1985 in der ila in Bonn. 2001 gestaltete er die erste Website der ila
         und betreut sie seither.
+      </p>
+      <p>
+        <strong>Valerie Systermans</strong> studierte Lateinamerikastudien und
+        Politikwissenschaften an der Universität Bonn. Seit 2024 übersetzt,
+        schreibt und korrigiert sie Texte bei der ila. Besonders interessieren
+        sie feministische Themen und die Länder Südamerikas und der Karibik.
       </p>
       <p>
         <strong>Inga Triebel</strong> [-/deren] hat Lateinamerikastudien und
@@ -123,6 +136,12 @@ export default function EditorialPage() {
         <strong>Ralf Heinen</strong>, nacido en 1954, estudió francés y español
         en Münster y Bonn, trabajó como redactor gráfico y hasta hoy realiza
         todo el diseño de la ila.
+      </p>
+      <p>
+        <strong>Laura Held</strong> es bibliotecaria y participa activamente en
+        la ila desde 1997. Le gusta escribir, leer y traducir. Regiones
+        preferidas: Brasil y Centroamérica. Temas: todo aquello que el
+        mainstream y la actualidad suelen pasar por alto.
       </p>
       <p>
         <strong>Mirjana Jandik</strong> es periodista independiente y
@@ -171,6 +190,12 @@ export default function EditorialPage() {
         Oficina de Información sobre El Salvador en Múnich y, desde 1985,
         participa en la ila en Bonn. En 2001 diseñó la primera página web de la
         ila y desde entonces la mantiene.
+      </p>
+      <p>
+        <strong>Valerie Systermans</strong> estudió Estudios Latinoamericanos y
+        Ciencias Políticas en la Universidad de Bonn. Desde 2024 traduce,
+        escribe y corrige textos en la ila. Le interesan especialmente los temas
+        feministas y los países de América del Sur y el Caribe.
       </p>
       <p>
         <strong>Inga Triebel</strong> [-/deren] estudió Estudios

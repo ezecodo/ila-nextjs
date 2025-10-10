@@ -658,5 +658,46 @@
     "clientPhone": "📞 Teléfono",
     "clientMessage": "Mensaje",
     "requestedItems": "📰 Items solicitados"
+  },
+  "abo": {
+    "title": "Suscripción a ila",
+    "heroIntro": "Quienes quieran leer la ila con regularidad y además ahorrar pueden hacerlo mediante una suscripción anual, disponible en distintas modalidades. Con ella contribuyes de forma importante a mantener una voz crítica imprescindible en nuestro panorama mediático y, a cambio, recibes mucho contenido fascinante: información valiosa, historias inéditas, curiosidades, indignaciones, temas para reflexionar y para debatir…",
+    "promo2025": "Nuevos precios a partir de 2025:\nSi contratas tu suscripción todavía en diciembre, además de la prima de suscripción te regalamos el primer número.",
+    "description": "Suscríbete a ila y recibe 10 números al año (impreso + online) por solo 48 € (dentro de Alemania).",
+    "type": "Tipo de suscripción",
+    "normal": "Suscripción normal (impreso + PDF)",
+    "normal_pdf": "Suscripción normal (solo PDF)",
+    "supporter": "Suscripción de apoyo",
+    "reduced": "Suscripción reducida",
+    "trial": "Suscripción de prueba",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "street": "Calle / Nº",
+    "zip": "Código postal",
+    "city": "Ciudad",
+    "submit": "Enviar pedido",
+
+    "details": {
+      "normal_pdf": {
+        "text": "La ila 10 veces al año como PDF, completa, a color e interactiva. Como ejemplo: ila 414."
+      },
+      "supporter": {
+        "intro": "Con una suscripción de apoyo ayudas a la ila con una donación adicional de 10 € al año durante la vigencia de la suscripción.",
+        "adjustToggle": "* Ajustar apoyo",
+        "adjustText": "Las suscripciones de apoyo nos ayudan a cubrir los costes de impresión y distribución sin subir el precio de la revista o de las suscripciones. Las donaciones adicionales se destinan actualmente a mejorar la web y a probar nuevos canales de distribución para asegurar la viabilidad de la revista a largo plazo. Puedes ajustar tu aportación. El importe se cobra como donación anual durante la vigencia de la suscripción.",
+        "amountLabel": "Importe de la donación anual (€)",
+        "amountHint": "Mínimo 10 €. Solo números enteros.",
+        "amountMinError": "Indica al menos 10 €.",
+        "amountInteger": "Introduce solo números enteros."
+      },
+      "reduced": {
+        "info": "Para personas con pocos recursos ofrecemos una reducción. No pedimos justificantes: tú mismo puedes valorar tu situación económica. Las suscripciones reducidas se financian gracias a las suscripciones de apoyo."
+      },
+      "trial": {
+        "info": "Recibirás los próximos tres números de la ila. Puedes elegir entre una suscripción de prueba normal o reducida. La suscripción de prueba pasa a ser una suscripción regular si no se recibe una cancelación por escrito por correo postal, fax o e-mail dentro de las tres (!) semanas posteriores a la recepción del último número.",
+        "variantNormal": "Suscripción de prueba normal — 8,50 €",
+        "variantReduced": "Suscripción de prueba reducida — 7,50 €"
+      }
+    }
   }
 }

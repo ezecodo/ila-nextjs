@@ -657,5 +657,46 @@
     "clientPhone": "📞 Telefon",
     "clientMessage": "Nachricht",
     "requestedItems": "📰 Bestellte Artikel"
+  },
+  "abo": {
+    "title": "Abonnement abschließen",
+    "heroIntro": "Wer regelmäßig die ila lesen und dazu noch sparen will, dem kann geholfen werden: in Form eines Jahresabos, das es in unterschiedlichen Formen gibt. Sie tragen damit nicht unwesentlich zum Erhalt einer wichtigen kritischen Stimme in unserer Medienwelt bei und erfahren im Gegenzug viel Spannendes, Wissenswertes, Unerhörtes, Kurioses, Ärgerliches, Nachdenkenswertes, Diskussionswürdiges...",
+    "promo2025": "Neue Preise ab 2025:\nNoch im Dezember ein Abo abschließen, dann gibt's zusätzlich zur Abo-Prämie die erste Ausgabe geschenkt!",
+    "description": "Wählen Sie Ihr Abonnement und sichern Sie sich eine Prämie.",
+    "type": "Abotyp",
+    "normal": "Normales Abo (Print + Online)",
+    "normal_pdf": "Normales Abo (nur PDF)",
+    "supporter": "Förderabo",
+    "reduced": "Ermäßigtes Abo",
+    "trial": "Probeabo",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "street": "Straße",
+    "zip": "PLZ",
+    "city": "Stadt",
+    "submit": "Abo abschließen",
+
+    "details": {
+      "normal_pdf": {
+        "text": "Die ila 10 mal im Jahr als PDF, komplett, in Farbe, interaktiv. Zur Ansicht ein Beispiel: ila 414."
+      },
+      "supporter": {
+        "intro": "Mit einem Förderabo unterstützen Sie die ila mit einer zusätzlichen Spende von 10 € pro Jahr des laufenden Abonnements.",
+        "adjustToggle": "* Förderung anpassen",
+        "adjustText": "Die Förderabos helfen uns dabei, die Druck- und Vertriebskosten zu tragen, ohne dass wir die Heft- und Abopreise erhöhen müssen. Weitere Spenden nutzen wir aktuell zum Ausbau der Website und zum Testen neuer Vertriebswege, um die Existenz der Zeitschrift langfristig zu sichern. Sie können Ihre Förderung anpassen. Der Betrag wird während der Laufzeit des Abos als jährliche Spende abgerechnet.",
+        "amountLabel": "Betrag der jährlichen Spende (€)",
+        "amountHint": "Mindestens 10 €. Nur ganze Zahlen.",
+        "amountMinError": "Bitte mindestens 10 € eingeben.",
+        "amountInteger": "Bitte nur ganze Zahlen eingeben."
+      },
+      "reduced": {
+        "info": "Für Menschen mit wenig Geld bieten wir eine Ermäßigung an. Wir benötigen keine Nachweise, Sie selbst können Ihre finanzielle Lage einschätzen. Die ermäßigten Abos werden durch Förderabos ermöglicht."
+      },
+      "trial": {
+        "info": "Sie erhalten die nächsten drei Ausgaben der ila. Sie können zwischen einem normalen und einem ermäßigten Probeabo wählen. Das Probeabo wandelt sich in ein reguläres Abo um, wenn bis drei (!) Wochen nach Erhalt des letzten Heftes keine schriftliche Kündigung per Post, Fax oder E-Mail bei der Informationsstelle Lateinamerika eingegangen ist.",
+        "variantNormal": "Probeabo Normalpreis – 8,50 €",
+        "variantReduced": "Probeabo ermäßigt – 7,50 €"
+      }
+    }
   }
 }
