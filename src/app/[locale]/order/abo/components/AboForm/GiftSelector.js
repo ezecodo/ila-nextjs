@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 
-export default function GiftSelector({ gifts, onSelect }) {
+export default function GiftSelector({ gifts, form, handleChange, onSelect }) {
   const t = useTranslations("abo");
 
   if (!gifts || gifts.length === 0)
@@ -27,6 +27,7 @@ export default function GiftSelector({ gifts, onSelect }) {
         <label className="block font-medium mb-2">{t("selectGiftLabel")}</label>
         <select
           className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+          value={form.giftId || ""}
           onChange={(e) => onSelect(e.target.value)}
         >
           <option value="">{t("noGiftOption")}</option>
@@ -43,9 +44,13 @@ export default function GiftSelector({ gifts, onSelect }) {
         <label className="block font-medium mb-2">
           {t("giftDeliveryLabel")}
         </label>
-        <select className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <option value="self">{t("giftDeliverySelf")}</option>
-          <option value="giftAddress">{t("giftDeliveryGiftAddress")}</option>
+        <select
+          className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+          value={form.giftDelivery || "to_payer"}
+          onChange={(e) => handleChange("giftDelivery", e.target.value)}
+        >
+          <option value="to_payer">{t("giftDeliverySelf")}</option>
+          <option value="to_recipient">{t("giftDeliveryGiftAddress")}</option>
         </select>
       </div>
     </div>

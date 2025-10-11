@@ -95,6 +95,7 @@ export default function AboForm({ gifts }) {
     giftRecipientZip: "",
     giftRecipientCity: "",
     giftRecipientCountry: "Deutschland",
+    giftSubscriptionDuration: "ONE_YEAR",
     termsAccepted: false,
     withdrawalAccepted: false,
     dataConsentAccepted: false,
@@ -176,6 +177,9 @@ export default function AboForm({ gifts }) {
         form.type === "SUPPORTER" && form.donationExtra && !donationError
           ? parseInt(form.donationExtra, 10)
           : null,
+      giftSubscriptionDuration: form.isGift
+        ? form.giftSubscriptionDuration
+        : null,
     };
 
     const res = await fetch("/api/subscriptions", {
@@ -191,17 +195,28 @@ export default function AboForm({ gifts }) {
       setForm({
         type: "NORMAL",
         format: "PRINT",
+        salutation: "",
+        institution: "",
+        addressExtra: "",
         firstName: "",
         lastName: "",
         street: "",
         zip: "",
         city: "",
-        country: "",
+        country: "Deutschland",
+        phone: "",
         email: "",
         giftId: null,
         donationExtra: "",
         trialVariant: "NORMAL",
         isGift: false,
+        giftRecipientName: "",
+        giftRecipientEmail: "",
+        giftRecipientStreet: "",
+        giftRecipientZip: "",
+        giftRecipientCity: "",
+        giftRecipientCountry: "Deutschland",
+        giftDelivery: "to_payer",
         termsAccepted: false,
         withdrawalAccepted: false,
         dataConsentAccepted: false,
@@ -263,7 +278,28 @@ export default function AboForm({ gifts }) {
             <h4 className="text-md font-semibold mb-4 text-gray-800 dark:text-gray-200">
               {t("giftRecipientTitle")}
             </h4>
+            {/* Laufzeit */}
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t("giftDurationLabel")}
+              </label>
+              <select
+                value={form.giftSubscriptionDuration}
+                onChange={(e) =>
+                  handleChange("giftSubscriptionDuration", e.target.value)
+                }
+                className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              >
+                <option value="ONE_YEAR">{t("giftDurationOneYear")}</option>
+                <option value="UNTIL_CANCELLED">
+                  {t("giftDurationUntilCancelled")}
+                </option>
+              </select>
 
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                {t("giftDurationInfo")}
+              </p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <InputField
                 label={t("giftRecipientName")}
@@ -545,6 +581,8 @@ export default function AboForm({ gifts }) {
       {/* Regalo y Términos */}
       <GiftSelector
         gifts={gifts}
+        form={form}
+        handleChange={handleChange}
         onSelect={(id) => handleChange("giftId", id)}
       />
 

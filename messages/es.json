@@ -703,6 +703,10 @@
     "giftDeliveryLabel": "¿Dónde quieres que enviemos el premio?",
     "giftDeliverySelf": "A mí",
     "giftDeliveryGiftAddress": "A la dirección del destinatario del regalo",
+    "giftDurationLabel": "Duración del regalo",
+    "giftDurationOneYear": "1 año",
+    "giftDurationUntilCancelled": "Hasta cancelación",
+    "giftDurationInfo": "Las suscripciones regalo tienen una duración inicial de un año (la edición actual y las nueve siguientes). Puede eliminar esta limitación aquí. Luego, la suscripción se renovará automáticamente por otro año si no se recibe una cancelación a tiempo (ver Términos y Condiciones).",
     "termsCheckbox": "Acepto los <a href='/agb' target='_blank' class='text-red-600 underline'>Términos y Condiciones</a>.",
     "withdrawalCheckbox": "Confirmo que he sido informado sobre mi derecho de desistimiento.",
     "privacyCheckbox": "Doy mi consentimiento para el tratamiento de mis datos personales conforme a la <a href='/datenschutz' target='_blank' class='text-red-600 underline'>política de privacidad</a>.",
@@ -728,6 +732,32 @@
         "variantNormal": "Suscripción de prueba normal — 8,50 €",
         "variantReduced": "Suscripción de prueba reducida — 7,50 €"
       }
+    },
+    "admin": {
+      "title": "Suscripciones",
+      "loading": "Cargando suscripciones...",
+      "searchPlaceholder": "Buscar por nombre o correo...",
+      "date": "Fecha",
+      "customer": "Cliente",
+      "email": "Correo electrónico",
+      "type": "Tipo",
+      "format": "Formato",
+      "gift": "Regalo",
+      "yes": "Sí",
+      "no": "No",
+      "actions": "Acciones",
+      "viewDetails": "Ver detalles",
+      "noResults": "No se encontraron resultados",
+      "subscriptionFrom": "Suscripción de",
+      "address": "Dirección",
+      "phone": "Teléfono",
+      "giftRecipient": "Destinatario del regalo",
+      "donation": "Donación adicional",
+      "giftItem": "Premio",
+      "reward": "Premio",
+      "giftDuration": "Duración del regalo",
+      "oneYear": "1 año",
+      "untilCancelled": "Hasta cancelación"
     }
   }
 }

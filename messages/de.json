@@ -702,6 +702,10 @@
     "giftDeliveryLabel": "Versand der Prämie",
     "giftDeliverySelf": "an mich",
     "giftDeliveryGiftAddress": "Lieferadresse für Geschenkabo",
+    "giftDurationLabel": "Laufzeit",
+    "giftDurationOneYear": "1 Jahr",
+    "giftDurationUntilCancelled": "bis Kündigung",
+    "giftDurationInfo": "Bei Geschenkabos ist die Laufzeit automatisch auf ein Jahr (aktuelle Ausgabe und die neun folgenden Hefte) begrenzt. Sie können die Laufzeitbeschränkung hier aufheben. Dann läuft das Abo zu den normalen Konditionen und wird nach Ablauf automatisch um ein weiteres Jahr verlängert, wenn keine fristgerechte Kündigung eingegangen ist. (siehe AGB)",
     "termsCheckbox": "Ich akzeptiere die <a href='/agb' target='_blank' class='text-red-600 underline'>Allgemeinen Geschäftsbedingungen</a>.",
     "withdrawalCheckbox": "Ich bestätige, dass ich über mein Widerrufsrecht informiert wurde.",
     "privacyCheckbox": "Ich willige in die Verarbeitung meiner personenbezogenen Daten gemäß der <a href='/datenschutz' target='_blank' class='text-red-600 underline'>Datenschutzerklärung</a> ein.",
@@ -727,6 +731,33 @@
         "variantNormal": "Probeabo Normalpreis – 8,50 €",
         "variantReduced": "Probeabo ermäßigt – 7,50 €"
       }
+    },
+    "admin": {
+      "title": "Abonnements",
+      "loading": "Lade Abonnements...",
+      "searchPlaceholder": "Nach Kunde oder E-Mail suchen...",
+      "date": "Datum",
+      "customer": "Kunde",
+      "email": "E-Mail",
+      "type": "Typ",
+      "format": "Format",
+      "gift": "Geschenkabo",
+      "yes": "Ja",
+      "no": "Nein",
+      "actions": "Aktionen",
+      "viewDetails": "Details ansehen",
+      "noResults": "Keine Ergebnisse gefunden",
+      "subscriptionFrom": "Abo von",
+      "address": "Adresse",
+      "phone": "Telefon",
+      "giftRecipient": "Geschenkempfänger",
+      "donation": "Spende",
+      "giftItem": "Prämie",
+      "reward": "Prämie",
+
+      "giftDuration": "Geschenkdauer",
+      "oneYear": "1 Jahr",
+      "untilCancelled": "Bis zur Kündigung"
     }
   }
 }

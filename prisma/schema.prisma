@@ -172,6 +172,8 @@ model Subscription {
   giftRecipientZip     String?
   giftRecipientCity    String?
   giftRecipientCountry String?
+   giftDelivery         String?   
+   giftSubscriptionDuration GiftSubscriptionDuration?
 
   giftId              String?
   gift                Gift?          @relation(fields: [giftId], references: [id])
@@ -180,7 +182,10 @@ model Subscription {
   withdrawalAccepted  Boolean
   dataConsentAccepted Boolean
 }
-
+enum GiftSubscriptionDuration {
+  ONE_YEAR
+  UNTIL_CANCELLED
+}
 enum SubscriptionType {
   NORMAL
   NORMAL_PDF
