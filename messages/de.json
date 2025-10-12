@@ -400,7 +400,8 @@
     "favorites": "Favoriten",
     "account": "Konto",
     "orders": "Bestellungen",
-    "viewOrders": "Ver Pedidos"
+    "viewOrders": "Dossiers",
+    "gifts": "Prämien"
   },
   "newArticle": {
     "form": {
@@ -754,10 +755,15 @@
       "donation": "Spende",
       "giftItem": "Prämie",
       "reward": "Prämie",
-
       "giftDuration": "Geschenkdauer",
       "oneYear": "1 Jahr",
-      "untilCancelled": "Bis zur Kündigung"
+      "untilCancelled": "Bis zur Kündigung",
+      "giftRecipientName": "Name des Geschenkempfängers",
+      "giftRecipientEmail": "E-Mail des Geschenkempfängers",
+      "giftRecipientAddress": "Adresse des Geschenkempfängers",
+      "giftSubscriptionDuration": "Dauer des Geschenkabonnements",
+      "rewardForPayer": "Prämie für den Abonnenten",
+      "rewardForRecipient": "Prämie für den Geschenkempfänger"
     }
   }
 }

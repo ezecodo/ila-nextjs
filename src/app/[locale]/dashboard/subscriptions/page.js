@@ -43,7 +43,7 @@ export default function SubscriptionsPage() {
         const res = await fetch("/api/subscriptions");
         if (!res.ok) throw new Error("Error cargando suscripciones");
         const data = await res.json();
-        setSubscriptions(data);
+        setSubscriptions(data.subscriptions || []);
       } catch (err) {
         console.error("❌ Error:", err);
       } finally {
@@ -185,7 +185,7 @@ export default function SubscriptionsPage() {
               {filteredSubs.length === 0 && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={9}
                     className="px-5 py-6 text-center text-gray-500 dark:text-gray-400"
                   >
                     {t("noResults")}
@@ -203,6 +203,7 @@ export default function SubscriptionsPage() {
             style={{ marginTop: `${headerHeight}px` }}
           >
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto mx-4 relative">
+              {/* Botón de cerrar */}
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-4 right-4 z-50 text-gray-500 hover:text-red-600 transition-all duration-200 text-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105"
@@ -216,7 +217,9 @@ export default function SubscriptionsPage() {
                   {t("subscriptionFrom")} {selectedSub.firstName}{" "}
                   {selectedSub.lastName}
                 </h2>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Información del cliente (PAGADOR) */}
                   <div className="space-y-3">
                     <p>
                       <span className="font-semibold">{t("email")}:</span>{" "}
@@ -233,17 +236,34 @@ export default function SubscriptionsPage() {
                         {selectedSub.phone}
                       </p>
                     )}
-                    {selectedSub.isGift && (
-                      <p>
-                        <span className="font-semibold">
-                          {t("giftRecipient")}:
-                        </span>{" "}
-                        {selectedSub.giftRecipientName} (
-                        {selectedSub.giftRecipientEmail})
+                    {selectedSub.message && (
+                      <p className="italic text-gray-600 dark:text-gray-400">
+                        {selectedSub.message}
                       </p>
                     )}
+
+                    {/* Premio para el pagador: Si NO es regalo O si es regalo y giftDelivery === "to_payer" */}
+                    {selectedSub.gift &&
+                      (!selectedSub.isGift ||
+                        selectedSub.giftDelivery === "to_payer") && (
+                        <div className="pt-3 border-t border-gray-200 dark:border-gray-700 mt-3">
+                          <p className="flex items-start gap-2">
+                            <span className="font-semibold">
+                              {t("reward")}:
+                            </span>
+                            <span className="flex-1">
+                              🏅 {selectedSub.gift.name}
+                              <span className="block text-xs text-gray-500 mt-1">
+                                {t("rewardForPayer") ||
+                                  "Prämie für den Abonnenten"}
+                              </span>
+                            </span>
+                          </p>
+                        </div>
+                      )}
                   </div>
 
+                  {/* Detalles del Abo */}
                   <div className="space-y-2">
                     <p>
                       <span className="font-semibold">{t("type")}:</span>{" "}
@@ -259,14 +279,77 @@ export default function SubscriptionsPage() {
                         {selectedSub.donationExtra} €
                       </p>
                     )}
-                    {selectedSub.gift && (
-                      <p>
-                        <span className="font-semibold">{t("gift")}:</span>{" "}
-                        {selectedSub.gift.name}
-                      </p>
-                    )}
+                    <p>
+                      <span className="font-semibold">{t("gift")}:</span>{" "}
+                      {selectedSub.isGift ? `🎁 ${t("yes")}` : "—"}
+                    </p>
+                    {selectedSub.isGift &&
+                      selectedSub.giftSubscriptionDuration && (
+                        <p>
+                          <span className="font-semibold">
+                            {t("giftSubscriptionDuration")}:
+                          </span>{" "}
+                          {selectedSub.giftSubscriptionDuration === "ONE_YEAR"
+                            ? t("oneYear")
+                            : t("untilCancelled")}
+                        </p>
+                      )}
                   </div>
                 </div>
+
+                {/* Si es regalo, mostrar bloque separado del DESTINATARIO */}
+                {selectedSub.isGift && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">
+                      {t("giftRecipient")}
+                    </h3>
+
+                    <div className="space-y-2">
+                      <p>
+                        <span className="font-semibold">
+                          {t("giftRecipientName")}:
+                        </span>{" "}
+                        {selectedSub.giftRecipientName}
+                      </p>
+
+                      <p>
+                        <span className="font-semibold">
+                          {t("giftRecipientEmail")}:
+                        </span>{" "}
+                        {selectedSub.giftRecipientEmail}
+                      </p>
+
+                      <p>
+                        <span className="font-semibold">
+                          {t("giftRecipientAddress")}:
+                        </span>{" "}
+                        {selectedSub.giftRecipientStreet},{" "}
+                        {selectedSub.giftRecipientZip}{" "}
+                        {selectedSub.giftRecipientCity},{" "}
+                        {selectedSub.giftRecipientCountry}
+                      </p>
+
+                      {/* Premio SOLO si giftDelivery === "to_recipient" */}
+                      {selectedSub.gift &&
+                        selectedSub.giftDelivery === "to_recipient" && (
+                          <div className="pt-3 border-t border-gray-200 dark:border-gray-700 mt-3">
+                            <p className="flex items-start gap-2">
+                              <span className="font-semibold">
+                                {t("reward")}:
+                              </span>
+                              <span className="flex-1">
+                                🎁 {selectedSub.gift.name}
+                                <span className="block text-xs text-gray-500 mt-1">
+                                  {t("rewardForRecipient") ||
+                                    "Prämie für den Geschenkempfänger"}
+                                </span>
+                              </span>
+                            </p>
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

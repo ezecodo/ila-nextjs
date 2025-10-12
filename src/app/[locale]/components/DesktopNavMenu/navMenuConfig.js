@@ -19,7 +19,7 @@ export const navSections = [
   {
     labelKey: "orderSubscribe",
     items: [
-      { labelKey: "subscription", href: "/order/subscribe" },
+      { labelKey: "subscription", href: "/order/abo" },
       { labelKey: "singleIssue", href: "/order/single-dossier-order" },
     ],
   },

@@ -13,14 +13,23 @@ export default function InfoBox() {
 
   const [events, setEvents] = useState([]);
   const [index, setIndex] = useState(0);
-
   useEffect(() => {
     async function fetchEvents() {
       try {
         const res = await fetch("/api/events");
         if (!res.ok) throw new Error("Error al cargar eventos");
         const data = await res.json();
-        setEvents(data);
+
+        // 🔹 Ordenar por fecha ascendente
+        const sorted = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        // 🔹 Filtrar solo eventos de hoy o futuros
+        const upcoming = sorted.filter(
+          (e) => new Date(e.date) >= new Date(new Date().setHours(0, 0, 0, 0))
+        );
+
+        // 🔹 Si no hay futuros, mostrar todos (fallback)
+        setEvents(upcoming.length > 0 ? upcoming : sorted);
       } catch (error) {
         console.error(error);
       }

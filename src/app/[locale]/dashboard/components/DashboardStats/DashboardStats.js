@@ -44,6 +44,35 @@ const DashboardStats = () => {
     fetchStats();
   }, []);
 
+  const [newOrders, setNewOrders] = useState(0);
+
+  useEffect(() => {
+    async function fetchOrdersCount() {
+      try {
+        const res = await fetch("/api/orders", { cache: "no-store" });
+        const data = await res.json();
+        setNewOrders(data.newOrdersCount || 0);
+      } catch (err) {
+        console.error("Error cargando contador de pedidos:", err);
+      }
+    }
+    fetchOrdersCount();
+  }, []);
+  const [newSubscriptions, setNewSubscriptions] = useState(0);
+
+  useEffect(() => {
+    async function fetchSubscriptionsCount() {
+      try {
+        const res = await fetch("/api/subscriptions", { cache: "no-store" });
+        const data = await res.json();
+        setNewSubscriptions(data.newSubscriptionsCount || 0);
+      } catch (err) {
+        console.error("Error cargando contador de Abos:", err);
+      }
+    }
+    fetchSubscriptionsCount();
+  }, []);
+
   if (loading) return null;
   if (error) return <p className="text-center text-red-500">{t("error")}</p>;
 
@@ -112,16 +141,30 @@ const DashboardStats = () => {
         pathname={pathname}
       />
       <StatCardDropdown
-        icon={<FaShoppingCart size={18} />}
+        icon={
+          <div className="relative">
+            <FaShoppingCart
+              size={18}
+              className={newOrders > 0 ? "text-red-600" : ""}
+            />
+          </div>
+        }
         label={t("orders")}
         items={[
           {
-            label: t("viewOrders") || "Bestellungen",
+            label: `${t("viewOrders")}${newOrders > 0 ? ` (${newOrders})` : ""}`,
             href: "/dashboard/orders",
           },
-          { label: "Prämien", href: "/dashboard/gifts" }, // 👈 nuestro nuevo dropdown
+          {
+            label: `Abos${newSubscriptions > 0 ? ` (${newSubscriptions})` : ""}`,
+            href: "/dashboard/subscriptions",
+          },
+          { label: t("gifts"), href: "/dashboard/gifts" },
         ]}
         pathname={pathname}
+        newOrders={newOrders}
+        newSubscriptions={newSubscriptions}
+        t={t}
       />
       <StatCard
         icon={<FaCog size={18} />}
@@ -181,8 +224,20 @@ function StatCard({ label, value, color, icon, onClick, href, pathname }) {
   return href ? <Link href={href}>{content}</Link> : content;
 }
 
-export function StatCardDropdown({ icon, label, color, items, pathname }) {
+export function StatCardDropdown({
+  icon,
+  label,
+  color,
+  items,
+  pathname,
+  newOrders = 0,
+  newSubscriptions = 0,
+  t,
+}) {
   const [open, setOpen] = useState(false);
+
+  // fallback de traducción
+  const translate = t || ((key) => key);
 
   // Detectar si algún item del dropdown está activo
   const isActive = items.some((item) => pathname?.startsWith(item.href));
@@ -198,18 +253,32 @@ export function StatCardDropdown({ icon, label, color, items, pathname }) {
 
       {/* Botón */}
       <div
-        className={`cursor-pointer min-w-[140px] px-4 py-3 bg-white rounded-md shadow-sm border-2 ${
+        className={`relative cursor-pointer min-w-[140px] px-4 py-3 bg-white rounded-md shadow-sm border-2 ${
           isActive
-            ? "border-red-500 bg-red-50 dark:bg-red-900/20" // 🔴 Cambiado a rojo
+            ? "border-red-500 bg-red-50 dark:bg-red-900/20"
             : "border-gray-200 hover:bg-gray-50"
         } flex items-center gap-3 text-sm transition-all`}
       >
+        {/* Icono */}
         {icon && <span className={isActive ? "text-red-600" : ""}>{icon}</span>}
+
+        {/* Texto */}
         <span
-          className={`${isActive ? "font-bold text-red-600" : "font-normal text-gray-900"} ${color}`}
+          className={`${
+            isActive ? "font-bold text-red-600" : "font-normal text-gray-900"
+          } ${color}`}
         >
           {label}
         </span>
+
+        {/* 🔴 Badge arriba a la derecha del botón */}
+        {label === translate("orders") &&
+          (newOrders > 0 || newSubscriptions > 0) && (
+            <span
+              className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-green-600 border-2 border-white rounded-full animate-pulse shadow-sm"
+              title={`${newOrders} neue Bestellung${newOrders > 1 ? "en" : ""}`}
+            />
+          )}
       </div>
 
       {/* Dropdown */}
@@ -239,5 +308,4 @@ export function StatCardDropdown({ icon, label, color, items, pathname }) {
     </div>
   );
 }
-
 export default DashboardStats;

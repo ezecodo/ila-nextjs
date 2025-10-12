@@ -401,7 +401,8 @@
     "favorites": "Favoritos",
     "account": "Cuenta",
     "orders": "Pedidos",
-    "viewOrders": "Ver Pedidos"
+    "viewOrders": "Dossiers",
+    "gifts": "Premios"
   },
   "newArticle": {
     "form": {
@@ -757,7 +758,13 @@
       "reward": "Premio",
       "giftDuration": "Duración del regalo",
       "oneYear": "1 año",
-      "untilCancelled": "Hasta cancelación"
+      "untilCancelled": "Hasta cancelación",
+      "giftRecipientName": "Nombre del destinatario",
+      "giftRecipientEmail": "Correo electrónico del destinatario",
+      "giftRecipientAddress": "Dirección del destinatario",
+      "giftSubscriptionDuration": "Duración de la suscripción regalo",
+      "rewardForPayer": "Premio enviado al abonado",
+      "rewardForRecipient": "Premio enviado al destinatario del regalo"
     }
   }
 }

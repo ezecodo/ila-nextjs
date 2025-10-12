@@ -54,6 +54,7 @@ export async function POST(req) {
         termsAccepted: data.termsAccepted,
         withdrawalAccepted: data.withdrawalAccepted,
         dataConsentAccepted: data.dataConsentAccepted,
+        isNew: true, // 👈 NUEVO: marcar la suscripción como nueva
       },
     });
 
@@ -75,11 +76,17 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(subscriptions);
+    // 👇 NUEVO: contador de suscripciones nuevas
+    const newSubscriptionsCount = await prisma.subscription.count({
+      where: { isNew: true },
+    });
+
+    // 🔹 Devolvemos ambas cosas
+    return NextResponse.json({ subscriptions, newSubscriptionsCount });
   } catch (error) {
     console.error("❌ Error cargando suscripciones:", error);
     return NextResponse.json(
-      { error: "Error cargando suscripciones" },
+      { error: "Error cargando suscripciones", details: error.message },
       { status: 500 }
     );
   }

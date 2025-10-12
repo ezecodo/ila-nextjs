@@ -31,7 +31,8 @@
     "src/components/ClientLayout.js",
     "src/app/[locale]/components/Editions/EditionFlipCard/EditionFlipCard.js",
     "src/app/[locale]/components/Editions/EditionsCarouselFlip/EditionsCarouselFlip.js",
-    "src/lib/slugify.js"
+    "src/lib/slugify.js",
+    "src/app/[locale]/order/abo/components/AboForm/AgbModal.js"
   ],
   "exclude": ["node_modules"]
 }

@@ -49,7 +49,7 @@ export default function OrdersPage() {
         const res = await fetch("/api/orders");
         if (!res.ok) throw new Error("Error cargando pedidos");
         const data = await res.json();
-        setOrders(data);
+        setOrders(data.orders || []); // ✅ solo el array de pedidos
       } catch (err) {
         console.error("❌ Error:", err);
       } finally {
