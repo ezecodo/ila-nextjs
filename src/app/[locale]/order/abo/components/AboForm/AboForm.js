@@ -581,9 +581,10 @@ export default function AboForm({ gifts }) {
       {/* Regalo y Términos */}
       <GiftSelector
         gifts={gifts}
-        form={form}
-        handleChange={handleChange}
-        onSelect={(id) => handleChange("giftId", id)}
+        selectedGiftId={form.giftId}
+        onSelect={(giftId) => handleChange("giftId", giftId)}
+        giftDelivery={form.giftDelivery}
+        onDeliveryChange={(value) => handleChange("giftDelivery", value)}
       />
 
       <Card>
