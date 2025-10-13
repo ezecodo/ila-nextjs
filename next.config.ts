@@ -10,11 +10,22 @@ const nextConfig: NextConfig = {
     // 🚑 En producción no rompas el build por errores de ESLint
     ignoreDuringBuilds: true,
   },
+
+  // ⚡️ Aquí añadimos las redirecciones permanentes
+  async redirects() {
+    return [
+      {
+        source: "/de/about/spenden", // la URL antigua
+        destination: "/de/support/donations", // la URL nueva correcta
+        permanent: true, // indica a Google que es un redirect 301 permanente
+      },
+    ];
+  },
 };
 
-// 👉 Acá aplicamos el plugin de next-intl por fuera
+// 👉 Aplicar el plugin de next-intl
 const withNextIntl = createNextIntlPlugin({
-  // Opcional: podrías definir locales acá, pero ya los tenés en `routing.ts`
+  // ya tienes definidos los locales en routing.ts
 });
 
 export default withNextIntl(nextConfig);
