@@ -150,10 +150,16 @@ export default function LatestEditionWithArticles() {
     filteredArticles = articles;
   }
 
-  // 💻 Versión desktop → limitar a 10 artículos
-  const desktopArticles = filteredArticles.slice(0, 10);
+  // 🖼️ Solo artículos con imagen válida
+  const articlesWithImages = filteredArticles.filter((a) => {
+    const img = a?.images?.[0] || a?.image;
+    return img && img.url;
+  });
 
-  // 📱 Versión mobile → sin límite
+  // 💻 Desktop → mostrar solo 6 artículos con imagen
+  const desktopArticles = articlesWithImages.slice(0, 6);
+
+  // 📱 Mobile → mantener todos los artículos como antes
   const mobileArticles = filteredArticles;
 
   const isVertical = (img) =>
