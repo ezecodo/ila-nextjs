@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Dialog } from "@headlessui/react";
+
 import Image from "next/image";
 import Link from "next/link";
 import DonationBanner from "../DonationBanner/DonationBanner";
@@ -22,8 +22,7 @@ export default function LatestEditionWithArticles() {
   const [currentEditionIndex, setCurrentEditionIndex] = useState(0);
   const [articles, setArticles] = useState([]);
   const [editionsCount, setEditionsCount] = useState({});
-  const [popupImage, setPopupImage] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
+
   const [pickerValue, setPickerValue] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(null);
   const listRef = useRef(null);
@@ -417,24 +416,19 @@ export default function LatestEditionWithArticles() {
                   </div>
                 </div>
 
-                <div
-                  className="relative w-full cursor-pointer"
-                  onClick={() => {
-                    if (currentEdition.coverImage) {
-                      setPopupImage(currentEdition.coverImage);
-                      setIsOpen(true);
-                    }
-                  }}
+                <Link
+                  href={`/editions/${currentEdition.id}`}
+                  className="relative w-full cursor-pointer block group"
                 >
                   <Image
                     src={currentEdition.coverImage}
                     alt={`Portada de ${currentEdition.title}`}
                     width={300}
                     height={400}
-                    className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto"
+                    className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
                     priority
                   />
-                </div>
+                </Link>
 
                 <EntityBadges
                   regions={currentEdition.regions.map((region) => ({
@@ -569,31 +563,6 @@ export default function LatestEditionWithArticles() {
           </div>
         )}
       </div>
-
-      <Dialog
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
-      >
-        <Dialog.Panel className="relative bg-white rounded-lg shadow-lg p-4 max-w-[500px]">
-          {popupImage && (
-            <Image
-              src={popupImage}
-              alt={`Portada de ${currentEdition?.title}`}
-              width={400}
-              height={520}
-              className="rounded-lg object-contain w-full h-auto"
-              priority
-            />
-          )}
-          <button
-            onClick={() => setIsOpen(false)}
-            className="absolute top-2 right-2 text-white bg-red-600 hover:bg-red-800 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full"
-          >
-            ✕
-          </button>
-        </Dialog.Panel>
-      </Dialog>
     </>
   );
 }
