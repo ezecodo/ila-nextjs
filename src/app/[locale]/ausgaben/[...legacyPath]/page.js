@@ -98,7 +98,7 @@ export default function LegacyArticlePage() {
     if (!html) return "";
 
     // Si ya hay h3, no tocamos nada
-    if (/<h3\b/i.test(html)) return html;
+    /* if (/<h3\b/i.test(html)) return html; */
 
     return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
       // quitar <br> y normalizar espacios
