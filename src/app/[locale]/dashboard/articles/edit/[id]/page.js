@@ -56,7 +56,7 @@ export default function EditArticlePage() {
   const [selectedInterviewees, setSelectedInterviewees] = useState([]); // Entrevistado seleccionado
   const [isIntervieweeModalOpen, setIsIntervieweeModalOpen] = useState(false);
   const [newIntervieweeName, setNewIntervieweeName] = useState("");
-  const [isPublished, setIsPublished] = useState(false); // Toggle para "Publicar Ahora"
+
   const [schedulePublish, setSchedulePublish] = useState(false); // Toggle para "Programar Publicación"
   const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
   const [useCustomDate, setUseCustomDate] = useState(false);
@@ -303,7 +303,10 @@ export default function EditArticlePage() {
             []
         );
         setIsInterview(article.isInterview || false);
-        setIsPublished(article.isPublished || false);
+        setIsInterview(article.isInterview || false);
+        setPublicationDate(
+          article.publicationDate ? new Date(article.publicationDate) : null
+        );
         setSchedulePublish(article.schedulePublish || false);
         setPublicationDate(
           article.publicationDate ? new Date(article.publicationDate) : null
@@ -556,11 +559,39 @@ export default function EditArticlePage() {
       formData.append("additionalInfo", additionalInfo);
     }
 
-    formData.append("isPublished", isPublished);
-    formData.append("schedulePublish", schedulePublish);
-    if (publicationDate) {
-      formData.append("publicationDate", publicationDate.toISOString());
+    // 📅 Publicación automática (edición coherente con creación)
+    let finalDate = publicationDate;
+    let finalIsPublished = false;
+
+    // Si no se usa una fecha personalizada
+    if (!useCustomDate) {
+      // 👉 Si no se elige fecha personalizada → se publica ahora mismo
+      finalDate = new Date();
+      finalIsPublished = true;
+    } else if (publicationDate) {
+      const now = new Date();
+      const pubDate = new Date(publicationDate);
+
+      // 🧠 Nueva lógica: si la fecha es futura → NO publicado
+      if (pubDate > now) {
+        finalIsPublished = false;
+      } else {
+        // Si es pasada o actual → publicado
+        finalIsPublished = true;
+      }
     }
+
+    // ⚡ Convertir fecha local a UTC correctamente
+    if (finalDate) {
+      const utcDate = new Date(
+        finalDate.getTime() - finalDate.getTimezoneOffset() * 60000
+      );
+      formData.append("publicationDate", utcDate.toISOString());
+    } else {
+      formData.append("publicationDate", new Date().toISOString());
+    }
+
+    formData.append("isPublished", finalIsPublished);
 
     // Agregar categorías seleccionadas
     formData.append("categories", JSON.stringify(selectedCategories));
@@ -994,26 +1025,6 @@ export default function EditArticlePage() {
             </button>
           </>
         )}
-
-        <ToggleSwitch
-          id="isPublished"
-          label="Publicar Ahora"
-          checked={isPublished}
-          onChange={(e) => {
-            setIsPublished(e.target.checked);
-            if (e.target.checked) setSchedulePublish(false); // Desactiva programar publicación si está activo
-          }}
-        />
-
-        <ToggleSwitch
-          id="schedulePublish"
-          label="Programar Publicación (futuro)"
-          checked={schedulePublish}
-          onChange={(e) => {
-            setSchedulePublish(e.target.checked);
-            if (e.target.checked) setIsPublished(false);
-          }}
-        />
 
         <ToggleSwitch
           id="useCustomDate"

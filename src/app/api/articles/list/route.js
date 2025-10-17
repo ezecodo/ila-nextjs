@@ -65,9 +65,12 @@ export async function GET(req) {
         isPublished: false,
       };
     } else if (editionId) {
+      const now = new Date();
       whereCondition = {
         ...whereCondition,
         editionId: parseInt(editionId, 10),
+        isPublished: true, // 👈 solo artículos publicados
+        publicationDate: { lte: now }, // 👈 solo si la fecha ya llegó
       };
     }
     if (showFavorites) {
