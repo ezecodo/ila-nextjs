@@ -51,9 +51,9 @@ export default function NewArticlePage() {
   const [newAuthorName, setNewAuthorName] = useState("");
   const [newAuthorEmail, setNewAuthorEmail] = useState("");
   const [isInterview, setIsInterview] = useState(false); // Toggle para entrevistas
-  const [isPublished, setIsPublished] = useState(false); // Toggle para "Publicar Ahora"
-  const [schedulePublish, setSchedulePublish] = useState(false); // Toggle para "Programar Publicación"
+
   const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
+
   const [useCustomDate, setUseCustomDate] = useState(false);
   const [deceasedFirstName, setDeceasedFirstName] = useState("");
   const [deceasedLastName, setDeceasedLastName] = useState("");
@@ -577,11 +577,29 @@ export default function NewArticlePage() {
       formData.append("additionalInfo", additionalInfo);
     }
 
-    formData.append("isPublished", isPublished);
-    formData.append("schedulePublish", schedulePublish);
-    if (publicationDate) {
-      formData.append("publicationDate", publicationDate.toISOString());
+    // 📅 Publicación automática
+    let finalDate = publicationDate;
+    let finalIsPublished = false;
+
+    if (!useCustomDate) {
+      finalDate = new Date(); // se publica ahora
+      finalIsPublished = true;
+    } else if (publicationDate) {
+      // si la fecha es pasada o hoy => publicado
+      finalIsPublished = new Date(publicationDate) <= new Date();
     }
+
+    // ⚡ convertir fecha local a UTC correctamente
+    if (finalDate) {
+      const utcDate = new Date(
+        finalDate.getTime() - finalDate.getTimezoneOffset() * 60000
+      );
+      formData.append("publicationDate", utcDate.toISOString());
+    } else {
+      formData.append("publicationDate", new Date().toISOString());
+    }
+
+    formData.append("isPublished", finalIsPublished);
 
     // Agregar categorías seleccionadas
     formData.append("categories", JSON.stringify(selectedCategories));
@@ -630,8 +648,7 @@ export default function NewArticlePage() {
     setDateOfDeath("");
     setPreviewTextEnabled(false);
     setPreviewText("");
-    setIsPublished(false);
-    setSchedulePublish(false);
+
     setUseCustomDate(false);
     setPublicationDate(null);
     setAdditionalInfo("");
@@ -1039,35 +1056,20 @@ export default function NewArticlePage() {
         )}
 
         <ToggleSwitch
-          id="isPublished"
-          label={t("publishToggle")}
-          checked={isPublished}
-          onChange={(e) => {
-            setIsPublished(e.target.checked);
-            if (e.target.checked) setSchedulePublish(false); // Desactiva programar publicación si está activo
-          }}
-        />
-
-        <ToggleSwitch
-          id="schedulePublish"
-          label={t("schedulePublishToggle")}
-          checked={schedulePublish}
-          onChange={(e) => {
-            setSchedulePublish(e.target.checked);
-            if (e.target.checked) setIsPublished(false);
-          }}
-        />
-
-        <ToggleSwitch
           id="useCustomDate"
           label={t("useCustomDateToggle")}
           checked={useCustomDate}
           onChange={(e) => setUseCustomDate(e.target.checked)}
         />
 
-        {(useCustomDate || schedulePublish) && (
-          <div>
-            <label>{t("articleDateLabel")}</label>
+        {useCustomDate && (
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              {t("articleDateLabel")}
+              <span className="text-sm text-gray-500 ml-1">
+                ({t("articleDateHint")})
+              </span>
+            </label>
             <input
               type="datetime-local"
               value={
@@ -1075,7 +1077,10 @@ export default function NewArticlePage() {
                   ? publicationDate.toISOString().slice(0, 16)
                   : ""
               }
-              onChange={(e) => setPublicationDate(new Date(e.target.value))}
+              onChange={(e) => {
+                const date = new Date(e.target.value);
+                setPublicationDate(isNaN(date.getTime()) ? null : date);
+              }}
             />
           </div>
         )}

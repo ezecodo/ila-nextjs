@@ -108,10 +108,29 @@ export async function POST(request) {
       console.error("❌ Error parseando autores:", e);
     }
     const interviewees = JSON.parse(formData.get("interviewees") || "[]");
-    const isPublished = formData.get("isPublished") === "true";
+
     const startPage = formData.get("startPage");
     const endPage = formData.get("endPage");
-    const publicationDate = formData.get("publicationDate");
+    const publicationDateRaw = formData.get("publicationDate");
+
+    // 🧠 Nueva lógica de publicación
+    let publicationDate = publicationDateRaw
+      ? new Date(publicationDateRaw)
+      : new Date();
+
+    let isPublished = false;
+    const now = new Date();
+
+    if (!publicationDateRaw) {
+      // No hay fecha → publicar ahora
+      isPublished = true;
+    } else if (publicationDate <= now) {
+      // Fecha pasada o igual → ya publicado
+      isPublished = true;
+    } else {
+      // Fecha futura → programado
+      isPublished = false;
+    }
     const categories = JSON.parse(formData.get("categories") || "[]");
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
