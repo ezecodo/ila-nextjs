@@ -18,12 +18,26 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// ✅ GET: Listar artículos (incluye nuevos filtros)
 export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
     const locale = request.headers.get("x-locale") || "de";
-    const where = locale === "es" ? { isTranslatedES: true } : {};
+    const upcoming = searchParams.get("upcoming") === "true"; // 👈 nuevo parámetro
 
-    // 1. Consulta artículos base (sin imágenes todavía)
+    // Base: artículos traducidos si el idioma es ES
+    let where = locale === "es" ? { isTranslatedES: true } : {};
+
+    // 👇 Si queremos ver artículos programados para el futuro
+    if (upcoming) {
+      where = {
+        ...where,
+        isPublished: false,
+        publicationDate: { gt: new Date() },
+      };
+    }
+
+    // 1️⃣ Consulta artículos base (sin imágenes todavía)
     const articles = await prisma.article.findMany({
       where,
       include: {
@@ -39,10 +53,10 @@ export async function GET(request) {
         regions: true,
         topics: true,
       },
-      orderBy: { id: "desc" },
+      orderBy: { publicationDate: "desc" }, // 👈 ordenamos por fecha
     });
 
-    // 2. Resolver imágenes manualmente
+    // 2️⃣ Resolver imágenes manualmente
     const articlesWithImages = await Promise.all(
       articles.map(async (article) => {
         const images = await prisma.image.findMany({
@@ -55,7 +69,7 @@ export async function GET(request) {
       })
     );
 
-    // 3. Transformar artículos (categorías y traducciones)
+    // 3️⃣ Transformar artículos (categorías y traducciones)
     const transformedArticles = articlesWithImages.map((article) => ({
       ...article,
       categories: article.articleCategories.map((ac) => ({
@@ -74,7 +88,7 @@ export async function GET(request) {
 
     return new Response(JSON.stringify(transformedArticles), { status: 200 });
   } catch (error) {
-    console.error("Error en GET /api/articles:", error.message);
+    console.error("❌ Error en GET /api/articles:", error.message);
     return new Response(
       JSON.stringify({
         error: "Internal Server Error",
