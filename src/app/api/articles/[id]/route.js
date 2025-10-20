@@ -402,42 +402,45 @@ export async function PUT(req, context) {
         }
       }
 
+      // 🧩 Construir el objeto de actualización sin tocar publicationDate por defecto
+      const dataToUpdate = {
+        title,
+        subtitle,
+        previewText: previewText || null,
+        content,
+        additionalInfo: additionalInfo || null,
+        authors: {
+          set: authors.map((id) => ({ id: parseInt(id, 10) })),
+        },
+        interviewees: {
+          set: interviewees.map((id) => ({ id: parseInt(id, 10) })),
+        },
+        isInPrintEdition: isPrinted,
+        editionId: editionId ? parseInt(editionId, 10) : null,
+        startPage: startPage ? parseInt(startPage, 10) : null,
+        endPage: endPage ? parseInt(endPage, 10) : null,
+        beitragstypId: beitragstypId ? parseInt(beitragstypId, 10) : null,
+        beitragssubtypId: beitragssubtypId
+          ? parseInt(beitragssubtypId, 10)
+          : null,
+        categories: categories.length
+          ? { set: categories.map((id) => ({ id: parseInt(id, 10) })) }
+          : undefined,
+        regions: { set: regions.map((id) => ({ id: parseInt(id, 10) })) },
+        topics: { set: topics.map((id) => ({ id: parseInt(id, 10) })) },
+        isPublished,
+      };
+
+      // ✅ Solo actualizar la fecha si el usuario activó “Editar fecha del artículo”
+      const useCustomDate = formData.get("useCustomDate") === "true";
+      if (useCustomDate && publicationDate) {
+        dataToUpdate.publicationDate = publicationDate;
+      }
+
+      // ⚡ Prisma actualizará automáticamente updatedAt
       const updatedArticle = await prisma.article.update({
         where: { id: parseInt(id, 10) },
-        data: {
-          title,
-          subtitle,
-          previewText: previewText || null,
-          content,
-          additionalInfo: additionalInfo || null,
-          authors: {
-            set: authors.map((id) => ({ id: parseInt(id, 10) })),
-          },
-          interviewees: {
-            set: interviewees.map((id) => ({ id: parseInt(id, 10) })),
-          },
-          isInPrintEdition: isPrinted,
-          editionId: editionId ? parseInt(editionId, 10) : null,
-          startPage: startPage ? parseInt(startPage, 10) : null,
-          endPage: endPage ? parseInt(endPage, 10) : null,
-          beitragstypId: beitragstypId ? parseInt(beitragstypId, 10) : null,
-          beitragssubtypId: beitragssubtypId
-            ? parseInt(beitragssubtypId, 10)
-            : null,
-          categories: categories.length
-            ? {
-                set: categories.map((id) => ({ id: parseInt(id, 10) })),
-              }
-            : undefined,
-          regions: {
-            set: regions.map((id) => ({ id: parseInt(id, 10) })),
-          },
-          topics: {
-            set: topics.map((id) => ({ id: parseInt(id, 10) })),
-          },
-          isPublished,
-          publicationDate,
-        },
+        data: dataToUpdate,
         include: {
           edition: {
             select: {

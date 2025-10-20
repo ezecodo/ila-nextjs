@@ -564,21 +564,16 @@ export default function EditArticlePage() {
     let finalIsPublished = false;
 
     // Si no se usa una fecha personalizada
-    if (!useCustomDate) {
-      // 👉 Si no se elige fecha personalizada → se publica ahora mismo
-      finalDate = new Date();
-      finalIsPublished = true;
-    } else if (publicationDate) {
+    // 🧩 Mantener fecha original salvo que el usuario decida cambiarla
+    if (useCustomDate && publicationDate) {
+      // Si el usuario activó el modo personalizado, usar la fecha elegida
+      finalDate = publicationDate;
       const now = new Date();
-      const pubDate = new Date(publicationDate);
-
-      // 🧠 Nueva lógica: si la fecha es futura → NO publicado
-      if (pubDate > now) {
-        finalIsPublished = false;
-      } else {
-        // Si es pasada o actual → publicado
-        finalIsPublished = true;
-      }
+      finalIsPublished = publicationDate <= now;
+    } else {
+      // Si no se activó el modo personalizado, mantener la fecha existente
+      finalDate = publicationDate; // viene del backend y se conserva
+      finalIsPublished = true; // no tocar estado de publicación
     }
 
     // ⚡ Convertir fecha local a UTC correctamente
@@ -592,6 +587,8 @@ export default function EditArticlePage() {
     }
 
     formData.append("isPublished", finalIsPublished);
+    // ✅ Enviar al backend si el usuario activó el modo personalizado de fecha
+    formData.append("useCustomDate", useCustomDate);
 
     // Agregar categorías seleccionadas
     formData.append("categories", JSON.stringify(selectedCategories));
