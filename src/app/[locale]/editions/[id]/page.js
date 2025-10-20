@@ -85,72 +85,207 @@ export default function EditionDetails() {
     if (!edition?.tableOfContents) return [];
 
     let normalized = edition.tableOfContents;
-    if (!normalized.includes("\n")) {
-      normalized = normalized
-        .replace(/\r\n/g, "\n")
-        .replace(/\r/g, "\n")
-        .replace(/\u00A0/g, " ")
-        .replace(/\s{2,}/g, " ")
-        .replace(/(\d{1,3})\s+/g, "\n$1 ");
-    }
+
+    // 🔹 Limpiar espacios especiales
+    normalized = normalized
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .replace(/\u00A0/g, " ")
+      .replace(/\u2003/g, " ")
+      .replace(/\u2002/g, " ")
+      .trim();
 
     const lines = normalized.split("\n").filter((line) => line.trim());
     const parsedArticles = [];
     let currentArticle = null;
+    let beilageBuffer = [];
+    let insideBeilage = false;
+
+    function isArticleLine(line) {
+      const trimmed = line?.trim();
+      if (!trimmed) return false;
+
+      // Evitar confundir años como 1995, 2001, etc.
+      if (/^(19|20)\d{2}\b/.test(trimmed)) return false;
+
+      // ⭐ MEJORADO: Detectar números de página vs números en el texto
+      const pageMatch = trimmed.match(/^(\d{1,3})(\s+)(.+)/);
+
+      if (!pageMatch) return false;
+
+      const number = parseInt(pageMatch[1]);
+      const spaces = pageMatch[2];
+      const restOfLine = pageMatch[3];
+
+      // Si tiene 2 o más espacios después del número → es artículo
+      if (spaces.length >= 2) return true;
+
+      // Si el número es pequeño (1-20) y solo tiene 1 espacio → probablemente es texto
+      if (number <= 20 && spaces.length === 1) {
+        // Verificar si la palabra siguiente es una palabra común de tiempo o cantidad
+        if (
+          /^(jahre|monate|tage|wochen|stunden|minuten|prozent|prozente|mal|personen|leute)/i.test(
+            restOfLine
+          )
+        ) {
+          return false;
+        }
+      }
+
+      // Si el número es >= 21 → probablemente es número de página
+      if (number >= 21) return true;
+
+      // Por defecto, si empieza con número y espacio → es artículo
+      return true;
+    }
+
+    function isFooterLine(line) {
+      return /^(titel|titelbild|titelfoto|foto|fotoserie|mit\s+bildern|bild|abbildung|das titelbild|aus\s*-?sprache|dossier)\s*[:]?/i.test(
+        line
+      );
+    }
+
+    function isSectionLine(line) {
+      // ⭐ IMPORTANTE: Si la línea empieza con número, NO es sección (es artículo)
+      if (isArticleLine(line)) return false;
+
+      // Verificar secciones conocidas
+      const isKnownSection =
+        /^(aktuelles|schwerpunkt|dossier|berichte|weitere berichte|beilage|kultur|solidarität|rezensionen|eine welt|wirtschaft|aus-sprache|ländernachrichten|poonal|leserinnenbriefe|buchbesprechungen)/i.test(
+          line
+        );
+
+      if (isKnownSection) return true;
+
+      // ⭐ Detectar líneas que están completamente en MAYÚSCULAS
+      const trimmedLine = line.trim();
+      if (trimmedLine.length > 3 && trimmedLine === trimmedLine.toUpperCase()) {
+        if (/[A-ZÄÖÜ]/.test(trimmedLine)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    // ⭐ NUEVO: Función para acumular y cerrar buffer de líneas sueltas
+    function flushTopicBuffer(topicBuffer) {
+      if (topicBuffer.length === 0) return;
+
+      const isFooter = isFooterLine(topicBuffer[0]);
+      parsedArticles.push({
+        id: parsedArticles.length,
+        pageNumber: null,
+        title: topicBuffer.join("\n"),
+        subtitle: null,
+        author: "",
+        isLinked: false,
+        matchedArticle: null,
+        isSection: false,
+        isFooter: isFooter,
+        isTopic: !isFooter,
+      });
+    }
+
+    let topicBuffer = [];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      const pageNumber = line.match(/^\d+/)?.[0] || null;
 
-      if (pageNumber && /^\d+\s/.test(line)) {
+      // 🔸 PRIMERO verificar si es artículo (tiene número al inicio)
+      if (isArticleLine(line)) {
+        // Cerrar buffer de tópicos si existe
+        flushTopicBuffer(topicBuffer);
+        topicBuffer = [];
+
+        // Cerrar artículo anterior si existe
         if (currentArticle) {
           parsedArticles.push(currentArticle);
+          currentArticle = null;
         }
 
-        const titleWithoutPage = line.replace(/^\d+\s*/, "");
-        function normalizeText(str) {
-          return str
-            ?.normalize("NFC") // Fuerza forma canónica (ó → ó)
+        // Si había buffer de beilage, cerrarlo
+        if (insideBeilage && beilageBuffer.length) {
+          parsedArticles.push({
+            id: parsedArticles.length,
+            pageNumber: null,
+            title: beilageBuffer.join("\n"),
+            subtitle: null,
+            author: "",
+            isLinked: false,
+            matchedArticle: null,
+            isSection: false,
+          });
+          beilageBuffer = [];
+          insideBeilage = false;
+        }
+
+        const pageNumber = line.match(/^\d+/)?.[0] || null;
+        const titleWithoutPage = line.replace(/^\d+\s*/, "").trim();
+
+        const cleanTitle = (str) =>
+          str
+            ?.normalize("NFC")
             .toLowerCase()
+            .replace(/\.\.\./g, "…")
+            .replace(/["""']/g, "")
+            .replace(/\s+/g, " ")
+            .replace(/[^\p{L}\p{N}\s]/gu, "")
             .trim();
-        }
 
-        const normalizedTitle = normalizeText(titleWithoutPage);
+        const normalizedTocTitle = cleanTitle(titleWithoutPage);
 
-        let matchedArticle = articles.find((article) =>
-          normalizeText(article.title).includes(normalizedTitle)
-        );
-
-        if (!matchedArticle && lines[i + 1]) {
-          const possibleSubtitle = lines[i + 1].trim();
-          matchedArticle = articles.find((article) =>
-            possibleSubtitle.toLowerCase().includes(article.title.toLowerCase())
+        let matchedArticle = articles.find((a) => {
+          const dbTitle = cleanTitle(a.title);
+          return (
+            dbTitle === normalizedTocTitle ||
+            dbTitle.includes(normalizedTocTitle) ||
+            normalizedTocTitle.includes(dbTitle)
           );
-        }
+        });
 
         currentArticle = {
           id: parsedArticles.length,
           pageNumber,
           title: titleWithoutPage,
-          subtitle:
-            !matchedArticle && lines[i + 1] ? lines[i + 1].trim() : null,
+          subtitle: null,
           author: null,
           isLinked: Boolean(matchedArticle),
           matchedArticle: matchedArticle || null,
-          isSection: line.trim().toLowerCase() === "aktuelles",
+          isSection: false,
         };
-      } else if (currentArticle) {
-        if (line.toLowerCase().startsWith("von ")) {
-          currentArticle.author = line;
-        } else if (!currentArticle.subtitle) {
-          // 🚫 Evitar líneas que no son subtítulos reales (Titelfoto, Foto, Bild, Abbildung, etc.)
-          if (/^(titelfoto|foto|bild|abbildung)\s*[:]/i.test(line)) {
-            continue; // saltamos esta línea sin guardarla
-          }
+        continue;
+      }
 
-          currentArticle.subtitle = line;
+      // 🔹 DESPUÉS verificar si es sección (sin número)
+      if (isSectionLine(line)) {
+        // Cerrar buffer de tópicos si existe
+        flushTopicBuffer(topicBuffer);
+        topicBuffer = [];
+
+        // Cerrar artículo o bloque anterior
+        if (currentArticle) {
+          parsedArticles.push(currentArticle);
+          currentArticle = null;
         }
-      } else {
+
+        // Si había buffer de beilage abierto → cerrarlo
+        if (insideBeilage && beilageBuffer.length) {
+          parsedArticles.push({
+            id: parsedArticles.length,
+            pageNumber: null,
+            title: beilageBuffer.join("\n"),
+            subtitle: null,
+            author: "",
+            isLinked: false,
+            matchedArticle: null,
+            isSection: false,
+          });
+          beilageBuffer = [];
+          insideBeilage = false;
+        }
+
+        // Crear la nueva sección
         parsedArticles.push({
           id: parsedArticles.length,
           pageNumber: null,
@@ -159,18 +294,90 @@ export default function EditionDetails() {
           author: null,
           isLinked: false,
           matchedArticle: null,
-          isSection: line.toLowerCase() === "aktuelles",
+          isSection: true,
         });
+
+        // Si es Beilage → activar modo especial
+        insideBeilage = /beilage/i.test(line);
+        continue;
+      }
+
+      // 🔹 Si estamos dentro de Beilage (modo especial)
+      if (insideBeilage) {
+        if (isArticleLine(line)) {
+          if (beilageBuffer.length) {
+            parsedArticles.push({
+              id: parsedArticles.length,
+              pageNumber: null,
+              title: beilageBuffer.join("\n"),
+              subtitle: null,
+              author: "",
+              isLinked: false,
+              matchedArticle: null,
+              isSection: false,
+            });
+            beilageBuffer = [];
+          }
+          insideBeilage = false;
+          i--;
+          continue;
+        } else {
+          beilageBuffer.push(line);
+          continue;
+        }
+      }
+
+      // 🔹 Si estamos dentro de un artículo existente
+      if (currentArticle) {
+        if (line.toLowerCase().startsWith("von ")) {
+          currentArticle.author = line;
+          continue;
+        }
+
+        // ⭐ Si el artículo YA tiene autor O es footer, cerrar artículo y acumular en buffer
+        if (currentArticle.author || isFooterLine(line)) {
+          parsedArticles.push(currentArticle);
+          currentArticle = null;
+
+          // Acumular esta línea en el buffer
+          topicBuffer.push(line);
+          continue;
+        }
+
+        if (!currentArticle.subtitle) {
+          currentArticle.subtitle = line;
+        } else {
+          currentArticle.subtitle += " " + line;
+        }
+        continue;
+      }
+
+      // 🔹 Si no hay artículo activo → acumular en buffer de tópicos
+      if (!currentArticle && !isSectionLine(line) && !isArticleLine(line)) {
+        topicBuffer.push(line);
       }
     }
 
-    if (currentArticle) {
-      parsedArticles.push(currentArticle);
+    // 🔹 Cerrar último buffer de tópicos si existe
+    flushTopicBuffer(topicBuffer);
+
+    // 🔹 Cerrar último artículo o bloque pendiente
+    if (currentArticle) parsedArticles.push(currentArticle);
+    if (insideBeilage && beilageBuffer.length) {
+      parsedArticles.push({
+        id: parsedArticles.length,
+        pageNumber: null,
+        title: beilageBuffer.join("\n"),
+        subtitle: null,
+        author: "",
+        isLinked: false,
+        matchedArticle: null,
+        isSection: false,
+      });
     }
 
     return parsedArticles;
   }
-
   // Función para manejar el click en un artículo
   function handleArticleClick(article, e) {
     e.preventDefault();
@@ -200,7 +407,11 @@ export default function EditionDetails() {
                 ? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 shadow-sm hover:shadow cursor-pointer"
                 : article.isSection
                   ? "border-red-300 dark:border-red-700 bg-red-100 dark:bg-red-900/20"
-                  : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  : article.isTopic
+                    ? "border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/15"
+                    : article.isFooter
+                      ? "border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50"
+                      : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             {article.isLinked ? (
@@ -261,13 +472,22 @@ export default function EditionDetails() {
               <div className="flex items-start gap-3">
                 <div className="flex-1">
                   <h3
-                    className={`leading-snug mb-1 ${
+                    className={`leading-snug ${
                       article.isSection
-                        ? "text-base font-bold text-gray-900 dark:text-gray-100 tracking-normal"
-                        : "text-sm font-semibold text-gray-800 dark:text-gray-200"
+                        ? "text-base font-bold text-gray-900 dark:text-gray-100 tracking-normal mb-1"
+                        : article.isTopic
+                          ? "text-sm font-bold text-gray-800 dark:text-gray-100 mb-1"
+                          : article.isFooter
+                            ? "text-xs font-normal text-gray-500 dark:text-gray-500 italic"
+                            : "text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1"
                     }`}
                   >
-                    {article.title}
+                    {article.title.split("\n").map((line, i) => (
+                      <span key={i}>
+                        {line}
+                        {i < article.title.split("\n").length - 1 && <br />}
+                      </span>
+                    ))}
                   </h3>
 
                   {article.subtitle && (
