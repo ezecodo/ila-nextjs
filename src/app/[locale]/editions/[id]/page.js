@@ -100,6 +100,7 @@ export default function EditionDetails() {
     let currentArticle = null;
     let beilageBuffer = [];
     let insideBeilage = false;
+    let currentSection = ""; // 👈 guardará el nombre de la sección actual
 
     function isArticleLine(line) {
       const trimmed = line?.trim();
@@ -146,12 +147,11 @@ export default function EditionDetails() {
     }
 
     function isSectionLine(line) {
-      // ⭐ IMPORTANTE: Si la línea empieza con número, NO es sección (es artículo)
       if (isArticleLine(line)) return false;
 
-      // Verificar secciones conocidas
+      // 🔸 Ampliamos lista de secciones conocidas
       const isKnownSection =
-        /^(aktuelles|schwerpunkt|dossier|berichte|weitere berichte|beilage|kultur|solidarität|rezensionen|eine welt|wirtschaft|aus-sprache|ländernachrichten|poonal|leserinnenbriefe|buchbesprechungen)/i.test(
+        /^(aktuelles|schwerpunkt|dossier|berichte|weitere berichte|beilage|kultur|solidarität|rezensionen|eine welt|wirtschaft|aus-sprache|ländernachrichten|poonal|leserinnenbriefe|buchbesprechungen|die redaktion hört|die redaktion hoert|redaktion hört|redaktion hoert)/i.test(
           line
         );
 
@@ -233,7 +233,13 @@ export default function EditionDetails() {
             .replace(/[^\p{L}\p{N}\s]/gu, "")
             .trim();
 
-        const normalizedTocTitle = cleanTitle(titleWithoutPage);
+        // 🧩 Eliminar cualquier traducción o aclaración entre paréntesis antes de limpiar
+        const titleWithoutParentheses = titleWithoutPage
+          .replace(/\(.*?\)/g, "")
+          .trim();
+
+        // Normalizar para comparación
+        const normalizedTocTitle = cleanTitle(titleWithoutParentheses);
 
         let matchedArticle = articles.find((a) => {
           const dbTitle = cleanTitle(a.title);
@@ -244,13 +250,28 @@ export default function EditionDetails() {
           );
         });
 
+        // 🧩 Comprobamos si el artículo puede tener enlace
+        let isFuture = false;
+        if (matchedArticle?.publicationDate) {
+          const pubDate = new Date(matchedArticle.publicationDate);
+          const today = new Date();
+          isFuture = pubDate > today;
+        }
+
+        const isExplicitlyUnpublished = matchedArticle?.isPublished === false;
+
         currentArticle = {
           id: parsedArticles.length,
           pageNumber,
           title: titleWithoutPage,
           subtitle: null,
           author: null,
-          isLinked: Boolean(matchedArticle),
+          // ✅ Solo permitir link si:
+          //   - tiene artículo asociado
+          //   - NO está marcado como unpublished
+          //   - y NO tiene fecha futura
+          isLinked:
+            Boolean(matchedArticle) && !isExplicitlyUnpublished && !isFuture,
           matchedArticle: matchedArticle || null,
           isSection: false,
         };
@@ -296,6 +317,7 @@ export default function EditionDetails() {
           matchedArticle: null,
           isSection: true,
         });
+        currentSection = line;
 
         // Si es Beilage → activar modo especial
         insideBeilage = /beilage/i.test(line);
@@ -353,7 +375,59 @@ export default function EditionDetails() {
       }
 
       // 🔹 Si no hay artículo activo → acumular en buffer de tópicos
+      // 🔹 Si no hay artículo activo → evaluar si podría ser un artículo sin número
       if (!currentArticle && !isSectionLine(line) && !isArticleLine(line)) {
+        // Si estamos dentro de una sección (ej. "Die Redaktion hört…")
+        if (currentSection && line.length > 3) {
+          const cleanTitle = (str) =>
+            (str || "")
+              .normalize("NFC")
+              .toLowerCase()
+              .replace(/\.\.\./g, "…")
+              .replace(/["“”„]/g, "")
+              .replace(/\s+/g, " ")
+              .replace(/[^\p{L}\p{N}\s]/gu, "")
+              .trim();
+
+          const normalizedTocTitle = cleanTitle(line);
+
+          // Buscar coincidencia con artículos del backend
+          let matchedArticle = articles.find((a) => {
+            const dbTitle = cleanTitle(a.title);
+            return (
+              dbTitle === normalizedTocTitle ||
+              dbTitle.includes(normalizedTocTitle) ||
+              normalizedTocTitle.includes(dbTitle)
+            );
+          });
+
+          // Si se encontró un artículo válido
+          if (matchedArticle) {
+            // Verificar si está publicado
+            const isFuture =
+              matchedArticle.publicationDate &&
+              new Date(matchedArticle.publicationDate) > new Date();
+            const isExplicitlyUnpublished =
+              matchedArticle.isPublished === false;
+
+            parsedArticles.push({
+              id: parsedArticles.length,
+              pageNumber: null,
+              title: line,
+              subtitle: null,
+              author: null,
+              isLinked:
+                !isFuture &&
+                !isExplicitlyUnpublished &&
+                Boolean(matchedArticle),
+              matchedArticle,
+              isSection: false,
+            });
+            return; // 👉 No lo tratamos como topic
+          }
+        }
+
+        // Si no se matchea con ningún artículo, lo tratamos como topic
         topicBuffer.push(line);
       }
     }

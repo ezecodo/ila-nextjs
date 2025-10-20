@@ -28,11 +28,19 @@ export async function GET(req, context) {
 
     // Buscar artículos con editionId correspondiente
     const articles = await prisma.article.findMany({
-      where: { editionId: edition.id },
+      where: {
+        editionId: edition.id,
+      },
       select: {
         id: true,
         title: true,
+        subtitle: true,
         legacyPath: true,
+        isPublished: true,
+        publicationDate: true,
+      },
+      orderBy: {
+        publicationDate: "asc",
       },
     });
 
