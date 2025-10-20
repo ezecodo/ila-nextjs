@@ -33,7 +33,7 @@ export default function AboPage() {
           {t("heroIntro")}
         </p>
 
-        {/* Formulario */}
+        {/* Formulario dd qwd */}
         <div className="animate-fade-in-up">
           <AboForm gifts={gifts} />
         </div>
