@@ -65,12 +65,14 @@ export async function GET(req) {
         isPublished: false,
       };
     } else if (editionId) {
-      const now = new Date();
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // final del día local
+
       whereCondition = {
         ...whereCondition,
         editionId: parseInt(editionId, 10),
-        isPublished: true, // 👈 solo artículos publicados
-        publicationDate: { lte: now }, // 👈 solo si la fecha ya llegó
+        isPublished: true,
+        publicationDate: { lte: today },
       };
     }
     if (showFavorites) {

@@ -100,7 +100,8 @@ export default function EditionDetails() {
     let currentArticle = null;
     let beilageBuffer = [];
     let insideBeilage = false;
-    let currentSection = ""; // 👈 guardará el nombre de la sección actual
+    let currentSection = "";
+    let insideRedaktionLiest = false;
 
     function isArticleLine(line) {
       const trimmed = line?.trim();
@@ -110,7 +111,7 @@ export default function EditionDetails() {
       if (/^(19|20)\d{2}\b/.test(trimmed)) return false;
 
       // ⭐ MEJORADO: Detectar números de página vs números en el texto
-      const pageMatch = trimmed.match(/^(\d{1,3})(\s+)(.+)/);
+      const pageMatch = trimmed.match(/^(\d{1,3})(\s*)(.+)/);
 
       if (!pageMatch) return false;
 
@@ -118,25 +119,31 @@ export default function EditionDetails() {
       const spaces = pageMatch[2];
       const restOfLine = pageMatch[3];
 
-      // Si tiene 2 o más espacios después del número → es artículo
-      if (spaces.length >= 2) return true;
+      // 🔥 NUEVO: Verificar PRIMERO si después del número viene una palabra de tiempo/cantidad
+      if (
+        /^(jahre|monate|tage|wochen|stunden|minuten|sekunden|prozent|prozente|mal|personen|leute|meter|kilometer|euro|dollar|grad)/i.test(
+          restOfLine
+        )
+      ) {
+        return false;
+      }
+
+      // 🔥 NUEVO: Si estamos dentro de "Die Redaktion liest", ser más permisivos
+      if (insideRedaktionLiest) {
+        return true; // 👈 Casi cualquier línea con número es artículo aquí
+      }
+
+      // Si tiene 1 o más espacios después del número → es artículo (relajado)
+      if (spaces.length >= 1) return true;
 
       // Si el número es pequeño (1-20) y solo tiene 1 espacio → probablemente es texto
       if (number <= 20 && spaces.length === 1) {
-        // Verificar si la palabra siguiente es una palabra común de tiempo o cantidad
-        if (
-          /^(jahre|monate|tage|wochen|stunden|minuten|prozent|prozente|mal|personen|leute)/i.test(
-            restOfLine
-          )
-        ) {
-          return false;
-        }
+        return false;
       }
 
       // Si el número es >= 21 → probablemente es número de página
       if (number >= 21) return true;
 
-      // Por defecto, si empieza con número y espacio → es artículo
       return true;
     }
 
@@ -149,15 +156,19 @@ export default function EditionDetails() {
     function isSectionLine(line) {
       if (isArticleLine(line)) return false;
 
-      // 🔸 Ampliamos lista de secciones conocidas
+      // 👇 Excluir explícitamente “Die Redaktion liest…” como sección
+      if (/^die\s+redaktion\s+(liest|hört|hoert)/i.test(line)) {
+        insideRedaktionLiest = true;
+        return false;
+      }
+
       const isKnownSection =
-        /^(aktuelles|schwerpunkt|dossier|berichte|weitere berichte|beilage|kultur|solidarität|rezensionen|eine welt|wirtschaft|aus-sprache|ländernachrichten|poonal|leserinnenbriefe|buchbesprechungen|die redaktion hört|die redaktion hoert|redaktion hört|redaktion hoert)/i.test(
+        /^(aktuelles|schwerpunkt|dossier|berichte|weitere berichte|beilage|kultur|solidarität|rezensionen|eine welt|wirtschaft|aus-sprache|ländernachrichten|poonal|leserinnenbriefe|buchbesprechungen|redaktion hört|redaktion hoert)/i.test(
           line
         );
 
       if (isKnownSection) return true;
 
-      // ⭐ Detectar líneas que están completamente en MAYÚSCULAS
       const trimmedLine = line.trim();
       if (trimmedLine.length > 3 && trimmedLine === trimmedLine.toUpperCase()) {
         if (/[A-ZÄÖÜ]/.test(trimmedLine)) {
@@ -233,29 +244,60 @@ export default function EditionDetails() {
             .replace(/[^\p{L}\p{N}\s]/gu, "")
             .trim();
 
-        // 🧩 Eliminar cualquier traducción o aclaración entre paréntesis antes de limpiar
+        // 🧩 Eliminar paréntesis del posible título
         const titleWithoutParentheses = titleWithoutPage
           .replace(/\(.*?\)/g, "")
           .trim();
 
-        // Normalizar para comparación
+        // 👀 Posible subtítulo en la línea siguiente
+        const nextRaw = lines[i + 1]?.trim() || "";
+        const nextLooksLikeSubtitle =
+          nextRaw &&
+          !isArticleLine(nextRaw) &&
+          !isSectionLine(nextRaw) &&
+          !isFooterLine(nextRaw) &&
+          !/^von\s/i.test(nextRaw);
+
         const normalizedTocTitle = cleanTitle(titleWithoutParentheses);
 
-        let matchedArticle = articles.find((a) => {
-          const dbTitle = cleanTitle(a.title);
-          return (
-            dbTitle === normalizedTocTitle ||
-            dbTitle.includes(normalizedTocTitle) ||
-            normalizedTocTitle.includes(dbTitle)
-          );
-        });
+        // 🔸 Caso especial: “Die Redaktion liest/hoert/hört …” + siguiente línea = TÍTULO real
+        let matchedArticle = null;
+        let subtitleToUse = null;
 
-        // 🧩 Comprobamos si el artículo puede tener enlace
-        let isFuture = false;
-        if (matchedArticle?.publicationDate) {
-          const pubDate = new Date(matchedArticle.publicationDate);
-          const today = new Date();
-          isFuture = pubDate > today;
+        if (
+          /^die\s+redaktion\s+(liest|hört|hoert)/i.test(titleWithoutPage) &&
+          nextLooksLikeSubtitle
+        ) {
+          const normalizedNext = cleanTitle(nextRaw);
+          // buscar artículo cuyo SUBTÍTULO empiece por “die redaktion …”
+          // y cuyo TÍTULO coincida con la siguiente línea
+          matchedArticle = articles.find((a) => {
+            const dbTitle = cleanTitle(a.title);
+            const dbSubtitle = cleanTitle(a.subtitle || "");
+            return (
+              dbSubtitle.startsWith("die redaktion") &&
+              (dbTitle === normalizedNext ||
+                dbTitle.includes(normalizedNext) ||
+                normalizedNext.includes(dbTitle))
+            );
+          });
+
+          if (matchedArticle) {
+            subtitleToUse = nextRaw; // guardamos el “Wofür es keinen Namen gibt”
+            i++; // consumimos la siguiente línea
+          }
+        }
+
+        // Si no hicimos match especial, probamos match normal contra el título
+        if (!matchedArticle) {
+          matchedArticle = articles.find((a) => {
+            const dbTitle = cleanTitle(a.title);
+            return (
+              dbTitle === normalizedTocTitle ||
+              dbTitle.includes(normalizedTocTitle) ||
+              normalizedTocTitle.includes(dbTitle)
+            );
+          });
         }
 
         const isExplicitlyUnpublished = matchedArticle?.isPublished === false;
@@ -264,14 +306,9 @@ export default function EditionDetails() {
           id: parsedArticles.length,
           pageNumber,
           title: titleWithoutPage,
-          subtitle: null,
+          subtitle: subtitleToUse || null, // si usamos la línea siguiente como título real, la mostramos aquí
           author: null,
-          // ✅ Solo permitir link si:
-          //   - tiene artículo asociado
-          //   - NO está marcado como unpublished
-          //   - y NO tiene fecha futura
-          isLinked:
-            Boolean(matchedArticle) && !isExplicitlyUnpublished && !isFuture,
+          isLinked: Boolean(matchedArticle) && !isExplicitlyUnpublished,
           matchedArticle: matchedArticle || null,
           isSection: false,
         };
@@ -307,6 +344,7 @@ export default function EditionDetails() {
         }
 
         // Crear la nueva sección
+        // Crear la nueva sección
         parsedArticles.push({
           id: parsedArticles.length,
           pageNumber: null,
@@ -318,6 +356,10 @@ export default function EditionDetails() {
           isSection: true,
         });
         currentSection = line;
+
+        // 👇 REEMPLAZA ESTAS LÍNEAS
+        // Si es "Die Redaktion liest" → activar modo especial
+        insideRedaktionLiest = /die redaktion\s+(liest|hört|hoert)/i.test(line);
 
         // Si es Beilage → activar modo especial
         insideBeilage = /beilage/i.test(line);
@@ -376,58 +418,91 @@ export default function EditionDetails() {
 
       // 🔹 Si no hay artículo activo → acumular en buffer de tópicos
       // 🔹 Si no hay artículo activo → evaluar si podría ser un artículo sin número
+      // 🔹 Si no hay artículo activo → evaluar si podría ser un artículo sin número
       if (!currentArticle && !isSectionLine(line) && !isArticleLine(line)) {
-        // Si estamos dentro de una sección (ej. "Die Redaktion hört…")
         if (currentSection && line.length > 3) {
           const cleanTitle = (str) =>
             (str || "")
               .normalize("NFC")
               .toLowerCase()
               .replace(/\.\.\./g, "…")
-              .replace(/["“”„]/g, "")
+              .replace(/["“”„']/g, "")
               .replace(/\s+/g, " ")
               .replace(/[^\p{L}\p{N}\s]/gu, "")
               .trim();
 
           const normalizedTocTitle = cleanTitle(line);
+          const nextLine = lines[i + 1]?.trim() || "";
+          const normalizedNextLine = cleanTitle(nextLine);
 
-          // Buscar coincidencia con artículos del backend
-          let matchedArticle = articles.find((a) => {
-            const dbTitle = cleanTitle(a.title);
-            return (
-              dbTitle === normalizedTocTitle ||
-              dbTitle.includes(normalizedTocTitle) ||
-              normalizedTocTitle.includes(dbTitle)
-            );
-          });
+          // 👀 Caso especial: “Die Redaktion liest…” o similares
+          const isRedaktionBlock =
+            /^die\s+redaktion\s+(liest|hört|hoert)/i.test(line) &&
+            nextLine.length > 3;
 
-          // Si se encontró un artículo válido
+          let matchedArticle = null;
+
+          if (isRedaktionBlock) {
+            // 🧠 Invertimos la lógica: esta línea es el subtítulo, la siguiente el título
+            matchedArticle = articles.find((a) => {
+              const dbTitle = cleanTitle(a.title);
+              const dbSubtitle = cleanTitle(a.subtitle);
+              return (
+                dbSubtitle.startsWith("die redaktion") &&
+                (dbTitle === normalizedNextLine ||
+                  dbTitle.includes(normalizedNextLine) ||
+                  normalizedNextLine.includes(dbTitle))
+              );
+            });
+
+            if (matchedArticle) {
+              parsedArticles.push({
+                id: parsedArticles.length,
+                pageNumber: null,
+                title: line, // “Die Redaktion liest…”
+                subtitle: nextLine, // “Wofür es keinen Namen gibt”
+                author: null,
+                isLinked: true,
+                matchedArticle,
+                isSection: false,
+              });
+              i++; // 👈 saltar la siguiente línea, ya la usamos
+              continue;
+            }
+          }
+
+          // 🔸 Si no es un bloque especial, buscar normalmente por título
+          if (!matchedArticle) {
+            matchedArticle = articles.find((a) => {
+              const dbTitle = cleanTitle(a.title);
+              const dbSubtitle = cleanTitle(a.subtitle);
+              return (
+                dbTitle === normalizedTocTitle ||
+                dbTitle.includes(normalizedTocTitle) ||
+                normalizedTocTitle.includes(dbTitle) ||
+                dbSubtitle === normalizedTocTitle
+              );
+            });
+          }
+
           if (matchedArticle) {
-            // Verificar si está publicado
-            const isFuture =
-              matchedArticle.publicationDate &&
-              new Date(matchedArticle.publicationDate) > new Date();
             const isExplicitlyUnpublished =
               matchedArticle.isPublished === false;
-
             parsedArticles.push({
               id: parsedArticles.length,
               pageNumber: null,
               title: line,
               subtitle: null,
               author: null,
-              isLinked:
-                !isFuture &&
-                !isExplicitlyUnpublished &&
-                Boolean(matchedArticle),
+              isLinked: !isExplicitlyUnpublished,
               matchedArticle,
               isSection: false,
             });
-            return; // 👉 No lo tratamos como topic
+            continue;
           }
         }
 
-        // Si no se matchea con ningún artículo, lo tratamos como topic
+        // Si no hay match, tratamos como línea suelta
         topicBuffer.push(line);
       }
     }
@@ -467,7 +542,14 @@ export default function EditionDetails() {
 
   function renderTableOfContents() {
     const contents = parseTableOfContents();
-    const displayContents = isExpanded ? contents : contents.slice(0, 6);
+
+    // ✅ Evitar errores si parseTableOfContents() devuelve undefined
+    const safeContents = Array.isArray(contents) ? contents : [];
+
+    // ✅ Evita error de .slice si no es array
+    const displayContents = isExpanded
+      ? safeContents
+      : safeContents.slice(0, 6);
 
     return (
       <div className="space-y-2">
@@ -593,7 +675,8 @@ export default function EditionDetails() {
           </div>
         ))}
 
-        {contents.length > 6 && (
+        {/* ✅ Evitar error con contents.length */}
+        {Array.isArray(safeContents) && safeContents.length > 6 && (
           <div className="text-center pt-4">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
@@ -631,7 +714,7 @@ export default function EditionDetails() {
                       d="M19 9l-7 7-7-7"
                     />
                   </svg>
-                  {t("showMore", { count: contents.length - 6 })}
+                  {t("showMore", { count: safeContents.length - 6 })}
                 </>
               )}
             </button>
