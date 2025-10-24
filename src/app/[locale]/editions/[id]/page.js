@@ -19,6 +19,22 @@ export default function EditionDetails() {
   const t = useTranslations("dossiers");
   const locale = useLocale();
   const articleRefs = useRef({});
+  const isES = locale === "es";
+  // 🧠 Mostrar versión traducida si el idioma es español
+
+  const titleToShow =
+    isES && edition?.isTranslatedES ? edition.titleES : edition?.title;
+
+  const subtitleToShow =
+    isES && edition?.isTranslatedES ? edition.subtitleES : edition?.subtitle;
+
+  const summaryToShow =
+    isES && edition?.isTranslatedES ? edition.summaryES : edition?.summary;
+
+  const tableOfContentsToShow =
+    isES && edition?.isTranslatedES
+      ? edition.tableOfContentsES
+      : edition?.tableOfContents;
 
   // Restaurar scroll position cuando volvemos de un artículo
   useEffect(() => {
@@ -79,12 +95,11 @@ export default function EditionDetails() {
     }
 
     fetchEditionAndArticles();
-  }, [id]);
+  }, [id, locale]);
 
   function parseTableOfContents() {
-    if (!edition?.tableOfContents) return [];
-
-    let normalized = edition.tableOfContents;
+    if (!tableOfContentsToShow) return [];
+    let normalized = tableOfContentsToShow;
 
     // 🔹 Limpiar espacios especiales
     normalized = normalized
@@ -557,7 +572,10 @@ export default function EditionDetails() {
           <div
             key={article.id}
             id={`article-${article.id}`}
-            ref={(el) => (articleRefs.current[`article-${article.id}`] = el)}
+            ref={(el) => {
+              if (!articleRefs.current) articleRefs.current = {};
+              articleRefs.current[`article-${article.id}`] = el;
+            }}
             className={`group p-3 rounded-lg border transition-all duration-200 ${
               article.isLinked
                 ? "border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 shadow-sm hover:shadow cursor-pointer"
@@ -782,9 +800,14 @@ export default function EditionDetails() {
               ila {edition.number}
             </span>{" "}
             <span className="font-serif font-bold text-red-800 dark:text-red-400">
-              {edition.title}
+              {titleToShow}
             </span>
           </h1>
+          {subtitleToShow && (
+            <p className="text-lg text-gray-600 dark:text-gray-400 italic mb-4">
+              {subtitleToShow}
+            </p>
+          )}
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             {t("publishedOn")}{" "}
             {new Date(edition.datePublished).toLocaleDateString(locale, {
@@ -834,13 +857,11 @@ export default function EditionDetails() {
           </div>
         </div>
         <div className="article-content font-serif text-lg md:text-xlleading-normal text-gray-800 dark:text-gray-200">
-          {edition.summary ? (
-            // Si contiene etiquetas HTML, renderizar como HTML
-            /<\/?[a-z][\s\S]*>/i.test(edition.summary) ? (
-              <div dangerouslySetInnerHTML={{ __html: edition.summary }} />
+          {summaryToShow ? (
+            /<\/?[a-z][\s\S]*>/i.test(summaryToShow) ? (
+              <div dangerouslySetInnerHTML={{ __html: summaryToShow }} />
             ) : (
-              // Si es texto plano, dividir en párrafos por saltos de línea
-              edition.summary.split("\n").map((line, i) => (
+              summaryToShow.split("\n").map((line, i) => (
                 <p key={i} className="mb-1">
                   {line}
                 </p>
@@ -852,7 +873,7 @@ export default function EditionDetails() {
         </div>
         <div className="clear-both"></div>
       </div>
-      {edition.tableOfContents && (
+      {tableOfContentsToShow && (
         <div id="tableOfContents" className="my-8 scroll-mt-24">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg">

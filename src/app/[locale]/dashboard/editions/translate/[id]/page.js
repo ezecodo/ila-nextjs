@@ -39,11 +39,21 @@ export default function TranslateEditionPage() {
       setEdition(data);
 
       // Cargar traducciones existentes
+      // 🧹 Limpiar etiquetas HTML (<p>, <br>, etc.) para mostrar texto plano en el editor
+      const stripHTML = (html) => {
+        if (!html) return "";
+        return html
+          .replace(/<\/p>\s*<p>/gi, "\n\n") // convertir párrafos en doble salto
+          .replace(/<br\s*\/?>/gi, "\n") // saltos de línea
+          .replace(/<[^>]+>/g, "") // eliminar cualquier tag restante
+          .trim();
+      };
+
       setTranslations({
         titleES: data.titleES || "",
         subtitleES: data.subtitleES || "",
-        summaryES: data.summaryES || "",
-        tableOfContentsES: data.tableOfContentsES || "",
+        summaryES: stripHTML(data.summaryES),
+        tableOfContentsES: stripHTML(data.tableOfContentsES),
       });
     };
 
@@ -82,7 +92,106 @@ export default function TranslateEditionPage() {
     }));
     setHasUnsavedChanges(true);
   };
+  // 🧠 Mantiene la estructura original de párrafos del texto fuente
+  // 🧠 VERSIÓN MEJORADA - Mantiene la estructura original de párrafos
+  // 🧠 VERSIÓN MEJORADA - Funciona con HTML y texto plano
+  function preserveParagraphStructure(original, translated) {
+    if (!original || !translated) return translated;
 
+    // 1. Detectar si el original tiene HTML con tags <p>
+    const hasHTMLParagraphs = /<p>/i.test(original);
+
+    if (hasHTMLParagraphs) {
+      console.log("🔧 Original tiene HTML - procesando tags <p>");
+
+      // 2. Extraer contenido de cada <p> del original
+      const pTagMatches = original.match(/<p>(.*?)<\/p>/gi) || [];
+      const paragraphCount = pTagMatches.length;
+
+      console.log(`📝 Original tiene ${paragraphCount} párrafos HTML`);
+
+      if (paragraphCount === 0) {
+        return translated; // No hay párrafos HTML, devolver tal cual
+      }
+
+      // 3. Limpiar la traducción (quitar HTML si lo tiene)
+      let cleanTranslated = translated.replace(/<[^>]*>/g, " ").trim();
+      cleanTranslated = cleanTranslated.replace(/\s+/g, " "); // Múltiples espacios a uno solo
+
+      // 4. Dividir por oraciones (punto + espacio + mayúscula)
+      const sentences = cleanTranslated.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡])/);
+
+      console.log(
+        `📊 ${sentences.length} oraciones → dividir en ${paragraphCount} párrafos`
+      );
+
+      // 5. Distribuir oraciones entre los párrafos
+      const sentencesPerParagraph = Math.ceil(
+        sentences.length / paragraphCount
+      );
+      const translatedParagraphs = [];
+
+      for (let i = 0; i < sentences.length; i += sentencesPerParagraph) {
+        const paragraphSentences = sentences.slice(
+          i,
+          i + sentencesPerParagraph
+        );
+        translatedParagraphs.push(paragraphSentences.join(" ").trim());
+      }
+
+      // 6. Envolver cada párrafo en tags <p>
+      const htmlResult = translatedParagraphs
+        .map((para) => `<p>${para}</p>`)
+        .join("");
+
+      console.log("✅ HTML reconstruido con párrafos");
+      return htmlResult;
+    }
+
+    // Si NO tiene HTML, procesar como texto plano
+    console.log("📝 Procesando como texto plano");
+
+    let cleanTranslated = translated.trim();
+
+    // Detectar párrafos del original (separados por saltos de línea)
+    const originalParagraphs = original
+      .split(/\n+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    console.log(`📝 Original tiene ${originalParagraphs.length} párrafos`);
+
+    // Si el original tiene varios párrafos pero la traducción no tiene saltos
+    if (originalParagraphs.length > 1 && !cleanTranslated.includes("\n")) {
+      const sentences = cleanTranslated.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡])/);
+      const sentencesPerParagraph = Math.ceil(
+        sentences.length / originalParagraphs.length
+      );
+
+      const reconstructedParagraphs = [];
+      for (let i = 0; i < sentences.length; i += sentencesPerParagraph) {
+        const paragraphSentences = sentences.slice(
+          i,
+          i + sentencesPerParagraph
+        );
+        reconstructedParagraphs.push(paragraphSentences.join(" ").trim());
+      }
+
+      return reconstructedParagraphs.join("\n\n");
+    }
+
+    // Default: devolver tal cual
+    return cleanTranslated;
+  }
+  // 🧩 Convierte texto plano en párrafos HTML (<p>...</p>)
+  const wrapParagraphs = (text) => {
+    if (!text) return "";
+    const paragraphs = text
+      .split(/\n{2,}/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    return paragraphs.map((p) => `<p>${p}</p>`).join("");
+  };
   // 🆕 Traducir con DeepL (usa tu API existente)
   const translateWithDeepL = async (field, originalText) => {
     if (!originalText || !originalText.trim()) {
@@ -123,8 +232,27 @@ export default function TranslateEditionPage() {
 
       const data = await response.json();
 
-      // Rellenar el campo con la traducción
-      handleChange(field, data.translation);
+      // 🧩 Mantener estructura del texto original
+      // 🧩 Mantener estructura del texto original
+      const formattedTranslation = preserveParagraphStructure(
+        originalText,
+        data.translation
+      );
+
+      // 🧹 Limpiar etiquetas HTML para mostrar solo texto plano en el editor
+      const stripHTMLLive = (html) => {
+        if (!html) return "";
+        return html
+          .replace(/<\/p>\s*<p>/gi, "\n\n") // convertir párrafos en doble salto
+          .replace(/<br\s*\/?>/gi, "\n") // saltos de línea
+          .replace(/<[^>]+>/g, "") // eliminar cualquier tag
+          .trim();
+      };
+
+      const cleanForEditor = stripHTMLLive(formattedTranslation);
+
+      // 🧩 Mostrar texto limpio en vivo en el editor, pero guardar HTML real
+      handleChange(field, cleanForEditor);
     } catch (error) {
       console.error("Error al traducir:", error);
       alert("Error al traducir con DeepL. Inténtalo de nuevo.");
@@ -169,6 +297,8 @@ export default function TranslateEditionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...translations,
+          summaryES: wrapParagraphs(translations.summaryES),
+          tableOfContentsES: wrapParagraphs(translations.tableOfContentsES),
           isTranslatedES: false,
         }),
       });

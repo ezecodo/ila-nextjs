@@ -9,7 +9,6 @@ cloudinary.v2.config({
 
 export async function GET(req, context) {
   try {
-    // ✅ Usa `await` para obtener `params` correctamente
     const params = await context.params;
     const editionId = params?.id ? parseInt(params.id, 10) : null;
 
@@ -20,12 +19,32 @@ export async function GET(req, context) {
       });
     }
 
-    // ✅ Buscar la edición en la base de datos
+    // Obtener el idioma del header
+    const acceptLanguage = req.headers.get("accept-language") || "de";
+    const locale = acceptLanguage.includes("es") ? "es" : "de";
+
+    // Buscar la edición
     const edition = await prisma.edition.findUnique({
       where: { id: editionId },
-      include: {
-        regions: true, // Incluye las regiones asociadas
-        topics: true, // Incluye los temas asociadas
+      select: {
+        id: true,
+        number: true,
+        title: true,
+        subtitle: true,
+        summary: true,
+        tableOfContents: true,
+        coverImage: true,
+        isAvailableToOrder: true,
+        isCurrent: true,
+        datePublished: true,
+        // Campos en español
+        titleES: true,
+        subtitleES: true,
+        summaryES: true,
+        tableOfContentsES: true,
+        isTranslatedES: true,
+        regions: true,
+        topics: true,
       },
     });
 
@@ -36,7 +55,20 @@ export async function GET(req, context) {
       });
     }
 
-    return new Response(JSON.stringify(edition), {
+    // Si el locale es español y hay traducción, mezclar los campos
+    let responseData = { ...edition };
+
+    if (locale === "es" && edition.isTranslatedES) {
+      responseData = {
+        ...edition,
+        title: edition.titleES || edition.title,
+        subtitle: edition.subtitleES || edition.subtitle,
+        summary: edition.summaryES || edition.summary,
+        tableOfContents: edition.tableOfContentsES || edition.tableOfContents,
+      };
+    }
+
+    return new Response(JSON.stringify(responseData), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
