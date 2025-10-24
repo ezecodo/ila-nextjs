@@ -23,6 +23,14 @@ export default function TranslateEditionPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
+  // 🆕 Estados para DeepL
+  const [isTranslating, setIsTranslating] = useState({
+    title: false,
+    subtitle: false,
+    summary: false,
+    tableOfContents: false,
+  });
+
   // Cargar edición
   useEffect(() => {
     const fetchEdition = async () => {
@@ -73,6 +81,83 @@ export default function TranslateEditionPage() {
       [field]: value,
     }));
     setHasUnsavedChanges(true);
+  };
+
+  // 🆕 Traducir con DeepL (usa tu API existente)
+  const translateWithDeepL = async (field, originalText) => {
+    if (!originalText || !originalText.trim()) {
+      alert("No hay texto original para traducir");
+      return;
+    }
+
+    // Confirmar si ya hay traducción
+    const fieldName = field.replace("ES", "");
+    if (translations[field] && translations[field].trim()) {
+      const confirmOverwrite = window.confirm(
+        `Ya hay una traducción para ${fieldName}. ¿Quieres reemplazarla con la traducción automática de DeepL?`
+      );
+      if (!confirmOverwrite) return;
+    }
+
+    setIsTranslating((prev) => ({ ...prev, [fieldName]: true }));
+
+    try {
+      // Limpiar HTML si es necesario
+      const textToTranslate = originalText.replace(/<[^>]*>/g, "");
+
+      const response = await fetch("/api/translate/text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: textToTranslate,
+          targetLang: "ES",
+          sourceLang: "DE",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al traducir");
+      }
+
+      const data = await response.json();
+
+      // Rellenar el campo con la traducción
+      handleChange(field, data.translation);
+    } catch (error) {
+      console.error("Error al traducir:", error);
+      alert("Error al traducir con DeepL. Inténtalo de nuevo.");
+    } finally {
+      setIsTranslating((prev) => ({ ...prev, [fieldName]: false }));
+    }
+  };
+
+  // 🆕 Traducir TODO con DeepL
+  const translateAllWithDeepL = async () => {
+    const confirm = window.confirm(
+      "¿Quieres traducir TODOS los campos con DeepL? Esto puede tardar unos segundos."
+    );
+
+    if (!confirm) return;
+
+    // Traducir cada campo secuencialmente
+    if (edition.title) {
+      await translateWithDeepL("titleES", edition.title);
+    }
+    if (edition.subtitle) {
+      await translateWithDeepL("subtitleES", edition.subtitle);
+    }
+    if (edition.summary) {
+      await translateWithDeepL("summaryES", edition.summary);
+    }
+    if (edition.tableOfContents) {
+      await translateWithDeepL("tableOfContentsES", edition.tableOfContents);
+    }
+
+    alert(
+      "✅ Traducción automática completada. Ahora puedes revisar y editar los campos."
+    );
   };
 
   // Guardar como borrador
@@ -170,6 +255,14 @@ export default function TranslateEditionPage() {
             </div>
           </div>
           <div className="flex gap-3">
+            {/* 🆕 Botón para traducir todo con DeepL */}
+            <button
+              onClick={translateAllWithDeepL}
+              disabled={Object.values(isTranslating).some((v) => v)}
+              className="bg-purple-500 text-white px-4 py-2 rounded font-semibold hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              🤖 Traducir Todo con DeepL
+            </button>
             <button
               onClick={saveAsDraft}
               disabled={isSaving || !hasUnsavedChanges}
@@ -187,7 +280,7 @@ export default function TranslateEditionPage() {
         </div>
       </div>
 
-      {/* Diseño idéntico a EditionDetails */}
+      {/* Sección superior: Imagen y metadatos */}
       <div className="mb-8">
         {/* Imagen flotante a la izquierda */}
         <div className="float-left mr-6 mb-4 w-full md:w-1/3">
@@ -226,7 +319,7 @@ export default function TranslateEditionPage() {
           </div>
         </div>
 
-        {/* Contenido principal */}
+        {/* Contenido principal: Título y metadatos */}
         <div className="overflow-hidden">
           {/* Título editable con el mismo estilo */}
           <div className="mb-4">
@@ -242,27 +335,52 @@ export default function TranslateEditionPage() {
               </span>
             </h1>
 
-            <EditableField
-              label={t("titleLabel")}
-              original={edition.title}
-              value={translations.titleES}
-              onChange={(val) => handleChange("titleES", val)}
-              className="text-2xl md:text-3xl font-serif font-bold text-red-800 dark:text-red-400"
-              placeholder={t("titleLabel")}
-            />
+            {/* 🆕 Campo título con botón DeepL */}
+            <div className="flex items-start gap-2 mb-2">
+              <div className="flex-1">
+                <EditableField
+                  label={t("titleLabel")}
+                  original={edition.title}
+                  value={translations.titleES}
+                  onChange={(val) => handleChange("titleES", val)}
+                  className="text-2xl md:text-3xl font-serif font-bold text-red-800 dark:text-red-400"
+                  placeholder={t("titleLabel")}
+                />
+              </div>
+              <button
+                onClick={() => translateWithDeepL("titleES", edition.title)}
+                disabled={isTranslating.title}
+                className="mt-8 px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {isTranslating.title ? "⏳..." : "🤖 DeepL"}
+              </button>
+            </div>
           </div>
 
           {/* Subtítulo si existe */}
           {edition.subtitle && (
             <div className="mb-4">
-              <EditableField
-                label={t("subtitleLabel")}
-                original={edition.subtitle}
-                value={translations.subtitleES}
-                onChange={(val) => handleChange("subtitleES", val)}
-                className="text-xl text-gray-700 dark:text-gray-300"
-                placeholder={t("subtitleLabel")}
-              />
+              <div className="flex items-start gap-2">
+                <div className="flex-1">
+                  <EditableField
+                    label={t("subtitleLabel")}
+                    original={edition.subtitle}
+                    value={translations.subtitleES}
+                    onChange={(val) => handleChange("subtitleES", val)}
+                    className="text-xl text-gray-700 dark:text-gray-300"
+                    placeholder={t("subtitleLabel")}
+                  />
+                </div>
+                <button
+                  onClick={() =>
+                    translateWithDeepL("subtitleES", edition.subtitle)
+                  }
+                  disabled={isTranslating.subtitle}
+                  className="mt-8 px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {isTranslating.subtitle ? "⏳..." : "🤖 DeepL"}
+                </button>
+              </div>
             </div>
           )}
 
@@ -277,57 +395,93 @@ export default function TranslateEditionPage() {
           </p>
         </div>
 
-        {/* Resumen editable con el mismo estilo de article-content */}
-        <div className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200">
+        <div className="clear-both"></div>
+      </div>
+
+      {/* Resumen a ANCHO COMPLETO - Ahora ocupa toda la página */}
+      <div className="mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              📝 {t("summaryLabel")}
+            </h2>
+            <button
+              onClick={() => translateWithDeepL("summaryES", edition.summary)}
+              disabled={isTranslating.summary}
+              className="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold"
+            >
+              {isTranslating.summary
+                ? "⏳ Traduciendo..."
+                : "🤖 Traducir con DeepL"}
+            </button>
+          </div>
+
           <EditableField
-            label={t("summaryLabel")}
+            label=""
             original={edition.summary}
             value={translations.summaryES}
             onChange={(val) => handleChange("summaryES", val)}
             multiline={true}
-            rows={10}
-            className="font-serif text-lg md:text-xl leading-relaxed"
+            rows={20}
+            className="font-serif text-lg md:text-xl leading-relaxed w-full"
             placeholder={t("summaryLabel")}
           />
         </div>
-
-        <div className="clear-both"></div>
       </div>
 
-      {/* Tabla de contenidos editable */}
+      {/* Tabla de contenidos a ANCHO COMPLETO */}
       {edition.tableOfContents && (
         <div className="my-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <svg
-                className="w-6 h-6 text-blue-600 dark:text-blue-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {t("tableOfContentsLabel")}
-            </h2>
-          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                  <svg
+                    className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {t("tableOfContentsLabel")}
+                </h2>
+              </div>
 
-          <EditableField
-            label={t("tableOfContentsLabel")}
-            original={edition.tableOfContents}
-            value={translations.tableOfContentsES}
-            onChange={(val) => handleChange("tableOfContentsES", val)}
-            multiline={true}
-            rows={15}
-            className="text-sm font-mono whitespace-pre-wrap"
-            placeholder={t("tableOfContentsLabel")}
-          />
+              <button
+                onClick={() =>
+                  translateWithDeepL(
+                    "tableOfContentsES",
+                    edition.tableOfContents
+                  )
+                }
+                disabled={isTranslating.tableOfContents}
+                className="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold"
+              >
+                {isTranslating.tableOfContents
+                  ? "⏳ Traduciendo..."
+                  : "🤖 Traducir con DeepL"}
+              </button>
+            </div>
+
+            <EditableField
+              label=""
+              original={edition.tableOfContents}
+              value={translations.tableOfContentsES}
+              onChange={(val) => handleChange("tableOfContentsES", val)}
+              multiline={true}
+              rows={25}
+              className="text-sm font-mono whitespace-pre-wrap w-full"
+              placeholder={t("tableOfContentsLabel")}
+            />
+          </div>
         </div>
       )}
 

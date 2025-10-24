@@ -25,7 +25,7 @@ export async function GET(req, context) {
       where: { id: editionId },
       include: {
         regions: true, // Incluye las regiones asociadas
-        topics: true, // Incluye los temas asociados
+        topics: true, // Incluye los temas asociadas
       },
     });
 
@@ -48,34 +48,77 @@ export async function GET(req, context) {
     );
   }
 }
+
 // 📌 PUT (actualizar edición)
-// 📌 PUT (actualizar edición)
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
   try {
-    const editionId = parseInt(params.id, 10);
-    if (isNaN(editionId)) {
+    // ✅ FIX 1: Await params
+    const params = await context.params;
+    const editionId = params?.id ? parseInt(params.id, 10) : null;
+
+    if (!editionId || isNaN(editionId)) {
       return new Response(JSON.stringify({ error: "ID inválido" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    const formData = await req.formData();
+    // ✅ FIX 2: Detectar si viene JSON o FormData
+    const contentType = req.headers.get("content-type") || "";
+    let data = {};
+    let coverImageFile = null;
+    let removeCover = false;
 
-    const number = parseInt(formData.get("number"), 10);
-    const title = formData.get("title");
-    const subtitle = formData.get("subtitle") || null;
-    const datePublished = formData.get("datePublished");
-    const summary = formData.get("summary");
-    const tableOfContents = formData.get("tableOfContents") || null;
-    const isCurrent = formData.get("isCurrent") === "true";
-    const isAvailableToOrder = formData.get("isAvailableToOrder") === "true";
+    if (contentType.includes("application/json")) {
+      // 🟦 Viene JSON (desde el componente de traducción)
+      const jsonData = await req.json();
 
-    const regions = JSON.parse(formData.get("regions") || "[]");
-    const topics = JSON.parse(formData.get("topics") || "[]");
+      data = {
+        number: jsonData.number,
+        title: jsonData.title,
+        subtitle: jsonData.subtitle || null,
+        datePublished: jsonData.datePublished,
+        summary: jsonData.summary,
+        tableOfContents: jsonData.tableOfContents || null,
+        isCurrent: jsonData.isCurrent,
+        isAvailableToOrder: jsonData.isAvailableToOrder,
+        regions: jsonData.regions || [],
+        topics: jsonData.topics || [],
+        // 🆕 Traducciones ES
+        titleES: jsonData.titleES,
+        subtitleES: jsonData.subtitleES,
+        summaryES: jsonData.summaryES,
+        tableOfContentsES: jsonData.tableOfContentsES,
+        isTranslatedES: jsonData.isTranslatedES,
+      };
+    } else {
+      // 🟩 Viene FormData (desde formulario con archivos)
+      const formData = await req.formData();
 
-    const removeCover = formData.get("removeCover") === "true";
-    const coverImageFile = formData.get("coverImage");
+      data = {
+        number: parseInt(formData.get("number"), 10),
+        title: formData.get("title"),
+        subtitle: formData.get("subtitle") || null,
+        datePublished: formData.get("datePublished"),
+        summary: formData.get("summary"),
+        tableOfContents: formData.get("tableOfContents") || null,
+        isCurrent: formData.get("isCurrent") === "true",
+        isAvailableToOrder: formData.get("isAvailableToOrder") === "true",
+        regions: JSON.parse(formData.get("regions") || "[]"),
+        topics: JSON.parse(formData.get("topics") || "[]"),
+        // 🆕 Traducciones ES
+        titleES: formData.get("titleES"),
+        subtitleES: formData.get("subtitleES"),
+        summaryES: formData.get("summaryES"),
+        tableOfContentsES: formData.get("tableOfContentsES"),
+        isTranslatedES: formData.get("isTranslatedES") === "true",
+      };
 
+      removeCover = formData.get("removeCover") === "true";
+      coverImageFile = formData.get("coverImage");
+    }
+
+    // 🖼️ Manejo de imagen de portada (solo si viene FormData con imagen)
     let coverImageUrl = null;
 
     if (removeCover) {
@@ -118,26 +161,72 @@ export async function PUT(req, { params }) {
       coverImageUrl = existing?.coverImage || null;
     }
 
-    // ✅ Actualizar edición en DB
+    // ✅ Construir objeto de actualización (solo campos que vienen)
+    const updateData = {};
+
+    if (data.number !== undefined && !isNaN(data.number))
+      updateData.number = data.number;
+    if (data.title !== undefined) updateData.title = data.title;
+    if (data.subtitle !== undefined) updateData.subtitle = data.subtitle;
+    if (data.datePublished !== undefined) {
+      updateData.datePublished = data.datePublished
+        ? new Date(data.datePublished)
+        : null;
+    }
+    if (data.summary !== undefined) updateData.summary = data.summary;
+    if (data.tableOfContents !== undefined)
+      updateData.tableOfContents = data.tableOfContents;
+    if (data.isCurrent !== undefined) updateData.isCurrent = data.isCurrent;
+    if (data.isAvailableToOrder !== undefined)
+      updateData.isAvailableToOrder = data.isAvailableToOrder;
+
+    // 🆕 Traducciones ES
+    if (data.titleES !== undefined) updateData.titleES = data.titleES;
+    if (data.subtitleES !== undefined) updateData.subtitleES = data.subtitleES;
+    if (data.summaryES !== undefined) updateData.summaryES = data.summaryES;
+    if (data.tableOfContentsES !== undefined)
+      updateData.tableOfContentsES = data.tableOfContentsES;
+    if (data.isTranslatedES !== undefined)
+      updateData.isTranslatedES = data.isTranslatedES;
+
+    // Solo actualizar coverImage si se procesó
+    if (coverImageUrl !== null || removeCover) {
+      updateData.coverImage = coverImageUrl;
+    }
+
+    // Actualizar relaciones si vienen
+    if (data.regions && Array.isArray(data.regions)) {
+      updateData.regions = { set: data.regions.map((id) => ({ id })) };
+    }
+    if (data.topics && Array.isArray(data.topics)) {
+      updateData.topics = { set: data.topics.map((id) => ({ id })) };
+    }
+
+    // ✅ Antes de actualizar, obtener la edición existente
+    const existing = await prisma.edition.findUnique({
+      where: { id: editionId },
+    });
+
+    // 🧠 Mantener los campos originales si no se envían en la actualización
+    const safeUpdateData = {
+      ...updateData,
+      title: updateData.title ?? existing.title,
+      subtitle: updateData.subtitle ?? existing.subtitle,
+      summary: updateData.summary ?? existing.summary,
+      tableOfContents: updateData.tableOfContents ?? existing.tableOfContents,
+    };
+
+    // ✅ Actualizar edición en DB sin perder el contenido original
     const updatedEdition = await prisma.edition.update({
       where: { id: editionId },
-      data: {
-        number,
-        title,
-        subtitle,
-        datePublished: datePublished ? new Date(datePublished) : null,
-        summary,
-        tableOfContents,
-        isCurrent,
-        isAvailableToOrder,
-        coverImage: coverImageUrl,
-        regions: { set: regions.map((id) => ({ id })) },
-        topics: { set: topics.map((id) => ({ id })) },
-      },
+      data: safeUpdateData,
       include: { regions: true, topics: true },
     });
 
-    return new Response(JSON.stringify(updatedEdition), { status: 200 });
+    return new Response(JSON.stringify(updatedEdition), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("❌ Error en PUT /editions/[id]:", error);
     return new Response(
@@ -145,18 +234,43 @@ export async function PUT(req, { params }) {
         error: "Error al actualizar edición",
         details: error.message,
       }),
-      { status: 500 }
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
+
 // 📌 DELETE (eliminar edición)
-export async function DELETE(req, { params }) {
+export async function DELETE(req, context) {
   try {
-    const editionId = parseInt(params.id, 10);
-    if (isNaN(editionId)) {
+    // ✅ FIX: Await params
+    const params = await context.params;
+    const editionId = params?.id ? parseInt(params.id, 10) : null;
+
+    if (!editionId || isNaN(editionId)) {
       return new Response(JSON.stringify({ error: "ID inválido" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" },
       });
+    }
+
+    // 🗑️ Opcional: Eliminar imagen de Cloudinary antes de borrar
+    const existing = await prisma.edition.findUnique({
+      where: { id: editionId },
+      select: { coverImage: true },
+    });
+
+    if (existing?.coverImage) {
+      try {
+        const urlParts = existing.coverImage.split("/");
+        const fileName = urlParts[urlParts.length - 1];
+        const publicId = `ila/editions/${fileName.split(".")[0]}`;
+        await cloudinary.v2.uploader.destroy(publicId);
+      } catch (err) {
+        console.error("⚠️ Error eliminando imagen en Cloudinary:", err);
+      }
     }
 
     await prisma.edition.delete({
@@ -165,7 +279,10 @@ export async function DELETE(req, { params }) {
 
     return new Response(
       JSON.stringify({ message: "Edición eliminada con éxito" }),
-      { status: 200 }
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   } catch (error) {
     console.error("❌ Error en DELETE /editions/[id]:", error);
@@ -173,6 +290,7 @@ export async function DELETE(req, { params }) {
       JSON.stringify({ error: "Error al eliminar edición" }),
       {
         status: 500,
+        headers: { "Content-Type": "application/json" },
       }
     );
   }

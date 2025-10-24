@@ -41,9 +41,18 @@ export default function EditableField({
             <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase">
               {t("original")}:
             </span>
-            <div className="flex-1 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-              {original || "—"}
-            </div>
+            {/<\/?[a-z][\s\S]*>/i.test(original || "") ? (
+              // ✅ Si tiene etiquetas HTML, renderízalo con formato
+              <div
+                className="flex-1 text-sm text-gray-800 dark:text-gray-200 prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: original }}
+              />
+            ) : (
+              // 🧾 Si no tiene HTML, se muestra como texto normal
+              <div className="flex-1 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                {original || "—"}
+              </div>
+            )}
           </div>
         </div>
       )}
