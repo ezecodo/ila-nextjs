@@ -360,14 +360,14 @@ export default function TranslateEditionPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div>
       {/* Barra de traducción flotante */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg shadow-lg mb-6">
+      <div className="sticky top-[-14px] left-0 w-full z-40 bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 shadow-md">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div>
-              <h2 className="font-bold text-lg">{t("translationMode")}</h2>
-              <p className="text-sm text-blue-100">
+              <h2 className="font-bold text-base">{t("translationMode")}</h2>
+              <p className="text-sm text-green-100">
                 {isSaving ? t("saving") : getLastSavedText()} |{" "}
                 {t("progress", {
                   completed: progress.completed,
@@ -375,7 +375,7 @@ export default function TranslateEditionPage() {
                 })}
               </p>
             </div>
-            <div className="w-32 bg-blue-800 rounded-full h-2">
+            <div className="w-32 bg-green-800 rounded-full h-2">
               <div
                 className="bg-white h-2 rounded-full transition-all duration-500"
                 style={{
@@ -389,38 +389,50 @@ export default function TranslateEditionPage() {
             <button
               onClick={translateAllWithDeepL}
               disabled={Object.values(isTranslating).some((v) => v)}
-              className="bg-purple-500 text-white px-4 py-2 rounded font-semibold hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-green-700 text-white px-3 py-1.5 rounded font-semibold hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               🤖 Traducir Todo con DeepL
             </button>
             <button
               onClick={saveAsDraft}
               disabled={isSaving || !hasUnsavedChanges}
-              className="bg-white text-blue-600 px-4 py-2 rounded font-semibold hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-white text-green-700 px-3 py-1.5 rounded font-semibold hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               💾 {t("saveNow")}
             </button>
             <button
               onClick={submitTranslation}
-              className="bg-green-500 text-white px-4 py-2 rounded font-semibold hover:bg-green-600"
+              className="bg-green-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-green-700"
             >
               📤 {t("submitTranslation")}
             </button>
           </div>
         </div>
       </div>
-
+      {/* 🧩 Espaciador para compensar altura de la barra fija */}
+      <div className="h-[70px]" />
       {/* Sección superior: Imagen y metadatos */}
       <div className="mb-8">
         {/* Imagen flotante a la izquierda */}
+        {/* Imagen flotante a la izquierda */}
         <div className="float-left mr-6 mb-4 w-full md:w-1/3">
-          <Image
-            src={edition.coverImage}
-            alt={`Portada de ${edition.title}`}
-            width={400}
-            height={550}
-            className="rounded shadow-md w-full max-w-xs"
-          />
+          {edition.coverImage ? (
+            <Image
+              src={
+                edition.coverImage.startsWith("http")
+                  ? edition.coverImage // 🌍 Cloudinary
+                  : edition.coverImage // 🖼️ Local (/up/edi/...)
+              }
+              alt={`Portada de ${edition.title}`}
+              width={400}
+              height={550}
+              className="rounded shadow-md w-full max-w-xs object-cover"
+            />
+          ) : (
+            <div className="w-full max-w-xs h-[550px] bg-gray-100 dark:bg-gray-700 flex items-center justify-center rounded shadow-md text-gray-500">
+              <span>Sin portada</span>
+            </div>
+          )}
 
           {/* Badges de regiones */}
           <div className="badgesContainer mt-2">
@@ -480,7 +492,7 @@ export default function TranslateEditionPage() {
               <button
                 onClick={() => translateWithDeepL("titleES", edition.title)}
                 disabled={isTranslating.title}
-                className="mt-8 px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold"
               >
                 {isTranslating.title ? "⏳..." : "🤖 DeepL"}
               </button>
@@ -506,7 +518,7 @@ export default function TranslateEditionPage() {
                     translateWithDeepL("subtitleES", edition.subtitle)
                   }
                   disabled={isTranslating.subtitle}
-                  className="mt-8 px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="mt-8 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   {isTranslating.subtitle ? "⏳..." : "🤖 DeepL"}
                 </button>
@@ -538,7 +550,7 @@ export default function TranslateEditionPage() {
             <button
               onClick={() => translateWithDeepL("summaryES", edition.summary)}
               disabled={isTranslating.summary}
-              className="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold"
+              className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold"
             >
               {isTranslating.summary
                 ? "⏳ Traduciendo..."
@@ -593,7 +605,7 @@ export default function TranslateEditionPage() {
                   )
                 }
                 disabled={isTranslating.tableOfContents}
-                className="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold"
+                className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap font-semibold"
               >
                 {isTranslating.tableOfContents
                   ? "⏳ Traduciendo..."
@@ -614,29 +626,6 @@ export default function TranslateEditionPage() {
           </div>
         </div>
       )}
-
-      {/* Botones finales */}
-      <div className="flex justify-end gap-4 mt-8 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
-        <button
-          onClick={() => router.back()}
-          className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 font-semibold"
-        >
-          ← {t("back")}
-        </button>
-        <button
-          onClick={saveAsDraft}
-          disabled={isSaving || !hasUnsavedChanges}
-          className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-        >
-          💾 {t("saveDraft")}
-        </button>
-        <button
-          onClick={submitTranslation}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold shadow-md"
-        >
-          📤 {t("submitTranslation")}
-        </button>
-      </div>
     </div>
   );
 }

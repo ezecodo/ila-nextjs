@@ -1,24 +1,26 @@
 /* src/components/Footer.module.css */
 .footer {
-  background-color: #333; /* Fondo oscuro */
-  color: #fff; /* Texto blanco */
-  padding: 2rem 1rem;
+  background-color: #333;
+  color: #fff;
+  padding: 0.75rem 1rem; /* Más compacto */
   text-align: center;
 }
 
 .container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* ← Horizontal */
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 1.5rem; /* Espacio entre elementos */
+  flex-wrap: wrap; /* Para móviles */
 }
 
 .logoContainer {
-  margin-bottom: 1rem;
+  margin: 0;
 }
 
 .logo {
-  border-radius: 0; /* Hace que el logo sea redondo */
+  border-radius: 0;
 }
 
 .text {
@@ -27,19 +29,19 @@
 }
 
 .logoText {
-  font-family: "Futura", "Futura PT", sans-serif; /* Fuente del logo */
+  font-family: "Futura", "Futura PT", sans-serif;
   font-weight: bold;
-  text-transform: lowercase; /* Siempre en minúsculas */
+  text-transform: lowercase;
   letter-spacing: 0.5px;
 }
 
 .socials {
   list-style: none;
   display: flex;
-  gap: 1.5rem; /* Espacio entre los íconos */
+  gap: 1rem;
   justify-content: center;
   padding: 0;
-  margin: 1rem 0 0;
+  margin: 0;
 }
 
 .socials li {
@@ -47,14 +49,14 @@
 }
 
 .icon {
-  font-size: 1.8rem; /* Tamaño de los íconos */
-  color: #fff; /* Color blanco por defecto */
+  font-size: 1.5rem; /* Iconos un poco más pequeños */
+  color: #fff;
   transition:
     color 0.3s ease,
     transform 0.3s ease;
 }
 
 .icon:hover {
-  color: #ff6347; /* Color rojo para el hover */
-  transform: scale(1.2); /* Efecto de zoom al pasar el cursor */
+  color: #ff6347;
+  transform: scale(1.2);
 }

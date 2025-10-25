@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import GenericAdminListDossiers from "../components/GenericAdminListDossiers/GenericAdminLIstDossiers";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { FaShoppingCart } from "react-icons/fa";
 
 export default function EditionListPage() {
   const t = useTranslations("dossiers");
@@ -37,10 +38,22 @@ export default function EditionListPage() {
   }, []);
 
   const columns = [
-    { key: "id", label: "ID" },
-    { key: "number", label: t("number") },
-    { key: "title", label: t("title") },
-    { key: "subtitle", label: t("subtitle") },
+    { key: "number", label: "N°" }, // ✅ Cambiado
+    {
+      key: "title",
+      label: t("title"),
+      format: (value, item) => (
+        <Link
+          href={`/editions/${item.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+        >
+          {value}
+        </Link>
+      ),
+    },
+
     {
       key: "datePublished",
       label: t("date"),
@@ -59,8 +72,45 @@ export default function EditionListPage() {
     },
     {
       key: "isAvailableToOrder",
-      label: t("isAvailable"),
-      format: (value) => (value ? "🟢" : "🔴"),
+      label: "🛒",
+      format: (value) =>
+        value ? (
+          <FaShoppingCart
+            className="text-green-600 text-lg mx-auto"
+            title="Bestellbar?"
+          />
+        ) : (
+          <FaShoppingCart className="text-red-600 text-lg mx-auto" />
+        ),
+    },
+    {
+      key: "isTranslatedES",
+      label: "🇪🇸 ES",
+      format: (value, item) => {
+        if (!item.isTranslatedES) {
+          return <span className="text-gray-400">❌</span>;
+        }
+        if (item.needsReviewES) {
+          return (
+            <span className="text-yellow-600" title="Needs review">
+              ⚠️
+            </span>
+          );
+        }
+        return <span className="text-green-600">✅</span>;
+      },
+    },
+    {
+      key: "translate",
+      label: "Traducción",
+      format: (value, item) => (
+        <Link
+          href={`/dashboard/editions/translate/${item.id}`}
+          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors font-medium"
+        >
+          🌐 Traducir
+        </Link>
+      ),
     },
   ];
 

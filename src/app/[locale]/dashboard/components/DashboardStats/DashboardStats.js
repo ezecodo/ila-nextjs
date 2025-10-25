@@ -77,7 +77,7 @@ const DashboardStats = () => {
   if (error) return <p className="text-center text-red-500">{t("error")}</p>;
 
   return (
-    <div className="flex flex-wrap gap-2 items-center justify-start">
+    <div className="sticky top-0 z-[60] bg-white shadow-sm py-2 flex flex-wrap gap-2 items-center justify-start">
       <StatCard
         icon={
           <span
@@ -283,7 +283,7 @@ export function StatCardDropdown({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 top-full mt-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 w-56">
+        <div className="absolute left-0 top-full mt-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 w-56">
           <ul className="py-2 text-sm text-gray-700">
             {items.map((item) => {
               const isItemActive = pathname?.startsWith(item.href);

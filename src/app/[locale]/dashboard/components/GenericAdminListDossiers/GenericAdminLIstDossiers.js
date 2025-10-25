@@ -140,9 +140,9 @@ const GenericAdminListDossiers = ({
                       {col.label} ⬍
                     </th>
                   ))}
-                  <th className="px-5 py-3 text-center">Editar</th>
+                  <th className="px-5 py-3 text-center">{t("edit")}</th>
                   {deleteUrlPrefix && (
-                    <th className="px-5 py-3 text-center">Eliminar</th>
+                    <th className="px-5 py-3 text-center">{t("delete")}</th>
                   )}
                 </tr>
               </thead>
@@ -165,7 +165,7 @@ const GenericAdminListDossiers = ({
                     <td className="px-5 py-3 text-center">
                       <Link href={`${editUrlPrefix}/${item.id}`}>
                         <button className="text-blue-600 hover:underline">
-                          {t("edit") || "Editar"}
+                          {t("edit")}
                         </button>
                       </Link>
                     </td>
@@ -175,7 +175,7 @@ const GenericAdminListDossiers = ({
                           onClick={() => confirmDelete(item)}
                           className="text-red-600 hover:text-red-800 font-bold"
                         >
-                          {t("delete") || "Eliminar"}
+                          {t("delete")}
                         </button>
                       </td>
                     )}
