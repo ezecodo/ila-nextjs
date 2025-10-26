@@ -109,6 +109,10 @@ export default function EditionDetails() {
       .replace(/\u2003/g, " ")
       .replace(/\u2002/g, " ")
       .trim();
+    // 🧹 Eliminar etiquetas HTML si las hay
+    normalized = normalized
+      .replace(/<\/?[^>]+(>|$)/g, "") // quita <p>, <br>, etc.
+      .replace(/&nbsp;/g, " "); // reemplaza entidades HTML
 
     const lines = normalized.split("\n").filter((line) => line.trim());
     const parsedArticles = [];

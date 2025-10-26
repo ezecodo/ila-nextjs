@@ -103,14 +103,32 @@ export default function EditionListPage() {
     {
       key: "translate",
       label: "Traducción",
-      format: (value, item) => (
-        <Link
-          href={`/dashboard/editions/translate/${item.id}`}
-          className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors font-medium"
-        >
-          🌐 Traducir
-        </Link>
-      ),
+      format: (value, item) => {
+        // Estados posibles
+        const approved = item.translationStatus === "approved";
+        const needsReview = item.needsReviewES;
+        const isTranslated = item.isTranslatedES;
+
+        let buttonText = "🌐 Traducir";
+        let buttonColor = "bg-green-600 hover:bg-green-700";
+
+        if (approved) {
+          buttonText = "✏️ Editar traducción aprobada";
+          buttonColor = "bg-blue-600 hover:bg-blue-700";
+        } else if (isTranslated || needsReview) {
+          buttonText = "✏️ Editar traducción";
+          buttonColor = "bg-yellow-500 hover:bg-yellow-600";
+        }
+
+        return (
+          <Link
+            href={`/dashboard/editions/translate/${item.id}`}
+            className={`inline-flex items-center gap-1 px-3 py-1.5 text-white text-xs rounded transition-colors font-medium ${buttonColor}`}
+          >
+            {buttonText}
+          </Link>
+        );
+      },
     },
   ];
 

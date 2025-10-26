@@ -122,6 +122,12 @@ export async function PUT(req, context) {
         summaryES: jsonData.summaryES,
         tableOfContentsES: jsonData.tableOfContentsES,
         isTranslatedES: jsonData.isTranslatedES,
+        // 🆕 Estado de traducción y metadatos
+        translationStatus: jsonData.translationStatus,
+        needsReviewES: jsonData.needsReviewES,
+        reviewedAt: jsonData.reviewedAt ? new Date(jsonData.reviewedAt) : null,
+        assignedAt: jsonData.assignedAt ? new Date(jsonData.assignedAt) : null,
+        translatorId: jsonData.translatorId || null,
       };
     } else {
       // 🟩 Viene FormData (desde formulario con archivos)
@@ -144,6 +150,16 @@ export async function PUT(req, context) {
         summaryES: formData.get("summaryES"),
         tableOfContentsES: formData.get("tableOfContentsES"),
         isTranslatedES: formData.get("isTranslatedES") === "true",
+        // Estado de traducción y metadatos
+        translationStatus: formData.get("translationStatus"),
+        needsReviewES: formData.get("needsReviewES") === "true",
+        reviewedAt: formData.get("reviewedAt")
+          ? new Date(formData.get("reviewedAt"))
+          : null,
+        assignedAt: formData.get("assignedAt")
+          ? new Date(formData.get("assignedAt"))
+          : null,
+        translatorId: formData.get("translatorId") || null,
       };
 
       removeCover = formData.get("removeCover") === "true";
@@ -220,7 +236,15 @@ export async function PUT(req, context) {
       updateData.tableOfContentsES = data.tableOfContentsES;
     if (data.isTranslatedES !== undefined)
       updateData.isTranslatedES = data.isTranslatedES;
-
+    // 🧠 Nuevos campos de traducción y tracking
+    if (data.translationStatus !== undefined)
+      updateData.translationStatus = data.translationStatus;
+    if (data.needsReviewES !== undefined)
+      updateData.needsReviewES = data.needsReviewES;
+    if (data.reviewedAt !== undefined) updateData.reviewedAt = data.reviewedAt;
+    if (data.assignedAt !== undefined) updateData.assignedAt = data.assignedAt;
+    if (data.translatorId !== undefined)
+      updateData.translatorId = data.translatorId;
     // Solo actualizar coverImage si se procesó
     if (coverImageUrl !== null || removeCover) {
       updateData.coverImage = coverImageUrl;
@@ -240,6 +264,7 @@ export async function PUT(req, context) {
     });
 
     // 🧠 Mantener los campos originales si no se envían en la actualización
+    // 🧠 Crear el objeto de actualización sin incluir campos no permitidos
     const safeUpdateData = {
       ...updateData,
       title: updateData.title ?? existing.title,
@@ -248,12 +273,39 @@ export async function PUT(req, context) {
       tableOfContents: updateData.tableOfContents ?? existing.tableOfContents,
     };
 
+    // 🧹 Eliminar campos que Prisma no permite actualizar
+    delete safeUpdateData.id;
+    delete safeUpdateData.createdAt;
+    delete safeUpdateData.translator;
+    delete safeUpdateData.activityLogs;
+
+    // 🧠 Evitar errores de null en translationStatus
+    if (!safeUpdateData.translationStatus) {
+      safeUpdateData.translationStatus =
+        existing.translationStatus || "not_assigned";
+    }
+
     // ✅ Actualizar edición en DB sin perder el contenido original
     const updatedEdition = await prisma.edition.update({
       where: { id: editionId },
       data: safeUpdateData,
       include: { regions: true, topics: true },
     });
+    // 🧠 Registrar actividad del traductor o admin revisor
+    try {
+      await prisma.activityLog.create({
+        data: {
+          userId: safeUpdateData.translatorId || null, // traductor actual
+          editionId, // edición afectada
+          action:
+            safeUpdateData.translationStatus === "approved"
+              ? "REVIEW_TRANSLATION"
+              : "TRANSLATE_EDITION", // depende del estado
+        },
+      });
+    } catch (err) {
+      console.warn("⚠️ No se pudo registrar el log de actividad:", err);
+    }
 
     return new Response(JSON.stringify(updatedEdition), {
       status: 200,

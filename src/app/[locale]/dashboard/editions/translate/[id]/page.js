@@ -5,11 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import EditableField from "../../../components/EditableField/EditableField";
+import { useSession } from "next-auth/react";
 
 export default function TranslateEditionPage() {
   const { id } = useParams();
   const router = useRouter();
   const t = useTranslations("editionTranslate");
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
 
   const [edition, setEdition] = useState(null);
   const [translations, setTranslations] = useState({
@@ -326,23 +329,39 @@ export default function TranslateEditionPage() {
     const confirm = window.confirm(t("confirmSubmit"));
     if (!confirm) return;
 
+    // Base payload con contenido formateado y quién tradujo
+    const payload = {
+      ...translations,
+      summaryES: wrapParagraphs(translations.summaryES),
+      tableOfContentsES: wrapParagraphs(translations.tableOfContentsES),
+      translatorId: session?.user?.id ?? null,
+      assignedAt: new Date().toISOString(),
+    };
+
+    if (isAdmin) {
+      // 👑 Admin: se considera final y aprobada
+      payload.translationStatus = "approved";
+      payload.isTranslatedES = true;
+      payload.needsReviewES = false;
+      payload.reviewedAt = new Date().toISOString();
+    } else {
+      // 👤 Traductor normal: pasa a revisión
+      payload.translationStatus = "submitted";
+      payload.isTranslatedES = false;
+      payload.needsReviewES = true;
+    }
+
     try {
       const res = await fetch(`/api/editions/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...translations,
-          summaryES: wrapParagraphs(translations.summaryES),
-          tableOfContentsES: wrapParagraphs(translations.tableOfContentsES),
-          translationStatus: "submitted",
-          isTranslatedES: false, // ✅ aún no es oficial
-          needsReviewES: true, // ✅ ahora pasa a revisión
-          assignedAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        alert(t("submitSuccess"));
+        alert(
+          isAdmin ? "✅ Traducción guardada como final" : t("submitSuccess")
+        );
         router.push("/dashboard/editions");
       } else {
         alert(t("submitError"));

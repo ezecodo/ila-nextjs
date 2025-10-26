@@ -119,6 +119,7 @@ model Edition {
    // 👤 Relaciones con usuarios
   translatorId       String?
   translator         User?     @relation("EditionTranslator", fields: [translatorId], references: [id])
+  activityLogs ActivityLog[]
 
     @@index([translatorId])
 }
@@ -446,11 +447,13 @@ model ActivityLog {
   id         Int            @id @default(autoincrement())
   userId     String
   articleId  Int?
+  editionId   Int?
   action     ActivityAction
   createdAt  DateTime       @default(now())
   carouselId String?
   metadata   String?        @db.LongText
   article    Article?       @relation(fields: [articleId], references: [id])
+  edition     Edition?       @relation(fields: [editionId], references: [id])
   carousel   Carousel?      @relation("CarouselToActivityLogs", fields: [carouselId], references: [id])
   user       User           @relation(fields: [userId], references: [id])
 
@@ -490,4 +493,5 @@ enum ActivityAction {
   REVIEW_TRANSLATION
   CREATE_CAROUSEL
   DELETE_CAROUSEL
+   TRANSLATE_EDITION
 }
