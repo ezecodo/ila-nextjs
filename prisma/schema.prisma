@@ -110,6 +110,17 @@ model Edition {
   regions            Region[]  @relation("EditionRegions")
   topics             Topic[]   @relation("EditionTopics")
   orderItems         OrderItem[] 
+    // 🧠 Campos de estado de traducción y revisión
+  translationStatus  String    @default("not_assigned")
+  needsReviewES      Boolean   @default(false)
+  reviewedAt         DateTime?
+  assignedAt         DateTime?
+
+   // 👤 Relaciones con usuarios
+  translatorId       String?
+  translator         User?     @relation("EditionTranslator", fields: [translatorId], references: [id])
+
+    @@index([translatorId])
 }
 model Order {
   id        String   @id @default(uuid())
@@ -293,6 +304,7 @@ model User {
 
     translationsAssigned Article[] @relation("ArticleTranslator")
   reviewsAssigned      Article[] @relation("ArticleReviewer")
+  editionsTranslated   Edition[] @relation("EditionTranslator")
 }
 
 model Account {

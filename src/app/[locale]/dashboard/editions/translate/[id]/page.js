@@ -299,7 +299,9 @@ export default function TranslateEditionPage() {
           ...translations,
           summaryES: wrapParagraphs(translations.summaryES),
           tableOfContentsES: wrapParagraphs(translations.tableOfContentsES),
+          translationStatus: "in_progress",
           isTranslatedES: false,
+          needsReviewES: false, // aún no se envió a revisión
         }),
       });
 
@@ -322,7 +324,6 @@ export default function TranslateEditionPage() {
     }
 
     const confirm = window.confirm(t("confirmSubmit"));
-
     if (!confirm) return;
 
     try {
@@ -331,7 +332,12 @@ export default function TranslateEditionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...translations,
-          isTranslatedES: true,
+          summaryES: wrapParagraphs(translations.summaryES),
+          tableOfContentsES: wrapParagraphs(translations.tableOfContentsES),
+          translationStatus: "submitted",
+          isTranslatedES: false, // ✅ aún no es oficial
+          needsReviewES: true, // ✅ ahora pasa a revisión
+          assignedAt: new Date().toISOString(),
         }),
       });
 
@@ -407,6 +413,46 @@ export default function TranslateEditionPage() {
               📤 {t("submitTranslation")}
             </button>
           </div>
+          {typeof window !== "undefined" &&
+            window.location.search.includes("mode=review") && (
+              <button
+                onClick={async () => {
+                  const confirm = window.confirm("¿Aprobar esta traducción?");
+                  if (!confirm) return;
+
+                  const res = await fetch(`/api/editions/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      ...translations,
+                      translationStatus: "approved",
+                      isTranslatedES: true,
+                      needsReviewES: false,
+                      reviewedAt: new Date().toISOString(),
+                    }),
+                  });
+
+                  if (res.ok) {
+                    await fetch("/api/activity-log", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        editionId: id,
+                        action: "REVIEW_TRANSLATION",
+                      }),
+                    });
+
+                    alert("✅ Traducción aprobada");
+                    router.replace("/dashboard/editions");
+                  } else {
+                    alert("❌ Error al aprobar traducción");
+                  }
+                }}
+                className="bg-blue-600 text-white px-3 py-1.5 rounded font-semibold hover:bg-blue-700"
+              >
+                ✅ Aprobar traducción
+              </button>
+            )}
         </div>
       </div>
       {/* 🧩 Espaciador para compensar altura de la barra fija */}
