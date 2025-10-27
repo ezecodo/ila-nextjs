@@ -134,10 +134,14 @@
     "noTopics": "Keine Themen zugeordnet",
     "linkArticle": "Artikel verknüpfen...",
     "confirm": "Bestätigen",
+    "actions": "Aktionen",
+    "review": "Überprüfen",
+    "inProgress": "In Bearbeitung",
 
     "loadingEditions": "Lade Dossiers...",
     "noResults": "Keine Ergebnisse",
     "edit": "Bearbeiten",
+    "translate": "Übersetzen",
 
     "delete": "Löschen",
     "prevPage": "Zurück",

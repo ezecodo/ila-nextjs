@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import Link from "next/link";
+
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 const GenericAdminListDossiers = ({
   endpoint,
@@ -12,7 +13,9 @@ const GenericAdminListDossiers = ({
   extraQuery = {},
   defaultSortField = "id",
   defaultSortOrder = "desc",
+  mode = "admin",
 }) => {
+  const router = useRouter();
   const [items, setItems] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
@@ -140,7 +143,13 @@ const GenericAdminListDossiers = ({
                       {col.label} ⬍
                     </th>
                   ))}
-                  <th className="px-5 py-3 text-center">{t("edit")}</th>
+                  <th className="px-5 py-3 text-center">
+                    {mode === "reviewer"
+                      ? t("actions") || "Acciones"
+                      : mode === "translator"
+                        ? t("translate") || "Traducir"
+                        : t("edit")}
+                  </th>
                   {deleteUrlPrefix && (
                     <th className="px-5 py-3 text-center">{t("delete")}</th>
                   )}
@@ -158,16 +167,66 @@ const GenericAdminListDossiers = ({
                         className="px-5 py-3 text-gray-900 dark:text-gray-100 whitespace-normal"
                       >
                         {col.format
-                          ? col.format(item[col.key], item)
+                          ? col.format(item[col.key], item, (updatedItem) => {
+                              // ✅ Actualizar solo la fila actual sin recargar
+                              setItems((prev) =>
+                                prev.map((i) =>
+                                  i.id === item.id ? updatedItem : i
+                                )
+                              );
+                            })
                           : item[col.key]}
                       </td>
                     ))}
                     <td className="px-5 py-3 text-center">
-                      <Link href={`${editUrlPrefix}/${item.id}`}>
-                        <button className="text-blue-600 hover:underline">
+                      {mode === "translator" ? (
+                        // 🟢 Vista del traductor: botón "Traducir"
+                        <button
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/editions/translate/${item.id}`
+                            )
+                          }
+                          className="text-green-600 hover:underline font-semibold"
+                        >
+                          {t("translate") || "Traducir"}
+                        </button>
+                      ) : mode === "reviewer" ? (
+                        // 🟣 Vista del revisor/admin
+                        item.translationStatus === "submitted" ? (
+                          <button
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/editions/translate/${item.id}?mode=review`
+                              )
+                            }
+                            className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-semibold bg-purple-600 text-white hover:bg-purple-700"
+                          >
+                            {t("review") || "Revisar"}
+                          </button>
+                        ) : // 🟡 Si está asignado o en progreso → mostrar "En progreso"
+                        ["assigned", "in_progress"].includes(
+                            item.translationStatus
+                          ) ? (
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-yellow-100 text-yellow-800">
+                            {t("inProgress") || "En progreso"}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-md text-sm bg-gray-100 text-gray-800">
+                            {item.translationStatus || "—"}
+                          </span>
+                        )
+                      ) : (
+                        // 🔵 Vista admin normal: botón Editar
+                        <button
+                          onClick={() =>
+                            router.push(`${editUrlPrefix}/${item.id}`)
+                          }
+                          className="text-blue-600 hover:underline"
+                        >
                           {t("edit")}
                         </button>
-                      </Link>
+                      )}
                     </td>
                     {deleteUrlPrefix && (
                       <td className="px-5 py-3 text-center">

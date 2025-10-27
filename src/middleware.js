@@ -21,7 +21,9 @@ export async function middleware(req) {
     pathname.startsWith("/es/dashboard/translators") ||
     pathname.startsWith("/de/dashboard/translators") ||
     pathname.startsWith("/es/dashboard/articles/translate") ||
-    pathname.startsWith("/de/dashboard/articles/translate");
+    pathname.startsWith("/de/dashboard/articles/translate") ||
+    pathname.startsWith("/es/dashboard/editions/translate") || // ✅ añadido
+    pathname.startsWith("/de/dashboard/editions/translate");
 
   const isAccountArea =
     pathname.startsWith("/es/dashboard/account") ||

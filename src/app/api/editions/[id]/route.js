@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 import cloudinary from "cloudinary";
+import { auth } from "../../../auth";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -15,6 +16,39 @@ export async function GET(req, context) {
     if (!editionId || isNaN(editionId)) {
       return new Response(JSON.stringify({ error: "ID inválido o faltante" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    // 🔐 Verificar sesión actual
+    const session = await auth();
+    if (!session || !session.user) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = session.user.id;
+    const userRole = session.user.role;
+
+    // 🧱 Buscar edición mínima para verificar acceso
+    const editionCheck = await prisma.edition.findUnique({
+      where: { id: editionId },
+      select: { translatorId: true },
+    });
+
+    if (!editionCheck) {
+      return new Response(JSON.stringify({ error: "Edición no encontrada" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // 🚫 Si no es admin ni traductor asignado → bloquear
+    if (userRole !== "admin" && editionCheck.translatorId !== userId) {
+      console.warn("🚫 Acceso denegado al dossier:", editionId, "por", userId);
+      return new Response(JSON.stringify({ error: "Acceso denegado" }), {
+        status: 403,
         headers: { "Content-Type": "application/json" },
       });
     }
@@ -95,6 +129,52 @@ export async function PUT(req, context) {
       });
     }
 
+    // 🧠 CASO ESPECIAL: solo actualización rápida de traductor (desde AssignTranslatorCellEdition)
+    const contentTypeCheck = req.headers.get("content-type") || "";
+    if (contentTypeCheck.includes("application/json")) {
+      const jsonData = await req.json();
+
+      const isAssignOnly =
+        Object.keys(jsonData).length <= 4 &&
+        ("translatorId" in jsonData ||
+          "assignedAt" in jsonData ||
+          "translationStatus" in jsonData);
+
+      if (isAssignOnly) {
+        const updatedEdition = await prisma.edition.update({
+          where: { id: editionId },
+          data: {
+            translatorId: jsonData.translatorId || null,
+            assignedAt: jsonData.assignedAt
+              ? new Date(jsonData.assignedAt)
+              : null,
+            translationStatus: jsonData.translationStatus || "assigned",
+          },
+          include: {
+            translator: { select: { id: true, name: true, email: true } },
+          },
+        });
+
+        try {
+          await prisma.activityLog.create({
+            data: {
+              userId: jsonData.translatorId || null,
+              editionId,
+              action: "TRANSLATE_EDITION",
+            },
+          });
+        } catch (err) {
+          console.warn("⚠️ No se pudo registrar log de actividad:", err);
+        }
+
+        return new Response(JSON.stringify(updatedEdition), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      } else {
+        req.json = async () => jsonData;
+      }
+    }
     // ✅ FIX 2: Detectar si viene JSON o FormData
     const contentType = req.headers.get("content-type") || "";
     let data = {};
@@ -122,12 +202,12 @@ export async function PUT(req, context) {
         summaryES: jsonData.summaryES,
         tableOfContentsES: jsonData.tableOfContentsES,
         isTranslatedES: jsonData.isTranslatedES,
-        // 🆕 Estado de traducción y metadatos
+
         translationStatus: jsonData.translationStatus,
         needsReviewES: jsonData.needsReviewES,
-        reviewedAt: jsonData.reviewedAt ? new Date(jsonData.reviewedAt) : null,
-        assignedAt: jsonData.assignedAt ? new Date(jsonData.assignedAt) : null,
-        translatorId: jsonData.translatorId || null,
+        translatorId: jsonData.translatorId,
+        assignedAt: jsonData.assignedAt,
+        reviewedAt: jsonData.reviewedAt,
       };
     } else {
       // 🟩 Viene FormData (desde formulario con archivos)
@@ -150,16 +230,6 @@ export async function PUT(req, context) {
         summaryES: formData.get("summaryES"),
         tableOfContentsES: formData.get("tableOfContentsES"),
         isTranslatedES: formData.get("isTranslatedES") === "true",
-        // Estado de traducción y metadatos
-        translationStatus: formData.get("translationStatus"),
-        needsReviewES: formData.get("needsReviewES") === "true",
-        reviewedAt: formData.get("reviewedAt")
-          ? new Date(formData.get("reviewedAt"))
-          : null,
-        assignedAt: formData.get("assignedAt")
-          ? new Date(formData.get("assignedAt"))
-          : null,
-        translatorId: formData.get("translatorId") || null,
       };
 
       removeCover = formData.get("removeCover") === "true";
@@ -236,15 +306,7 @@ export async function PUT(req, context) {
       updateData.tableOfContentsES = data.tableOfContentsES;
     if (data.isTranslatedES !== undefined)
       updateData.isTranslatedES = data.isTranslatedES;
-    // 🧠 Nuevos campos de traducción y tracking
-    if (data.translationStatus !== undefined)
-      updateData.translationStatus = data.translationStatus;
-    if (data.needsReviewES !== undefined)
-      updateData.needsReviewES = data.needsReviewES;
-    if (data.reviewedAt !== undefined) updateData.reviewedAt = data.reviewedAt;
-    if (data.assignedAt !== undefined) updateData.assignedAt = data.assignedAt;
-    if (data.translatorId !== undefined)
-      updateData.translatorId = data.translatorId;
+
     // Solo actualizar coverImage si se procesó
     if (coverImageUrl !== null || removeCover) {
       updateData.coverImage = coverImageUrl;
@@ -257,14 +319,47 @@ export async function PUT(req, context) {
     if (data.topics && Array.isArray(data.topics)) {
       updateData.topics = { set: data.topics.map((id) => ({ id })) };
     }
+    // 👇 REEMPLAZO — Estado de traducción y fechas (sin tocar schema)
+    if (data.translationStatus !== undefined) {
+      updateData.translationStatus = data.translationStatus;
+    }
+    if (data.needsReviewES !== undefined) {
+      updateData.needsReviewES = data.needsReviewES;
+    }
+    if (data.translatorId !== undefined) {
+      updateData.translatorId = data.translatorId || null;
+    }
+    if (data.assignedAt !== undefined) {
+      updateData.assignedAt = data.assignedAt
+        ? new Date(data.assignedAt)
+        : null;
+    }
+    if (data.reviewedAt !== undefined) {
+      updateData.reviewedAt = data.reviewedAt
+        ? new Date(data.reviewedAt)
+        : null;
+    }
 
+    // Reglas de transición (sin submittedAt si no existe en el schema)
+    if (data.translationStatus === "submitted") {
+      updateData.needsReviewES = true;
+      updateData.isTranslatedES = false;
+      // ❌ NO guardar submittedAt si no existe la columna
+    }
+
+    if (data.translationStatus === "approved") {
+      updateData.needsReviewES = false;
+      updateData.isTranslatedES = true;
+      if (!data.reviewedAt) {
+        updateData.reviewedAt = new Date();
+      }
+    }
     // ✅ Antes de actualizar, obtener la edición existente
     const existing = await prisma.edition.findUnique({
       where: { id: editionId },
     });
 
     // 🧠 Mantener los campos originales si no se envían en la actualización
-    // 🧠 Crear el objeto de actualización sin incluir campos no permitidos
     const safeUpdateData = {
       ...updateData,
       title: updateData.title ?? existing.title,
@@ -273,39 +368,12 @@ export async function PUT(req, context) {
       tableOfContents: updateData.tableOfContents ?? existing.tableOfContents,
     };
 
-    // 🧹 Eliminar campos que Prisma no permite actualizar
-    delete safeUpdateData.id;
-    delete safeUpdateData.createdAt;
-    delete safeUpdateData.translator;
-    delete safeUpdateData.activityLogs;
-
-    // 🧠 Evitar errores de null en translationStatus
-    if (!safeUpdateData.translationStatus) {
-      safeUpdateData.translationStatus =
-        existing.translationStatus || "not_assigned";
-    }
-
     // ✅ Actualizar edición en DB sin perder el contenido original
     const updatedEdition = await prisma.edition.update({
       where: { id: editionId },
       data: safeUpdateData,
       include: { regions: true, topics: true },
     });
-    // 🧠 Registrar actividad del traductor o admin revisor
-    try {
-      await prisma.activityLog.create({
-        data: {
-          userId: safeUpdateData.translatorId || null, // traductor actual
-          editionId, // edición afectada
-          action:
-            safeUpdateData.translationStatus === "approved"
-              ? "REVIEW_TRANSLATION"
-              : "TRANSLATE_EDITION", // depende del estado
-        },
-      });
-    } catch (err) {
-      console.warn("⚠️ No se pudo registrar el log de actividad:", err);
-    }
 
     return new Response(JSON.stringify(updatedEdition), {
       status: 200,
@@ -336,6 +404,39 @@ export async function DELETE(req, context) {
     if (!editionId || isNaN(editionId)) {
       return new Response(JSON.stringify({ error: "ID inválido" }), {
         status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    // 🔐 Verificar sesión actual
+    const session = await auth();
+    if (!session || !session.user) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = session.user.id;
+    const userRole = session.user.role;
+
+    // 🧱 Buscar edición mínima para verificar acceso
+    const editionCheck = await prisma.edition.findUnique({
+      where: { id: editionId },
+      select: { translatorId: true },
+    });
+
+    if (!editionCheck) {
+      return new Response(JSON.stringify({ error: "Edición no encontrada" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // 🚫 Si no es admin ni traductor asignado → bloquear
+    if (userRole !== "admin" && editionCheck.translatorId !== userId) {
+      console.warn("🚫 Acceso denegado al dossier:", editionId, "por", userId);
+      return new Response(JSON.stringify({ error: "Acceso denegado" }), {
+        status: 403,
         headers: { "Content-Type": "application/json" },
       });
     }

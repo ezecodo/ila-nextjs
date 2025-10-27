@@ -30,19 +30,29 @@ export async function GET(req) {
     }
 
     // where dinámico (para filtrar por año si viene)
-    let where = undefined;
+    // 🧭 Filtros dinámicos combinados correctamente
+    let where = {};
+
+    const translatorId = searchParams.get("translatorId");
+    if (translatorId) {
+      where.translatorId = translatorId;
+    }
+
     if (year) {
       const y = Number(year);
       if (!Number.isNaN(y)) {
-        where = {
-          datePublished: {
-            gte: new Date(`${y}-01-01T00:00:00.000Z`),
-            lte: new Date(`${y}-12-31T23:59:59.999Z`),
-          },
+        where.datePublished = {
+          gte: new Date(`${y}-01-01T00:00:00.000Z`),
+          lte: new Date(`${y}-12-31T23:59:59.999Z`),
         };
       }
     }
 
+    // 🟣 Filtro por estado(s) de traducción (p. ej. ?status=in_progress,submitted)
+    const status = searchParams.get("status");
+    if (status) {
+      where.translationStatus = { in: status.split(",") };
+    }
     // Orden seguro
     const allowedSortFields = new Set([
       "id",
@@ -76,6 +86,17 @@ export async function GET(req) {
           orderBy,
           skip,
           take: limit,
+          include: {
+            translator: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            regions: { select: { id: true, name: true, nameES: true } },
+            topics: { select: { id: true, name: true, nameES: true } },
+          },
         }),
       ]);
 
