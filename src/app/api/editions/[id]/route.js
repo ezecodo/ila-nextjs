@@ -374,7 +374,33 @@ export async function PUT(req, context) {
       data: safeUpdateData,
       include: { regions: true, topics: true },
     });
+    // 🗒️ Log en servidor: si pasó a "submitted", registrar envío
+    try {
+      const session = await auth(); // ya lo usas en otros handlers
+      const currentUserId = session?.user?.id || null;
 
+      if (safeUpdateData.translationStatus === "submitted") {
+        await prisma.activityLog.create({
+          data: {
+            userId: currentUserId,
+            editionId,
+            action: "SUBMIT_TRANSLATION", // o tu acción existente
+          },
+        });
+      }
+      // (Opcional) también puedes loguear aprobación aquí si llega "approved"
+      if (safeUpdateData.translationStatus === "approved") {
+        await prisma.activityLog.create({
+          data: {
+            userId: currentUserId,
+            editionId,
+            action: "REVIEW_TRANSLATION",
+          },
+        });
+      }
+    } catch (e) {
+      console.warn("No se pudo registrar ActivityLog:", e);
+    }
     return new Response(JSON.stringify(updatedEdition), {
       status: 200,
       headers: { "Content-Type": "application/json" },

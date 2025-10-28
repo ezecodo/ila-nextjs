@@ -561,6 +561,7 @@
     "none": "🔍 No hay actividad reciente.",
     "createdCarousel": "creó el carrusel",
     "deletedCarousel": "eliminó el carrusel",
+    "SUBMIT_TRANSLATION": "envió la traducción del dossier ila {number} para revisión",
     "withType": "con tipo",
     "inRegion": "en región",
     "translatedArticle": "tradujo el artículo",

@@ -143,13 +143,16 @@ const GenericAdminListDossiers = ({
                       {col.label} ⬍
                     </th>
                   ))}
-                  <th className="px-5 py-3 text-center">
-                    {mode === "reviewer"
-                      ? t("actions") || "Acciones"
-                      : mode === "translator"
-                        ? t("translate") || "Traducir"
-                        : t("edit")}
-                  </th>
+                  {/* 🔹 Mostrar encabezado solo si no estamos en modo "assign" */}
+                  {mode !== "assign" && (
+                    <th className="px-5 py-3 text-center">
+                      {mode === "reviewer"
+                        ? t("actions") || "Acciones"
+                        : mode === "translator"
+                          ? t("translate") || "Traducir"
+                          : t("edit")}
+                    </th>
+                  )}
                   {deleteUrlPrefix && (
                     <th className="px-5 py-3 text-center">{t("delete")}</th>
                   )}
@@ -218,14 +221,16 @@ const GenericAdminListDossiers = ({
                         )
                       ) : (
                         // 🔵 Vista admin normal: botón Editar
-                        <button
-                          onClick={() =>
-                            router.push(`${editUrlPrefix}/${item.id}`)
-                          }
-                          className="text-blue-600 hover:underline"
-                        >
-                          {t("edit")}
-                        </button>
+                        mode !== "assign" && (
+                          <button
+                            onClick={() =>
+                              router.push(`${editUrlPrefix}/${item.id}`)
+                            }
+                            className="text-blue-600 hover:underline"
+                          >
+                            {t("edit")}
+                          </button>
+                        )
                       )}
                     </td>
                     {deleteUrlPrefix && (

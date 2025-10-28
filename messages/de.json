@@ -562,6 +562,8 @@
     "none": "🔍 Keine aktuellen Aktivitäten.",
     "createdCarousel": "hat das Karussell erstellt",
     "deletedCarousel": "hat das Karussell gelöscht",
+    "SUBMIT_TRANSLATION": "hat die Übersetzung des Dossiers ila {number} zur Überprüfung eingereicht",
+
     "withType": "vom Typ",
     "inRegion": "in der Region",
     "translatedArticle": "hat den Artikel übersetzt",

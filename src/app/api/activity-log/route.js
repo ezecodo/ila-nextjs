@@ -12,7 +12,9 @@ export async function POST(req) {
       });
     }
 
-    let { articleId, action, carouselId } = await req.json();
+    // 🆕 ahora también aceptamos editionId y metadata
+    let { articleId, editionId, carouselId, action, metadata } =
+      await req.json();
 
     if (!action) {
       return new Response(JSON.stringify({ error: "Acción requerida" }), {
@@ -27,6 +29,8 @@ export async function POST(req) {
         action,
         articleId: articleId ? parseInt(articleId, 10) : undefined,
         carouselId: carouselId || undefined,
+        editionId: editionId ? parseInt(editionId, 10) : undefined,
+        metadata: metadata ? JSON.stringify(metadata) : undefined,
       },
     });
 
@@ -55,6 +59,9 @@ export async function GET() {
         metadata: true, // ✅ NECESARIO para los logs eliminados
         user: { select: { name: true } },
         article: { select: { title: true, legacyPath: true } },
+        edition: {
+          select: { id: true, number: true, title: true, titleES: true },
+        },
         carousel: {
           select: {
             id: true,

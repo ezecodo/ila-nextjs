@@ -268,6 +268,12 @@ export default function ActivityFeed() {
                           </span>
                         )}
                       </>
+                    ) : log.action === "SUBMIT_TRANSLATION" ? (
+                      <>
+                        {t("SUBMIT_TRANSLATION", {
+                          number: log.metadata?.editionNumber ?? "—",
+                        })}
+                      </>
                     ) : (
                       t("default")
                     )}
