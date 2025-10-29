@@ -64,7 +64,21 @@ export default function ActivityFeed() {
                     {log.user?.name || "Usuario"}
                   </span>{" "}
                   <span className="text-gray-700">
-                    {log.action === "CREATE_CAROUSEL" && log.carousel ? (
+                    {log.action === "ASSIGN_TRANSLATOR" && log.metadata ? (
+                      <>
+                        {t("assignedDossier")}{" "}
+                        <span className="font-semibold text-gray-800">
+                          ila {log.metadata.editionNumber}
+                          {log.metadata.editionTitle &&
+                            ` - ${log.metadata.editionTitle}`}
+                        </span>{" "}
+                        {t("to")}{" "}
+                        <span className="font-semibold text-gray-800">
+                          {log.metadata.translatorName}
+                        </span>{" "}
+                        {t("forTranslation")}
+                      </>
+                    ) : log.action === "CREATE_CAROUSEL" && log.carousel ? (
                       <>
                         {t("createdCarousel")}{" "}
                         <Link
@@ -205,21 +219,38 @@ export default function ActivityFeed() {
                         </Link>
                       </>
                     ) : log.action === "REVIEW_TRANSLATION" ? (
-                      <>
-                        {t("reviewedTranslation")}{" "}
-                        {log.article?.legacyPath ? (
+                      log.metadata ? (
+                        // 📚 Es un dossier (edition)
+                        <>
+                          {t("REVIEW_TRANSLATION_PREFIX")}{" "}
                           <Link
-                            href={`/es${log.article.legacyPath}`}
-                            className="text-red-700 hover:text-red-800 font-medium hover:underline"
+                            href={`/es/editions/${log.metadata?.editionId}`}
+                            className="text-red-700 hover:text-red-800 font-semibold hover:underline"
                           >
-                            {log.article?.title || t("untitled")}
-                          </Link>
-                        ) : (
-                          <span className="italic text-gray-500">
-                            {log.article?.title || t("untitled")}
-                          </span>
-                        )}
-                      </>
+                            ila {log.metadata.editionNumber ?? "—"}
+                            {log.metadata.editionTitle &&
+                              ` - ${log.metadata.editionTitle}`}
+                          </Link>{" "}
+                          {t("REVIEW_TRANSLATION_SUFFIX")}
+                        </>
+                      ) : (
+                        // 📄 Es un artículo (legacy, por si acaso)
+                        <>
+                          {t("reviewedTranslation")}{" "}
+                          {log.article?.legacyPath ? (
+                            <Link
+                              href={`/es${log.article.legacyPath}`}
+                              className="text-red-700 hover:text-red-800 font-medium hover:underline"
+                            >
+                              {log.article?.title || t("untitled")}
+                            </Link>
+                          ) : (
+                            <span className="italic text-gray-500">
+                              {log.article?.title || t("untitled")}
+                            </span>
+                          )}
+                        </>
+                      )
                     ) : log.action === "UPDATE_ARTICLE" ? (
                       <>
                         {t("updatedArticle")}{" "}
@@ -270,9 +301,13 @@ export default function ActivityFeed() {
                       </>
                     ) : log.action === "SUBMIT_TRANSLATION" ? (
                       <>
-                        {t("SUBMIT_TRANSLATION", {
-                          number: log.metadata?.editionNumber ?? "—",
-                        })}
+                        {t("SUBMIT_TRANSLATION_PREFIX")}{" "}
+                        <span className="font-semibold text-gray-800">
+                          ila {log.metadata?.editionNumber ?? "—"}
+                          {log.metadata?.editionTitle &&
+                            ` - ${log.metadata.editionTitle}`}
+                        </span>{" "}
+                        {t("SUBMIT_TRANSLATION_SUFFIX")}
                       </>
                     ) : (
                       t("default")

@@ -359,27 +359,6 @@ export default function TranslateEditionPage() {
       });
 
       if (res.ok) {
-        // 🗒️ Log: la persona (traductor/a o quien sea) envió el dossier para revisión
-        if (!isAdmin) {
-          try {
-            await fetch("/api/activity-log", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                action: "SUBMIT_TRANSLATION",
-                editionId: parseInt(id, 10),
-                metadata: {
-                  editionNumber: edition?.number,
-                  editionTitle: edition?.title || edition?.titleES || "",
-                  submittedAt: new Date().toISOString(),
-                },
-              }),
-            });
-          } catch (e) {
-            console.warn("No se pudo registrar el log de envío:", e);
-          }
-        }
-
         alert(
           isAdmin ? "✅ Traducción guardada como final" : t("submitSuccess")
         );
@@ -473,15 +452,6 @@ export default function TranslateEditionPage() {
                   });
 
                   if (res.ok) {
-                    await fetch("/api/activity-log", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        editionId: id,
-                        action: "REVIEW_TRANSLATION",
-                      }),
-                    });
-
                     alert("✅ Traducción aprobada");
                     router.replace("/dashboard/editions");
                   } else {

@@ -128,7 +128,10 @@ export async function PUT(req, context) {
         headers: { "Content-Type": "application/json" },
       });
     }
-
+    // 🔐 Obtener sesión actual PRIMERO para usar en logs
+    const session = await auth();
+    const currentUserId = session?.user?.id || null;
+    const currentUserName = session?.user?.name || "Usuario";
     // 🧠 CASO ESPECIAL: solo actualización rápida de traductor (desde AssignTranslatorCellEdition)
     const contentTypeCheck = req.headers.get("content-type") || "";
     if (contentTypeCheck.includes("application/json")) {
@@ -141,6 +144,22 @@ export async function PUT(req, context) {
           "translationStatus" in jsonData);
 
       if (isAssignOnly) {
+        // 🔍 Obtener información del dossier y traductor ANTES de actualizar
+        const editionBeforeUpdate = await prisma.edition.findUnique({
+          where: { id: editionId },
+          select: {
+            number: true,
+            title: true,
+            titleES: true,
+          },
+        });
+
+        const translatorInfo = jsonData.translatorId
+          ? await prisma.user.findUnique({
+              where: { id: jsonData.translatorId },
+              select: { id: true, name: true, email: true },
+            })
+          : null;
         const updatedEdition = await prisma.edition.update({
           where: { id: editionId },
           data: {
@@ -155,16 +174,34 @@ export async function PUT(req, context) {
           },
         });
 
+        // 📝 LOGGING: Registrar asignación de traductor
         try {
           await prisma.activityLog.create({
             data: {
-              userId: jsonData.translatorId || null,
+              userId: currentUserId,
               editionId,
-              action: "TRANSLATE_EDITION",
+              action: "ASSIGN_TRANSLATOR",
+              metadata: JSON.stringify({
+                translatorId: jsonData.translatorId,
+                translatorName: translatorInfo?.name || "Sin asignar",
+                translatorEmail: translatorInfo?.email,
+                editionNumber: editionBeforeUpdate?.number,
+                editionTitle:
+                  editionBeforeUpdate?.title || editionBeforeUpdate?.titleES,
+                assignedBy: currentUserName,
+                assignedAt: new Date().toISOString(),
+              }),
             },
           });
+          console.log("✅ Log de asignación registrado correctamente");
         } catch (err) {
-          console.warn("⚠️ No se pudo registrar log de actividad:", err);
+          console.error("❌ ERROR registrando log de actividad:", err);
+          console.error("Detalles del error:", {
+            userId: currentUserId,
+            editionId,
+            translatorId: jsonData.translatorId,
+            error: err.message,
+          });
         }
 
         return new Response(JSON.stringify(updatedEdition), {
@@ -376,25 +413,48 @@ export async function PUT(req, context) {
     });
     // 🗒️ Log en servidor: si pasó a "submitted", registrar envío
     try {
-      const session = await auth(); // ya lo usas en otros handlers
-      const currentUserId = session?.user?.id || null;
-
       if (safeUpdateData.translationStatus === "submitted") {
+        // 🔍 Obtener información del dossier
+        const editionInfo = await prisma.edition.findUnique({
+          where: { id: editionId },
+          select: { number: true, title: true, titleES: true },
+        });
+
         await prisma.activityLog.create({
           data: {
             userId: currentUserId,
             editionId,
-            action: "SUBMIT_TRANSLATION", // o tu acción existente
+            action: "SUBMIT_TRANSLATION",
+            metadata: JSON.stringify({
+              editionId: editionId,
+              editionNumber: editionInfo?.number,
+              editionTitle: editionInfo?.title || editionInfo?.titleES,
+              submittedBy: currentUserName,
+              submittedAt: new Date().toISOString(),
+            }),
           },
         });
       }
       // (Opcional) también puedes loguear aprobación aquí si llega "approved"
       if (safeUpdateData.translationStatus === "approved") {
+        // 🔍 Obtener información del dossier
+        const editionInfo = await prisma.edition.findUnique({
+          where: { id: editionId },
+          select: { number: true, title: true, titleES: true },
+        });
+
         await prisma.activityLog.create({
           data: {
             userId: currentUserId,
             editionId,
             action: "REVIEW_TRANSLATION",
+            metadata: JSON.stringify({
+              editionId: editionId,
+              editionNumber: editionInfo?.number,
+              editionTitle: editionInfo?.title || editionInfo?.titleES,
+              reviewedBy: currentUserName,
+              reviewedAt: new Date().toISOString(),
+            }),
           },
         });
       }

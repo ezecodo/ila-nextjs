@@ -562,7 +562,10 @@
     "none": "🔍 Keine aktuellen Aktivitäten.",
     "createdCarousel": "hat das Karussell erstellt",
     "deletedCarousel": "hat das Karussell gelöscht",
-    "SUBMIT_TRANSLATION": "hat die Übersetzung des Dossiers ila {number} zur Überprüfung eingereicht",
+    "SUBMIT_TRANSLATION_PREFIX": "hat die Übersetzung des Dossiers",
+    "SUBMIT_TRANSLATION_SUFFIX": "zur Überprüfung eingereicht",
+    "REVIEW_TRANSLATION_PREFIX": "hat die Übersetzung des Dossiers",
+    "REVIEW_TRANSLATION_SUFFIX": "überprüft",
 
     "withType": "vom Typ",
     "inRegion": "in der Region",
@@ -573,6 +576,9 @@
     "untitled": "ohne Titel",
     "inEdition": "in Dossier",
     "createdEvent": "erstellte das Event",
+    "assignedDossier": "hat das Dossier zugewiesen",
+    "to": "an",
+    "forTranslation": "zum Übersetzen",
     "pagination": {
       "prev": "Zurück",
       "next": "Weiter"

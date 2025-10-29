@@ -561,7 +561,10 @@
     "none": "🔍 No hay actividad reciente.",
     "createdCarousel": "creó el carrusel",
     "deletedCarousel": "eliminó el carrusel",
-    "SUBMIT_TRANSLATION": "envió la traducción del dossier ila {number} para revisión",
+    "SUBMIT_TRANSLATION_PREFIX": "ha enviado la traducción del dossier",
+    "SUBMIT_TRANSLATION_SUFFIX": "para revisión",
+    "REVIEW_TRANSLATION_PREFIX": "ha revisado la traducción del dossier",
+    "REVIEW_TRANSLATION_SUFFIX": "",
     "withType": "con tipo",
     "inRegion": "en región",
     "translatedArticle": "tradujo el artículo",
@@ -571,6 +574,9 @@
     "untitled": "sin título",
     "inEdition": "en la edición",
     "createdEvent": "creó el evento",
+    "assignedDossier": "asignó el dossier",
+    "to": "a",
+    "forTranslation": "para traducir",
     "pagination": {
       "prev": "Anterior",
       "next": "Siguiente"
