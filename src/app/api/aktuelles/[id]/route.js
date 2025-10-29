@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/app/auth";
 import cloudinary from "cloudinary";
+
 // ⚙️ Config Cloudinary
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -18,8 +19,9 @@ async function uploadDataUrlToCloudinary(dataUrl) {
   return res.secure_url;
 }
 
-export async function GET(_req, { params }) {
+export async function GET(_req, context) {
   try {
+    const params = await context.params; // ✅ FIX: await params
     const id = parseInt(params.id, 10);
     if (Number.isNaN(id)) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
@@ -45,11 +47,6 @@ export async function GET(_req, { params }) {
     });
 
     return NextResponse.json({ ...aktuelles, images });
-    if (!item) {
-      return NextResponse.json({ error: "No encontrado" }, { status: 404 });
-    }
-
-    return NextResponse.json(item);
   } catch (err) {
     console.error("GET /api/aktuelles/[id] error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
@@ -57,15 +54,14 @@ export async function GET(_req, { params }) {
 }
 
 // PUT /api/aktuelles/[id]
-// body: { title?, content?, date?, link? }
-// PUT /api/aktuelles/[id]
-export async function PUT(req, { params }) {
+export async function PUT(req, context) {
   try {
     const session = await auth();
     if (session?.user?.role !== "admin") {
       return NextResponse.json({ error: "Nicht erlaubt" }, { status: 403 });
     }
 
+    const params = await context.params; // ✅ FIX: await params
     const id = parseInt(params.id, 10);
     if (Number.isNaN(id)) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
@@ -116,14 +112,13 @@ export async function PUT(req, { params }) {
     // 4) Procesar cada imagen entrante
     for (const img of images || []) {
       if (img.id && existingIds.includes(img.id)) {
-        // Update existente
+        // Update existente - ✅ FIX: Solo actualizar campos que existen
         await prisma.image.update({
           where: { id: img.id },
           data: {
             title: img.title || null,
             alt: img.alt || null,
-            isCover: !!img.isCover,
-            order: typeof img.order === "number" ? img.order : 0,
+            // ❌ Removidos: isCover y order (no existen en el schema)
           },
         });
       } else if (img.fileDataUrl) {
@@ -160,8 +155,6 @@ export async function PUT(req, { params }) {
 
     // Devolver combinado
     return NextResponse.json({ ...aktu, images: imagesResult });
-
-    return NextResponse.json(aktuWithImages);
   } catch (err) {
     console.error("PUT /api/aktuelles/[id] error:", err);
     if (String(err?.code) === "P2025") {
@@ -171,16 +164,17 @@ export async function PUT(req, { params }) {
   }
 }
 
-export async function DELETE(_req, { params }) {
+export async function DELETE(_req, context) {
   try {
     const session = await auth();
     if (session?.user?.role !== "admin") {
       return NextResponse.json({ error: "Nicht erlaubt" }, { status: 403 });
     }
 
+    const params = await context.params; // ✅ FIX: await params
     const id = parseInt(params.id, 10);
     if (!id || Number.isNaN(id)) {
-      console.error("❌ PUT /api/aktuelles/[id] → ID inválido:", params.id);
+      console.error("❌ DELETE /api/aktuelles/[id] → ID inválido:", params.id);
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 

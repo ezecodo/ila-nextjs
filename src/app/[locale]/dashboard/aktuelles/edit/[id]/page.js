@@ -36,12 +36,17 @@ export default function EditAktuellesPage() {
         body: JSON.stringify(data),
       });
 
-      if (!res.ok) throw new Error("Error actualizando Aktuelles");
+      // 🔍 Ver el error real del servidor
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("❌ Error del servidor:", errorData);
+        throw new Error(errorData.error || "Error actualizando Aktuelles");
+      }
 
       router.push("/dashboard/aktuelles");
     } catch (err) {
       console.error("❌ Error actualizando:", err);
-      alert("No se pudo actualizar el Aktuelles.");
+      alert(`No se pudo actualizar: ${err.message}`);
     } finally {
       setLoading(false);
     }
