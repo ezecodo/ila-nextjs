@@ -19,39 +19,11 @@ export async function GET(req, context) {
         headers: { "Content-Type": "application/json" },
       });
     }
-    // 🔐 Verificar sesión actual
+
+    // 🔐 Verificar sesión actual (OPCIONAL para GET)
     const session = await auth();
-    if (!session || !session.user) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const userId = session.user.id;
-    const userRole = session.user.role;
-
-    // 🧱 Buscar edición mínima para verificar acceso
-    const editionCheck = await prisma.edition.findUnique({
-      where: { id: editionId },
-      select: { translatorId: true },
-    });
-
-    if (!editionCheck) {
-      return new Response(JSON.stringify({ error: "Edición no encontrada" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // 🚫 Si no es admin ni traductor asignado → bloquear
-    if (userRole !== "admin" && editionCheck.translatorId !== userId) {
-      console.warn("🚫 Acceso denegado al dossier:", editionId, "por", userId);
-      return new Response(JSON.stringify({ error: "Acceso denegado" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const userId = session?.user?.id || null;
+    const userRole = session?.user?.role || null;
 
     // Obtener el idioma del header
     const acceptLanguage = req.headers.get("accept-language") || "de";
@@ -79,6 +51,12 @@ export async function GET(req, context) {
         isTranslatedES: true,
         regions: true,
         topics: true,
+        // 🔒 Solo incluir estos campos si el usuario tiene acceso
+        translatorId: true,
+        translationStatus: true,
+        needsReviewES: true,
+        assignedAt: true,
+        reviewedAt: true,
       },
     });
 
@@ -88,6 +66,10 @@ export async function GET(req, context) {
         headers: { "Content-Type": "application/json" },
       });
     }
+
+    // 🔍 Verificar si el usuario tiene acceso a campos privados
+    const hasFullAccess =
+      userRole === "admin" || edition.translatorId === userId;
 
     // Si el locale es español y hay traducción, mezclar los campos
     let responseData = { ...edition };
@@ -100,6 +82,15 @@ export async function GET(req, context) {
         summary: edition.summaryES || edition.summary,
         tableOfContents: edition.tableOfContentsES || edition.tableOfContents,
       };
+    }
+
+    // 🚫 Si el usuario NO tiene acceso completo, eliminar campos privados
+    if (!hasFullAccess) {
+      delete responseData.translatorId;
+      delete responseData.translationStatus;
+      delete responseData.needsReviewES;
+      delete responseData.assignedAt;
+      delete responseData.reviewedAt;
     }
 
     return new Response(JSON.stringify(responseData), {
