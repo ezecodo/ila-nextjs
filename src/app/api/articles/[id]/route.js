@@ -62,6 +62,12 @@ export async function GET(req, context) {
         },
         regions: true,
         topics: true,
+        translator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 

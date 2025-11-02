@@ -307,6 +307,15 @@ export default function LegacyArticlePage() {
               ))}
             </div>
           )}
+          {/* 👇 Traductor — solo visible si está traducido y se visualiza en español */}
+          {isES && article.isTranslatedES && article.translator && (
+            <div className="text-gray-500 italic mb-6 text-right">
+              Traducción:{" "}
+              <span className="font-medium text-gray-800 dark:text-gray-200">
+                {article.translator.name}
+              </span>
+            </div>
+          )}
           {isAdmin && isES && article.isTranslatedES && (
             <div className="text-center mb-6">
               <Link href={`/dashboard/articles/translate/${article.id}`}>
