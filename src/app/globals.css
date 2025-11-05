@@ -363,6 +363,20 @@ body {
 .article-content h3 {
   font-size: 1.25rem !important;
 }
+/* 🔹 Estilo sutil para preguntas en entrevistas (h4) */
+.article-content h4 {
+  font-weight: 700 !important; /* negrita para destacar la pregunta */
+  font-size: 1rem !important; /* igual que el texto normal */
+  line-height: 1.6 !important;
+  margin: 1.2rem 0 0.8rem 0 !important;
+  color: #1f2937 !important; /* mismo tono del texto, sin cambio de color */
+  font-family: inherit !important; /* mantiene la fuente actual */
+}
+
+/* Modo oscuro */
+.dark .article-content h4 {
+  color: #f3f4f6 !important;
+}
 
 /* Hipervínculos */
 .article-content a {

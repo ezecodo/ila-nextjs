@@ -116,7 +116,7 @@ export default function LegacyArticlePage() {
 
       // Regla: preguntas cortas -> h2
       if (looksLikeQuestion && isShort) {
-        return `<h3>${text}</h3>`;
+        return `<h4>${text}</h4>`;
       }
 
       // Regla general para títulos cortos
