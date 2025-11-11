@@ -678,7 +678,7 @@
   },
   "abo": {
     "title": "Suscripción a ila",
-    "heroIntro": "Quienes quieran leer la ila con regularidad y además ahorrar pueden hacerlo mediante una suscripción anual, disponible en distintas modalidades. Con ella contribuyes de forma importante a mantener una voz crítica imprescindible en nuestro panorama mediático y, a cambio, recibes mucho contenido fascinante: información valiosa, historias inéditas, curiosidades, indignaciones, temas para reflexionar y para debatir…",
+    "heroIntro": "Con una suscripción a ila recibes todos los contenidos directamente después de su publicación: 10 ediciones al año con temas apasionantes, inéditos y curiosos de América Latina. Además, una suscripción es la forma más sostenible de apoyar el trabajo de ila a largo plazo. ¡Y cuesta apenas lo mismo que un gran cappuccino al mes!\n\nTen en cuenta: ila se publica todos los meses excepto en enero y agosto. La suscripción en formato PDF se convertirá en una práctica suscripción digital a partir de finales de 2025. Recibirás toda la información con tiempo por correo electrónico.",
     "promo2025": "Nuevos precios a partir de 2025:\nSi contratas tu suscripción todavía en diciembre, además de la prima de suscripción te regalamos el primer número.",
     "description": "Suscríbete a ila y recibe 10 números al año (impreso + online) por solo 48 € (dentro de Alemania).",
     "type": "Tipo de suscripción",
@@ -749,8 +749,8 @@
       },
       "trial": {
         "info": "Recibirás los próximos tres números de la ila. Puedes elegir entre una suscripción de prueba normal o reducida. La suscripción de prueba pasa a ser una suscripción regular si no se recibe una cancelación por escrito por correo postal, fax o e-mail dentro de las tres (!) semanas posteriores a la recepción del último número.",
-        "variantNormal": "Suscripción de prueba normal — 8,50 €",
-        "variantReduced": "Suscripción de prueba reducida — 7,50 €"
+        "variantNormal": "Suscripción de prueba normal — 9,50 €",
+        "variantReduced": "Suscripción de prueba reducida — 8,50 €"
       }
     },
     "admin": {

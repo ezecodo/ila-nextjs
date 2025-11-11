@@ -680,7 +680,7 @@
   },
   "abo": {
     "title": "Abonnement abschließen",
-    "heroIntro": "Wer regelmäßig die ila lesen und dazu noch sparen will, dem kann geholfen werden: in Form eines Jahresabos, das es in unterschiedlichen Formen gibt. Sie tragen damit nicht unwesentlich zum Erhalt einer wichtigen kritischen Stimme in unserer Medienwelt bei und erfahren im Gegenzug viel Spannendes, Wissenswertes, Unerhörtes, Kurioses, Ärgerliches, Nachdenkenswertes, Diskussionswürdiges...",
+    "heroIntro": "Mit einem ila-Abo bekommst du alle Inhalte direkt nach Erscheinen: 10 x im Jahr Spannendes, Unerhörtes & Kurioses aus Lateinamerika. Ein Abo ist auch der nachhaltigste Weg, um die Arbeit der ila langfristig zu sichern. Und kostet gerade mal so viel wie ein großer Cappuccino im Monat.\n\nBitte beachte: Die ila erscheint jeden Monat außer im Januar und August. Das PDF-Abo wird zum Jahreswechsel 2025/26 zum praktischen Digitalabo. Alle Infos bekommst du rechtzeitig per Mail.",
     "promo2025": "Neue Preise ab 2025:\nNoch im Dezember ein Abo abschließen, dann gibt's zusätzlich zur Abo-Prämie die erste Ausgabe geschenkt!",
     "description": "Wählen Sie Ihr Abonnement und sichern Sie sich eine Prämie.",
     "type": "Abotyp",
@@ -751,8 +751,8 @@
       },
       "trial": {
         "info": "Sie erhalten die nächsten drei Ausgaben der ila. Sie können zwischen einem normalen und einem ermäßigten Probeabo wählen. Das Probeabo wandelt sich in ein reguläres Abo um, wenn bis drei (!) Wochen nach Erhalt des letzten Heftes keine schriftliche Kündigung per Post, Fax oder E-Mail bei der Informationsstelle Lateinamerika eingegangen ist.",
-        "variantNormal": "Probeabo Normalpreis – 8,50 €",
-        "variantReduced": "Probeabo ermäßigt – 7,50 €"
+        "variantNormal": "Probeabo Normalpreis – 9,50 €",
+        "variantReduced": "Probeabo ermäßigt – 8,50 €"
       }
     },
     "admin": {
