@@ -674,7 +674,9 @@
     "clientAddress": "📍 Adresse",
     "clientPhone": "📞 Telefon",
     "clientMessage": "Nachricht",
-    "requestedItems": "📰 Bestellte Artikel"
+    "requestedItems": "📰 Bestellte Artikel",
+    "markProcessed": "✅ Als bearbeitet markieren",
+    "processedLabel": "Bearbeitet am"
   },
   "abo": {
     "title": "Abonnement abschließen",
@@ -783,7 +785,9 @@
       "giftRecipientAddress": "Adresse des Geschenkempfängers",
       "giftSubscriptionDuration": "Dauer des Geschenkabonnements",
       "rewardForPayer": "Prämie für den Abonnenten",
-      "rewardForRecipient": "Prämie für den Geschenkempfänger"
+      "rewardForRecipient": "Prämie für den Geschenkempfänger",
+      "markProcessed": "✅ Als bearbeitet markieren",
+      "processedLabel": "Bearbeitet am"
     }
   }
 }

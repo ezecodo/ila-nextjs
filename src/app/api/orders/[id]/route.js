@@ -27,3 +27,23 @@ export async function GET(req, { params }) {
     );
   }
 }
+
+// 🔹 Marcar pedido como procesado (isNew = false)
+export async function PATCH(req, { params }) {
+  try {
+    const { id } = params;
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: String(id) },
+      data: { isNew: false },
+    });
+
+    return NextResponse.json(updatedOrder, { status: 200 });
+  } catch (error) {
+    console.error("❌ Error updating order:", error);
+    return NextResponse.json(
+      { error: "Failed to update order" },
+      { status: 500 }
+    );
+  }
+}

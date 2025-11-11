@@ -35,3 +35,21 @@ export async function GET(request, context) {
     );
   }
 }
+export async function PATCH(req, { params }) {
+  try {
+    const { id } = params;
+
+    const updated = await prisma.subscription.update({
+      where: { id: String(id) },
+      data: { isNew: false },
+    });
+
+    return NextResponse.json(updated, { status: 200 });
+  } catch (error) {
+    console.error("❌ Error marcando suscripción como procesada:", error);
+    return NextResponse.json(
+      { error: "Error actualizando suscripción" },
+      { status: 500 }
+    );
+  }
+}

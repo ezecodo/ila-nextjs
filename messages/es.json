@@ -672,7 +672,9 @@
     "clientAddress": "📍 Dirección",
     "clientPhone": "📞 Teléfono",
     "clientMessage": "Mensaje",
-    "requestedItems": "📰 Items solicitados"
+    "requestedItems": "📰 Items solicitados",
+    "markProcessed": "✅ Marcar como procesado",
+    "processedLabel": "Procesado el"
   },
   "abo": {
     "title": "Suscripción a ila",
@@ -781,7 +783,9 @@
       "giftRecipientAddress": "Dirección del destinatario",
       "giftSubscriptionDuration": "Duración de la suscripción regalo",
       "rewardForPayer": "Premio enviado al abonado",
-      "rewardForRecipient": "Premio enviado al destinatario del regalo"
+      "rewardForRecipient": "Premio enviado al destinatario del regalo",
+      "markProcessed": "✅ Marcar como procesada",
+      "processedLabel": "Procesada el"
     }
   }
 }

@@ -123,7 +123,20 @@ export default function SubscriptionsPage() {
                   key={sub.id}
                   className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                 >
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3 flex items-center gap-2">
+                    {sub.isNew ? (
+                      // 🟢 Nueva suscripción (pulsante)
+                      <span className="relative flex h-3 w-3 mr-1">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                      </span>
+                    ) : (
+                      // 🔴 Procesada (fijo)
+                      <span className="relative flex h-3 w-3 mr-1">
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 opacity-80"></span>
+                      </span>
+                    )}
+
                     {new Date(sub.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-5 py-3 font-medium text-gray-800 dark:text-gray-100">
@@ -227,8 +240,8 @@ export default function SubscriptionsPage() {
                     </p>
                     <p>
                       <span className="font-semibold">{t("address")}:</span>{" "}
-                      {selectedSub.street}, {selectedSub.city},{" "}
-                      {selectedSub.country}
+                      {selectedSub.street}, {selectedSub.zip} {selectedSub.city}
+                      , {selectedSub.country}
                     </p>
                     {selectedSub.phone && (
                       <p>
@@ -350,6 +363,64 @@ export default function SubscriptionsPage() {
                     </div>
                   </div>
                 )}
+                {/* Estado de procesamiento */}
+                <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-4 text-right">
+                  {selectedSub.isNew ? (
+                    <button
+                      onClick={async () => {
+                        if (
+                          !confirm("¿Marcar esta suscripción como procesada?")
+                        )
+                          return;
+
+                        try {
+                          const res = await fetch(
+                            `/api/subscriptions/${selectedSub.id}`,
+                            {
+                              method: "PATCH",
+                            }
+                          );
+
+                          if (!res.ok)
+                            throw new Error(
+                              "Error al actualizar la suscripción"
+                            );
+
+                          alert("✅ Suscripción marcada como procesada");
+                          setShowModal(false);
+
+                          const updatedRes = await fetch("/api/subscriptions");
+                          const updatedData = await updatedRes.json();
+                          setSubscriptions(updatedData.subscriptions || []);
+                        } catch (err) {
+                          console.error(
+                            "❌ Error al actualizar suscripción:",
+                            err
+                          );
+                          alert("❌ No se pudo actualizar la suscripción");
+                        }
+                      }}
+                      className="px-5 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+                    >
+                      {t("markProcessed")}
+                    </button>
+                  ) : (
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                      ✅{" "}
+                      <span className="font-semibold">
+                        {t("processedLabel")}
+                      </span>{" "}
+                      {new Date(selectedSub.updatedAt).toLocaleDateString(
+                        "es-ES",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

@@ -124,7 +124,20 @@ export default function OrdersPage() {
                   key={order.id}
                   className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
                 >
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3 flex items-center gap-2">
+                    {order.isNew ? (
+                      // 🟢 Nuevo pedido (pulsante)
+                      <span className="relative flex h-3 w-3 mr-1">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                      </span>
+                    ) : (
+                      // 🔴 Procesado (fijo)
+                      <span className="relative flex h-3 w-3 mr-1">
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 opacity-80"></span>
+                      </span>
+                    )}
+
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-5 py-3 font-medium text-gray-800 dark:text-gray-100">
@@ -198,8 +211,8 @@ export default function OrdersPage() {
                       <span className="font-semibold">
                         {t("clientAddress")}:
                       </span>{" "}
-                      {selectedOrder.street}, {selectedOrder.city},{" "}
-                      {selectedOrder.country}
+                      {selectedOrder.street}, {selectedOrder.zip}{" "}
+                      {selectedOrder.city}, {selectedOrder.country}
                     </p>
                     {selectedOrder.phone && (
                       <p>
@@ -238,6 +251,61 @@ export default function OrdersPage() {
                       ))}
                     </ul>
                   </div>
+                </div>
+                {/* Botón para marcar como procesado */}
+                {/* Estado de procesamiento */}
+                <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-4 text-right">
+                  {selectedOrder.isNew ? (
+                    <button
+                      onClick={async () => {
+                        if (!confirm("¿Marcar este pedido como procesado?"))
+                          return;
+
+                        try {
+                          const res = await fetch(
+                            `/api/orders/${selectedOrder.id}`,
+                            {
+                              method: "PATCH",
+                            }
+                          );
+
+                          if (!res.ok)
+                            throw new Error("Error al actualizar el pedido");
+
+                          alert("✅ Pedido marcado como procesado");
+
+                          // Cerrar el modal
+                          setShowModal(false);
+
+                          // Refrescar lista
+                          const updatedRes = await fetch("/api/orders");
+                          const updatedData = await updatedRes.json();
+                          setOrders(updatedData.orders || []);
+                        } catch (err) {
+                          console.error("❌ Error al actualizar pedido:", err);
+                          alert("❌ No se pudo actualizar el pedido");
+                        }
+                      }}
+                      className="px-5 py-2 rounded-md bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+                    >
+                      {t("markProcessed")}
+                    </button>
+                  ) : (
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                      ✅{" "}
+                      <span className="font-semibold">
+                        {t("processedLabel")}
+                      </span>{" "}
+                      {new Date(selectedOrder.updatedAt).toLocaleDateString(
+                        "es-ES",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
