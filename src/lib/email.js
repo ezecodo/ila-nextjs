@@ -89,3 +89,196 @@ export async function sendAdminInvitationEmail(email, token) {
     throw new Error("No se pudo enviar la invitación.");
   }
 }
+
+/**
+ * 📬 Enviar email de confirmación de suscripción
+ */
+export async function sendSubscriptionConfirmationEmail(subscription) {
+  const isGerman =
+    subscription.country === "Deutschland" ||
+    (subscription.email && subscription.email.endsWith(".de"));
+
+  const subject = isGerman
+    ? "Danke für dein ila-Abo"
+    : "Gracias por tu suscripción a ILA";
+
+  const html = isGerman
+    ? `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width:600px; margin:auto;">
+      <h2 style="color:#c21f2e;">Danke für dein ila-Abo!</h2>
+      <p>Hallo <strong>${subscription.firstName} ${subscription.lastName}</strong>,</p>
+      <p>wir haben deine Bestellung erhalten. In Kürze wird sich jemand aus unserem Team mit dir in Verbindung setzen.</p>
+
+      <h3 style="margin-top:25px;">📰 Abo-Details</h3>
+      <ul style="padding-left:18px;">
+        <li><strong>Typ:</strong> ${subscription.type}</li>
+        <li><strong>Format:</strong> ${subscription.format}</li>
+        ${subscription.gift ? `<li><strong>Prämie:</strong> ${subscription.gift.name}</li>` : ""}
+      </ul>
+
+      <h3 style="margin-top:25px;">📍 Adresse</h3>
+      <p>
+        ${subscription.street}<br>
+        ${subscription.zip} ${subscription.city}<br>
+        ${subscription.country}
+      </p>
+
+      <p style="margin-top:30px;">Herzliche Grüße,<br>das ila-Team<br>
+      <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
+    </div>
+  `
+    : `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width:600px; margin:auto;">
+      <h2 style="color:#c21f2e;">¡Gracias por tu suscripción a ILA!</h2>
+      <p>Hola <strong>${subscription.firstName} ${subscription.lastName}</strong>,</p>
+      <p>Hemos recibido correctamente tu suscripción a la revista <strong>ILA</strong>. En breve alguien de nuestro equipo se pondrá en contacto contigo para confirmar los detalles.</p>
+
+      <h3 style="margin-top:25px;">📰 Detalles de tu suscripción</h3>
+      <ul style="padding-left:18px;">
+        <li><strong>Tipo:</strong> ${subscription.type}</li>
+        <li><strong>Formato:</strong> ${subscription.format}</li>
+        ${subscription.gift ? `<li><strong>Regalo:</strong> ${subscription.gift.name}</li>` : ""}
+      </ul>
+
+      <h3 style="margin-top:25px;">📍 Dirección</h3>
+      <p>
+        ${subscription.street}<br>
+        ${subscription.zip} ${subscription.city}<br>
+        ${subscription.country}
+      </p>
+
+      <p style="margin-top:30px;">Un cordial saludo,<br>El equipo de ILA<br>
+      <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
+    </div>
+  `;
+
+  try {
+    const response = await resend.emails.send({
+      from: "no-reply@ila-web.de",
+      to: subscription.email,
+      subject,
+      html,
+    });
+
+    console.log("✅ Correo de confirmación de suscripción enviado:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ Error al enviar correo de suscripción:", error);
+  }
+}
+
+/**
+ * 📬 Enviar email de confirmación de pedido de Dossiers (con mensaje del usuario)
+ */
+export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
+  const isGerman = locale === "de";
+
+  const subject = isGerman
+    ? "Danke für deine ila-Bestellung"
+    : "Gracias por tu pedido de Dossiers ILA";
+
+  // 🧾 Obtenemos el pedido completo con ediciones
+  const fullOrder = await prisma.order.findUnique({
+    where: { id: order.id },
+    include: {
+      items: {
+        include: { edition: true },
+      },
+    },
+  });
+
+  // 🗂️ Lista de items
+  const itemsList = fullOrder.items
+    .map(
+      (item) =>
+        `<li>${item.qty} × <strong>ila ${item.edition.number}</strong> – ${item.edition.title}</li>`
+    )
+    .join("");
+
+  // 💬 Mensaje del usuario (opcional)
+  const userMessage = fullOrder.message
+    ? `<blockquote style="margin:15px 0;padding:10px 15px;border-left:4px solid #c21f2e;background:#f9f9f9;color:#333;">
+        ${fullOrder.message}
+      </blockquote>`
+    : "";
+
+  // 📨 HTML del correo
+  const html = isGerman
+    ? `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:auto;">
+        <h2 style="color:#c21f2e;">Danke für deine Bestellung!</h2>
+        <p>Hallo <strong>${fullOrder.firstName} ${fullOrder.lastName}</strong>,</p>
+        <p>wir haben deine Bestellung erhalten. In Kürze wird sich jemand aus unserem Team mit dir in Verbindung setzen.</p>
+
+        <h3 style="margin-top:25px;">🧾 Bestellübersicht</h3>
+        <ul style="padding-left:18px;">${itemsList}</ul>
+
+        ${
+          fullOrder.totalPrice
+            ? `<p><strong>Gesamtbetrag:</strong> ${fullOrder.totalPrice} €</p>`
+            : ""
+        }
+
+        ${
+          userMessage
+            ? `<h3 style="margin-top:25px;">💬 Nachricht des Bestellers</h3>${userMessage}`
+            : ""
+        }
+
+        <h3 style="margin-top:25px;">📍 Lieferadresse</h3>
+        <p>
+          ${fullOrder.street}<br>
+          ${fullOrder.zip} ${fullOrder.city}<br>
+          ${fullOrder.country}
+        </p>
+
+        <p style="margin-top:30px;">Herzliche Grüße,<br>das ila-Team<br>
+        <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
+      </div>
+    `
+    : `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:auto;">
+        <h2 style="color:#c21f2e;">¡Gracias por tu pedido de Dossiers!</h2>
+        <p>Hola <strong>${fullOrder.firstName} ${fullOrder.lastName}</strong>,</p>
+        <p>Hemos recibido correctamente tu pedido. En breve alguien de nuestro equipo se pondrá en contacto contigo.</p>
+
+        <h3 style="margin-top:25px;">🧾 Resumen de tu pedido</h3>
+        <ul style="padding-left:18px;">${itemsList}</ul>
+
+        ${
+          fullOrder.totalPrice
+            ? `<p><strong>Total:</strong> ${fullOrder.totalPrice} €</p>`
+            : ""
+        }
+
+        ${
+          userMessage
+            ? `<h3 style="margin-top:25px;">💬 Mensaje de quien realizó el pedido</h3>${userMessage}`
+            : ""
+        }
+
+        <h3 style="margin-top:25px;">📍 Dirección de envío</h3>
+        <p>
+          ${fullOrder.street}<br>
+          ${fullOrder.zip} ${fullOrder.city}<br>
+          ${fullOrder.country}
+        </p>
+
+        <p style="margin-top:30px;">Un cordial saludo,<br>El equipo de ILA<br>
+        <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
+      </div>
+    `;
+
+  try {
+    const response = await resend.emails.send({
+      from: "no-reply@ila-web.de",
+      to: order.email,
+      subject,
+      html,
+    });
+    console.log("✅ Correo de confirmación de pedido enviado:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ Error al enviar correo de pedido:", error);
+  }
+}

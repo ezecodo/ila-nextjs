@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { sendSubscriptionConfirmationEmail } from "@/lib/email";
 
 export async function POST(req) {
   try {
@@ -57,7 +58,12 @@ export async function POST(req) {
         isNew: true, // 👈 NUEVO: marcar la suscripción como nueva
       },
     });
-
+    // ✅ NUEVO: enviar email de confirmación
+    const fullSubscription = await prisma.subscription.findUnique({
+      where: { id: subscription.id },
+      include: { gift: true },
+    });
+    await sendSubscriptionConfirmationEmail(fullSubscription);
     return Response.json({ success: true, subscription });
   } catch (err) {
     console.error("❌ Error creating subscription:", err);

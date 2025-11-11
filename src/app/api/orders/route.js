@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendDossierOrderConfirmationEmail } from "@/lib/email";
 
 // 🔹 OBTENER TODOS LOS PEDIDOS + CONTADOR DE NUEVOS
 export async function GET() {
@@ -35,6 +36,7 @@ export async function GET() {
 export async function POST(req) {
   try {
     const body = await req.json();
+    const { locale } = body; // 👈 capturamos el idioma enviado desde el frontend
 
     const {
       salutation,
@@ -90,8 +92,15 @@ export async function POST(req) {
           })),
         },
       },
-      include: { items: true },
+      include: {
+        items: {
+          include: { edition: true }, // 👈 necesitamos esto para mostrar títulos en el mail
+        },
+      },
     });
+
+    // ✅ Enviar correo de confirmación
+    await sendDossierOrderConfirmationEmail(order, locale);
 
     return NextResponse.json(order, { status: 201 });
   } catch (error) {

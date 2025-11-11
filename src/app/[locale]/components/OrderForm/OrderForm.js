@@ -69,7 +69,7 @@ export default function OrderForm({
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, items }),
+        body: JSON.stringify({ ...formData, items, locale }), // 👈 añadimos idioma
       });
 
       if (!res.ok) throw new Error("❌ Error al crear el pedido");
