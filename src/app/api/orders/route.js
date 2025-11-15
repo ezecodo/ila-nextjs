@@ -36,7 +36,7 @@ export async function GET() {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { locale } = body; // 👈 capturamos el idioma enviado desde el frontend
+    const { locale } = body;
 
     const {
       salutation,
@@ -54,6 +54,7 @@ export async function POST(req) {
       items,
     } = body;
 
+    // Validación de campos requeridos
     if (
       !firstName ||
       !lastName ||
@@ -69,7 +70,7 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Agregamos isNew: true
+    // 1️⃣ Crear el pedido (esto funciona perfecto)
     const order = await prisma.order.create({
       data: {
         salutation,
@@ -84,7 +85,7 @@ export async function POST(req) {
         phone,
         email,
         message,
-        isNew: true, // 👈 marca automáticamente como nuevo
+        isNew: true,
         items: {
           create: items.map((item) => ({
             editionId: Number(item.editionId),
@@ -94,14 +95,20 @@ export async function POST(req) {
       },
       include: {
         items: {
-          include: { edition: true }, // 👈 necesitamos esto para mostrar títulos en el mail
+          include: { edition: true },
         },
       },
     });
 
-    // ✅ Enviar correo de confirmación
-    await sendDossierOrderConfirmationEmail(order, locale);
+    // 2️⃣ Intentar enviar email — si falla, NO romper el pedido
+    try {
+      await sendDossierOrderConfirmationEmail(order, locale);
+    } catch (emailErr) {
+      console.error("⚠️ Error sending email:", emailErr);
+      // IMPORTANTE: no hacemos throw
+    }
 
+    // 3️⃣ Siempre devolver éxito si el pedido fue creado correctamente
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error("❌ Error creating order:", error);

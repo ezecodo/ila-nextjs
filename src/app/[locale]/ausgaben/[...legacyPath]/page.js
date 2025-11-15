@@ -97,29 +97,26 @@ export default function LegacyArticlePage() {
   function autoDetectHeadings(html) {
     if (!html) return "";
 
-    // Si ya hay h3, no tocamos nada
-    /* if (/<h3\b/i.test(html)) return html; */
+    // ✅ Si ya hay h4 tags, no los detectes automáticamente
+    const hasH4 = /<h4\b/i.test(html);
 
     return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
-      // quitar <br> y normalizar espacios
       const text = inner
         .replace(/<br\s*\/?>/gi, " ")
         .replace(/\s+/g, " ")
         .trim();
 
-      // Heurísticas
-      const isShort = text.length > 0 && text.length <= 140; // párrafo corto
-      const startsWithUpper = /^[“"'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text); // mayúscula (con o sin comillas)
-      const endsAsHeading = /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text); // termina en ?, !, : o sin punto final
-      const looksLikeQuestion = /\?\s*$/.test(text); // pregunta
-      const fewSentences = (text.match(/[.!?]/g) || []).length <= 1; // no parece un párrafo largo
+      const isShort = text.length > 0 && text.length <= 140;
+      const startsWithUpper = /^[""'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text);
+      const endsAsHeading = /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text);
+      const looksLikeQuestion = /\?\s*$/.test(text);
+      const fewSentences = (text.match(/[.!?]/g) || []).length <= 1;
 
-      // Regla: preguntas cortas -> h2
-      if (looksLikeQuestion && isShort) {
+      // ✅ Solo convertir a h4 si NO hay h4 previos (ya los puso el script)
+      if (!hasH4 && looksLikeQuestion && isShort) {
         return `<h4>${text}</h4>`;
       }
 
-      // Regla general para títulos cortos
       if (isShort && startsWithUpper && endsAsHeading && fewSentences) {
         return `<h3>${text}</h3>`;
       }

@@ -14,6 +14,9 @@ export default function OrdersPage() {
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef(null);
 
+  const [showReplyBox, setShowReplyBox] = useState(false);
+  const [replyMessage, setReplyMessage] = useState("");
+
   useEffect(() => {
     // Función para medir la altura del header
     const measureHeaderHeight = () => {
@@ -226,6 +229,85 @@ export default function OrdersPage() {
                       <p className="italic text-gray-600 dark:text-gray-400">
                         “{selectedOrder.message}”
                       </p>
+                    )}
+                    {/* Botón + textarea de respuesta */}
+                    {selectedOrder.message && (
+                      <div className="mt-4">
+                        {!showReplyBox && (
+                          <button
+                            onClick={() => setShowReplyBox(true)}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+                          >
+                            Responder mensaje
+                          </button>
+                        )}
+
+                        {showReplyBox && (
+                          <div className="mt-4 space-y-3">
+                            <textarea
+                              className="w-full border border-gray-300 dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-800 text-sm"
+                              rows={5}
+                              value={replyMessage}
+                              onChange={(e) => setReplyMessage(e.target.value)}
+                              placeholder="Escribe tu respuesta…"
+                            />
+
+                            <div className="flex gap-3">
+                              <button
+                                onClick={async () => {
+                                  if (!replyMessage.trim()) {
+                                    alert("El mensaje no puede estar vacío");
+                                    return;
+                                  }
+
+                                  try {
+                                    const res = await fetch(
+                                      "/api/orders/reply",
+                                      {
+                                        method: "POST",
+                                        headers: {
+                                          "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                          to: selectedOrder.email,
+                                          message: replyMessage,
+                                          subject:
+                                            "Antwort zu Ihrer ila-Bestellung",
+                                        }),
+                                      }
+                                    );
+
+                                    if (!res.ok)
+                                      throw new Error(
+                                        "Error enviando respuesta"
+                                      );
+
+                                    alert("✔️ Respuesta enviada correctamente");
+                                    setReplyMessage("");
+                                    setShowReplyBox(false);
+                                  } catch (err) {
+                                    console.error(err);
+                                    alert("❌ No se pudo enviar la respuesta");
+                                  }
+                                }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition"
+                              >
+                                Enviar respuesta
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  setReplyMessage("");
+                                  setShowReplyBox(false);
+                                }}
+                                className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600 transition"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
 

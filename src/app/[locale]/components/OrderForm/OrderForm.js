@@ -78,14 +78,9 @@ export default function OrderForm({
       console.log("✅ Pedido creado:", data);
       setSuccessMessage(
         locale === "de"
-          ? "🎉 Vielen Dank! Ihr Auftrag wurde erfolgreich übermittelt."
-          : "🎉 ¡Muchas gracias! Tu pedido ha sido enviado correctamente."
+          ? "🎉 Vielen Dank! Ihr Auftrag wurde erfolgreich übermittelt. Sie erhalten in Kürze eine Bestätigungs-E-Mail und wir bearbeiten Ihre Bestellung schnellstmöglich."
+          : "🎉 ¡Muchas gracias! Tu pedido ha sido enviado correctamente. Recibirás en breve un correo de confirmación y procesaremos tu pedido a la brevedad."
       );
-
-      // 👉 resetear toda la página a los 3 segundos
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
     } catch (error) {
       console.error(error);
       alert("❌ Hubo un problema con tu pedido");

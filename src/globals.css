@@ -334,7 +334,6 @@ html.dark {
 /* Estilos para el contenido del artículo */
 .article-content {
   line-height: 1.6;
-  white-space: pre-wrap;
 }
 
 .article-content p {
@@ -351,7 +350,22 @@ html.dark {
 .dark .article-content h3 {
   color: white;
 }
+/* ✅ AÑADIR ESTO AQUÍ */
+.article-content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0; /* ← espacio pequeño después del h4 */
+  color: #374151;
+}
 
+.dark .article-content h4 {
+  color: white;
+}
+/* ✅ Eliminar margen superior del párrafo que viene después de h4 */
+.article-content h4 + p {
+  margin-top: 0; /* Espacio pequeño después del h4 */
+}
 /* Hipervínculos */
 .article-content a {
   color: #2563eb;
