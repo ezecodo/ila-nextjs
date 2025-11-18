@@ -20,16 +20,30 @@ export default function InfoBox() {
         if (!res.ok) throw new Error("Error al cargar eventos");
         const data = await res.json();
 
-        // 🔹 Ordenar por fecha ascendente
-        const sorted = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // 🔹 Función para parsear fecha con hora
+        function parseEventDate(e) {
+          const datePart = e.date;
+          const timePart = e.time || "00:00";
+          return new Date(`${datePart}T${timePart}`);
+        }
 
-        // 🔹 Filtrar solo eventos de hoy o futuros
-        const upcoming = sorted.filter(
-          (e) => new Date(e.date) >= new Date(new Date().setHours(0, 0, 0, 0))
+        // 🔹 Ordenar por fecha ascendente
+        const sorted = data.sort(
+          (a, b) => parseEventDate(a) - parseEventDate(b)
         );
 
-        // 🔹 Si no hay futuros, mostrar todos (fallback)
-        setEvents(upcoming.length > 0 ? upcoming : sorted);
+        // 🔹 Obtener fecha de HOY sin hora (solo día)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // 👈 IMPORTANTE: resetear hora a medianoche
+
+        // 🔹 Filtrar eventos de HOY o futuros
+        const upcoming = sorted.filter((e) => {
+          const eventDate = new Date(e.date);
+          eventDate.setHours(0, 0, 0, 0); // 👈 Comparar solo fechas, sin hora
+          return eventDate >= today;
+        });
+
+        setEvents(upcoming);
       } catch (error) {
         console.error(error);
       }
@@ -39,6 +53,18 @@ export default function InfoBox() {
   }, []);
 
   const current = events[index];
+  if (events.length === 0) {
+    return (
+      <section className="w-full max-w-md mx-auto">
+        <SectionHeader title={t("events")} />
+        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 text-center">
+          <p className="text-gray-500">
+            {t("noEvents")} {/* 👈 Usar la traducción */}
+          </p>
+        </div>
+      </section>
+    );
+  }
   if (!current) return null;
 
   return (

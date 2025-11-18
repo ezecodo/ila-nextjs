@@ -517,7 +517,7 @@ export default function LegacyArticlePage() {
             )}
           </div>
           <div
-            className="article-content text-gray-700 dark:text-gray-200 mt-6"
+            className="article-content text-gray-700 dark:text-gray-200"
             itemProp="articleBody"
             dangerouslySetInnerHTML={{
               __html: rewriteEditionLinksWithLocale(
