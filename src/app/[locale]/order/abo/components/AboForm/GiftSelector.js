@@ -103,148 +103,150 @@ export default function GiftSelector({
       {expanded && (
         <div className="mt-5 space-y-4 animate-slideDown">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {gifts.map((gift) => {
-              const isSelected = selectedGiftId === gift.id;
-              return (
-                <div
-                  key={gift.id}
-                  className="flip-card-container"
-                  style={{ perspective: "1000px" }}
-                >
+            {gifts
+              .filter((g) => g.isActive !== false)
+              .map((gift) => {
+                const isSelected = selectedGiftId === gift.id;
+                return (
                   <div
-                    onClick={() => onSelect(gift.id)}
-                    className={`flip-card cursor-pointer relative transition-all duration-300 ${
-                      isSelected ? "scale-[1.02]" : ""
-                    }`}
-                    style={{
-                      transformStyle: "preserve-3d",
-                      transition: "transform 0.6s",
-                    }}
+                    key={gift.id}
+                    className="flip-card-container"
+                    style={{ perspective: "1000px" }}
                   >
-                    {/* FRENTE - Imagen */}
                     <div
-                      className={`flip-card-front absolute inset-0 rounded-xl border-2 overflow-hidden shadow-md ${
-                        isSelected
-                          ? "border-green-600 ring-2 ring-green-400 shadow-xl"
-                          : "border-gray-200 dark:border-gray-700"
+                      onClick={() => onSelect(gift.id)}
+                      className={`flip-card cursor-pointer relative transition-all duration-300 ${
+                        isSelected ? "scale-[1.02]" : ""
                       }`}
                       style={{
-                        backfaceVisibility: "hidden",
-                        WebkitBackfaceVisibility: "hidden",
+                        transformStyle: "preserve-3d",
+                        transition: "transform 0.6s",
                       }}
                     >
-                      {/* Badge de selección */}
-                      {isSelected && (
-                        <div className="absolute top-3 right-3 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-                          <span>✓</span>
-                          <span>{t("selected") || "Ausgewählt"}</span>
-                        </div>
-                      )}
-
-                      {/* Imagen del premio */}
-                      <div className="relative aspect-[4/5] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
-                        {gift.imageUrl ? (
-                          <Image
-                            src={gift.imageUrl}
-                            alt={gift.name}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full">
-                            <GiftIcon className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+                      {/* FRENTE - Imagen */}
+                      <div
+                        className={`flip-card-front absolute inset-0 rounded-xl border-2 overflow-hidden shadow-md ${
+                          isSelected
+                            ? "border-green-600 ring-2 ring-green-400 shadow-xl"
+                            : "border-gray-200 dark:border-gray-700"
+                        }`}
+                        style={{
+                          backfaceVisibility: "hidden",
+                          WebkitBackfaceVisibility: "hidden",
+                        }}
+                      >
+                        {/* Badge de selección */}
+                        {isSelected && (
+                          <div className="absolute top-3 right-3 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                            <span>✓</span>
+                            <span>{t("selected") || "Ausgewählt"}</span>
                           </div>
                         )}
-                      </div>
 
-                      {/* Nombre breve */}
-                      <div className="p-4 bg-white dark:bg-gray-800">
-                        <h4
-                          className={`font-bold text-sm transition-colors ${
-                            isSelected
-                              ? "text-green-700 dark:text-green-400"
-                              : "text-gray-900 dark:text-white"
-                          }`}
-                        >
-                          {gift.name}
-                        </h4>
-                      </div>
-
-                      {/* Hint de hover */}
-                      <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        Hover für Details
-                      </div>
-                    </div>
-
-                    {/* REVERSO - Descripción */}
-                    <div
-                      className={`flip-card-back absolute inset-0 rounded-xl border-2 overflow-hidden shadow-md ${
-                        isSelected
-                          ? "border-green-600 ring-2 ring-green-400 shadow-xl"
-                          : "border-gray-200 dark:border-gray-700"
-                      }`}
-                      style={{
-                        backfaceVisibility: "hidden",
-                        WebkitBackfaceVisibility: "hidden",
-                        transform: "rotateY(180deg)",
-                      }}
-                    >
-                      {/* Badge de selección en reverso */}
-                      {isSelected && (
-                        <div className="absolute top-3 right-3 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-                          <span>✓</span>
-                          <span>{t("selected") || "Ausgewählt"}</span>
-                        </div>
-                      )}
-
-                      <div className="h-full bg-gradient-to-br from-white to-green-50/50 dark:from-gray-800 dark:to-gray-900 p-6 flex flex-col overflow-y-auto">
-                        {/* Icono decorativo */}
-                        <div className="flex justify-center mb-4">
-                          <GiftIcon className="w-8 h-8 text-green-600 dark:text-green-400" />
+                        {/* Imagen del premio */}
+                        <div className="relative aspect-[4/5] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
+                          {gift.imageUrl ? (
+                            <Image
+                              src={gift.imageUrl}
+                              alt={gift.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <GiftIcon className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+                            </div>
+                          )}
                         </div>
 
-                        {/* Título */}
-                        <h4
-                          className={`font-bold text-base mb-3 leading-tight ${
-                            isSelected
-                              ? "text-green-700 dark:text-green-400"
-                              : "text-gray-900 dark:text-white"
-                          }`}
-                        >
-                          {gift.name}
-                        </h4>
+                        {/* Nombre breve */}
+                        <div className="p-4 bg-white dark:bg-gray-800">
+                          <h4
+                            className={`font-bold text-sm transition-colors ${
+                              isSelected
+                                ? "text-green-700 dark:text-green-400"
+                                : "text-gray-900 dark:text-white"
+                            }`}
+                          >
+                            {gift.name}
+                          </h4>
+                        </div>
 
-                        {/* Subtítulo */}
-                        {gift.subtitle && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 italic mb-4 leading-relaxed">
-                            {gift.subtitle}
-                          </p>
+                        {/* Hint de hover */}
+                        <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          Hover für Details
+                        </div>
+                      </div>
+
+                      {/* REVERSO - Descripción */}
+                      <div
+                        className={`flip-card-back absolute inset-0 rounded-xl border-2 overflow-hidden shadow-md ${
+                          isSelected
+                            ? "border-green-600 ring-2 ring-green-400 shadow-xl"
+                            : "border-gray-200 dark:border-gray-700"
+                        }`}
+                        style={{
+                          backfaceVisibility: "hidden",
+                          WebkitBackfaceVisibility: "hidden",
+                          transform: "rotateY(180deg)",
+                        }}
+                      >
+                        {/* Badge de selección en reverso */}
+                        {isSelected && (
+                          <div className="absolute top-3 right-3 z-10 bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                            <span>✓</span>
+                            <span>{t("selected") || "Ausgewählt"}</span>
+                          </div>
                         )}
 
-                        {/* Descripción con HTML */}
-                        {gift.description && (
-                          <div
-                            className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed flex-1 gift-description"
-                            dangerouslySetInnerHTML={{
-                              __html: gift.description,
-                            }}
-                          />
-                        )}
+                        <div className="h-full bg-gradient-to-br from-white to-green-50/50 dark:from-gray-800 dark:to-gray-900 p-6 flex flex-col overflow-y-auto">
+                          {/* Icono decorativo */}
+                          <div className="flex justify-center mb-4">
+                            <GiftIcon className="w-8 h-8 text-green-600 dark:text-green-400" />
+                          </div>
 
-                        {/* Call to action */}
-                        <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                          <span className="block text-center text-xs font-semibold text-green-600 dark:text-green-400">
-                            {isSelected
-                              ? `✓ ${t("selected")}`
-                              : `→ ${t("clickToSelect")}`}
-                          </span>
+                          {/* Título */}
+                          <h4
+                            className={`font-bold text-base mb-3 leading-tight ${
+                              isSelected
+                                ? "text-green-700 dark:text-green-400"
+                                : "text-gray-900 dark:text-white"
+                            }`}
+                          >
+                            {gift.name}
+                          </h4>
+
+                          {/* Subtítulo */}
+                          {gift.subtitle && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 italic mb-4 leading-relaxed">
+                              {gift.subtitle}
+                            </p>
+                          )}
+
+                          {/* Descripción con HTML */}
+                          {gift.description && (
+                            <div
+                              className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed flex-1 gift-description"
+                              dangerouslySetInnerHTML={{
+                                __html: gift.description,
+                              }}
+                            />
+                          )}
+
+                          {/* Call to action */}
+                          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <span className="block text-center text-xs font-semibold text-green-600 dark:text-green-400">
+                              {isSelected
+                                ? `✓ ${t("selected")}`
+                                : `→ ${t("clickToSelect")}`}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
 
           {/* Mensaje si no hay premio seleccionado */}

@@ -98,6 +98,30 @@ export default function GiftsManager() {
       alert(t("generalError") || "Ocurrió un error al guardar el premio.");
     }
   }
+  async function handleDeactivate(id) {
+    if (!confirm("¿Marcar este premio como agotado?")) return;
+
+    try {
+      const res = await fetch(`/api/gifts?id=${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        // 🔥 No lo quitamos del array completamente (solo si isActive false)
+        setGifts((prev) =>
+          prev.map((g) => (g.id === id ? { ...g, isActive: false } : g))
+        );
+        alert("Premio marcado como agotado");
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err) {
+      console.error("Error deactivating gift:", err);
+      alert("No se pudo marcar como agotado");
+    }
+  }
 
   const isSpanish = locale === "es";
 
@@ -183,6 +207,11 @@ export default function GiftsManager() {
                   <FaImage className="text-6xl text-gray-400 mb-3" />
                 )}
                 <h3 className="font-bold text-center">{name}</h3>
+                {gift.isActive === false && (
+                  <span className="mt-2 text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded">
+                    🟡 Agotado (oculto públicamente)
+                  </span>
+                )}
                 {subtitle && (
                   <p className="italic text-sm text-gray-500">{subtitle}</p>
                 )}
@@ -209,6 +238,12 @@ export default function GiftsManager() {
                   className="mt-3 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   <FaEdit className="inline mr-1" /> {t("edit")}
+                </button>
+                <button
+                  onClick={() => handleDeactivate(gift.id)}
+                  className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  <FaTimes className="inline mr-1" /> Marcar como agotado
                 </button>
               </div>
             );

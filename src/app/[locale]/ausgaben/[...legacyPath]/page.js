@@ -252,6 +252,17 @@ export default function LegacyArticlePage() {
             >
               {isES && article.isTranslatedES ? article.titleES : article.title}
             </h1>
+            {/* 🔁 Aviso: versión original disponible en alemán */}
+            {isES && article.isTranslatedES && (
+              <div className="text-right mb-3">
+                <Link
+                  href={`/de${fullPath}`}
+                  className="text-sm text-blue-700 underline font-medium"
+                >
+                  Versión original en alemán →
+                </Link>
+              </div>
+            )}
             {/* 🔁 Hinweis: Artikel ist auch auf Spanisch verfügbar */}
             {!isES && article.isTranslatedES && (
               <div className="text-right mb-3">

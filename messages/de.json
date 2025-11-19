@@ -168,8 +168,10 @@
     "totalGifts": "Gesamtanzahl der Prämien:",
     "translated": "Übersetzt ({count} Zeichen)",
     "addNew": "Neue Prämie hinzufügen",
+    "editing": "Prämie bearbeiten",
     "cancel": "Abbrechen",
     "save": "Speichern",
+    "update": "Aktualisieren",
     "nameDE": "Name (Deutsch)",
     "subtitleDE": "Untertitel (Deutsch)",
     "descriptionDE": "Beschreibung (Deutsch)",
@@ -181,7 +183,11 @@
     "errorCreate": "Fehler beim Erstellen",
     "loading": "Lade Prämien...",
     "noGifts": "Keine Prämien gefunden.",
-    "edit": "Bearbeiten"
+    "edit": "Bearbeiten",
+    "markAsInactive": "Als vergriffen markieren",
+    "markAsActive": "Wieder aktivieren",
+    "confirmDeactivate": "Dieses Geschenk als vergriffen markieren?",
+    "confirmActivate": "Dieses Geschenk wieder aktivieren?"
   },
   "editionTranslate": {
     "pageTitle": "Ausgabe übersetzen",

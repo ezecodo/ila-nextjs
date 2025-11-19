@@ -163,7 +163,9 @@
     "translated": "Traducido ({count} caracteres)",
     "addNew": "Agregar nuevo premio",
     "cancel": "Cancelar",
+    "editing": "Editando premio",
     "save": "Guardar",
+    "update": "Actualizar",
     "nameDE": "Nombre (Alemán)",
     "subtitleDE": "Subtítulo (Alemán)",
     "descriptionDE": "Descripción (Alemán)",
@@ -175,7 +177,11 @@
     "errorCreate": "Error al crear el premio",
     "loading": "Cargando premios...",
     "noGifts": "No se encontraron premios.",
-    "edit": "Editar"
+    "edit": "Editar",
+    "markAsInactive": "Marcar como agotado",
+    "markAsActive": "Activar nuevamente",
+    "confirmDeactivate": "¿Marcar este premio como agotado?",
+    "confirmActivate": "¿Volver a activar este premio?"
   },
 
   "editionTranslate": {

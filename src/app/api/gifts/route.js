@@ -132,7 +132,67 @@ export async function POST(req) {
   }
 }
 
-// ✅ PUT — actualizar (solo admin)
+// 🔴 DELETE DEFINITIVO — eliminar de la base de datos y Cloudinary
+export async function PUT(req) {
+  try {
+    const session = await auth();
+    if (session?.user?.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Gift ID required" }, { status: 400 });
+    }
+
+    // 1️⃣ Obtener Datos antes de borrar
+    const gift = await prisma.gift.findUnique({ where: { id } });
+
+    if (!gift) {
+      return NextResponse.json({ error: "Gift not found" }, { status: 404 });
+    }
+
+    // 2️⃣ Borrar la imagen de Cloudinary si existe
+    if (gift.imageUrl) {
+      const cloudinary = (await import("cloudinary")).v2;
+
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      });
+
+      // Extraer public_id desde URL
+      // Ej: https://.../gifts/NAME.jpg → gifts/NAME
+      const publicId = gift.imageUrl.split("/").slice(-1)[0].split(".")[0]; // sin extensión
+
+      const fullPublicId = `gifts/${publicId}`;
+
+      try {
+        await cloudinary.uploader.destroy(fullPublicId);
+        console.log("🗑 Imagen eliminada de Cloudinary:", fullPublicId);
+      } catch (err) {
+        console.error("⚠ Error deleting Cloudinary image:", err);
+      }
+    }
+
+    // 3️⃣ Eliminar regalo de la DB
+    await prisma.gift.delete({ where: { id } });
+
+    return NextResponse.json(
+      { success: true, message: "Gift permanently deleted" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("❌ Error permanently deleting gift:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
 
 // ✅ DELETE — eliminar (solo admin)
 export async function DELETE(req) {
@@ -149,16 +209,51 @@ export async function DELETE(req) {
       return NextResponse.json({ error: "Gift ID required" }, { status: 400 });
     }
 
-    await prisma.gift.delete({
+    // 🔥 En vez de borrar → desactivar
+    const updated = await prisma.gift.update({
       where: { id },
+      data: { isActive: false },
     });
 
     return NextResponse.json(
-      { success: true, message: "Gift deleted successfully" },
+      { success: true, message: "Gift marked as inactive", gift: updated },
       { status: 200 }
     );
   } catch (error) {
-    console.error("❌ Error deleting gift:", error);
+    console.error("❌ Error deactivating gift:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+// 🟢 PATCH — reactivar premio (solo admin)
+export async function PATCH(req) {
+  try {
+    const session = await auth();
+    if (session?.user?.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Gift ID required" }, { status: 400 });
+    }
+
+    const updated = await prisma.gift.update({
+      where: { id },
+      data: { isActive: true },
+    });
+
+    return NextResponse.json(
+      { success: true, message: "Gift reactivated", gift: updated },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("❌ Error reactivating gift:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

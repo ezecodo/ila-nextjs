@@ -113,6 +113,78 @@ export default function AdminGiftsPage() {
       alert(t("generalError") || "Ocurrió un error al guardar el premio.");
     }
   }
+  async function handleDeactivate(id) {
+    if (!confirm(t("confirmDeactivate"))) return;
+
+    try {
+      const res = await fetch(`/api/gifts?id=${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setGifts((prev) =>
+          prev.map((g) => (g.id === id ? { ...g, isActive: false } : g))
+        );
+        alert(t("markAsInactive"));
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err) {
+      console.error("Error deactivating gift:", err);
+      alert("No se pudo marcar como agotado");
+    }
+  }
+  async function handleReactivate(id) {
+    if (!confirm("¿Volver a activar este premio?")) return;
+
+    try {
+      const res = await fetch(`/api/gifts?id=${id}`, {
+        method: "PATCH",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setGifts((prev) =>
+          prev.map((g) => (g.id === id ? { ...g, isActive: true } : g))
+        );
+        alert("Premio activado nuevamente");
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err) {
+      console.error("Error reactivating gift:", err);
+      alert("No se pudo activar el premio");
+    }
+  }
+  async function handlePermanentDelete(id) {
+    if (
+      !confirm(
+        "⚠️ ¿Seguro que quieres eliminar este premio definitivamente? Esta acción no se puede deshacer."
+      )
+    )
+      return;
+
+    try {
+      const res = await fetch(`/api/gifts?id=${id}`, {
+        method: "PUT",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setGifts((prev) => prev.filter((g) => g.id !== id));
+        alert("Premio eliminado permanentemente");
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (err) {
+      console.error("❌ Error deleting gift:", err);
+      alert("No se pudo eliminar el premio");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -299,6 +371,13 @@ export default function AdminGiftsPage() {
                     >
                       <FaEdit className="text-lg" />
                     </button>
+                    {/* Delete Button Overlay — permanent */}
+                    <button
+                      onClick={() => handlePermanentDelete(gift.id)}
+                      className="absolute top-3 left-3 p-3 bg-red-600/90 text-white rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                    >
+                      <FaTimes className="text-lg" />
+                    </button>
                   </div>
 
                   {/* Content Section */}
@@ -318,6 +397,23 @@ export default function AdminGiftsPage() {
                         className="text-sm text-gray-600 dark:text-gray-400 prose prose-sm dark:prose-invert line-clamp-3"
                         dangerouslySetInnerHTML={{ __html: description }}
                       />
+                    )}
+
+                    {gift.isActive ? (
+                      <button
+                        onClick={() => handleDeactivate(gift.id)}
+                        className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2"
+                      >
+                        <FaTimes className="inline mr-1" />{" "}
+                        {t("markAsInactive")}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleReactivate(gift.id)}
+                        className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2"
+                      >
+                        🔄 {t("markAsActive")}
+                      </button>
                     )}
                   </div>
                 </div>

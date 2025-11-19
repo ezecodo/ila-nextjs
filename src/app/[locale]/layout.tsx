@@ -55,7 +55,6 @@ const futura = localFont({
 
 type Props = {
   children: ReactNode;
-  // 👇 Next 15: params en layouts async es una Promise
   params: Promise<{ locale: string }>;
 };
 
