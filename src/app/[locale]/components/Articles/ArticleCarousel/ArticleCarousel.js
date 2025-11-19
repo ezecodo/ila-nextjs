@@ -33,7 +33,12 @@ export default function FilteredArticlesCarousel(props) {
 
     fetch(`/api/articles/filtered?${params.toString()}`)
       .then((res) => res.json())
-      .then((data) => setArticles(data.articles || []));
+      .then((data) => {
+        const filtered = (data.articles || []).filter(
+          (a) => a.images && a.images.length > 0
+        );
+        setArticles(filtered);
+      });
   }, [region, beitragstypId, effectiveLimit, locale]);
 
   if (!articles || articles.length === 0) return null;

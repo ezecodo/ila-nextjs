@@ -21,8 +21,10 @@ export default function Home() {
       <main className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="col-span-1 md:col-span-12 p-0">
           <div id="dossiers" className="scroll-mt-[120px]">
+            {/* 🔥 Reinicia el componente al volver a Home */}
             <LatestEdition1 />
           </div>
+
           <CarouselFromDb />
         </div>
       </main>

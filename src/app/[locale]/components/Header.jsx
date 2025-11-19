@@ -129,10 +129,7 @@ export default function Header() {
       <div className="w-full flex md:hidden items-center px-4 py-2">
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <Image src="/ila-logo.png" alt="ila Logo" width={45} height={45} />
-          <span
-            className="text-base md:text-lg font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[55vw] text-center"
-            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
-          >
+          <span className="futura text-base md:text-lg font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[55vw] text-center">
             {t("tagline")}
           </span>
         </Link>
@@ -385,11 +382,8 @@ export default function Header() {
 
               <div className="text-center xl:whitespace-nowrap whitespace-normal">
                 <span
-                  className="text-[1.4rem] lg:text-[1.9rem] xl:text-[2.4rem] font-bold leading-tight"
-                  style={{
-                    fontFamily: "'Futura Cyrillic', Arial, sans-serif",
-                    letterSpacing: "-0.5px",
-                  }}
+                  className="futura text-[1.4rem] lg:text-[1.9rem] xl:text-[2.4rem] font-bold leading-tight"
+                  style={{ letterSpacing: "-0.5px" }}
                 >
                   {locale === "es" ? (
                     <>

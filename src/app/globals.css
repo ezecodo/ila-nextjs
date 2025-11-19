@@ -57,7 +57,9 @@
   font-weight: 900; /* Extra Bold */
   font-style: normal;
 }
-
+.futura {
+  font-family: "Futura Cyrillic", Arial, sans-serif !important;
+}
 .cursor-glasses {
   cursor: url("/icons/glasses.cur"), auto;
 }

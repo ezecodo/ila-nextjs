@@ -205,7 +205,26 @@ export default function LatestEditionWithArticles() {
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, [showNumberPicker]);
+  useEffect(() => {
+    const editionParam = searchParams.get("edition");
 
+    // Si hay edition → respétala
+    if (editionParam && editions.length) {
+      const savedIndex = editions.findIndex(
+        (e) => String(e.number) === editionParam
+      );
+      setCurrentEditionIndex(savedIndex >= 0 ? savedIndex : 0);
+      return;
+    }
+
+    // 🔥 Solo resetear si estamos realmente en Home
+    if (!editionParam && editions.length) {
+      const path = window.location.pathname;
+      if (path === "/" || path.endsWith("/de") || path.endsWith("/es")) {
+        setCurrentEditionIndex(0);
+      }
+    }
+  }, [searchParams, editions]);
   return (
     <>
       <div className="max-w-7xl mx-auto px-0 sm:px-6 pb-16">
