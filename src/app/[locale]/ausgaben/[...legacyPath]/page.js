@@ -252,6 +252,17 @@ export default function LegacyArticlePage() {
             >
               {isES && article.isTranslatedES ? article.titleES : article.title}
             </h1>
+            {/* 🔁 Hinweis: Artikel ist auch auf Spanisch verfügbar */}
+            {!isES && article.isTranslatedES && (
+              <div className="text-right mb-3">
+                <Link
+                  href={`/es${fullPath}`}
+                  className="text-sm text-blue-700 underline font-medium"
+                >
+                  Dieser Artikel ist auch auf Spanisch verfügbar →
+                </Link>
+              </div>
+            )}
 
             {/* SUBTITULO */}
             {(isES ? article.subtitleES : article.subtitle) && (
@@ -304,15 +315,7 @@ export default function LegacyArticlePage() {
               ))}
             </div>
           )}
-          {/* 👇 Traductor — solo visible si está traducido y se visualiza en español */}
-          {isES && article.isTranslatedES && article.translator && (
-            <div className="text-gray-500 italic mb-6 text-right">
-              Traducción:{" "}
-              <span className="font-medium text-gray-800 dark:text-gray-200">
-                {article.translator.name}
-              </span>
-            </div>
-          )}
+
           {isAdmin && isES && article.isTranslatedES && (
             <div className="text-center mb-6">
               <Link href={`/dashboard/articles/translate/${article.id}`}>
@@ -546,6 +549,16 @@ export default function LegacyArticlePage() {
                 ),
               }}
             />
+          )}
+          {/* 👇 Créditos de traducción al final del artículo */}
+
+          {isES && article.isTranslatedES && (
+            <p className="text-sm text-gray-500 italic mt-10 text-right">
+              Traducción realizada con la ayuda de DeepL
+              {article.translator && (
+                <> y editada por {article.translator.name}</>
+              )}
+            </p>
           )}
         </article>
 

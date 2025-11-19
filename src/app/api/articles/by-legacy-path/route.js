@@ -41,6 +41,12 @@ export async function GET(req) {
             name: true,
           },
         },
+        translator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         categories: true,
         regions: true,
         topics: true,
