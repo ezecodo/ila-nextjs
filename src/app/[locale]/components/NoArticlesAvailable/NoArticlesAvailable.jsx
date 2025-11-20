@@ -152,7 +152,7 @@ export default function NoArticlesAvailable() {
                   {translatedEditions.map((ed) => (
                     <Link
                       key={ed.id}
-                      href={`/?edition=${ed.number}`}
+                      href={`/${locale}?edition=${ed.number}`}
                       className="group block"
                     >
                       <div className="relative aspect-[3/4] overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300">
