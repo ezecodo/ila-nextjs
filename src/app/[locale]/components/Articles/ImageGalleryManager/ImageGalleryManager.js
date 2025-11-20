@@ -14,18 +14,23 @@ export default function ImageGalleryManager({ gallery, setGallery, mode }) {
   const [newImgFile, setNewImgFile] = useState(null);
 
   const handleReplaceCover = (file) => {
-    setGallery([{ file, isCover: true }]); // 🔥 sobrescribe con una sola imagen
+    setGallery([{ file, isCover: true }]);
   };
 
-  const handleRemoveImage = () => {
-    setGallery([]); // 🔥 quita la portada
+  const handleRemoveImage = (index) => {
+    if (mode === "dossier") {
+      setGallery([]);
+    } else {
+      // 🔥 Modo galería: eliminar solo esa imagen por índice
+      setGallery((prev) => prev.filter((_, i) => i !== index));
+    }
   };
 
   // -------------------------------
   // 🔹 MODO "DOSSIER"
   // -------------------------------
   if (mode === "dossier") {
-    const cover = gallery[0]; // solo esperamos 1 imagen
+    const cover = gallery[0];
     const previewUrl = cover?.file
       ? URL.createObjectURL(cover.file)
       : cover?.url;
@@ -54,7 +59,7 @@ export default function ImageGalleryManager({ gallery, setGallery, mode }) {
               <button
                 type="button"
                 className="text-red-600 hover:underline"
-                onClick={handleRemoveImage}
+                onClick={() => handleRemoveImage(0)}
               >
                 {t("delete")}
               </button>

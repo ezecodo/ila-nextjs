@@ -37,7 +37,16 @@ export async function GET(req) {
     if (translatorId) {
       where.translatorId = translatorId;
     }
-
+    // 👇 AQUÍ agregas las líneas NUEVAS (después de translatorId)
+    const translated = searchParams.get("translated");
+    if (translated === "true") {
+      where.articles = {
+        some: {
+          isTranslatedES: true,
+          needsReviewES: false,
+        },
+      };
+    }
     if (year) {
       const y = Number(year);
       if (!Number.isNaN(y)) {

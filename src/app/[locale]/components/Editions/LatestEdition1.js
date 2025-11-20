@@ -12,7 +12,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
 import { useRouter, useSearchParams } from "next/navigation";
-import IlaLoader from "../../components/IlaLoader/IlaLoader";
+import NoArticlesAvailable from "../../components/NoArticlesAvailable/NoArticlesAvailable";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -491,13 +491,10 @@ export default function LatestEditionWithArticles() {
                     <MiniArticleCardGrid key={article.id} article={article} />
                   ))
                 ) : (
-                  <div className="flex items-center justify-center col-span-full h-[400px]">
-                    <IlaLoader />
-                  </div>
+                  <NoArticlesAvailable edition={currentEdition} />
                 )}
               </div>
 
-              {/* ✅ Carrusel móvil corregido */}
               {/* Mobile */}
               <div className="block lg:hidden w-full mt-0">
                 {mobileArticles.length > 0 ? (

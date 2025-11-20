@@ -310,21 +310,50 @@ export async function PUT(req, context) {
           return [];
         }
       })();
+      // 🔍 Obtener el artículo para saber si tiene beitragsId
+      const article = await prisma.article.findUnique({
+        where: { id: parseInt(id, 10) },
+        select: { beitragsId: true },
+      });
 
-      // ⚡️ TODO: procesar file (articleImage) y subir a Cloudinary si
+      const contentIdToUse = article?.beitragsId || parseInt(id, 10);
+      console.log("🆔 Usando contentId:", contentIdToUse);
       // 🗑️ Eliminar imágenes no incluidas en keepImages
-      // ⚡️ Si keepImages está definido (aunque sea vacío), lo usamos
       if (Array.isArray(keepImages)) {
-        await prisma.image.deleteMany({
+        console.log("🔍 keepImages recibido:", keepImages);
+
+        // Obtener todas las imágenes actuales del artículo
+        const currentImages = await prisma.image.findMany({
           where: {
             contentType: "ARTICLE",
-            contentId: parseInt(id, 10),
-            // 👇 solo borrar si hay keepIds
-            ...(keepImages.length > 0
-              ? { id: { notIn: keepImages.map((n) => parseInt(n, 10)) } }
-              : {}),
+            contentId: contentIdToUse,
           },
+          select: { id: true },
         });
+
+        console.log("📸 Imágenes actuales en BD:", currentImages);
+
+        // 🔥 Convertir keepImages a números por si vienen como strings
+        const keepIdsAsNumbers = keepImages.map((id) => parseInt(id, 10));
+        console.log("🔢 keepImages convertidos a números:", keepIdsAsNumbers);
+
+        // Imágenes a borrar = todas las actuales que NO están en keepImages
+        const imagesToDelete = currentImages
+          .filter((img) => !keepIdsAsNumbers.includes(img.id))
+          .map((img) => img.id);
+
+        console.log("🗑️ Imágenes a BORRAR:", imagesToDelete);
+
+        if (imagesToDelete.length > 0) {
+          await prisma.image.deleteMany({
+            where: {
+              id: { in: imagesToDelete },
+            },
+          });
+          console.log("✅ Imágenes borradas exitosamente");
+        } else {
+          console.log("⚠️ No hay imágenes para borrar");
+        }
       }
       // 📤 Procesar nuevas imágenes de la galería
       const galleryIndices = new Set();
@@ -356,7 +385,7 @@ export async function PUT(req, context) {
           await prisma.image.create({
             data: {
               contentType: "ARTICLE",
-              contentId: parseInt(id, 10),
+              contentId: contentIdToUse,
               url: uploadResult.secure_url,
               title,
               alt,
@@ -399,7 +428,7 @@ export async function PUT(req, context) {
           await prisma.image.create({
             data: {
               contentType: "ARTICLE",
-              contentId: parseInt(id, 10),
+              contentId: contentIdToUse,
               url: uploadResult.secure_url,
               title: meta.title || null,
               alt: meta.alt || null,
@@ -481,7 +510,7 @@ export async function PUT(req, context) {
         });
       }
       const images = await prisma.image.findMany({
-        where: { contentType: "ARTICLE", contentId: parseInt(id, 10) },
+        where: { contentType: "ARTICLE", contentId: contentIdToUse },
       });
 
       return Response.json(
