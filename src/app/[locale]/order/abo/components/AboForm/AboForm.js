@@ -579,13 +579,15 @@ export default function AboForm({ gifts }) {
       </Card>
 
       {/* Regalo y Términos */}
-      <GiftSelector
-        gifts={gifts}
-        selectedGiftId={form.giftId}
-        onSelect={(giftId) => handleChange("giftId", giftId)}
-        giftDelivery={form.giftDelivery}
-        onDeliveryChange={(value) => handleChange("giftDelivery", value)}
-      />
+      {form.type !== "TRIAL" && (
+        <GiftSelector
+          gifts={gifts}
+          selectedGiftId={form.giftId}
+          onSelect={(giftId) => handleChange("giftId", giftId)}
+          giftDelivery={form.giftDelivery}
+          onDeliveryChange={(value) => handleChange("giftDelivery", value)}
+        />
+      )}
 
       <Card>
         <TermsCheckboxes form={form} handleChange={handleChange} />

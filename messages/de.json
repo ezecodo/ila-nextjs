@@ -24,7 +24,17 @@
     "loading": "Lade Ergebnisse...",
     "error": "Fehler beim Laden der Ergebnisse",
     "noResults": "Keine Artikel zu dieser Suche gefunden.",
-    "resultstitle": "Suchergebnisse:"
+    "resultstitle": "Suchergebnisse:",
+    "search": "Suchen",
+    "searchingFor": "Suche nach",
+    "advancedSearch": "Erweiterte Suche",
+    "regions": "Regionen",
+    "topics": "Themen",
+    "articleTypes": "Artikeltypen",
+    "year": "Jahr",
+    "allYears": "Alle Jahre",
+    "clearAll": "Alles löschen",
+    "clearAllFilters": "Alle Filter löschen"
   },
   "navMenu": {
     "index": "Home",

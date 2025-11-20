@@ -24,7 +24,17 @@
     "loading": "Cargando resultados...",
     "error": "Error cargando resultados",
     "noResults": "No se encontraron artículos para esta búsqueda.",
-    "resultstitle": "Resultados de búsqueda:"
+    "resultstitle": "Resultados de búsqueda:",
+    "search": "Buscar",
+    "searchingFor": "Buscando",
+    "advancedSearch": "Búsqueda avanzada",
+    "regions": "Regiones",
+    "topics": "Temas",
+    "articleTypes": "Tipos de artículo",
+    "year": "Año",
+    "allYears": "Todos los años",
+    "clearAll": "Limpiar todo",
+    "clearAllFilters": "Limpiar todos los filtros"
   },
   "navMenu": {
     "index": "Inicio",
