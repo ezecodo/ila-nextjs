@@ -13,6 +13,7 @@ import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
 import { useRouter, useSearchParams } from "next/navigation";
 import NoArticlesAvailable from "../../components/NoArticlesAvailable/NoArticlesAvailable";
+import IlaLoader from "../IlaLoader/IlaLoader";
 
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -21,6 +22,7 @@ export default function LatestEditionWithArticles() {
   const [editions, setEditions] = useState([]);
   const [currentEditionIndex, setCurrentEditionIndex] = useState(0);
   const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [editionsCount, setEditionsCount] = useState({});
 
   const [pickerValue, setPickerValue] = useState("");
@@ -98,11 +100,13 @@ export default function LatestEditionWithArticles() {
   }, [currentEditionIndex, editions]);
 
   async function fetchArticles(editionId) {
+    setLoading(true);
     const res = await fetch(
       `/api/articles/list?editionId=${editionId}&limit=200`
     );
     const data = await res.json();
     setArticles(data.articles || []);
+    setLoading(false);
   }
 
   async function fetchEditionsCount(edition) {
@@ -486,12 +490,20 @@ export default function LatestEditionWithArticles() {
             <div className="w-full lg:w-2/3 flex flex-col gap-6">
               {/* Desktop */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
-                {desktopArticles.length > 0 ? (
+                {loading ? (
+                  <div className="col-span-2 flex items-center justify-center min-h-[400px]">
+                    <IlaLoader />
+                  </div>
+                ) : desktopArticles.length > 0 ? (
                   desktopArticles.map((article) => (
                     <MiniArticleCardGrid key={article.id} article={article} />
                   ))
+                ) : locale === "es" ? (
+                  <NoArticlesAvailable />
                 ) : (
-                  <NoArticlesAvailable edition={currentEdition} />
+                  <div className="col-span-2 flex items-center justify-center min-h-[400px]">
+                    <IlaLoader />
+                  </div>
                 )}
               </div>
 

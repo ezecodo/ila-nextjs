@@ -16,8 +16,7 @@ export async function GET(req) {
       );
     }
 
-    const searchQuery = query.toLowerCase();
-    const terms = searchQuery.split(/\s+/); // dividir en palabras
+    const searchQuery = query.trim();
 
     let whereConditions;
 
@@ -27,27 +26,22 @@ export async function GET(req) {
         isTranslatedES: true,
         needsReviewES: false,
         OR: [
-          // cada palabra en título o contenido ES
-          ...terms.map((term) => ({
-            titleES: { contains: term },
-          })),
-          ...terms.map((term) => ({
-            contentES: { contains: term },
-          })),
-          // autores
+          // 🎯 Título en español
+          { titleES: { contains: searchQuery } },
+          // 🎯 Subtítulo en español
+          { subtitleES: { contains: searchQuery } },
+          // 🎯 Contenido en español
+          { contentES: { contains: searchQuery } },
+          // 👤 Autores
           {
             authors: {
-              some: {
-                name: { contains: searchQuery },
-              },
+              some: { name: { contains: searchQuery } },
             },
           },
-          // entrevistados
+          // 👤 Entrevistados
           {
             interviewees: {
-              some: {
-                name: { contains: searchQuery },
-              },
+              some: { name: { contains: searchQuery } },
             },
           },
         ],
@@ -56,30 +50,31 @@ export async function GET(req) {
       whereConditions = {
         isPublished: true,
         OR: [
-          // coincidencia exacta en título/contenido DE
+          // 🎯 Título en alemán
           { title: { contains: searchQuery } },
+          // 🎯 Subtítulo en alemán
+          { subtitle: { contains: searchQuery } },
+          // 🎯 Contenido en alemán
           { content: { contains: searchQuery } },
+          // 👤 Autores
           {
             authors: {
               some: { name: { contains: searchQuery } },
             },
           },
+          // 👤 Entrevistados
           {
             interviewees: {
               some: { name: { contains: searchQuery } },
             },
           },
-
-          // coincidencia palabra por palabra
-          ...terms.map((term) => ({ title: { contains: term } })),
-          ...terms.map((term) => ({ content: { contains: term } })),
         ],
       };
     }
-    console.log(
-      "🔎 whereConditions:",
-      JSON.stringify(whereConditions, null, 2)
-    );
+
+    console.log("🔎 Búsqueda:", searchQuery, "Locale:", locale);
+
+    // 📊 Buscar artículos
     const articles = await prisma.article.findMany({
       where: whereConditions,
       orderBy: { publicationDate: "desc" },
@@ -96,6 +91,7 @@ export async function GET(req) {
       },
     });
 
+    // 📸 Agregar imágenes
     const articlesWithImages = await Promise.all(
       articles.map(async (article) => {
         const images = await prisma.image.findMany({
@@ -108,9 +104,12 @@ export async function GET(req) {
       })
     );
 
+    // 🔢 Contar total
     const totalArticles = await prisma.article.count({
       where: whereConditions,
     });
+
+    console.log("✅ Resultados encontrados:", totalArticles);
 
     return new Response(
       JSON.stringify({
