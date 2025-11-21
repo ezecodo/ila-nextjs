@@ -499,7 +499,7 @@ export default function LatestEditionWithArticles() {
                     <MiniArticleCardGrid key={article.id} article={article} />
                   ))
                 ) : locale === "es" ? (
-                  <NoArticlesAvailable />
+                  <NoArticlesAvailable edition={currentEdition} />
                 ) : (
                   <div className="col-span-2 flex items-center justify-center min-h-[400px]">
                     <IlaLoader />

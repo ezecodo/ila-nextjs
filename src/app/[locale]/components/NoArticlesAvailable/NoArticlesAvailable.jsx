@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 
-export default function NoArticlesAvailable() {
+export default function NoArticlesAvailable({ edition }) {
   const locale = useLocale();
   const isSpanish = locale === "es";
   const [translatedEditions, setTranslatedEditions] = useState([]);
@@ -42,7 +42,21 @@ export default function NoArticlesAvailable() {
         {/* Card principal */}
         <div className="bg-gradient-to-br from-red-50 via-white to-rose-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl shadow-xl border border-red-100 dark:border-gray-700 overflow-hidden">
           {/* Header con icono grande */}
-          <div className="relative bg-gradient-to-r from-red-500 to-rose-600 dark:from-red-700 dark:to-rose-800 px-8 py-12 text-center">
+          <div className="relative px-8 py-12 text-center overflow-hidden">
+            {/* Imagen de fondo con blur */}
+            {edition?.coverImage && (
+              <div
+                className="absolute inset-0 bg-cover bg-center bg-top"
+                style={{ backgroundImage: `url(${edition.coverImage})` }}
+              >
+                <div className="absolute inset-0 bg-red-600/40 dark:bg-red-800/50"></div>
+              </div>
+            )}
+
+            {/* Fallback si no hay imagen */}
+            {!edition?.coverImage && (
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-rose-600 dark:from-red-700 dark:to-rose-800"></div>
+            )}
             <div className="absolute inset-0 opacity-10">
               <svg
                 className="w-full h-full"
