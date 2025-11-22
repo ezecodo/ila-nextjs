@@ -26,6 +26,7 @@ export default function DonationPopup({ articleId }) {
       return () => clearTimeout(timer);
     }
   }, [articleId]);
+
   // Cargar portadas de dossiers
   useEffect(() => {
     async function loadCovers() {
@@ -86,7 +87,7 @@ export default function DonationPopup({ articleId }) {
       </div>
 
       {/* Panel del popup */}
-      <Dialog.Panel className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-slide-down">
+      <Dialog.Panel className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden animate-slide-down">
         {/* Botón de cerrar */}
         <button
           className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 hover:rotate-90 shadow-lg"
@@ -109,7 +110,7 @@ export default function DonationPopup({ articleId }) {
         </button>
 
         {/* Sección superior con logo y decoración */}
-        <div className="bg-gradient-to-br from-red-600 to-red-700 p-8 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-red-600 to-red-700 p-4 sm:p-8 relative overflow-hidden">
           {/* Patrón decorativo de fondo */}
           <div className="absolute inset-0 opacity-10">
             <svg
@@ -135,10 +136,10 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Logo ila */}
-          <div className="relative flex justify-center mb-6">
-            <div className="bg-white w-16 h-16 flex items-center justify-center shadow-lg">
+          <div className="relative flex justify-center mb-4 sm:mb-6">
+            <div className="bg-white w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center shadow-lg">
               <span
-                className="text-5xl font-bold text-red-600"
+                className="text-3xl sm:text-5xl font-bold text-red-600"
                 style={{ fontFamily: "Futura, sans-serif" }}
               >
                 ila
@@ -147,17 +148,17 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Ilustración: Línea de vida del periodismo */}
-          <div className="relative flex justify-center items-center gap-3 mb-4">
-            <div className="flex items-center gap-2">
+          <div className="relative flex justify-center items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="flex items-center gap-1 sm:gap-2">
               <svg
-                className="w-12 h-12 text-white animate-pulse"
+                className="w-8 h-8 sm:w-12 sm:h-12 text-white animate-pulse"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
               <svg
-                className="w-10 h-10 text-white/80"
+                className="w-6 h-6 sm:w-10 sm:h-10 text-white/80"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -170,7 +171,7 @@ export default function DonationPopup({ articleId }) {
                 />
               </svg>
               <svg
-                className="w-10 h-10 text-white/80"
+                className="w-6 h-6 sm:w-10 sm:h-10 text-white/80"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -187,63 +188,63 @@ export default function DonationPopup({ articleId }) {
 
           {/* Texto hero en blanco sobre rojo */}
           <div className="relative text-center text-white">
-            <h2 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 leading-tight">
               {t("title")}
             </h2>
-            <p className="text-lg md:text-xl font-light opacity-90">
+            <p className="text-base sm:text-lg md:text-xl font-light opacity-90">
               {t("subtitle")}
             </p>
           </div>
         </div>
 
         {/* Contenido inferior */}
-        <div className="p-8 bg-white dark:bg-gray-900">
+        <div className="p-4 sm:p-8 bg-white dark:bg-gray-900">
           {/* Call to action */}
-          <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8 leading-tight">
+          <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 text-center mb-6 sm:mb-8 leading-tight">
             {t("description")}
           </p>
 
-          {/* Estadística impactante (opcional) */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8 text-center border-2 border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-center gap-8">
+          {/* Estadística impactante */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 text-center border-2 border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
               <div>
-                <div className="text-4xl font-bold text-red-600 dark:text-red-400">
+                <div className="text-3xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
                   49
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">
                   {t("years")}
                 </div>
               </div>
-              <div className="h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-px w-full sm:h-12 sm:w-px bg-gray-300 dark:bg-gray-600"></div>
               <div>
-                <div className="text-4xl font-bold text-red-600 dark:text-red-400">
+                <div className="text-3xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
                   10x
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">
                   {t("yearly")}
                 </div>
               </div>
-              <div className="h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-px w-full sm:h-12 sm:w-px bg-gray-300 dark:bg-gray-600"></div>
               <div>
-                <div className="text-4xl font-bold text-red-600 dark:text-red-400">
+                <div className="text-3xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
                   100%
                 </div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">
                   {t("independent")}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Botones mejorados */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* Botón de donación */}
+          <div className="flex justify-center">
             <Link
               href="/support/donations"
-              className="group relative px-8 py-4 bg-red-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-red-700 transition-all duration-200 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
+              className="group relative px-6 py-3 sm:px-8 sm:py-4 bg-red-600 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:bg-red-700 transition-all duration-200 hover:shadow-2xl hover:-translate-y-1 overflow-hidden w-full sm:w-auto"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">
                 <svg
-                  className="w-6 h-6 group-hover:scale-110 transition-transform"
+                  className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -256,14 +257,15 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Mensaje de confianza */}
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
-            Jede Spende hilft uns, unabhängigen Journalismus zu ermöglichen.
+          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-4 sm:mt-6 px-2">
+            {t("trustMessage")}
           </p>
         </div>
       </Dialog.Panel>
     </Dialog>
   );
 }
+
 // Estilos CSS en línea
 const styles = `
 @keyframes slideDown {
