@@ -562,10 +562,14 @@
     "noCredits": "Ohne Credits"
   },
   "donationPopup": {
-    "title": "Unterstütze unsere Arbeit!",
-    "description": "Erwäge eine Spende oder ein Abo, um weiterhin hochwertige Inhalte zu lesen.",
-    "donateButton": "Spenden",
-    "subscribeButton": "Abonnieren"
+    "title": "Unabhängig, kritisch, solidarisch",
+    "subtitle": "aber leider nicht selbstdruckend",
+    "description": "Hilf uns, unbequem zu bleiben.",
+    "donateButton": "Jetzt spenden",
+    "years": "Jahre",
+    "yearly": "jährlich",
+    "independent": "unabhängig",
+    "trustMessage": "Jede Spende hilft uns, unabhängigen Journalismus zu ermöglichen."
   },
   "donation": {
     "title": "Unterstützt die ila!",

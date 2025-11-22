@@ -7,7 +7,8 @@ import { useTranslations } from "next-intl";
 
 export default function DonationPopup({ articleId }) {
   const [isOpen, setIsOpen] = useState(false);
-  const t = useTranslations("donationPopup"); // 🔥 Importar traducciones
+  const [covers, setCovers] = useState([]);
+  const t = useTranslations("donationPopup");
 
   useEffect(() => {
     if (!articleId) return;
@@ -25,37 +26,264 @@ export default function DonationPopup({ articleId }) {
       return () => clearTimeout(timer);
     }
   }, [articleId]);
+  // Cargar portadas de dossiers
+  useEffect(() => {
+    async function loadCovers() {
+      try {
+        const res = await fetch("/api/editions?limit=20");
+        const data = await res.json();
+        const coverImages = data.map((d) => d.coverImage);
+
+        // Función para mezclar array aleatoriamente
+        const shuffled = coverImages.sort(() => Math.random() - 0.5);
+        setCovers(shuffled);
+      } catch (err) {
+        console.error("Error loading covers:", err);
+      }
+    }
+    loadCovers();
+  }, []);
+
+  // Re-shuffle cuando se abre el popup
+  useEffect(() => {
+    if (isOpen && covers.length > 0) {
+      const shuffled = [...covers].sort(() => Math.random() - 0.5);
+      setCovers(shuffled);
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
 
   return (
     <Dialog
       open={isOpen}
-      onClose={() => setIsOpen(false)}
-      className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"
+      onClose={handleClose}
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
     >
-      <Dialog.Panel className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center relative">
+      {/* Backdrop con portadas reales difuminadas */}
+      <div className="fixed inset-0 bg-black/65" aria-hidden="true">
+        <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4 p-4 opacity-60">
+          {covers.length > 0 &&
+            [...Array(21)].map((_, i) => (
+              <div
+                key={i}
+                className="aspect-[3/4] rounded-lg overflow-hidden shadow-2xl blur-[1.5px]"
+                style={{
+                  transform: `rotate(${Math.random() * 6 - 3}deg)`,
+                  opacity: 0.6 + Math.random() * 0.4,
+                }}
+              >
+                <img
+                  src={covers[i % covers.length]}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Panel del popup */}
+      <Dialog.Panel className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-slide-down">
+        {/* Botón de cerrar */}
         <button
-          className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
-          onClick={() => setIsOpen(false)}
+          className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 transition-all duration-200 hover:rotate-90 shadow-lg"
+          onClick={handleClose}
+          aria-label="Cerrar"
         >
-          ✕
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
         </button>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">{t("title")}</h2>
-        <p className="text-gray-600 mb-4">{t("description")}</p>
-        <div className="flex justify-center gap-4">
-          <Link
-            href="/support/donations"
-            className="bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-800 transition"
-          >
-            {t("donateButton")}
-          </Link>
-          <Link
-            href="/order/abo"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-800 transition"
-          >
-            {t("subscribeButton")}
-          </Link>
+
+        {/* Sección superior con logo y decoración */}
+        <div className="bg-gradient-to-br from-red-600 to-red-700 p-8 relative overflow-hidden">
+          {/* Patrón decorativo de fondo */}
+          <div className="absolute inset-0 opacity-10">
+            <svg
+              className="w-full h-full"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <pattern
+                id="grid"
+                width="10"
+                height="10"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 10 0 L 0 0 0 10"
+                  fill="none"
+                  stroke="white"
+                  strokeWidth="0.5"
+                />
+              </pattern>
+              <rect width="100" height="100" fill="url(#grid)" />
+            </svg>
+          </div>
+
+          {/* Logo ila */}
+          <div className="relative flex justify-center mb-6">
+            <div className="bg-white w-16 h-16 flex items-center justify-center shadow-lg">
+              <span
+                className="text-5xl font-bold text-red-600"
+                style={{ fontFamily: "Futura, sans-serif" }}
+              >
+                ila
+              </span>
+            </div>
+          </div>
+
+          {/* Ilustración: Línea de vida del periodismo */}
+          <div className="relative flex justify-center items-center gap-3 mb-4">
+            <div className="flex items-center gap-2">
+              <svg
+                className="w-12 h-12 text-white animate-pulse"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+              <svg
+                className="w-10 h-10 text-white/80"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+              <svg
+                className="w-10 h-10 text-white/80"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Texto hero en blanco sobre rojo */}
+          <div className="relative text-center text-white">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">
+              {t("title")}
+            </h2>
+            <p className="text-lg md:text-xl font-light opacity-90">
+              {t("subtitle")}
+            </p>
+          </div>
+        </div>
+
+        {/* Contenido inferior */}
+        <div className="p-8 bg-white dark:bg-gray-900">
+          {/* Call to action */}
+          <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8 leading-tight">
+            {t("description")}
+          </p>
+
+          {/* Estadística impactante (opcional) */}
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8 text-center border-2 border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-center gap-8">
+              <div>
+                <div className="text-4xl font-bold text-red-600 dark:text-red-400">
+                  49
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+                  {t("years")}
+                </div>
+              </div>
+              <div className="h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div>
+                <div className="text-4xl font-bold text-red-600 dark:text-red-400">
+                  10x
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+                  {t("yearly")}
+                </div>
+              </div>
+              <div className="h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div>
+                <div className="text-4xl font-bold text-red-600 dark:text-red-400">
+                  100%
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-2">
+                  {t("independent")}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Botones mejorados */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/support/donations"
+              className="group relative px-8 py-4 bg-red-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-red-700 transition-all duration-200 hover:shadow-2xl hover:-translate-y-1 overflow-hidden"
+            >
+              <span className="relative z-10 flex items-center justify-center gap-3">
+                <svg
+                  className="w-6 h-6 group-hover:scale-110 transition-transform"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                {t("donateButton")}
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-700 via-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+            </Link>
+          </div>
+
+          {/* Mensaje de confianza */}
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+            Jede Spende hilft uns, unabhängigen Journalismus zu ermöglichen.
+          </p>
         </div>
       </Dialog.Panel>
     </Dialog>
   );
+}
+// Estilos CSS en línea
+const styles = `
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.5s ease-out;
+}
+`;
+
+if (typeof document !== "undefined") {
+  const styleSheet = document.createElement("style");
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
 }

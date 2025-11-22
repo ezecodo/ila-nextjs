@@ -561,10 +561,14 @@
     "noCredits": "Sin créditos"
   },
   "donationPopup": {
-    "title": "¡Apoya nuestro trabajo!",
-    "description": "Considera hacer una donación o suscribirte para seguir leyendo contenido de calidad.",
-    "donateButton": "Donar",
-    "subscribeButton": "Suscribirse"
+    "title": "Independiente, crítica, solidaria",
+    "subtitle": "pero lamentablemente no se imprime sola",
+    "description": "Ayúdanos a seguir siendo incómodxs.",
+    "donateButton": "Donar ahora",
+    "years": "años",
+    "yearly": "al año",
+    "independent": "independiente",
+    "trustMessage": "Cada donación nos ayuda a posibilitar el periodismo independiente."
   },
   "donation": {
     "title": "¡Apoya la ila!",
