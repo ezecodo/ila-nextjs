@@ -9,6 +9,15 @@ export async function GET(req) {
     const offset = (page - 1) * limit;
     const locale = searchParams.get("locale") || "de";
 
+    // ✅ Extraer filtros avanzados
+    const regionsFilter =
+      searchParams.get("regions")?.split(",").map(Number).filter(Boolean) || [];
+    const topicsFilter =
+      searchParams.get("topics")?.split(",").map(Number).filter(Boolean) || [];
+    const typesFilter =
+      searchParams.get("types")?.split(",").map(Number).filter(Boolean) || [];
+    const yearFilter = searchParams.get("year");
+
     if (!query || query.trim() === "") {
       return new Response(
         JSON.stringify({ error: "Se requiere un término de búsqueda" }),
@@ -18,61 +27,82 @@ export async function GET(req) {
 
     const searchQuery = query.trim();
 
-    let whereConditions;
+    // 🔨 Construir condiciones base según locale
+    let whereConditions = {
+      isPublished: true,
+    };
 
+    // Condiciones de búsqueda de texto según idioma
     if (locale === "es") {
-      whereConditions = {
-        isPublished: true,
-        isTranslatedES: true,
-        needsReviewES: false,
-        OR: [
-          // 🎯 Título en español
-          { titleES: { contains: searchQuery } },
-          // 🎯 Subtítulo en español
-          { subtitleES: { contains: searchQuery } },
-          // 🎯 Contenido en español
-          { contentES: { contains: searchQuery } },
-          // 👤 Autores
-          {
-            authors: {
-              some: { name: { contains: searchQuery } },
-            },
-          },
-          // 👤 Entrevistados
-          {
-            interviewees: {
-              some: { name: { contains: searchQuery } },
-            },
-          },
-        ],
-      };
+      whereConditions.isTranslatedES = true;
+      whereConditions.needsReviewES = false;
+      whereConditions.OR = [
+        { titleES: { contains: searchQuery } },
+        { subtitleES: { contains: searchQuery } },
+        { contentES: { contains: searchQuery } },
+        { authors: { some: { name: { contains: searchQuery } } } },
+        { interviewees: { some: { name: { contains: searchQuery } } } },
+      ];
     } else {
-      whereConditions = {
-        isPublished: true,
-        OR: [
-          // 🎯 Título en alemán
-          { title: { contains: searchQuery } },
-          // 🎯 Subtítulo en alemán
-          { subtitle: { contains: searchQuery } },
-          // 🎯 Contenido en alemán
-          { content: { contains: searchQuery } },
-          // 👤 Autores
-          {
-            authors: {
-              some: { name: { contains: searchQuery } },
-            },
-          },
-          // 👤 Entrevistados
-          {
-            interviewees: {
-              some: { name: { contains: searchQuery } },
-            },
-          },
-        ],
+      whereConditions.OR = [
+        { title: { contains: searchQuery } },
+        { subtitle: { contains: searchQuery } },
+        { content: { contains: searchQuery } },
+        { authors: { some: { name: { contains: searchQuery } } } },
+        { interviewees: { some: { name: { contains: searchQuery } } } },
+      ];
+    }
+
+    // ✅ Agregar filtros avanzados (se combinan con AND)
+    if (regionsFilter.length > 0) {
+      whereConditions.regions = {
+        some: { id: { in: regionsFilter } },
       };
     }
 
+    if (topicsFilter.length > 0) {
+      whereConditions.topics = {
+        some: { id: { in: topicsFilter } },
+      };
+    }
+
+    if (typesFilter.length > 0) {
+      whereConditions.beitragstypId = {
+        in: typesFilter,
+      };
+    }
+
+    if (yearFilter) {
+      const year = parseInt(yearFilter);
+      const startDate = new Date(`${year}-01-01`);
+      const endDate = new Date(`${year}-12-31`);
+
+      whereConditions.publicationDate = {
+        gte: startDate,
+        lte: endDate,
+      };
+
+      // ✅ LOG TEMPORAL: Ver fechas generadas
+      console.log("📅 Filtro de año aplicado:", {
+        year: yearFilter,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      });
+    }
+
     console.log("🔎 Búsqueda:", searchQuery, "Locale:", locale);
+    console.log("🔧 Filtros aplicados:", {
+      regions: regionsFilter,
+      topics: topicsFilter,
+      types: typesFilter,
+      year: yearFilter,
+    });
+
+    // ✅ LOG TEMPORAL: Ver condiciones completas
+    console.log(
+      "🔧 whereConditions:",
+      JSON.stringify(whereConditions, null, 2)
+    );
 
     // 📊 Buscar artículos
     const articles = await prisma.article.findMany({
@@ -90,6 +120,16 @@ export async function GET(req) {
         edition: { select: { title: true, number: true } },
       },
     });
+
+    // ✅ LOG TEMPORAL: Ver fechas de artículos encontrados
+    if (articles.length > 0) {
+      console.log("📰 Primeros 3 artículos encontrados con sus fechas:");
+      articles.slice(0, 3).forEach((article) => {
+        console.log(
+          `  - ${article.title?.substring(0, 50)}... → ${article.publicationDate}`
+        );
+      });
+    }
 
     // 📸 Agregar imágenes
     const articlesWithImages = await Promise.all(

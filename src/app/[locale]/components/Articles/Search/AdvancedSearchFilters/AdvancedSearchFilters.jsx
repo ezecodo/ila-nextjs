@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { FaChevronDown, FaChevronUp, FaTimes } from "react-icons/fa";
+import SearchableMultiSelect from "../AdvancedSearchFilters/SearchableMultiSelect";
 
 export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
   const t = useTranslations("search");
@@ -24,7 +25,7 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
     async function loadFilters() {
       try {
         const [regionsRes, topicsRes, typesRes] = await Promise.all([
-          fetch("/api/regions"),
+          fetch("/api/regions?leafOnly=true"), // ✅ Solo esta línea cambió
           fetch("/api/topics"),
           fetch("/api/beitragstypen"),
         ]);
@@ -35,8 +36,8 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
           typesRes.json(),
         ]);
 
-        setRegions(regionsData.slice(0, 10)); // Top 10
-        setTopics(topicsData.slice(0, 10));
+        setRegions(regionsData); // ✅ TODOS los datos
+        setTopics(topicsData); // ✅ TODOS los datos
         setTypes(typesData);
       } catch (error) {
         console.error("Error cargando filtros:", error);
@@ -94,7 +95,8 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
     selectedYear !== "";
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
+  // Últimos 50 años (hasta 1975)
+  const years = Array.from({ length: 50 }, (_, i) => currentYear - i);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md mb-6 overflow-hidden border border-gray-200 dark:border-gray-700">
@@ -207,23 +209,16 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
               🌎 {t("regions")}
             </h3>
-            <div className="flex flex-wrap gap-2">
-              {regions.map((region) => (
-                <button
-                  key={region.id}
-                  onClick={() => toggleRegion(region.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedRegions.includes(region.id)
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                  }`}
-                >
-                  {locale === "es" && region.nameES
-                    ? region.nameES
-                    : region.name}
-                </button>
-              ))}
-            </div>
+            <SearchableMultiSelect
+              options={regions}
+              selectedIds={selectedRegions}
+              onToggle={toggleRegion}
+              placeholder="Agregar regiones"
+              title="Seleccionar Regiones"
+              locale={locale}
+              icon="🌎"
+              color="blue"
+            />
           </div>
 
           {/* Temas */}
@@ -231,21 +226,16 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
               🏷️ {t("topics")}
             </h3>
-            <div className="flex flex-wrap gap-2">
-              {topics.map((topic) => (
-                <button
-                  key={topic.id}
-                  onClick={() => toggleTopic(topic.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedTopics.includes(topic.id)
-                      ? "bg-green-600 text-white shadow-md"
-                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20"
-                  }`}
-                >
-                  {locale === "es" && topic.nameES ? topic.nameES : topic.name}
-                </button>
-              ))}
-            </div>
+            <SearchableMultiSelect
+              options={topics}
+              selectedIds={selectedTopics}
+              onToggle={toggleTopic}
+              placeholder="Agregar temas"
+              title="Seleccionar Temas"
+              locale={locale}
+              icon="🏷️"
+              color="green"
+            />
           </div>
 
           {/* Tipos */}

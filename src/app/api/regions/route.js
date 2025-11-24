@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
+import { prisma } from "@/lib/prisma";
 
 /**
  * Construye un árbol de regiones a partir de datos planos
@@ -65,14 +65,45 @@ export async function GET(req) {
   try {
     const url = new URL(req.url);
     const search = url.searchParams.get("search") || "";
+    const leafOnly = url.searchParams.get("leafOnly") === "true"; // ✅ NUEVO parámetro opcional
 
-    console.log("Parámetro de búsqueda recibido:", search);
+    console.log(
+      "Parámetro de búsqueda recibido:",
+      search,
+      "leafOnly:",
+      leafOnly
+    );
 
     // Consulta todas las regiones
     const regions = await prisma.region.findMany();
-    console.log("Regiones encontradas:", regions);
+    console.log("Regiones encontradas:", regions.length);
 
-    // Identificar las regiones que coinciden con el filtro
+    // ✅ NUEVO: Si leafOnly=true, devolver solo regiones sin hijos (lista plana)
+    if (leafOnly) {
+      // Identificar regiones que NO tienen hijos (regiones "hoja")
+      const leafRegions = regions.filter((region) => {
+        const hasChildren = regions.some((r) => r.parentId === region.id);
+        return !hasChildren;
+      });
+
+      // Filtrar por búsqueda si existe
+      let filteredLeafs = leafRegions;
+      if (search) {
+        filteredLeafs = leafRegions.filter(
+          (region) =>
+            region.name.toLowerCase().includes(search.toLowerCase()) ||
+            (region.nameES &&
+              region.nameES.toLowerCase().includes(search.toLowerCase()))
+        );
+      }
+
+      console.log("Regiones hoja devueltas:", filteredLeafs.length);
+
+      // Devolver lista plana simple
+      return NextResponse.json(filteredLeafs, { status: 200 });
+    }
+
+    // ✅ COMPORTAMIENTO ORIGINAL (sin cambios) - Devolver árbol jerárquico
     const filteredIds = regions
       .filter((region) =>
         region.name.toLowerCase().includes(search.toLowerCase())
@@ -98,7 +129,7 @@ export async function GET(req) {
   }
 }
 
-// ✅ POST para crear nueva región
+// ✅ POST sin cambios
 export async function POST(req) {
   try {
     const body = await req.json();
