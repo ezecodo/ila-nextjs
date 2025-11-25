@@ -110,7 +110,7 @@ export default function DonationPopup({ articleId }) {
         </button>
 
         {/* Sección superior con logo y decoración */}
-        <div className="bg-gradient-to-br from-red-600 to-red-700 p-4 sm:p-8 relative overflow-hidden">
+        <div className="bg-gradient-to-br from-red-600 to-red-700 p-4 sm:p-8 pb-8 sm:pb-10 relative">
           {/* Patrón decorativo de fondo */}
           <div className="absolute inset-0 opacity-10">
             <svg
@@ -187,13 +187,30 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Texto hero en blanco sobre rojo */}
-          <div className="relative text-center text-white">
+          <div className="relative text-center text-white mb-6">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 leading-tight">
               {t("title")}
             </h2>
             <p className="text-base sm:text-lg md:text-xl font-light opacity-90">
               {t("subtitle")}
             </p>
+          </div>
+
+          {/* ✅ ONDA SUAVE */}
+          <div
+            className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]"
+            style={{ height: "40px" }}
+          >
+            <svg
+              viewBox="0 0 1200 120"
+              preserveAspectRatio="none"
+              className="relative block w-full h-full"
+            >
+              <path
+                d="M0,50 C150,20 300,80 450,50 C600,20 750,80 900,50 C1050,20 1150,50 1200,40 L1200,120 L0,120 Z"
+                className="fill-white dark:fill-gray-900"
+              />
+            </svg>
           </div>
         </div>
 
