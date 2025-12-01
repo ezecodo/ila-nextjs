@@ -930,17 +930,6 @@ export default function NewArticlePage() {
               onChange={(e) => setMediaTitle(e.target.value)}
               placeholder={t("bookTitlePlaceholder")}
             />
-            <div className={styles.formGroup}>
-              <label htmlFor="bookImage" className={styles.formLabel}>
-                {t("bookImage")}
-              </label>
-              <input
-                type="file"
-                id="bookImage"
-                accept="image/*"
-                onChange={(e) => setBookImage(e.target.files[0])}
-              />
-            </div>
           </div>
         )}
 

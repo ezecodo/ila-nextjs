@@ -192,7 +192,11 @@ export async function POST(request) {
         additionalInfo: additionalInfo || null,
         legacyPath: finalLegacyPath, // 👈 guardamos la URL SEO
         beitragstypId: parseInt(beitragstypId, 10),
+        beitragssubtypId: formData.get("beitragssubtypId")
+          ? parseInt(formData.get("beitragssubtypId"), 10)
+          : null,
         isInPrintEdition: isPrinted,
+        mediaTitle: formData.get("mediaTitle") || null,
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         isPublished: isPublished,
         publicationDate: publicationDate

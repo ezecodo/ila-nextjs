@@ -458,6 +458,7 @@ export async function PUT(req, context) {
         beitragssubtypId: beitragssubtypId
           ? parseInt(beitragssubtypId, 10)
           : null,
+        mediaTitle: formData.get("mediaTitle") || null,
         categories: categories.length
           ? { set: categories.map((id) => ({ id: parseInt(id, 10) })) }
           : undefined,

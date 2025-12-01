@@ -73,7 +73,7 @@ export default function EditArticlePage() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [regions, setRegions] = useState([]); // Cambia el estado a un array
   const [topics, setTopics] = useState([]); // Cambia el estado a un array
-  const [bookImage, setBookImage] = useState(null); // Imagen del libro
+
   const [mediaTitle, setMediaTitle] = useState(""); // Título completo del libro
 
   const [gallery, setGallery] = useState([]);
@@ -532,7 +532,6 @@ export default function EditArticlePage() {
       formData.append("endPage", endPage);
     }
     if (isBuchBesprechung) {
-      formData.append("bookImage", bookImage);
       formData.append("mediaTitle", mediaTitle);
     }
 
@@ -887,6 +886,7 @@ export default function EditArticlePage() {
         />
 
         {/* BUCHBESPRECHUNG (Detalles de libro) */}
+        {/* BUCHBESPRECHUNG (Detalles de libro) */}
         {isBuchBesprechung && (
           <div>
             <h3>{t("bookDetailsTitle")}</h3>
@@ -897,17 +897,6 @@ export default function EditArticlePage() {
               onChange={(e) => setMediaTitle(e.target.value)}
               placeholder={t("bookTitlePlaceholder")}
             />
-            <div className={styles.formGroup}>
-              <label htmlFor="bookImage" className={styles.formLabel}>
-                {t("bookImage")}
-              </label>
-              <input
-                type="file"
-                id="bookImage"
-                accept="image/*"
-                onChange={(e) => setBookImage(e.target.files[0])}
-              />
-            </div>
           </div>
         )}
 
