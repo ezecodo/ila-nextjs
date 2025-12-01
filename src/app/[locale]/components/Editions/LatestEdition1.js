@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-
+import { useSwipeable } from "react-swipeable";
 import Image from "next/image";
 import Link from "next/link";
 import DonationBanner from "../DonationBanner/DonationBanner";
@@ -39,6 +39,7 @@ export default function LatestEditionWithArticles() {
   const popoverRef = useRef(null);
 
   const currentEdition = editions[currentEditionIndex];
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // ✅ Función helper para actualizar la URL
   const updateEditionInURL = (index) => {
@@ -48,7 +49,17 @@ export default function LatestEditionWithArticles() {
       router.replace(`?${params.toString()}`, { scroll: false });
     }
   };
+  // ✅ Función para cambiar de edición con animación
+  const changeEdition = (newIndex) => {
+    if (newIndex < 0 || newIndex >= editions.length) return;
+    if (isTransitioning) return;
 
+    setIsTransitioning(true);
+    setCurrentEditionIndex(newIndex);
+    updateEditionInURL(newIndex);
+
+    setTimeout(() => setIsTransitioning(false), 800);
+  };
   useEffect(() => {
     async function fetchAllEditions() {
       try {
@@ -229,6 +240,40 @@ export default function LatestEditionWithArticles() {
       }
     }
   }, [searchParams, editions]);
+  // ✅ Navegación con teclado
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft" && currentEditionIndex > 0) {
+        e.preventDefault();
+        changeEdition(currentEditionIndex - 1);
+      } else if (
+        e.key === "ArrowRight" &&
+        currentEditionIndex < editions.length - 1
+      ) {
+        e.preventDefault();
+        changeEdition(currentEditionIndex + 1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentEditionIndex, editions.length, isTransitioning]);
+
+  // ✅ Swipe handlers
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (currentEditionIndex > 0) {
+        changeEdition(currentEditionIndex - 1);
+      }
+    },
+    onSwipedRight: () => {
+      if (currentEditionIndex < editions.length - 1) {
+        changeEdition(currentEditionIndex + 1);
+      }
+    },
+    trackMouse: true,
+    preventScrollOnSwipe: true,
+  });
   return (
     <>
       <div className="max-w-7xl mx-auto px-0 sm:px-6 pb-16">
@@ -241,11 +286,7 @@ export default function LatestEditionWithArticles() {
                     <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
                       {currentEditionIndex < editions.length - 1 && (
                         <PrevArrow
-                          onClick={() => {
-                            const newIndex = currentEditionIndex + 1;
-                            setCurrentEditionIndex(newIndex);
-                            updateEditionInURL(newIndex); // ✅ Actualizar URL
-                          }}
+                          onClick={() => changeEdition(currentEditionIndex + 1)}
                         />
                       )}
                     </div>
@@ -329,8 +370,7 @@ export default function LatestEditionWithArticles() {
                                     );
                                   }
                                   if (targetIdx != null && targetIdx >= 0) {
-                                    setCurrentEditionIndex(targetIdx);
-                                    updateEditionInURL(targetIdx); // ✅ Actualizar URL
+                                    changeEdition(targetIdx);
                                     router.push(
                                       `/editions/${editions[targetIdx].id}`
                                     );
@@ -392,8 +432,7 @@ export default function LatestEditionWithArticles() {
                                         : "",
                                     ].join(" ")}
                                     onClick={() => {
-                                      setCurrentEditionIndex(idx);
-                                      updateEditionInURL(idx); // ✅ Actualizar URL
+                                      changeEdition(idx);
                                       setShowNumberPicker(false);
                                     }}
                                     title={
@@ -434,30 +473,61 @@ export default function LatestEditionWithArticles() {
                     <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
                       {currentEditionIndex > 0 && (
                         <NextArrow
-                          onClick={() => {
-                            const newIndex = currentEditionIndex - 1;
-                            setCurrentEditionIndex(newIndex);
-                            updateEditionInURL(newIndex); // ✅ Actualizar URL
-                          }}
+                          onClick={() => changeEdition(currentEditionIndex - 1)}
                         />
                       )}
                     </div>
                   </div>
                 </div>
 
-                <Link
-                  href={`/editions/${currentEdition.id}`}
-                  className="relative w-full cursor-pointer block group"
+                <div
+                  {...swipeHandlers}
+                  className="relative w-full overflow-hidden"
                 >
-                  <Image
-                    src={currentEdition.coverImage}
-                    alt={`Portada de ${currentEdition.title}`}
-                    width={300}
-                    height={400}
-                    className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
-                    priority
-                  />
-                </Link>
+                  <div
+                    key={currentEdition.id}
+                    className={`transition-all duration-600 ease-in-out ${
+                      isTransitioning ? "opacity-0" : "opacity-100"
+                    }`}
+                  >
+                    <Link
+                      href={`/editions/${currentEdition.id}`}
+                      className="relative w-full cursor-pointer block group"
+                    >
+                      <Image
+                        src={currentEdition.coverImage}
+                        alt={`Portada de ${currentEdition.title}`}
+                        width={300}
+                        height={400}
+                        className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
+                        priority
+                      />
+                    </Link>
+                  </div>
+
+                  {/* Indicadores de swipe */}
+                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 pointer-events-none">
+                    {editions
+                      .slice(
+                        Math.max(0, currentEditionIndex - 2),
+                        Math.min(editions.length, currentEditionIndex + 3)
+                      )
+                      .map((_, idx) => {
+                        const actualIdx =
+                          Math.max(0, currentEditionIndex - 2) + idx;
+                        return (
+                          <div
+                            key={actualIdx}
+                            className={`h-1 rounded-full transition-all duration-300 ${
+                              actualIdx === currentEditionIndex
+                                ? "w-8 bg-red-600"
+                                : "w-2 bg-gray-400 dark:bg-gray-600"
+                            }`}
+                          />
+                        );
+                      })}
+                  </div>
+                </div>
 
                 <EntityBadges
                   regions={currentEdition.regions.map((region) => ({
@@ -489,14 +559,20 @@ export default function LatestEditionWithArticles() {
 
             <div className="w-full lg:w-2/3 flex flex-col gap-6">
               {/* Desktop */}
+              {/* Desktop */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
                 {loading ? (
                   <div className="col-span-2 flex items-center justify-center min-h-[400px]">
                     <IlaLoader />
                   </div>
                 ) : desktopArticles.length > 0 ? (
-                  desktopArticles.map((article) => (
-                    <MiniArticleCardGrid key={article.id} article={article} />
+                  desktopArticles.map((article, idx) => (
+                    <MiniArticleCardGrid
+                      key={article.id}
+                      article={article}
+                      delay={idx * 200}
+                      isTransitioning={isTransitioning}
+                    />
                   ))
                 ) : locale === "es" ? (
                   <NoArticlesAvailable edition={currentEdition} />
@@ -508,12 +584,16 @@ export default function LatestEditionWithArticles() {
               </div>
 
               {/* Mobile */}
+              {/* Mobile */}
               <div className="block lg:hidden w-full mt-0">
                 {mobileArticles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
                     {mobileArticles.map((article) => (
                       <div key={article.id} className="w-full">
-                        <MiniArticleCardGrid article={article} />
+                        <MiniArticleCardGrid
+                          article={article}
+                          isTransitioning={isTransitioning}
+                        />
                       </div>
                     ))}
                   </Slider>

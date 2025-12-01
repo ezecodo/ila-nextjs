@@ -13,7 +13,11 @@ const stripHTML = (html) => {
     .trim();
 };
 
-export default function MiniArticleCardGrid({ article }) {
+export default function MiniArticleCardGrid({
+  article,
+  delay = 0,
+  isTransitioning = false,
+}) {
   const locale = useLocale();
   const t = useTranslations("article");
   const isES = locale === "es" && article.isTranslatedES;
@@ -114,7 +118,14 @@ export default function MiniArticleCardGrid({ article }) {
     );
 
   return (
-    <div className="w-full rounded-md bg-white dark:bg-gray-800 shadow-sm dark:shadow-md mb-8">
+    <div
+      className={`w-full rounded-md bg-white dark:bg-gray-800 shadow-sm dark:shadow-md mb-8 transition-all duration-1200 ease-in-out ${
+        isTransitioning ? "opacity-0" : "opacity-100"
+      }`}
+      style={{
+        transitionDelay: isTransitioning ? "0ms" : `${delay + 600}ms`,
+      }}
+    >
       {/* Imagen */}
       {hasImage ? (
         <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t">

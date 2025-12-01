@@ -464,6 +464,7 @@
       "publishToggle": "Publicar ahora",
       "schedulePublishToggle": "Programar publicación (futuro)",
       "useCustomDateToggle": "Editar fecha del artículo (pasado o futuro)",
+      "bookImageNote": "Nota: La imagen del libro solo se usa para reseñas de libros.",
 
       "scheduleDate": "Fecha de Publicación",
       "nachrufTitle": "Detalles de la necrología",

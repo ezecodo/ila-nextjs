@@ -579,7 +579,7 @@ export default function NewArticlePage() {
 
     // 📅 Publicación automática
     let finalDate = publicationDate;
-    let finalIsPublished = false;
+    let finalIsPublished = true;
 
     if (!useCustomDate) {
       finalDate = new Date(); // se publica ahora

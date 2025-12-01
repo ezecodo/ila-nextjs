@@ -376,7 +376,7 @@ export default function LegacyArticlePage() {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4 items-center">
             <EntityBadges
               categories={article.categories}
               regions={article.regions}
@@ -384,7 +384,22 @@ export default function LegacyArticlePage() {
               locale={locale}
             />
           </div>
-
+          {/* Tipo de artículo - discreto */}
+          {article.beitragstyp && (
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium mb-2">
+              {locale === "es" && article.beitragstyp.nameES
+                ? article.beitragstyp.nameES
+                : article.beitragstyp.name}
+              {article.beitragssubtyp && (
+                <>
+                  <span className="mx-1.5">→</span>
+                  {locale === "es" && article.beitragssubtyp.nameES
+                    ? article.beitragssubtyp.nameES
+                    : article.beitragssubtyp.name}
+                </>
+              )}
+            </p>
+          )}
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:gap-6 text-sm text-gray-700 dark:text-gray-300">
             {/* EDICIÓN */}
             {article.edition && article.edition.id && (

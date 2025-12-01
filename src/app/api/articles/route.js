@@ -127,24 +127,13 @@ export async function POST(request) {
     const endPage = formData.get("endPage");
     const publicationDateRaw = formData.get("publicationDate");
 
-    // 🧠 Nueva lógica de publicación
+    // 🧠 Usar el isPublished que viene del frontend
+    const isPublishedFromFrontend = formData.get("isPublished");
+    let isPublished = isPublishedFromFrontend === "true";
+
     let publicationDate = publicationDateRaw
       ? new Date(publicationDateRaw)
       : new Date();
-
-    let isPublished = false;
-    const now = new Date();
-
-    if (!publicationDateRaw) {
-      // No hay fecha → publicar ahora
-      isPublished = true;
-    } else if (publicationDate <= now) {
-      // Fecha pasada o igual → ya publicado
-      isPublished = true;
-    } else {
-      // Fecha futura → programado
-      isPublished = false;
-    }
     const categories = JSON.parse(formData.get("categories") || "[]");
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
