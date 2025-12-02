@@ -754,6 +754,12 @@
     "termsCheckbox": "Ich akzeptiere die <a href='/agb' target='_blank' class='text-red-600 underline'>Allgemeinen Geschäftsbedingungen</a>.",
     "withdrawalCheckbox": "Ich bestätige, dass ich über mein Widerrufsrecht informiert wurde.",
     "privacyCheckbox": "Ich willige in die Verarbeitung meiner personenbezogenen Daten gemäß der <a href='/datenschutz' target='_blank' class='text-red-600 underline'>Datenschutzerklärung</a> ein.",
+    "promo": {
+      "title": "Sonderaktion bis Jahresende",
+      "gift": "Die ila schenkt dir 3 Monate zum Weiterverschenken.",
+      "conditions": "Schließe bis 31. Dezember ein Jahresabo ab (Normal- oder Förderabo) und bekomme 3 Monate Probeabo für eine*n Freund*in gratis dazu.",
+      "deadline": "Gültig bis 31. Dezember 2025"
+    },
 
     "details": {
       "normal_pdf": {

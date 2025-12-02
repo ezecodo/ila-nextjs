@@ -752,6 +752,12 @@
     "termsCheckbox": "Acepto los <a href='/agb' target='_blank' class='text-red-600 underline'>Términos y Condiciones</a>.",
     "withdrawalCheckbox": "Confirmo que he sido informado sobre mi derecho de desistimiento.",
     "privacyCheckbox": "Doy mi consentimiento para el tratamiento de mis datos personales conforme a la <a href='/datenschutz' target='_blank' class='text-red-600 underline'>política de privacidad</a>.",
+    "promo": {
+      "title": "Oferta especial de fin de año",
+      "gift": "La ila te regala 3 meses para que los puedas obsequiar.",
+      "conditions": "Si contratas una suscripción anual (normal o de apoyo) antes del 31 de diciembre, recibirás 3 meses de suscripción de prueba gratis para unx amigx.",
+      "deadline": "Válido hasta el 31 de diciembre de 2025"
+    },
 
     "details": {
       "normal_pdf": {
