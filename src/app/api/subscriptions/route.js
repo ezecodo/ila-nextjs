@@ -51,6 +51,13 @@ export async function POST(req) {
         giftRecipientCountry: data.giftRecipientCountry || null,
         giftDelivery: isGift ? data.giftDelivery || "to_payer" : null,
         giftSubscriptionDuration,
+        // 🎁 Promo de fin de año: regalo adicional de 3 meses
+        promoGiftRecipientName: data.promoGiftRecipientName || null,
+        promoGiftRecipientEmail: data.promoGiftRecipientEmail || null,
+        promoGiftRecipientStreet: data.promoGiftRecipientStreet || null,
+        promoGiftRecipientZip: data.promoGiftRecipientZip || null,
+        promoGiftRecipientCity: data.promoGiftRecipientCity || null,
+        promoGiftRecipientCountry: data.promoGiftRecipientCountry || null,
         giftId: data.giftId || null,
         termsAccepted: data.termsAccepted,
         withdrawalAccepted: data.withdrawalAccepted,

@@ -363,6 +363,48 @@ export default function SubscriptionsPage() {
                     </div>
                   </div>
                 )}
+
+                {/* 🎁 Regalo Promocional de Diciembre */}
+                {(selectedSub.promoGiftRecipientName ||
+                  selectedSub.promoGiftRecipientStreet) && (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-6">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                      🎁 {t("promoGiftRecipient")}
+                      <span className="text-xs font-normal text-gray-500 bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded">
+                        Promo Diciembre 2025
+                      </span>
+                    </h3>
+
+                    <div className="space-y-2 bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                      <p>
+                        <span className="font-semibold">
+                          {t("giftRecipientName")}:
+                        </span>{" "}
+                        {selectedSub.promoGiftRecipientName}
+                      </p>
+
+                      {selectedSub.promoGiftRecipientEmail && (
+                        <p>
+                          <span className="font-semibold">
+                            {t("giftRecipientEmail")}:
+                          </span>{" "}
+                          {selectedSub.promoGiftRecipientEmail}
+                        </p>
+                      )}
+
+                      <p>
+                        <span className="font-semibold">
+                          {t("giftRecipientAddress")}:
+                        </span>{" "}
+                        {selectedSub.promoGiftRecipientStreet},{" "}
+                        {selectedSub.promoGiftRecipientZip}{" "}
+                        {selectedSub.promoGiftRecipientCity},{" "}
+                        {selectedSub.promoGiftRecipientCountry}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Estado de procesamiento */}
                 <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-4 text-right">
                   {selectedSub.isNew ? (

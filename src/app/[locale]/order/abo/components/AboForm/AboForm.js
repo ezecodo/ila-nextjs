@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import GiftSelector from "./GiftSelector";
 import TermsCheckboxes from "./TermsCheckboxes";
-
+import PromoGiftForm, { PromoBanner } from "../PromoForm/PromoGiftSection";
 function InfoBox({ children }) {
   return (
     <div className="rounded-xl border-l-4 border-red-500 bg-gradient-to-r from-red-50 to-red-50/50 dark:from-red-900/20 dark:to-red-900/10 p-5 text-red-900 dark:text-red-100 whitespace-pre-line text-sm sm:text-base shadow-sm">
@@ -99,6 +99,13 @@ export default function AboForm({ gifts }) {
     termsAccepted: false,
     withdrawalAccepted: false,
     dataConsentAccepted: false,
+    promoGiftEnabled: false,
+    promoGiftRecipientName: "",
+    promoGiftRecipientEmail: "",
+    promoGiftRecipientStreet: "",
+    promoGiftRecipientZip: "",
+    promoGiftRecipientCity: "",
+    promoGiftRecipientCountry: "Deutschland",
   });
 
   const [supporterOpen, setSupporterOpen] = useState(false);
@@ -166,6 +173,17 @@ export default function AboForm({ gifts }) {
     ) {
       return false;
     }
+    // Validar datos del Probe Abo de promoción
+    if (form.promoGiftEnabled) {
+      if (
+        !form.promoGiftRecipientName ||
+        !form.promoGiftRecipientStreet ||
+        !form.promoGiftRecipientZip ||
+        !form.promoGiftRecipientCity
+      ) {
+        return false;
+      }
+    }
     return true;
   }, [form, donationError]);
 
@@ -220,6 +238,13 @@ export default function AboForm({ gifts }) {
         termsAccepted: false,
         withdrawalAccepted: false,
         dataConsentAccepted: false,
+        promoGiftEnabled: false,
+        promoGiftRecipientName: "",
+        promoGiftRecipientEmail: "",
+        promoGiftRecipientStreet: "",
+        promoGiftRecipientZip: "",
+        promoGiftRecipientCity: "",
+        promoGiftRecipientCountry: "Deutschland",
       });
       setSupporterOpen(false);
       setDonationError("");
@@ -366,6 +391,11 @@ export default function AboForm({ gifts }) {
         )}
       </Card>
 
+      {/* 🎁 Banner Promocional */}
+      {(form.type === "NORMAL" || form.type === "SUPPORTER") && <PromoBanner />}
+
+      {/* 🎁 Formulario de Probe Abo */}
+      <PromoGiftForm form={form} handleChange={handleChange} />
       {/* Info dinámica */}
       {form.type === "NORMAL_PDF" && (
         <InfoBox>

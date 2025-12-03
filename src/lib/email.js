@@ -15,9 +15,9 @@ export async function sendVerificationEmail(email, token) {
     const response = await resend.emails.send({
       from: "no-reply@ila-web.de", // 🚨 Asegúrate de que esta es una dirección válida del dominio verificado
       to: email,
-      subject: "Verifica tu cuenta en ILA",
+      subject: "Verifica tu cuenta en ila",
       html: `
-          <h2>¡Bienvenido a ILA!</h2>
+          <h2>¡Bienvenido a ila</h2>
           <p>Por favor, verifica tu cuenta haciendo clic en el siguiente enlace:</p>
           <a href="${confirmUrl}" target="_blank">Verificar cuenta</a>
         `,
@@ -41,7 +41,7 @@ export async function sendPasswordResetEmail(email, token) {
     const response = await resend.emails.send({
       from: "no-reply@ila-web.de", // 🚨 Misma dirección verificada
       to: email,
-      subject: "Recupera tu contraseña en ILA",
+      subject: "Recupera tu contraseña en ila",
       html: `
           <h2>Restablecer tu contraseña</h2>
           <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p>
@@ -69,9 +69,9 @@ export async function sendAdminInvitationEmail(email, token) {
     const response = await resend.emails.send({
       from: "no-reply@ila-web.de",
       to: email,
-      subject: "Invitación para ser Administrador en ILA",
+      subject: "Invitación para ser Administrador en ila",
       html: `
-            <h2>Te han invitado como Administrador en ILA</h2>
+            <h2>Te han invitado como Administrador en ila</h2>
             <p>Haz clic en el siguiente enlace para registrarte como Administrador:</p>
             <a href="${inviteUrl}" target="_blank" 
                style="display: inline-block; padding: 10px 20px; background-color: #007bff; 
@@ -100,7 +100,7 @@ export async function sendSubscriptionConfirmationEmail(subscription) {
 
   const subject = isGerman
     ? "Danke für dein ila-Abo"
-    : "Gracias por tu suscripción a ILA";
+    : "Gracias por tu suscripción a ila";
 
   const html = isGerman
     ? `
@@ -116,12 +116,57 @@ export async function sendSubscriptionConfirmationEmail(subscription) {
         ${subscription.gift ? `<li><strong>Prämie:</strong> ${subscription.gift.name}</li>` : ""}
       </ul>
 
-      <h3 style="margin-top:25px;">📍 Adresse</h3>
+    <h3 style="margin-top:25px;">📍 Adresse</h3>
       <p>
         ${subscription.street}<br>
         ${subscription.zip} ${subscription.city}<br>
         ${subscription.country}
       </p>
+
+      ${
+        subscription.isGift && subscription.giftRecipientName
+          ? `
+      <div style="margin-top:30px;padding:20px;background:#f0f9ff;border-left:4px solid #3b82f6;border-radius:5px;">
+        <h3 style="color:#3b82f6;margin-top:0;">🎁 Geschenkempfänger des Abos</h3>
+        <p style="margin-bottom:5px;">Du hast dieses Abo verschenkt an:</p>
+        <p style="margin:0;padding-left:15px;">
+          ${subscription.giftRecipientName}<br>
+          ${subscription.giftRecipientEmail ? `${subscription.giftRecipientEmail}<br>` : ""}
+          ${subscription.giftRecipientStreet}<br>
+          ${subscription.giftRecipientZip} ${subscription.giftRecipientCity}<br>
+          ${subscription.giftRecipientCountry}
+        </p>
+        <p style="margin-top:10px;font-size:14px;color:#666;">
+          Dauer: ${subscription.giftSubscriptionDuration === "ONE_YEAR" ? "1 Jahr" : "Bis zur Kündigung"}
+        </p>
+      </div>
+      `
+          : ""
+      }
+
+      ${
+        subscription.promoGiftRecipientName
+          ? `
+      <div style="margin-top:30px;padding:20px;background:#fff5f5;border-left:4px solid #c21f2e;border-radius:5px;">
+        <h3 style="color:#c21f2e;margin-top:0;">🎁 Dein Geschenk-Abo (Promo Dezember 2025)</h3>
+        <p style="margin-bottom:10px;">Als Dankeschön für dein Abo schenken wir dir ein <strong>3-monatiges Probe-Abo</strong> zum Weiterverschenken!</p>
+        
+        <p style="margin-bottom:5px;"><strong>Empfänger des Geschenk-Abos:</strong></p>
+        <p style="margin:0;padding-left:15px;">
+          ${subscription.promoGiftRecipientName}<br>
+          ${subscription.promoGiftRecipientEmail ? `${subscription.promoGiftRecipientEmail}<br>` : ""}
+          ${subscription.promoGiftRecipientStreet}<br>
+          ${subscription.promoGiftRecipientZip} ${subscription.promoGiftRecipientCity}<br>
+          ${subscription.promoGiftRecipientCountry}
+        </p>
+        
+        <p style="margin-top:15px;font-size:14px;color:#666;">
+          ℹ️ Das Probe-Abo läuft 3 Monate und endet automatisch.
+        </p>
+      </div>
+      `
+          : ""
+      }
 
       <p style="margin-top:30px;">Herzliche Grüße,<br>das ila-Team<br>
       <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
@@ -129,9 +174,9 @@ export async function sendSubscriptionConfirmationEmail(subscription) {
   `
     : `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width:600px; margin:auto;">
-      <h2 style="color:#c21f2e;">¡Gracias por tu suscripción a ILA!</h2>
+      <h2 style="color:#c21f2e;">¡Gracias por tu suscripción a ila!</h2>
       <p>Hola <strong>${subscription.firstName} ${subscription.lastName}</strong>,</p>
-      <p>Hemos recibido correctamente tu suscripción a la revista <strong>ILA</strong>. En breve alguien de nuestro equipo se pondrá en contacto contigo para confirmar los detalles.</p>
+      <p>Hemos recibido correctamente tu suscripción a la revista <strong>ila</strong>. En breve alguien de nuestro equipo se pondrá en contacto contigo para confirmar los detalles.</p>
 
       <h3 style="margin-top:25px;">📰 Detalles de tu suscripción</h3>
       <ul style="padding-left:18px;">
@@ -140,14 +185,59 @@ export async function sendSubscriptionConfirmationEmail(subscription) {
         ${subscription.gift ? `<li><strong>Regalo:</strong> ${subscription.gift.name}</li>` : ""}
       </ul>
 
-      <h3 style="margin-top:25px;">📍 Dirección</h3>
+   <h3 style="margin-top:25px;">📍 Dirección</h3>
       <p>
         ${subscription.street}<br>
         ${subscription.zip} ${subscription.city}<br>
         ${subscription.country}
       </p>
 
-      <p style="margin-top:30px;">Un cordial saludo,<br>El equipo de ILA<br>
+      ${
+        subscription.isGift && subscription.giftRecipientName
+          ? `
+      <div style="margin-top:30px;padding:20px;background:#f0f9ff;border-left:4px solid #3b82f6;border-radius:5px;">
+        <h3 style="color:#3b82f6;margin-top:0;">🎁 Destinatario del Abo (Regalo)</h3>
+        <p style="margin-bottom:5px;">Has elegido regalar este Abo a:</p>
+        <p style="margin:0;padding-left:15px;">
+          ${subscription.giftRecipientName}<br>
+          ${subscription.giftRecipientEmail ? `${subscription.giftRecipientEmail}<br>` : ""}
+          ${subscription.giftRecipientStreet}<br>
+          ${subscription.giftRecipientZip} ${subscription.giftRecipientCity}<br>
+          ${subscription.giftRecipientCountry}
+        </p>
+        <p style="margin-top:10px;font-size:14px;color:#666;">
+          Duración: ${subscription.giftSubscriptionDuration === "ONE_YEAR" ? "1 año" : "Hasta cancelación"}
+        </p>
+      </div>
+      `
+          : ""
+      }
+
+      ${
+        subscription.promoGiftRecipientName
+          ? `
+      <div style="margin-top:30px;padding:20px;background:#fff5f5;border-left:4px solid #c21f2e;border-radius:5px;">
+        <h3 style="color:#c21f2e;margin-top:0;">🎁 Tu Abo de regalo (Promo Diciembre 2025)</h3>
+        <p style="margin-bottom:10px;">¡Como agradecimiento por tu suscripción, te regalamos un <strong>Abo de prueba de 3 meses</strong> para que lo obsequies!</p>
+        
+        <p style="margin-bottom:5px;"><strong>Destinatario del Abo de regalo:</strong></p>
+        <p style="margin:0;padding-left:15px;">
+          ${subscription.promoGiftRecipientName}<br>
+          ${subscription.promoGiftRecipientEmail ? `${subscription.promoGiftRecipientEmail}<br>` : ""}
+          ${subscription.promoGiftRecipientStreet}<br>
+          ${subscription.promoGiftRecipientZip} ${subscription.promoGiftRecipientCity}<br>
+          ${subscription.promoGiftRecipientCountry}
+        </p>
+        
+        <p style="margin-top:15px;font-size:14px;color:#666;">
+          ℹ️ El Abo de prueba dura 3 meses y finaliza automáticamente.
+        </p>
+      </div>
+      `
+          : ""
+      }
+
+      <p style="margin-top:30px;">Un cordial saludo,<br>El equipo de ila<br>
       <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
     </div>
   `;
@@ -175,7 +265,7 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
 
   const subject = isGerman
     ? "Danke für deine ila-Bestellung"
-    : "Gracias por tu pedido de Dossiers ILA";
+    : "Gracias por tu pedido de Dossiers de ila";
 
   // 🧾 Obtenemos el pedido completo con ediciones
   const fullOrder = await prisma.order.findUnique({
@@ -264,7 +354,7 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
           ${fullOrder.country}
         </p>
 
-        <p style="margin-top:30px;">Un cordial saludo,<br>El equipo de ILA<br>
+        <p style="margin-top:30px;">Un cordial saludo,<br>El equipo de ila<br>
         <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
       </div>
     `;

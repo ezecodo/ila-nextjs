@@ -191,6 +191,13 @@ model Subscription {
 
   giftId              String?
   gift                Gift?          @relation(fields: [giftId], references: [id])
+   // 🎁 Campos para la promo de fin de año (regalo adicional de 3 meses)
+  promoGiftRecipientName    String?
+  promoGiftRecipientEmail   String?
+  promoGiftRecipientStreet  String?
+  promoGiftRecipientZip     String?
+  promoGiftRecipientCity    String?
+  promoGiftRecipientCountry String?
 
   termsAccepted       Boolean
   withdrawalAccepted  Boolean
