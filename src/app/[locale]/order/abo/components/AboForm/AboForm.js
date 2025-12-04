@@ -501,9 +501,9 @@ export default function AboForm({ gifts }) {
                 className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
               >
                 <option value="">{t("salutation_none")}</option>
-                <option value="Herr">Sr.</option>
-                <option value="Frau">Sra.</option>
-                <option value="Divers">Otro</option>
+                <option value="Herr">{t("mr")}</option>
+                <option value="Frau">{t("mrs")}</option>
+                <option value="Divers">{t("diverse")}</option>
               </select>
             </div>
 
