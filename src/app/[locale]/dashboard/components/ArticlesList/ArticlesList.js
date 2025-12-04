@@ -169,6 +169,18 @@ const ArticlesList = ({ mode = "admin" }) => {
                   <th className="px-5 py-3 text-left">Edición</th>
                 </>
               )}
+              {mode === "assign" && (
+                <>
+                  <th className="px-5 py-3 text-left">Autor</th>
+                  <th className="px-5 py-3 text-left">Edición</th>
+                </>
+              )}
+              {mode === "reviewer" && (
+                <>
+                  <th className="px-5 py-3 text-left">Autor</th>
+                  <th className="px-5 py-3 text-left">Edición</th>
+                </>
+              )}
               {mode === "reviewer" && (
                 <th className="px-5 py-3 text-left">Traductor</th>
               )}
@@ -312,6 +324,18 @@ const ArticlesList = ({ mode = "admin" }) => {
                   </td>
                 )}
 
+                {mode === "assign" && (
+                  <>
+                    <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
+                      {article.authors.map((a) => a.name).join(", ")}
+                    </td>
+                    <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
+                      {article.edition
+                        ? `${article.edition.title} (N° ${article.edition.number})`
+                        : "Sin edición"}
+                    </td>
+                  </>
+                )}
                 {mode === "admin" && (
                   <>
                     <td className="px-5 py-3 text-gray-900 dark:text-gray-100">
