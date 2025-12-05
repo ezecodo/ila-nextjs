@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `Image` ADD COLUMN `altES` VARCHAR(191) NULL,
+    ADD COLUMN `titleES` VARCHAR(750) NULL;

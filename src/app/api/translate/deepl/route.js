@@ -14,21 +14,37 @@ export async function POST(req) {
 
     const article = await prisma.article.findUnique({
       where: { id: parseInt(articleId) },
+
       select: {
+        id: true,
         title: true,
         subtitle: true,
         previewText: true,
         content: true,
         additionalInfo: true,
+        beitragsId: true,
       },
     });
+
     if (!article) {
       return NextResponse.json(
         { error: "Artículo no encontrado" },
         { status: 404 }
       );
     }
-
+    // 🖼️ Obtener imágenes del artículo
+    const contentIdToUse = article.beitragsId || article.id;
+    const images = await prisma.image.findMany({
+      where: {
+        contentType: "ARTICLE",
+        contentId: contentIdToUse,
+      },
+      select: {
+        id: true,
+        title: true,
+        alt: true,
+      },
+    });
     const DEEPL_API_BASE =
       process.env.DEEPL_API_BASE || "https://api.deepl.com/v2";
     const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
@@ -63,8 +79,15 @@ export async function POST(req) {
       contentES: await translateText(article.content),
       additionalInfoES: await translateText(article.additionalInfo),
     };
-
-    return NextResponse.json({ translations });
+    // 🖼️ Traducir imágenes
+    const imageTranslations = {};
+    for (const img of images) {
+      imageTranslations[img.id] = {
+        titleES: await translateText(img.title),
+        altES: await translateText(img.alt),
+      };
+    }
+    return NextResponse.json({ translations, imageTranslations });
   } catch (err) {
     console.error("DeepL API error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });

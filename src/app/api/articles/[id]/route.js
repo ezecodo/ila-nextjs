@@ -199,7 +199,23 @@ export async function PUT(req, context) {
           },
         },
       });
-
+      // 🖼️ Actualizar traducciones de imágenes
+      if (
+        body.imageTranslations &&
+        typeof body.imageTranslations === "object"
+      ) {
+        for (const [imgId, translations] of Object.entries(
+          body.imageTranslations
+        )) {
+          await prisma.image.update({
+            where: { id: parseInt(imgId, 10) },
+            data: {
+              titleES: translations.titleES || null,
+              altES: translations.altES || null,
+            },
+          });
+        }
+      }
       if (session?.user?.name !== "eZe") {
         await prisma.activityLog.create({
           data: {

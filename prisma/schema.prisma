@@ -420,6 +420,8 @@ model Image {
   updatedAt   DateTime @updatedAt
   alt         String?
   title       String?  @db.VarChar(750)
+   altES       String? 
+  titleES     String?  @db.VarChar(750)
   height      Int?
   width       Int?
 
