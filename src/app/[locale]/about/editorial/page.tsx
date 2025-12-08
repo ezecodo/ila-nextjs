@@ -30,6 +30,13 @@ export default function EditorialPage() {
         Mexiko.
       </p>
       <p>
+        <strong>Rika Johanna Graber</strong> ist seit 2023 bei der ila aktiv.
+        Sie hat Rechtswissenschaften, Philosophie und Romanistik studiert und
+        interessiert sich besonders für die Themenbereiche Natur(-schutz) und
+        Klima, Migration, Strategische Prozessführung und lateinamerikanische
+        Literatur sowie die beiden südamerikanischen Länder Kolumbien und Peru.
+      </p>
+      <p>
         <strong>Ralf Heinen</strong>, Jahrgang 1954, studierte Französisch und
         Spanisch in Münster und Bonn, arbeitete als Grafikredakteur und setzt
         bis heute das gesamte Layout der ila um.
@@ -131,6 +138,13 @@ export default function EditorialPage() {
         <strong>Charlotte Fischer</strong> es especialista en estudios
         culturales y está interesada sobre todo en temas de desarrollo,
         feminismo y cultura pop. Sus focos regionales son Colombia y México.
+      </p>
+      <p>
+        <strong>Rika Johanna Graber</strong> participa en la ila desde 2023.
+        Estudió Derecho, Filosofía y Filología Románica y se interesa
+        especialmente por los temas: protección del medio ambiente, clima,
+        migración, litigio estratégico y literatura latinoamericana, así como
+        por los dos países sudamericanos Colombia y Perú.
       </p>
       <p>
         <strong>Ralf Heinen</strong>, nacido en 1954, estudió francés y español

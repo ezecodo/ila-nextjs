@@ -133,6 +133,37 @@ export async function PUT(req, context) {
   try {
     if (contentType.includes("application/json")) {
       const body = await req.json();
+      // 🖼️ Caso: actualizar SOLO metadatos de imágenes (sin tocar estado de traducción)
+      if (body.imageTranslationsOnly && body.imageTranslations) {
+        for (const [imgId, translations] of Object.entries(
+          body.imageTranslations
+        )) {
+          await prisma.image.update({
+            where: { id: parseInt(imgId, 10) },
+            data: {
+              titleES: translations.titleES || null,
+              altES: translations.altES || null,
+            },
+          });
+        }
+
+        // Devolver el artículo sin modificarlo
+        const article = await prisma.article.findUnique({
+          where: { id: parseInt(id, 10) },
+          include: {
+            edition: {
+              select: {
+                id: true,
+                number: true,
+                title: true,
+                datePublished: true,
+              },
+            },
+          },
+        });
+
+        return Response.json(article, { status: 200 });
+      }
 
       // 🟢 Caso: quitar traductor — limpiamos reviewedAt también
       if (body.unassignTranslator) {

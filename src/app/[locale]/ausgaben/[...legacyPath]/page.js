@@ -57,8 +57,9 @@ export default function LegacyArticlePage() {
   const openPopup = (image) => {
     setPopupImage({
       url: image.url,
-      alt: image.alt || "Imagen del artículo",
-      title: image.title || "Vista previa de la imagen",
+      alt: (isES && image.altES) || image.alt || "Imagen del artículo",
+      title:
+        (isES && image.titleES) || image.title || "Vista previa de la imagen",
     });
     setIsOpen(true);
   };
@@ -253,13 +254,14 @@ export default function LegacyArticlePage() {
               {isES && article.isTranslatedES ? article.titleES : article.title}
             </h1>
             {/* 🔁 Aviso: versión original disponible en alemán */}
+            {/* 🔁 Aviso: versión original disponible en alemán */}
             {isES && article.isTranslatedES && (
               <div className="text-right mb-3">
                 <Link
                   href={`/de${fullPath}`}
                   className="text-sm text-blue-700 underline font-medium"
                 >
-                  Versión original en alemán →
+                  Original auf Deutsch verfügbar →
                 </Link>
               </div>
             )}
@@ -270,7 +272,7 @@ export default function LegacyArticlePage() {
                   href={`/es${fullPath}`}
                   className="text-sm text-blue-700 underline font-medium"
                 >
-                  Dieser Artikel ist auch auf Spanisch verfügbar →
+                  También disponible en español →
                 </Link>
               </div>
             )}
@@ -299,33 +301,6 @@ export default function LegacyArticlePage() {
               />
             </div>
           )}
-          {/* AUTOR justo debajo del Vorspann */}
-          {article.authors?.length > 0 && (
-            <div
-              className="text-gray-500 italic mb-6 text-right"
-              itemProp="author"
-              itemScope
-              itemType="https://schema.org/Person"
-            >
-              {article.authors.map((author, i) => (
-                <span key={author.id}>
-                  <HoverInfo
-                    id={author.id}
-                    name={
-                      <Link
-                        href={`/authors/${author.id}`}
-                        className="hover:underline"
-                      >
-                        <span itemProp="name">{author.name}</span>
-                      </Link>
-                    }
-                    entityType="authors"
-                  />
-                  {i < article.authors.length - 1 && <span>, </span>}
-                </span>
-              ))}
-            </div>
-          )}
 
           {isAdmin && isES && article.isTranslatedES && (
             <div className="text-center mb-6">
@@ -348,7 +323,11 @@ export default function LegacyArticlePage() {
                     <div className="relative w-full max-w-[800px] mx-auto aspect-[4/3]">
                       <Image
                         src={image.url}
-                        alt={image.alt || "Imagen del artículo"}
+                        alt={
+                          (isES && image.altES) ||
+                          image.alt ||
+                          "Imagen del artículo"
+                        }
                         fill
                         className="object-contain rounded"
                         sizes="(max-width: 800px) 100vw, 800px"
@@ -360,14 +339,16 @@ export default function LegacyArticlePage() {
                   {/* Información de la imagen */}
                   <div className="text-center mt-3">
                     {/* Título accesible solo para screen readers */}
-                    {image.title && (
-                      <span className="sr-only">{image.title}</span>
+                    {((isES && image.titleES) || image.title) && (
+                      <span className="sr-only">
+                        {(isES && image.titleES) || image.title}
+                      </span>
                     )}
 
                     {/* Créditos visibles */}
-                    {image.alt && (
+                    {((isES && image.altES) || image.alt) && (
                       <p className="text-sm italic text-gray-600">
-                        {image.alt}
+                        {(isES && image.altES) || image.alt}
                       </p>
                     )}
                   </div>

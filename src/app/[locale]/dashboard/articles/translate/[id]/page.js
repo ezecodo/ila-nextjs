@@ -665,6 +665,29 @@ const TranslateArticlePage = () => {
             </button>
           ) : (
             <div className="flex gap-3">
+              {/* Guardar solo metadatos de imágenes */}
+              <button
+                type="button"
+                onClick={async () => {
+                  const res = await fetch(`/api/articles/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      imageTranslationsOnly: true,
+                      imageTranslations,
+                    }),
+                  });
+
+                  if (res.ok) {
+                    alert("🖼️ Metadatos de imágenes guardados");
+                  } else {
+                    alert("❌ Error al guardar metadatos");
+                  }
+                }}
+                className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+              >
+                🖼️ Guardar solo metadatos
+              </button>
               {/* Guardar borrador */}
               <button
                 type="button"
