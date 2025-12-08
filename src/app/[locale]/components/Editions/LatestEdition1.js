@@ -468,8 +468,8 @@ export default function LatestEditionWithArticles() {
 
                 <div
                   {...swipeHandlers}
-                  className="relative w-full h-auto flex items-center justify-center"
-                  style={{ minHeight: "420px" }}
+                  className="relative w-full h-auto flex items-start justify-center pt-0"
+                  style={{ minHeight: "300px" }}
                 >
                   {/* Portada anterior (izquierda) */}
                   {currentEditionIndex < editions.length - 1 && (
