@@ -287,213 +287,220 @@ export default function LatestEditionWithArticles() {
             <div className="relative w-full lg:w-1/3 flex items-start justify-center">
               <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm">
                 <div className="relative w-full">
-                  <div className="flex items-center justify-center">
-                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
-                      {currentEditionIndex < editions.length - 1 && (
-                        <PrevArrow
-                          onClick={() => changeEdition(currentEditionIndex + 1)}
-                        />
+                  <div className="text-center flex flex-col items-center space-y-1">
+                    <div className="flex items-baseline justify-center gap-3 leading-none relative">
+                      <button
+                        type="button"
+                        className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none hover:text-red-700"
+                        title="Cambiar dossier (Enter para ir)"
+                        onClick={() => {
+                          setShowNumberPicker((v) => !v);
+                          setPickerValue(String(currentEdition.number ?? ""));
+                          const idx = editions.findIndex(
+                            (e) => e.id === currentEdition.id
+                          );
+                          setHighlightedIndex(idx >= 0 ? idx : null);
+                          focusInputSoon();
+                        }}
+                      >
+                        ila {currentEdition.number}
+                      </button>
+
+                      {currentEdition.datePublished && (
+                        <span className="font-bold text-xs md:text-sm text-black dark:text-gray-300 leading-none">
+                          {new Date(currentEdition.datePublished)
+                            .toLocaleDateString(
+                              locale === "es" ? "es-ES" : "de-DE",
+                              {
+                                month: "short",
+                                year: "numeric",
+                              }
+                            )
+                            .replace(".", "")
+                            .replace(/^\w/, (c) => c.toUpperCase())}
+                        </span>
                       )}
-                    </div>
 
-                    <div className="text-center mx-10 flex flex-col items-center space-y-1">
-                      <div className="flex items-baseline justify-center gap-3 leading-none relative">
-                        <button
-                          type="button"
-                          className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none hover:text-red-700"
-                          title="Cambiar dossier (Enter para ir)"
-                          onClick={() => {
-                            setShowNumberPicker((v) => !v);
-                            setPickerValue(String(currentEdition.number ?? ""));
-                            const idx = editions.findIndex(
-                              (e) => e.id === currentEdition.id
-                            );
-                            setHighlightedIndex(idx >= 0 ? idx : null);
-                            focusInputSoon();
-                          }}
+                      {showNumberPicker && (
+                        <div
+                          ref={popoverRef}
+                          className="absolute z-30 top-full mt-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg w-56 p-2"
                         >
-                          ila {currentEdition.number}
-                        </button>
+                          <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            {t("pickerLabel")}
+                          </label>
+                          <input
+                            ref={inputRef}
+                            type="number"
+                            value={pickerValue}
+                            className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-red-500"
+                            placeholder={t("pickerPlaceholder")}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setPickerValue(val);
 
-                        {currentEdition.datePublished && (
-                          <span className="font-bold text-xs md:text-sm text-black dark:text-gray-300 leading-none">
-                            {new Date(currentEdition.datePublished)
-                              .toLocaleDateString(
-                                locale === "es" ? "es-ES" : "de-DE",
-                                {
-                                  month: "short",
-                                  year: "numeric",
-                                }
-                              )
-                              .replace(".", "")
-                              .replace(/^\w/, (c) => c.toUpperCase())}
-                          </span>
-                        )}
+                              if (!val) {
+                                setHighlightedIndex(null);
+                                return;
+                              }
+                              const idx = editions.findIndex((ed) =>
+                                String(ed.number ?? "").startsWith(val)
+                              );
+                              setHighlightedIndex(idx >= 0 ? idx : null);
 
-                        {showNumberPicker && (
-                          <div
-                            ref={popoverRef}
-                            className="absolute z-30 top-full mt-2 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg w-56 p-2"
-                          >
-                            <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                              {t("pickerLabel")}
-                            </label>
-                            <input
-                              ref={inputRef}
-                              type="number"
-                              value={pickerValue}
-                              className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-red-500"
-                              placeholder={t("pickerPlaceholder")}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setPickerValue(val);
-
-                                if (!val) {
-                                  setHighlightedIndex(null);
-                                  return;
-                                }
-                                const idx = editions.findIndex((ed) =>
-                                  String(ed.number ?? "").startsWith(val)
+                              if (idx >= 0) {
+                                const el = listRef.current?.querySelector(
+                                  `[data-idx="${idx}"]`
                                 );
-                                setHighlightedIndex(idx >= 0 ? idx : null);
-
-                                if (idx >= 0) {
-                                  const el = listRef.current?.querySelector(
-                                    `[data-idx="${idx}"]`
+                                el?.scrollIntoView({ block: "nearest" });
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                let targetIdx = highlightedIndex;
+                                if (targetIdx == null && pickerValue) {
+                                  targetIdx = editions.findIndex(
+                                    (ed) =>
+                                      Number(ed.number) === Number(pickerValue)
                                   );
-                                  el?.scrollIntoView({ block: "nearest" });
                                 }
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  let targetIdx = highlightedIndex;
-                                  if (targetIdx == null && pickerValue) {
-                                    targetIdx = editions.findIndex(
-                                      (ed) =>
-                                        Number(ed.number) ===
-                                        Number(pickerValue)
-                                    );
-                                  }
-                                  if (targetIdx != null && targetIdx >= 0) {
-                                    changeEdition(targetIdx);
-                                    router.push(
-                                      `/editions/${editions[targetIdx].id}`
-                                    );
-                                    setShowNumberPicker(false);
-                                  }
-                                } else if (e.key === "ArrowDown") {
-                                  e.preventDefault();
-                                  setHighlightedIndex((i) => {
-                                    const next = Math.min(
-                                      (i ?? -1) + 1,
-                                      editions.length - 1
-                                    );
-                                    const el = listRef.current?.querySelector(
-                                      `[data-idx="${next}"]`
-                                    );
-                                    el?.scrollIntoView({ block: "nearest" });
-                                    return next;
-                                  });
-                                } else if (e.key === "ArrowUp") {
-                                  e.preventDefault();
-                                  setHighlightedIndex((i) => {
-                                    const next = Math.max(
-                                      (i ?? editions.length) - 1,
-                                      0
-                                    );
-                                    const el = listRef.current?.querySelector(
-                                      `[data-idx="${next}"]`
-                                    );
-                                    el?.scrollIntoView({ block: "nearest" });
-                                    return next;
-                                  });
-                                } else if (e.key === "Escape") {
+                                if (targetIdx != null && targetIdx >= 0) {
+                                  changeEdition(targetIdx);
+                                  router.push(
+                                    `/editions/${editions[targetIdx].id}`
+                                  );
                                   setShowNumberPicker(false);
                                 }
-                              }}
-                            />
+                              } else if (e.key === "ArrowDown") {
+                                e.preventDefault();
+                                setHighlightedIndex((i) => {
+                                  const next = Math.min(
+                                    (i ?? -1) + 1,
+                                    editions.length - 1
+                                  );
+                                  const el = listRef.current?.querySelector(
+                                    `[data-idx="${next}"]`
+                                  );
+                                  el?.scrollIntoView({ block: "nearest" });
+                                  return next;
+                                });
+                              } else if (e.key === "ArrowUp") {
+                                e.preventDefault();
+                                setHighlightedIndex((i) => {
+                                  const next = Math.max(
+                                    (i ?? editions.length) - 1,
+                                    0
+                                  );
+                                  const el = listRef.current?.querySelector(
+                                    `[data-idx="${next}"]`
+                                  );
+                                  el?.scrollIntoView({ block: "nearest" });
+                                  return next;
+                                });
+                              } else if (e.key === "Escape") {
+                                setShowNumberPicker(false);
+                              }
+                            }}
+                          />
 
-                            <div
-                              ref={listRef}
-                              className="mt-2 max-h-48 overflow-auto border-t pt-2"
-                            >
-                              {editions.map((ed, idx) => {
-                                const isActive = idx === currentEditionIndex;
-                                const isHighlighted = idx === highlightedIndex;
+                          <div
+                            ref={listRef}
+                            className="mt-2 max-h-48 overflow-auto border-t pt-2"
+                          >
+                            {editions.map((ed, idx) => {
+                              const isActive = idx === currentEditionIndex;
+                              const isHighlighted = idx === highlightedIndex;
 
-                                return (
-                                  <button
-                                    key={ed.id}
-                                    type="button"
-                                    data-idx={idx}
-                                    className={[
-                                      "w-full text-left px-2 py-1 rounded text-sm",
-                                      "hover:bg-red-50 dark:hover:bg-gray-700",
-                                      isHighlighted
-                                        ? "bg-red-200 dark:bg-gray-600 ring-1 ring-red-400 dark:ring-gray-500"
-                                        : "",
-                                      !isHighlighted && isActive
-                                        ? "bg-red-100/60 dark:bg-gray-700"
-                                        : "",
-                                    ].join(" ")}
-                                    onClick={() => {
-                                      changeEdition(idx);
-                                      setShowNumberPicker(false);
-                                    }}
-                                    title={
-                                      (locale === "es" && ed.titleES
-                                        ? ed.titleES
-                                        : ed.title) || undefined
-                                    }
-                                  >
-                                    ila {ed.number} —{" "}
-                                    {locale === "es" && ed.titleES
+                              return (
+                                <button
+                                  key={ed.id}
+                                  type="button"
+                                  data-idx={idx}
+                                  className={[
+                                    "w-full text-left px-2 py-1 rounded text-sm",
+                                    "hover:bg-red-50 dark:hover:bg-gray-700",
+                                    isHighlighted
+                                      ? "bg-red-200 dark:bg-gray-600 ring-1 ring-red-400 dark:ring-gray-500"
+                                      : "",
+                                    !isHighlighted && isActive
+                                      ? "bg-red-100/60 dark:bg-gray-700"
+                                      : "",
+                                  ].join(" ")}
+                                  onClick={() => {
+                                    changeEdition(idx);
+                                    setShowNumberPicker(false);
+                                  }}
+                                  title={
+                                    (locale === "es" && ed.titleES
                                       ? ed.titleES
-                                      : ed.title}
-                                  </button>
-                                );
-                              })}
-                            </div>
-
-                            <div className="mt-2 flex justify-end gap-2">
-                              <button
-                                type="button"
-                                className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
-                                onClick={() => setShowNumberPicker(false)}
-                              >
-                                {t("close")}
-                              </button>
-                            </div>
+                                      : ed.title) || undefined
+                                  }
+                                >
+                                  ila {ed.number} —{" "}
+                                  {locale === "es" && ed.titleES
+                                    ? ed.titleES
+                                    : ed.title}
+                                </button>
+                              );
+                            })}
                           </div>
-                        )}
-                      </div>
 
-                      <div className="font-serif font-bold text-red-800 dark:text-red-400 text-xl md:text-2xl leading-snug">
-                        {locale === "es" && currentEdition.titleES
-                          ? currentEdition.titleES
-                          : currentEdition.title}
-                      </div>
+                          <div className="mt-2 flex justify-end gap-2">
+                            <button
+                              type="button"
+                              className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
+                              onClick={() => setShowNumberPicker(false)}
+                            >
+                              {t("close")}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
-                      {currentEditionIndex > 0 && (
-                        <NextArrow
-                          onClick={() => changeEdition(currentEditionIndex - 1)}
-                        />
-                      )}
+                    <div className="font-serif font-bold text-red-800 dark:text-red-400 text-xl md:text-2xl leading-snug">
+                      {locale === "es" && currentEdition.titleES
+                        ? currentEdition.titleES
+                        : currentEdition.title}
                     </div>
                   </div>
                 </div>
 
                 <div
                   {...swipeHandlers}
-                  className="relative w-full overflow-hidden"
+                  className="relative w-full h-auto flex items-center justify-center"
+                  style={{ minHeight: "420px" }}
                 >
+                  {/* Portada anterior (izquierda) */}
+                  {currentEditionIndex < editions.length - 1 && (
+                    <div
+                      onClick={() => changeEdition(currentEditionIndex + 1)}
+                      className="absolute left-2 top-1/2 z-10 cursor-pointer opacity-50 hover:opacity-100 hover:z-30 transition-all duration-300 hover:scale-125 hover:shadow-2xl hover:rotate-0"
+                      style={{
+                        transform: "translateY(-50%) rotate(-5deg)",
+                        transformOrigin: "center",
+                        width: "140px",
+                      }}
+                    >
+                      <Image
+                        src={editions[currentEditionIndex + 1].coverImage}
+                        alt={`ila ${editions[currentEditionIndex + 1].number}`}
+                        width={140}
+                        height={187}
+                        className="shadow-lg object-cover w-full h-auto"
+                      />
+                    </div>
+                  )}
+
+                  {/* Portada central (actual) */}
                   <div
                     key={currentEdition.id}
-                    className={`transition-all duration-600 ease-in-out ${
-                      isTransitioning ? "opacity-0" : "opacity-100"
+                    className={`relative z-20 mx-auto transition-all duration-600 ease-in-out ${
+                      isTransitioning
+                        ? "opacity-0 scale-95"
+                        : "opacity-100 scale-100"
                     }`}
+                    style={{ maxWidth: "240px" }}
                   >
                     <Link
                       href={`/editions/${currentEdition.id}`}
@@ -502,16 +509,37 @@ export default function LatestEditionWithArticles() {
                       <Image
                         src={currentEdition.coverImage}
                         alt={`Portada de ${currentEdition.title}`}
-                        width={300}
-                        height={400}
+                        width={240}
+                        height={320}
                         className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
                         priority
                       />
                     </Link>
                   </div>
 
-                  {/* Indicadores de swipe */}
-                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 pointer-events-none">
+                  {/* Portada siguiente (derecha) */}
+                  {currentEditionIndex > 0 && (
+                    <div
+                      onClick={() => changeEdition(currentEditionIndex - 1)}
+                      className="absolute right-2 top-1/2 z-10 cursor-pointer opacity-50 hover:opacity-100 hover:z-30 transition-all duration-300 hover:scale-125 hover:shadow-2xl hover:rotate-0"
+                      style={{
+                        transform: "translateY(-50%) rotate(5deg)",
+                        transformOrigin: "center",
+                        width: "140px",
+                      }}
+                    >
+                      <Image
+                        src={editions[currentEditionIndex - 1].coverImage}
+                        alt={`ila ${editions[currentEditionIndex - 1].number}`}
+                        width={140}
+                        height={187}
+                        className="shadow-lg object-cover w-full h-auto"
+                      />
+                    </div>
+                  )}
+
+                  {/* Indicadores de posición */}
+                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 pointer-events-none z-30">
                     {editions
                       .slice(
                         Math.max(0, currentEditionIndex - 2),
