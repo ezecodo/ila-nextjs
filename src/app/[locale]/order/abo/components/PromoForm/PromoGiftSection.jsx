@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Image from "next/image";
+import Link from "next/link";
 
 function Card({ children, className = "" }) {
   return (
@@ -109,7 +111,97 @@ export function PromoBanner() {
     </div>
   );
 }
+// 🎁 Banner horizontal para Landing Page
+export function PromoHeroBanner({ editions = [] }) {
+  const t = useTranslations("abo.promo");
 
+  return (
+    <div className="mb-0 relative overflow-hidden rounded-lg md:rounded-none bg-gradient-to-br from-red-600 to-red-700 dark:from-red-700 dark:to-red-800 shadow-md">
+      <div className="absolute inset-0 opacity-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, rgb(255 255 255) 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+          }}
+        ></div>
+      </div>
+
+      <div className="relative px-4 md:px-8 py-4 md:py-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+          {/* 🎁 LOGO ILA */}
+          <div className="bg-white rounded-sm w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-lg">
+            <span
+              className="text-3xl md:text-4xl font-bold text-red-600"
+              style={{ fontFamily: "Futura, sans-serif" }}
+            >
+              ila
+            </span>
+          </div>
+          <div className="flex-1">
+            <div className="text-red-100 text-xs md:text-sm font-semibold uppercase tracking-wider mb-2">
+              {t("title")}
+            </div>
+            <h3 className="text-white text-xl md:text-3xl font-bold leading-tight mb-2">
+              {t("gift")}
+            </h3>
+            <p className="text-white/90 text-sm md:text-base leading-relaxed">
+              {t("conditions")}
+            </p>
+          </div>
+          {/* 📚 Abanico decorativo de portadas */}
+          {editions.length >= 3 && (
+            <div className="hidden lg:flex flex-shrink-0 relative h-32 w-40">
+              {/* Portada 3 (atrás) */}
+              <div className="absolute top-0 left-0 w-24 h-34 rounded-sm shadow-lg transform -rotate-12 opacity-80 overflow-hidden border-2 border-white">
+                <Image
+                  src={editions[2].coverImage}
+                  alt={editions[2].title}
+                  width={80}
+                  height={112}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              {/* Portada 2 (medio) */}
+              <div className="absolute top-0 left-6 w-20 h-28 rounded-sm shadow-xl transform rotate-0 opacity-90 overflow-hidden border-2 border-white">
+                <Image
+                  src={editions[1].coverImage}
+                  alt={editions[1].title}
+                  width={80}
+                  height={112}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              {/* Portada 1 (frente) */}
+              <div className="absolute -top-2 left-12 w-20 h-28 rounded-sm shadow-2xl transform rotate-12 overflow-hidden border-2 border-white">
+                <Image
+                  src={editions[0].coverImage}
+                  alt={editions[0].title}
+                  width={80}
+                  height={112}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            </div>
+          )}
+          <Link href="/order/abo" className="flex-shrink-0">
+            <div className="bg-white/95 dark:bg-gray-900/95 rounded-lg px-4 md:px-6 py-3 md:py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-red-500 group">
+              <div className="flex items-center gap-2">
+                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">
+                  {t("deadline")}
+                </p>
+                <span className="text-red-600 group-hover:translate-x-1 transition-transform duration-300">
+                  →
+                </span>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
 // 📝 Solo el formulario de destinatario
 export default function PromoGiftForm({ form, handleChange }) {
   const t = useTranslations("abo.promo");
