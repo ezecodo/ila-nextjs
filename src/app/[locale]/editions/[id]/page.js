@@ -7,6 +7,7 @@ import Image from "next/image";
 import CartButton from "../../components/CartButton/CartButton";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import { useTranslations, useLocale } from "next-intl";
+import { useSession } from "next-auth/react";
 
 export default function EditionDetails() {
   const { id } = useParams();
@@ -16,7 +17,11 @@ export default function EditionDetails() {
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [manualMatches, setManualMatches] = useState({});
   const t = useTranslations("dossiers");
+
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
   const locale = useLocale();
   const articleRefs = useRef({});
   const isES = locale === "es";
@@ -89,6 +94,17 @@ export default function EditionDetails() {
         const articlesRes = await fetch(`/api/articles/edition/${data.number}`);
         const articlesData = await articlesRes.json();
         setArticles(articlesData);
+
+        // Cargar matches manuales
+        const matchesRes = await fetch(`/api/toc-match?editionId=${data.id}`);
+        const matchesData = await matchesRes.json();
+        const matchesMap = {};
+        if (Array.isArray(matchesData)) {
+          matchesData.forEach((m) => {
+            matchesMap[m.tocTitle] = m.article;
+          });
+        }
+        setManualMatches(matchesMap);
       } catch (err) {
         setError(err.message || "Error desconocido");
       }
@@ -97,6 +113,55 @@ export default function EditionDetails() {
     fetchEditionAndArticles();
   }, [id, locale]);
 
+  // Función para eliminar un match manual
+  async function handleRemoveMatch(tocTitle) {
+    try {
+      const res = await fetch("/api/toc-match", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          editionId: edition.id,
+          tocTitle: tocTitle,
+        }),
+      });
+
+      if (res.ok) {
+        setManualMatches((prev) => {
+          const newMatches = { ...prev };
+          delete newMatches[tocTitle];
+          return newMatches;
+        });
+      }
+    } catch (err) {
+      console.error("Error eliminando match:", err);
+    }
+  }
+  // Función para guardar un match manual
+  async function handleManualMatch(tocTitle, articleId) {
+    if (!articleId) return;
+
+    try {
+      const res = await fetch("/api/toc-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          editionId: edition.id,
+          tocTitle: tocTitle,
+          articleId: parseInt(articleId),
+        }),
+      });
+
+      if (res.ok) {
+        const match = await res.json();
+        setManualMatches((prev) => ({
+          ...prev,
+          [tocTitle]: match.article,
+        }));
+      }
+    } catch (err) {
+      console.error("Error guardando match:", err);
+    }
+  }
   function parseTableOfContents() {
     if (!tableOfContentsToShow) return [];
     let normalized = tableOfContentsToShow;
@@ -254,11 +319,12 @@ export default function EditionDetails() {
         const titleWithoutPage = line.replace(/^\d+\s*/, "").trim();
 
         const cleanTitle = (str) =>
-          str
-            ?.normalize("NFC")
+          (str || "")
+            .normalize("NFC")
             .toLowerCase()
             .replace(/\.\.\./g, "…")
-            .replace(/["""']/g, "")
+            .replace(/["""„']/g, "")
+            .replace(/\(([^)]*)\)/g, "$1") // 👈 Expande: Wi(e)der → Wieder
             .replace(/\s+/g, " ")
             .replace(/[^\p{L}\p{N}\s]/gu, "")
             .trim();
@@ -279,9 +345,14 @@ export default function EditionDetails() {
 
         const normalizedTocTitle = cleanTitle(titleWithoutParentheses);
 
-        // 🔸 Caso especial: “Die Redaktion liest/hoert/hört …” + siguiente línea = TÍTULO real
+        // 🔸 Caso especial: "Die Redaktion liest/hoert/hört …" + siguiente línea = TÍTULO real
         let matchedArticle = null;
         let subtitleToUse = null;
+
+        // 🔥 PRIMERO: Verificar si hay un match manual
+        if (manualMatches[titleWithoutPage]) {
+          matchedArticle = manualMatches[titleWithoutPage];
+        }
 
         if (
           /^die\s+redaktion\s+(liest|hört|hoert)/i.test(titleWithoutPage) &&
@@ -308,6 +379,7 @@ export default function EditionDetails() {
         }
 
         // Si no hicimos match especial, probamos match normal contra el título
+        // Si no hicimos match especial, probamos match normal contra el título
         if (!matchedArticle) {
           matchedArticle = articles.find((a) => {
             const dbTitle = cleanTitle(a.title);
@@ -317,6 +389,35 @@ export default function EditionDetails() {
               normalizedTocTitle.includes(dbTitle)
             );
           });
+        }
+
+        // 🔥 Fallback: Si no hay match por título, intentar con autor + palabras clave
+        if (!matchedArticle) {
+          const nextLine = lines[i + 1]?.trim() || "";
+          const authorLine = nextLine.toLowerCase().startsWith("von ")
+            ? nextLine
+            : null;
+
+          if (authorLine) {
+            const authorName = cleanTitle(authorLine.replace(/^von\s+/i, ""));
+            const titleWords = normalizedTocTitle
+              .split(" ")
+              .filter((w) => w.length > 4);
+
+            matchedArticle = articles.find((a) => {
+              const dbAuthor = cleanTitle(a.author || "");
+              const dbTitle = cleanTitle(a.title);
+
+              // Si el autor coincide...
+              const authorMatch =
+                dbAuthor.includes(authorName) || authorName.includes(dbAuthor);
+              if (authorMatch && titleWords.length > 0) {
+                // ...y al menos una palabra clave del título coincide
+                return titleWords.some((word) => dbTitle.includes(word));
+              }
+              return false;
+            });
+          }
         }
 
         const isExplicitlyUnpublished = matchedArticle?.isPublished === false;
@@ -441,11 +542,12 @@ export default function EditionDetails() {
       if (!currentArticle && !isSectionLine(line) && !isArticleLine(line)) {
         if (currentSection && line.length > 3) {
           const cleanTitle = (str) =>
-            (str || "")
-              .normalize("NFC")
+            str
+              ?.normalize("NFC")
               .toLowerCase()
               .replace(/\.\.\./g, "…")
-              .replace(/["“”„']/g, "")
+              .replace(/["""']/g, "")
+              .replace(/\(([^)]*)\)/g, "$1") // 👈 Expande: Wi(e)der → Wieder
               .replace(/\s+/g, " ")
               .replace(/[^\p{L}\p{N}\s]/gu, "")
               .trim();
@@ -502,6 +604,33 @@ export default function EditionDetails() {
                 dbSubtitle === normalizedTocTitle
               );
             });
+          }
+
+          // 🔥 Fallback: Si no hay match por título, intentar con autor + palabras clave
+          if (!matchedArticle) {
+            const authorLine = nextLine.toLowerCase().startsWith("von ")
+              ? nextLine
+              : null;
+
+            if (authorLine) {
+              const authorName = cleanTitle(authorLine.replace(/^von\s+/i, ""));
+              const titleWords = normalizedTocTitle
+                .split(" ")
+                .filter((w) => w.length > 4);
+
+              matchedArticle = articles.find((a) => {
+                const dbAuthor = cleanTitle(a.author || "");
+                const dbTitle = cleanTitle(a.title);
+
+                const authorMatch =
+                  dbAuthor.includes(authorName) ||
+                  authorName.includes(dbAuthor);
+                if (authorMatch && titleWords.length > 0) {
+                  return titleWords.some((word) => dbTitle.includes(word));
+                }
+                return false;
+              });
+            }
           }
 
           if (matchedArticle) {
@@ -629,20 +758,48 @@ export default function EditionDetails() {
                     </div>
                   </div>
 
-                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <svg
-                      className="w-4 h-4 text-red-600 dark:text-red-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                  <div className="flex-shrink-0 flex items-center gap-2">
+                    {/* Botón desvincular para admin si es match manual */}
+                    {isAdmin && manualMatches[article.title] && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleRemoveMatch(article.title);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-red-200 dark:hover:bg-red-800"
+                        title="Desvincular artículo"
+                      >
+                        <svg
+                          className="w-4 h-4 text-red-600 dark:text-red-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <svg
+                        className="w-4 h-4 text-red-600 dark:text-red-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </a>
@@ -691,6 +848,45 @@ export default function EditionDetails() {
                       </>
                     )}
                   </div>
+
+                  {/* 🔧 Selector para admin - vincular artículo manualmente */}
+                  {isAdmin &&
+                    !article.isSection &&
+                    !article.isFooter &&
+                    !article.isTopic && (
+                      <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                            />
+                          </svg>
+                          Vincular artículo:
+                        </label>
+                        <select
+                          className="mt-1 w-full text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
+                          defaultValue=""
+                          onChange={(e) =>
+                            handleManualMatch(article.title, e.target.value)
+                          }
+                        >
+                          <option value="">-- Seleccionar --</option>
+                          {articles.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.title}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                 </div>
               </div>
             )}
