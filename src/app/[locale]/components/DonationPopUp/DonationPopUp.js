@@ -61,7 +61,7 @@ export default function DonationPopup({ articleId }) {
     <Dialog
       open={isOpen}
       onClose={handleClose}
-      className="fixed inset-0 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4"
     >
       {/* Backdrop con portadas reales difuminadas */}
       <div className="fixed inset-0 bg-black/65" aria-hidden="true">
@@ -136,10 +136,10 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Logo ila */}
-          <div className="relative flex justify-center mb-4 sm:mb-6">
-            <div className="bg-white w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center shadow-lg">
+          <div className="relative flex justify-center mb-2 sm:mb-6">
+            <div className="bg-white w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-lg">
               <span
-                className="text-3xl sm:text-5xl font-bold text-red-600"
+                className="text-2xl sm:text-5xl font-bold text-red-600"
                 style={{ fontFamily: "Futura, sans-serif" }}
               >
                 ila
@@ -148,17 +148,17 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Ilustración: Línea de vida del periodismo */}
-          <div className="relative flex justify-center items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <div className="relative flex justify-center items-center gap-1 sm:gap-3 mb-2 sm:mb-4">
             <div className="flex items-center gap-1 sm:gap-2">
               <svg
-                className="w-8 h-8 sm:w-12 sm:h-12 text-white animate-pulse"
+                className="w-5 h-5 sm:w-12 sm:h-12 text-white animate-pulse"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
               <svg
-                className="w-6 h-6 sm:w-10 sm:h-10 text-white/80"
+                className="w-4 h-4 sm:w-10 sm:h-10 text-white/80"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -171,7 +171,7 @@ export default function DonationPopup({ articleId }) {
                 />
               </svg>
               <svg
-                className="w-6 h-6 sm:w-10 sm:h-10 text-white/80"
+                className="w-4 h-4 sm:w-10 sm:h-10 text-white/80"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -187,11 +187,11 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Texto hero en blanco sobre rojo */}
-          <div className="relative text-center text-white mb-6">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 leading-tight">
+          <div className="relative text-center text-white mb-4 sm:mb-6">
+            <h2 className="text-base sm:text-2xl md:text-3xl font-bold mb-0.5 sm:mb-2 leading-tight">
               {t("title")}
             </h2>
-            <p className="text-base sm:text-lg md:text-xl font-light opacity-90">
+            <p className="text-sm sm:text-lg md:text-xl font-light opacity-90">
               {t("subtitle")}
             </p>
           </div>
@@ -215,38 +215,38 @@ export default function DonationPopup({ articleId }) {
         </div>
 
         {/* Contenido inferior */}
-        <div className="p-4 sm:p-8 bg-white dark:bg-gray-900">
+        <div className="p-3 sm:p-8 bg-white dark:bg-gray-900">
           {/* Call to action */}
-          <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 text-center mb-6 sm:mb-8 leading-tight">
+          <p className="text-base sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 text-center mb-3 sm:mb-8 leading-tight">
             {t("description")}
           </p>
 
           {/* Estadística impactante */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 text-center border-2 border-gray-200 dark:border-gray-700">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
-              <div>
-                <div className="text-3xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-2 sm:p-6 mb-3 sm:mb-8 text-center border-2 border-gray-200 dark:border-gray-700">
+            <div className="flex flex-row items-center justify-center gap-2 sm:gap-8">
+              <div className="text-center">
+                <div className="text-xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
                   49
                 </div>
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">
+                <div className="text-xs sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {t("years")}
                 </div>
               </div>
-              <div className="h-px w-full sm:h-12 sm:w-px bg-gray-300 dark:bg-gray-600"></div>
-              <div>
-                <div className="text-3xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
+              <div className="h-8 sm:h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div className="text-center">
+                <div className="text-xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
                   10x
                 </div>
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">
+                <div className="text-xs sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {t("yearly")}
                 </div>
               </div>
-              <div className="h-px w-full sm:h-12 sm:w-px bg-gray-300 dark:bg-gray-600"></div>
-              <div>
-                <div className="text-3xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
+              <div className="h-8 sm:h-12 w-px bg-gray-300 dark:bg-gray-600"></div>
+              <div className="text-center">
+                <div className="text-xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
                   100%
                 </div>
-                <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1 sm:mt-2">
+                <div className="text-xs sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {t("independent")}
                 </div>
               </div>
@@ -257,7 +257,7 @@ export default function DonationPopup({ articleId }) {
           <div className="flex justify-center">
             <Link
               href="/support/donations"
-              className="group relative px-6 py-3 sm:px-8 sm:py-4 bg-red-600 text-white font-bold text-base sm:text-lg rounded-xl shadow-lg hover:bg-red-700 transition-all duration-200 hover:shadow-2xl hover:-translate-y-1 overflow-hidden w-full sm:w-auto"
+              className="group relative px-4 py-2 sm:px-8 sm:py-4 bg-red-600 text-white font-bold text-sm sm:text-lg rounded-xl shadow-lg hover:bg-red-700 transition-all duration-200 hover:shadow-2xl hover:-translate-y-1 overflow-hidden w-full sm:w-auto"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">
                 <svg
@@ -274,7 +274,7 @@ export default function DonationPopup({ articleId }) {
           </div>
 
           {/* Mensaje de confianza */}
-          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-4 sm:mt-6 px-2">
+          <p className="text-center text-[10px] sm:text-sm text-gray-500 dark:text-gray-400 mt-2 sm:mt-6 px-1">
             {t("trustMessage")}
           </p>
         </div>
