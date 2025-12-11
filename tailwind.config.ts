@@ -25,9 +25,25 @@ const config: Config = {
           "50%": { transform: "scale(1.2)", opacity: "0.5" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "float-left": {
+          "0%, 100%": {
+            transform: "translateY(-50%) rotate(-5deg) translateX(0)",
+          },
+          "50%": {
+            transform: "translateY(-50%) rotate(-5deg) translateX(-5px)",
+          },
+        },
+        "float-right": {
+          "0%, 100%": {
+            transform: "translateY(-50%) rotate(5deg) translateX(0)",
+          },
+          "50%": { transform: "translateY(-50%) rotate(5deg) translateX(5px)" },
+        },
       },
       animation: {
         "ping-once": "ping-once 0.4s ease-in-out",
+        "float-left": "float-left 3s ease-in-out infinite",
+        "float-right": "float-right 3s ease-in-out infinite",
       },
     },
   },

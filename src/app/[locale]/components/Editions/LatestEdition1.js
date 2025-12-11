@@ -41,7 +41,7 @@ export default function LatestEditionWithArticles() {
 
   const currentEdition = editions[currentEditionIndex];
   const [isTransitioning, setIsTransitioning] = useState(false);
-
+  const [hoverBlocked, setHoverBlocked] = useState(false);
   // ✅ Función helper para actualizar la URL
   const updateEditionInURL = (index) => {
     if (editions[index]) {
@@ -56,6 +56,7 @@ export default function LatestEditionWithArticles() {
     if (isTransitioning) return;
 
     setIsTransitioning(true);
+    setHoverBlocked(true);
     setCurrentEditionIndex(newIndex);
     updateEditionInURL(newIndex);
 
@@ -470,12 +471,13 @@ export default function LatestEditionWithArticles() {
                   {...swipeHandlers}
                   className="relative w-full h-auto flex items-start justify-center pt-0"
                   style={{ minHeight: "300px" }}
+                  onMouseLeave={() => setHoverBlocked(false)}
                 >
                   {/* Portada anterior (izquierda) */}
                   {currentEditionIndex < editions.length - 1 && (
                     <div
                       onClick={() => changeEdition(currentEditionIndex + 1)}
-                      className="absolute left-2 top-1/2 z-10 cursor-pointer opacity-50 hover:opacity-100 hover:z-30 transition-all duration-300 hover:scale-125 hover:shadow-2xl hover:rotate-0"
+                      className={`absolute left-2 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-left_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
                       style={{
                         transform: "translateY(-50%) rotate(-5deg)",
                         transformOrigin: "center",
@@ -489,6 +491,26 @@ export default function LatestEditionWithArticles() {
                         height={187}
                         className="shadow-lg object-cover w-full h-auto"
                       />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded">
+                        <div className="bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <svg
+                            className="w-6 h-6 text-red-600 animate-pulse"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 19l-7-7 7-7"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                        ila {editions[currentEditionIndex + 1].number}
+                      </div>
                     </div>
                   )}
 
@@ -521,7 +543,7 @@ export default function LatestEditionWithArticles() {
                   {currentEditionIndex > 0 && (
                     <div
                       onClick={() => changeEdition(currentEditionIndex - 1)}
-                      className="absolute right-2 top-1/2 z-10 cursor-pointer opacity-50 hover:opacity-100 hover:z-30 transition-all duration-300 hover:scale-125 hover:shadow-2xl hover:rotate-0"
+                      className={`absolute right-2 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-right_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
                       style={{
                         transform: "translateY(-50%) rotate(5deg)",
                         transformOrigin: "center",
@@ -535,6 +557,26 @@ export default function LatestEditionWithArticles() {
                         height={187}
                         className="shadow-lg object-cover w-full h-auto"
                       />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded">
+                        <div className="bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <svg
+                            className="w-6 h-6 text-red-600 animate-pulse"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                        ila {editions[currentEditionIndex - 1].number}
+                      </div>
                     </div>
                   )}
 
