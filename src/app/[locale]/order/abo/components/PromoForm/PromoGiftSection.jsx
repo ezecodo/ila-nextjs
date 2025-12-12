@@ -41,7 +41,7 @@ export function PromoBanner() {
   const t = useTranslations("abo.promo");
 
   return (
-    <div className="mb-6 relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-red-600 to-red-700 dark:from-red-700 dark:to-red-800 shadow-2xl">
+    <div className="mb-6 relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-red-700 to-red-800 dark:from-red-800 dark:to-red-900 shadow-2xl">
       {/* Patrón de fondo sutil */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -116,7 +116,7 @@ export function PromoHeroBanner({ editions = [] }) {
   const t = useTranslations("abo.promo");
 
   return (
-    <div className="mb-0 relative overflow-hidden rounded-lg md:rounded-none bg-gradient-to-br from-red-600 to-red-700 dark:from-red-700 dark:to-red-800 shadow-md">
+    <div className="mb-0 relative overflow-hidden rounded-lg md:rounded-none bg-gradient-to-br from-red-700 to-red-800 dark:from-red-800 dark:to-red-900 shadow-md">
       <div className="absolute inset-0 opacity-10">
         <div
           className="absolute inset-0"
@@ -133,7 +133,7 @@ export function PromoHeroBanner({ editions = [] }) {
           {/* 🎁 LOGO ILA */}
           <div className="bg-white rounded-sm w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shadow-lg">
             <span
-              className="text-3xl md:text-4xl font-bold text-red-600"
+              className="text-3xl md:text-4xl font-bold text-red-800"
               style={{ fontFamily: "Futura, sans-serif" }}
             >
               ila

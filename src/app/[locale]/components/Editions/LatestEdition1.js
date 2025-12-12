@@ -306,6 +306,37 @@ export default function LatestEditionWithArticles() {
                       >
                         ila {currentEdition.number}
                       </button>
+                      {/* Indicador dropdown elegante - también clickable */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNumberPicker((v) => !v);
+                          setPickerValue(String(currentEdition.number ?? ""));
+                          const idx = editions.findIndex(
+                            (e) => e.id === currentEdition.id
+                          );
+                          setHighlightedIndex(idx >= 0 ? idx : null);
+                          focusInputSoon();
+                        }}
+                        className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/40 transition-colors cursor-pointer"
+                        title="Seleccionar edición"
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={`text-red-600 transition-transform duration-200 ${
+                            showNumberPicker ? "rotate-180" : ""
+                          }`}
+                        >
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </button>
 
                       {currentEdition.datePublished && (
                         <span className="font-bold text-xs md:text-sm text-black dark:text-gray-300 leading-none">
