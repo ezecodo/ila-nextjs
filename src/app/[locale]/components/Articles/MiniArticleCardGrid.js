@@ -4,6 +4,8 @@ import HoverInfo from "../HoverInfo/HoverInfo";
 import { Link as LocaleLink } from "@/i18n/navigation";
 import ArticleLink from "../Articles/ArticleLink/ArticleLink";
 import SmartImage from "../SmartImage/SmartImage";
+import FavoriteButton from "../FavoriteButton/FavoriteButton";
+
 // 🔥 NUEVA FUNCIÓN: Limpiar HTML
 const stripHTML = (html) => {
   if (!html) return "";
@@ -41,13 +43,11 @@ export default function MiniArticleCardGrid({
   let teaser = "";
 
   if (isES) {
-    // 👉 Primero usamos previewTextES, si no, fallback al contentES
     teaser =
       stripHTML(article.previewTextES) ||
       stripHTML(article.contentES)?.slice(0, 400) ||
       "";
   } else {
-    // 👉 En DE usamos previewText y si no, fallback al content (alemán)
     teaser =
       stripHTML(article.previewText) ||
       stripHTML(article.content)?.slice(0, 400) ||
@@ -64,16 +64,16 @@ export default function MiniArticleCardGrid({
     (article.authors?.length > 0 ||
       article.categories?.length > 0 ||
       article.edition?.number) && (
-      <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 flex flex-wrap items-center gap-1">
+      <div className="text-sm text-gray-600 dark:text-gray-300 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center gap-1">
         {/* Autores */}
         {article.authors?.length > 0 && (
-          <>
-            <span>{t("by")}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-gray-400">{t("by")}</span>
             {article.authors.map((author, i) => (
-              <span key={author.id} className="flex gap-1">
+              <span key={author.id}>
                 <LocaleLink
                   href={`/authors/${author.id}`}
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-red-600 hover:underline font-medium"
                 >
                   <HoverInfo
                     id={author.id}
@@ -81,10 +81,10 @@ export default function MiniArticleCardGrid({
                     entityType="authors"
                   />
                 </LocaleLink>
-                {i < article.authors.length - 1 && <span>,</span>}
+                {i < article.authors.length - 1 && ", "}
               </span>
             ))}
-          </>
+          </div>
         )}
 
         {/* Separador si hay autores y categorías */}
@@ -94,7 +94,7 @@ export default function MiniArticleCardGrid({
 
         {/* Categorías (localizadas) */}
         {article.categories?.length > 0 && (
-          <span className="text-gray-700">
+          <span className="text-gray-700 dark:text-gray-400">
             {article.categories.map((cat, i) => (
               <span key={cat.id}>
                 {locale === "es" && cat.nameES ? cat.nameES : cat.name}
@@ -104,13 +104,9 @@ export default function MiniArticleCardGrid({
           </span>
         )}
 
-        {/* Separador antes de edición */}
-        {(article.authors?.length > 0 || article.categories?.length > 0) &&
-          article.edition?.number && <span className="opacity-60">|</span>}
-
-        {/* Nº/Año edición */}
+        {/* Badge de edición/año */}
         {article.edition?.number && editionYear && (
-          <span className="text-gray-700">
+          <span className="ml-auto bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-[10px] font-semibold">
             {article.edition.number}/{editionYear}
           </span>
         )}
@@ -119,7 +115,7 @@ export default function MiniArticleCardGrid({
 
   return (
     <div
-      className={`w-full rounded-md bg-white dark:bg-gray-800 shadow-sm dark:shadow-md mb-8 transition-all duration-1200 ease-in-out ${
+      className={`group w-full rounded-lg bg-white dark:bg-gray-800 shadow-md hover:shadow-xl dark:shadow-md mb-8 transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${
         isTransitioning ? "opacity-0" : "opacity-100"
       }`}
       style={{
@@ -128,20 +124,23 @@ export default function MiniArticleCardGrid({
     >
       {/* Imagen */}
       {hasImage ? (
-        <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t">
-          <SmartImage
-            src={primaryImage.url}
-            alt={primaryImage.alt || "Imagen del artículo"}
-            className="w-full h-full object-cover"
-            faceTopBias
-          />
+        <div className="relative w-full aspect-[16/9] overflow-hidden">
+          <ArticleLink article={article}>
+            <SmartImage
+              src={primaryImage.url}
+              alt={primaryImage.alt || "Imagen del artículo"}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              faceTopBias
+            />
+          </ArticleLink>
+
+          {/* Favorito en esquina superior derecha */}
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <FavoriteButton articleId={article.id} variant="compact" />
+          </div>
 
           {/* Themenetiketten sobre la imagen */}
-          <div
-            className="absolute bottom-0 left-0 w-full px-2 py-1 
-      bg-gradient-to-t from-white/80 via-white/60 to-transparent 
-      dark:from-black/70 dark:via-black/40 backdrop-blur-sm"
-          >
+          <div className="absolute bottom-0 left-0 w-full px-3 py-2 bg-gradient-to-t from-black/60 via-black/30 to-transparent">
             <EntityBadges
               categories={article.categories}
               regions={article.regions}
@@ -152,8 +151,7 @@ export default function MiniArticleCardGrid({
           </div>
         </div>
       ) : (
-        /* Caso sin imagen → Themenetiketten arriba del título */
-        <div className="px-2 pt-2">
+        <div className="px-3 pt-3 flex justify-between items-start">
           <EntityBadges
             categories={article.categories}
             regions={article.regions}
@@ -161,28 +159,32 @@ export default function MiniArticleCardGrid({
             context="articles"
             disableLinks={true}
           />
+          {/* Favorito sin imagen */}
+          <FavoriteButton articleId={article.id} variant="compact" />
         </div>
       )}
 
       {/* Contenido */}
-      <div className="p-4 flex flex-col gap-2">
+      <div className="p-4 flex flex-col gap-1">
         {/* Título */}
-        <h3 className="text-xl font-extrabold font-serif leading-snug flex items-center gap-2">
+        <h3 className="text-xl font-extrabold font-serif leading-snug">
           <ArticleLink article={article}>
-            <span className="hover:underline">
+            <span className="hover:text-red-600 transition-colors duration-200">
               {isES ? article.titleES : article.title}
             </span>
           </ArticleLink>
         </h3>
 
-        {/* Subtítulo (pegado al título) */}
+        {/* Subtítulo */}
         {subtitle && (
-          <p className="font-serif text-sm text-gray-500 -mt-3">{subtitle}</p>
+          <p className="font-serif text-sm text-gray-500 dark:text-gray-400">
+            {subtitle}
+          </p>
         )}
 
-        {/* Vorspann (siempre visible) */}
+        {/* Vorspann */}
         {teaser && (
-          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mt-1">
             {teaser}
           </p>
         )}
