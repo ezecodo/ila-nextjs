@@ -562,6 +562,16 @@
     "noAltText": "Ohne Alt-Text",
     "noCredits": "Ohne Credits"
   },
+  "favorites": {
+    "modalTitle": "Speichere deine Favoriten!",
+    "modalSubtitle": "Erstelle dein kostenloses Konto",
+    "modalDescription": "Registriere dich, um Artikel zu speichern und alle Vorteile der ila-Mitgliedschaft zu genießen.",
+    "benefit1": "Artikel zum späteren Lesen speichern",
+    "benefit2": "Personalisierte Empfehlungen erhalten",
+    "benefit3": "Zugang zu exklusiven Inhalten",
+    "registerButton": "Kostenloses Konto erstellen",
+    "loginButton": "Ich habe bereits ein Konto"
+  },
   "donationPopup": {
     "title": "Unabhängig, kritisch, solidarisch",
     "subtitle": "aber leider nicht selbstdruckend",

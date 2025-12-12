@@ -39,11 +39,23 @@ const config: Config = {
           },
           "50%": { transform: "translateY(-50%) rotate(5deg) translateX(5px)" },
         },
+        // 👇 Añadir estas dos:
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
+
       animation: {
         "ping-once": "ping-once 0.4s ease-in-out",
         "float-left": "float-left 3s ease-in-out infinite",
         "float-right": "float-right 3s ease-in-out infinite",
+        fadeIn: "fadeIn 0.2s ease-out",
+        scaleIn: "scaleIn 0.2s ease-out",
       },
     },
   },

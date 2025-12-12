@@ -147,7 +147,7 @@ export default function FilteredArticlesCarousel(props) {
                     </div>
 
                     {/* Favorito */}
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-2 right-2 z-20">
                       <FavoriteButton
                         articleId={article.id}
                         variant="compact"

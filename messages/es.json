@@ -543,6 +543,7 @@
       "unknownAuthorError": "Error inesperado: no se recibió un ID de autor."
     }
   },
+
   "galleryManager": {
     "sectionTitle": "Galería de imágenes",
     "coverLabel": "Imagen de portada",
@@ -560,6 +561,16 @@
     "delete": "Eliminar",
     "noAltText": "Sin alt-text",
     "noCredits": "Sin créditos"
+  },
+  "favorites": {
+    "modalTitle": "¡Guarda tus favoritos!",
+    "modalSubtitle": "Crea tu cuenta gratuita",
+    "modalDescription": "Regístrate para guardar artículos y acceder a todas las ventajas de ser parte de ila.",
+    "benefit1": "Guarda artículos para leer después",
+    "benefit2": "Recibe recomendaciones personalizadas",
+    "benefit3": "Accede a contenido exclusivo",
+    "registerButton": "Crear cuenta gratis",
+    "loginButton": "Ya tengo cuenta"
   },
   "donationPopup": {
     "title": "Independiente, crítica, solidaria",
