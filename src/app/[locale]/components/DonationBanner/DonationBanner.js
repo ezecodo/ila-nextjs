@@ -20,7 +20,7 @@ export default function DonationBanner({
   const donateHref = "/donar";
 
   return (
-    <div className="bg-red-800 text-white p-6 shadow-lg flex flex-col items-center text-center gap-4">
+    <div className="bg-red-600 text-white p-6 shadow-lg flex flex-col items-center text-center gap-4">
       <div>
         <h3 className="text-xl font-bold mb-2">{t("title")}</h3>
         <p className="text-sm leading-snug">{t("body")}</p>

@@ -38,6 +38,7 @@ export default function LatestEditionWithArticles() {
   const [showNumberPicker, setShowNumberPicker] = useState(false);
   const inputRef = useRef(null);
   const popoverRef = useRef(null);
+  const toggleButtonRef = useRef(null);
 
   const currentEdition = editions[currentEditionIndex];
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -217,7 +218,9 @@ export default function LatestEditionWithArticles() {
     if (!showNumberPicker) return;
     const onClick = (e) => {
       if (!popoverRef.current) return;
-      if (!popoverRef.current.contains(e.target)) setShowNumberPicker(false);
+      if (popoverRef.current.contains(e.target)) return;
+      if (toggleButtonRef.current?.contains(e.target)) return;
+      setShowNumberPicker(false);
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
@@ -308,6 +311,7 @@ export default function LatestEditionWithArticles() {
                       </button>
                       {/* Indicador dropdown elegante - también clickable */}
                       <button
+                        ref={toggleButtonRef}
                         type="button"
                         onClick={() => {
                           setShowNumberPicker((v) => !v);
