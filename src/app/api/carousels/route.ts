@@ -13,8 +13,42 @@ export async function POST(request: NextRequest) {
       orderBy,
       regionId,
       categoryIds,
+      isManual,
+      articleIds,
     } = body;
 
+    // 🆕 Crear carrusel manual
+    if (isManual && articleIds && Array.isArray(articleIds)) {
+      const carousel = await prisma.carousel.create({
+        data: {
+          titleES: titleES || null,
+          titleDE: titleDE || null,
+          limit: limit || 10,
+          orderBy: orderBy || "date_desc",
+          isManual: true,
+          articles: {
+            create: articleIds.map((articleId: number, index: number) => ({
+              articleId: Number(articleId),
+              position: index,
+            })),
+          },
+        },
+        include: {
+          articles: {
+            include: {
+              article: {
+                select: { id: true, title: true },
+              },
+            },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      return NextResponse.json(carousel, { status: 201 });
+    }
+
+    // ✅ Crear carrusel automático (lógica original)
     const carousel = await prisma.carousel.create({
       data: {
         titleES: titleES || null,
@@ -23,6 +57,7 @@ export async function POST(request: NextRequest) {
         limit: limit || 10,
         orderBy: orderBy || "date_desc",
         regionId: regionId ? Number(regionId) : null,
+        isManual: false,
         categories: categoryIds
           ? {
               connect: categoryIds.map((id: number) => ({ id })),
@@ -59,9 +94,18 @@ export async function GET() {
         position: true,
         beitragstypId: true,
         regionId: true,
+        isManual: true,
         region: { select: { id: true, name: true, nameES: true } },
         beitragstyp: { select: { id: true, name: true, nameES: true } },
         categories: { select: { id: true, name: true, nameES: true } },
+        articles: {
+          include: {
+            article: {
+              select: { id: true, title: true, titleES: true },
+            },
+          },
+          orderBy: { position: "asc" },
+        },
       },
     });
 

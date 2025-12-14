@@ -405,7 +405,16 @@
 
       "edit": "Bearbeiten",
       "delete": "Löschen",
-      "confirmDelete": "Dieses Karussell löschen?"
+      "confirmDelete": "Dieses Karussell löschen?",
+      "carouselTypeLabel": "Karussell-Typ",
+      "automatic": "Automatisch (nach Filtern)",
+      "manual": "Manuell (Artikelauswahl)",
+      "selectDossier": "Dossier auswählen",
+      "chooseDossier": "-- Wähle ein Dossier --",
+      "searchArticles": "Artikel suchen",
+      "searchPlaceholder": "Nach Titel suchen...",
+      "selectedArticles": "Ausgewählte Artikel",
+      "previewManual": "Vorschau (manuelle Reihenfolge)"
     }
   },
   "stats": {

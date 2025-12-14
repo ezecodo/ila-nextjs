@@ -22,6 +22,7 @@ export async function GET(nextRequest: NextRequest) {
         limit: true,
         orderBy: true,
         position: true,
+        isManual: true,
         createdAt: true,
         updatedAt: true,
         beitragstyp: {
@@ -32,6 +33,14 @@ export async function GET(nextRequest: NextRequest) {
         },
         categories: {
           select: { id: true, name: true, nameES: true },
+        },
+        articles: {
+          include: {
+            article: {
+              select: { id: true, title: true, titleES: true },
+            },
+          },
+          orderBy: { position: "asc" },
         },
       },
     });
@@ -69,8 +78,59 @@ export async function PUT(nextRequest: NextRequest) {
       orderBy,
       regionId,
       position,
-      categoryIds, // 👈 ahora usamos array de IDs
+      categoryIds,
+      isManual,
+      articleIds,
     } = body;
+
+    // 🆕 Si cambia a manual o actualiza artículos manuales
+    if (isManual !== undefined && isManual && articleIds) {
+      // Eliminar artículos antiguos y crear nuevos
+      await prisma.carouselArticle.deleteMany({
+        where: { carouselId: id },
+      });
+
+      const updated = await prisma.carousel.update({
+        where: { id },
+        data: {
+          titleES,
+          titleDE,
+          limit,
+          orderBy,
+          position,
+          isManual: true,
+          beitragstypId: null,
+          regionId: null,
+          categories: { set: [] },
+          articles: {
+            create: articleIds.map((articleId: number, index: number) => ({
+              articleId: Number(articleId),
+              position: index,
+            })),
+          },
+        },
+        include: {
+          articles: {
+            include: {
+              article: {
+                select: { id: true, title: true, titleES: true },
+              },
+            },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      return NextResponse.json(updated, { status: 200 });
+    }
+
+    // ✅ Si cambia a automático o actualiza carrusel automático
+    if (isManual !== undefined && !isManual) {
+      // Eliminar artículos manuales si los hay
+      await prisma.carouselArticle.deleteMany({
+        where: { carouselId: id },
+      });
+    }
 
     const updated = await prisma.carousel.update({
       where: { id },
@@ -82,6 +142,7 @@ export async function PUT(nextRequest: NextRequest) {
         orderBy,
         regionId: regionId || null,
         position,
+        isManual: isManual ?? false,
         categories: categoryIds
           ? {
               set: categoryIds.map((cid: string) => ({ id: cid })),
@@ -90,6 +151,8 @@ export async function PUT(nextRequest: NextRequest) {
       },
       include: {
         categories: { select: { id: true, name: true, nameES: true } },
+        beitragstyp: { select: { id: true, name: true, nameES: true } },
+        region: { select: { id: true, name: true, nameES: true } },
       },
     });
 

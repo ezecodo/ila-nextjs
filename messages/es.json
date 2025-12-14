@@ -376,7 +376,16 @@
 
       "edit": "Editar",
       "delete": "Eliminar",
-      "confirmDelete": "¿Eliminar este carrusel?"
+      "confirmDelete": "¿Eliminar este carrusel?",
+      "carouselTypeLabel": "Tipo de carrusel",
+      "automatic": "Automático (por filtros)",
+      "manual": "Manual (selección de artículos)",
+      "selectDossier": "Seleccionar Dossier",
+      "chooseDossier": "-- Elige un dossier --",
+      "searchArticles": "Buscar artículos",
+      "searchPlaceholder": "Buscar por título...",
+      "selectedArticles": "Artículos seleccionados",
+      "previewManual": "Vista previa (orden manual)"
     },
     "Aktuelles": {
       "listTitle": "Gestionar Aktuelles",

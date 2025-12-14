@@ -25,7 +25,15 @@ const stripHTML = (html) => {
 };
 
 export default function FilteredArticlesCarousel(props) {
-  const { region, beitragstypId, title, limit, slidesToShow } = props;
+  const {
+    region,
+    beitragstypId,
+    title,
+    limit,
+    slidesToShow,
+    isManual,
+    manualArticles,
+  } = props;
 
   const effectiveLimit = limit || 30;
   const effectiveSlidesToShow = slidesToShow || 3;
@@ -34,6 +42,31 @@ export default function FilteredArticlesCarousel(props) {
   const locale = useLocale();
 
   useEffect(() => {
+    // 🆕 Si es manual, usar los artículos proporcionados
+    if (isManual && manualArticles) {
+      // Cargar artículos completos con sus imágenes
+      const articleIds = manualArticles.map((a) => a.id).join(",");
+      fetch(`/api/articles/batch?ids=${articleIds}`)
+        .then((res) => res.json())
+        .then((data) => {
+          // Mantener el orden original del carrusel manual
+          const orderedArticles = manualArticles
+            .map((ma) => data.find((a) => a.id === ma.id))
+            .filter(Boolean);
+
+          const filtered = orderedArticles.filter(
+            (a) => a.images && a.images.length > 0
+          );
+          setArticles(filtered);
+        })
+        .catch((err) => {
+          console.error("Error cargando artículos manuales:", err);
+          setArticles([]);
+        });
+      return;
+    }
+
+    // ✅ Carrusel automático (lógica original)
     const params = new URLSearchParams();
     params.set("limit", effectiveLimit.toString());
     if (region) params.set("regionId", String(region));
@@ -47,8 +80,12 @@ export default function FilteredArticlesCarousel(props) {
           (a) => a.images && a.images.length > 0
         );
         setArticles(filtered);
+      })
+      .catch((err) => {
+        console.error("Error cargando artículos:", err);
+        setArticles([]);
       });
-  }, [region, beitragstypId, effectiveLimit, locale]);
+  }, [region, beitragstypId, effectiveLimit, locale, isManual, manualArticles]);
 
   if (!articles || articles.length === 0) return null;
 

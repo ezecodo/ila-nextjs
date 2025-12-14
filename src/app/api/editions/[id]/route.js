@@ -29,6 +29,10 @@ export async function GET(req, context) {
     const acceptLanguage = req.headers.get("accept-language") || "de";
     const locale = acceptLanguage.includes("es") ? "es" : "de";
 
+    // 🆕 Parámetro opcional para incluir artículos
+    const { searchParams } = new URL(req.url);
+    const includeArticles = searchParams.get("includeArticles") === "true";
+
     // Buscar la edición
     const edition = await prisma.edition.findUnique({
       where: { id: editionId },
@@ -57,8 +61,65 @@ export async function GET(req, context) {
         needsReviewES: true,
         assignedAt: true,
         reviewedAt: true,
+        // 🆕 Incluir artículos solo si se pide explícitamente
+        ...(includeArticles && {
+          articles: {
+            where: {
+              isPublished: true,
+            },
+            select: {
+              id: true,
+              title: true,
+              titleES: true,
+              subtitle: true,
+              subtitleES: true,
+              isPublished: true,
+              isTranslatedES: true,
+              authors: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              beitragstyp: {
+                select: {
+                  id: true,
+                  name: true,
+                  nameES: true,
+                },
+              },
+            },
+            orderBy: {
+              id: "asc",
+            },
+          },
+        }),
       },
     });
+
+    // 🆕 Si incluye artículos, cargar sus imágenes
+    if (includeArticles && edition?.articles) {
+      const articlesWithImages = await Promise.all(
+        edition.articles.map(async (article) => {
+          const images = await prisma.image.findMany({
+            where: {
+              contentType: "article",
+              contentId: article.id,
+            },
+            select: {
+              id: true,
+              url: true,
+            },
+            take: 1, // Solo necesitamos saber si tiene al menos una
+          });
+          return {
+            ...article,
+            hasImage: images.length > 0,
+          };
+        })
+      );
+      edition.articles = articlesWithImages;
+    }
 
     if (!edition) {
       return new Response(JSON.stringify({ error: "Edición no encontrada" }), {

@@ -38,6 +38,12 @@ export default function CarouselFromDb() {
           region={carousel.regionId || null}
           title={carousel.titleES}
           limit={carousel.limit}
+          isManual={carousel.isManual}
+          manualArticles={
+            carousel.isManual && carousel.articles
+              ? carousel.articles.map((ca) => ca.article)
+              : null
+          }
         />
       ))}
     </>
