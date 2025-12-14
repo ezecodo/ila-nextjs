@@ -75,6 +75,7 @@ export async function GET(req, context) {
               subtitleES: true,
               isPublished: true,
               isTranslatedES: true,
+              articleImage: true,
               authors: {
                 select: {
                   id: true,
@@ -97,10 +98,11 @@ export async function GET(req, context) {
       },
     });
 
-    // 🆕 Si incluye artículos, cargar sus imágenes
+    // 🆕 Si incluye artículos, verificar si tienen imágenes
     if (includeArticles && edition?.articles) {
       const articlesWithImages = await Promise.all(
         edition.articles.map(async (article) => {
+          // Verificar en tabla Image (artículos nuevos)
           const images = await prisma.image.findMany({
             where: {
               contentType: "article",
@@ -110,11 +112,16 @@ export async function GET(req, context) {
               id: true,
               url: true,
             },
-            take: 1, // Solo necesitamos saber si tiene al menos una
+            take: 1,
           });
+
+          // Verificar campo articleImage (artículos migrados)
+          const hasImageInTable = images.length > 0;
+          const hasArticleImage = !!article.articleImage;
+
           return {
             ...article,
-            hasImage: images.length > 0,
+            hasImage: hasImageInTable || hasArticleImage,
           };
         })
       );
