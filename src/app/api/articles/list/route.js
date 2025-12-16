@@ -145,7 +145,7 @@ export async function GET(req) {
           select: { id: true, url: true, width: true, height: true },
         });
 
-        return { ...article, images };
+        return { ...article, images, hasImage: images.length > 0 };
       })
     );
 

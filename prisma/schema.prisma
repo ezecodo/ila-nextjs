@@ -459,6 +459,7 @@ model Carousel {
   regionId      Int?
   position      Int               @default(0)
   isManual      Boolean           @default(false)
+  isPrimary     Boolean           @default(false)
   activityLogs  ActivityLog[]     @relation("CarouselToActivityLogs")
   beitragstyp   Beitragstyp?      @relation(fields: [beitragstypId], references: [id])
   region        Region?           @relation(fields: [regionId], references: [id])

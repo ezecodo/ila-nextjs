@@ -70,16 +70,27 @@ export default function CreateCarouselPage() {
   // 🆕 Cargar artículos del dossier seleccionado con toda la info
   useEffect(() => {
     if (isManual && selectedDossierId) {
-      fetch(`/api/editions/${selectedDossierId}?includeArticles=true`)
-        .then((r) => r.json())
-        .then((edition) => {
-          // Filtrar solo artículos publicados
-          const publishedArticles = (edition.articles || []).filter(
-            (a) => a.isPublished
-          );
-          setDossierArticles(publishedArticles);
-        })
-        .catch(() => setDossierArticles([]));
+      if (selectedDossierId === "nur-online") {
+        fetch(`/api/articles/list?nurOnline=true&limit=100`)
+          .then((r) => r.json())
+          .then((data) => {
+            const publishedArticles = (data.articles || []).filter(
+              (a) => a.isPublished
+            );
+            setDossierArticles(publishedArticles);
+          })
+          .catch(() => setDossierArticles([]));
+      } else {
+        fetch(`/api/editions/${selectedDossierId}?includeArticles=true`)
+          .then((r) => r.json())
+          .then((edition) => {
+            const publishedArticles = (edition.articles || []).filter(
+              (a) => a.isPublished
+            );
+            setDossierArticles(publishedArticles);
+          })
+          .catch(() => setDossierArticles([]));
+      }
     } else {
       setDossierArticles([]);
     }
@@ -365,6 +376,7 @@ export default function CreateCarouselPage() {
                 <option value="">
                   {t("chooseDossier") || "-- Elige un dossier --"}
                 </option>
+                <option value="nur-online">🌐 Nur Online</option>
                 {dossiers.map((d) => (
                   <option key={d.id} value={d.id}>
                     #{d.number} -{" "}
