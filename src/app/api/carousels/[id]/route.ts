@@ -45,6 +45,8 @@ export async function GET(nextRequest: NextRequest) {
                   select: {
                     id: true,
                     number: true,
+                    title: true,
+                    titleES: true,
                     datePublished: true,
                   },
                 },
@@ -138,6 +140,8 @@ export async function PUT(nextRequest: NextRequest) {
                     select: {
                       id: true,
                       number: true,
+                      title: true,
+                      titleES: true,
                       datePublished: true,
                     },
                   },
