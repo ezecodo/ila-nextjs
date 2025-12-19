@@ -37,7 +37,24 @@ export async function GET(nextRequest: NextRequest) {
         articles: {
           include: {
             article: {
-              select: { id: true, title: true, titleES: true },
+              select: {
+                id: true,
+                title: true,
+                titleES: true,
+                edition: {
+                  select: {
+                    id: true,
+                    number: true,
+                    datePublished: true,
+                  },
+                },
+                authors: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
             },
           },
           orderBy: { position: "asc" },
@@ -113,7 +130,24 @@ export async function PUT(nextRequest: NextRequest) {
           articles: {
             include: {
               article: {
-                select: { id: true, title: true, titleES: true },
+                select: {
+                  id: true,
+                  title: true,
+                  titleES: true,
+                  edition: {
+                    select: {
+                      id: true,
+                      number: true,
+                      datePublished: true,
+                    },
+                  },
+                  authors: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
               },
             },
             orderBy: { position: "asc" },
