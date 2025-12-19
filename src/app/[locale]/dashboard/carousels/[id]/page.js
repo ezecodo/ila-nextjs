@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 import { useLocale, useTranslations } from "next-intl";
 
 export default function EditCarouselPage() {
@@ -26,7 +28,7 @@ export default function EditCarouselPage() {
   const [dossierArticles, setDossierArticles] = useState([]);
   const [selectedArticles, setSelectedArticles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [selectedAuthor, setSelectedAuthor] = useState(null);
   // Cargar carrusel + selects
   useEffect(() => {
     if (!id) return;
@@ -102,16 +104,46 @@ export default function EditCarouselPage() {
   // 🆕 Cargar artículos del dossier seleccionado
   useEffect(() => {
     if (isManual && selectedDossierId) {
-      fetch(`/api/editions/${selectedDossierId}?includeArticles=true`)
-        .then((r) => r.json())
-        .then((edition) => {
-          setDossierArticles(edition.articles || []);
-        })
-        .catch(() => setDossierArticles([]));
+      if (selectedDossierId === "nur-online") {
+        fetch(`/api/articles/list?nurOnline=true&limit=100`)
+          .then((r) => r.json())
+          .then((data) => {
+            const publishedArticles = (data.articles || []).filter(
+              (a) => a.isPublished
+            );
+            setDossierArticles(publishedArticles);
+          })
+          .catch(() => setDossierArticles([]));
+      } else if (selectedDossierId === "por-autor") {
+        setDossierArticles([]);
+      } else {
+        fetch(`/api/editions/${selectedDossierId}?includeArticles=true`)
+          .then((r) => r.json())
+          .then((edition) => {
+            const publishedArticles = (edition.articles || []).filter(
+              (a) => a.isPublished
+            );
+            setDossierArticles(publishedArticles);
+          })
+          .catch(() => setDossierArticles([]));
+      }
     } else {
       setDossierArticles([]);
     }
   }, [isManual, selectedDossierId]);
+  useEffect(() => {
+    if (isManual && selectedDossierId === "por-autor" && selectedAuthor) {
+      fetch(`/api/articles/list?authorId=${selectedAuthor.value}&limit=100`)
+        .then((r) => r.json())
+        .then((data) => {
+          const publishedArticles = (data.articles || []).filter(
+            (a) => a.isPublished
+          );
+          setDossierArticles(publishedArticles);
+        })
+        .catch(() => setDossierArticles([]));
+    }
+  }, [isManual, selectedDossierId, selectedAuthor]);
 
   function onChangeCategories(e) {
     const values = Array.from(e.target.selectedOptions).map((o) =>
@@ -153,6 +185,26 @@ export default function EditCarouselPage() {
     setSelectedArticles(newList);
   }
 
+  const loadAuthors = async (inputValue) => {
+    try {
+      const res = await fetch("/api/authors");
+      if (!res.ok) return [];
+
+      const data = await res.json();
+
+      const filtered = data.filter((a) =>
+        a.name.toLowerCase().includes(inputValue.toLowerCase())
+      );
+
+      return filtered.map((a) => ({
+        value: a.id,
+        label: a.name,
+      }));
+    } catch (error) {
+      console.error("Error cargando autores:", error);
+      return [];
+    }
+  };
   // 🆕 Función de búsqueda mejorada
   function filterArticles() {
     return dossierArticles.filter((article) => {
@@ -193,7 +245,7 @@ export default function EditCarouselPage() {
     const payload = {
       titleES: carousel.titleES,
       titleDE: carousel.titleDE,
-      limit: Number(carousel.limit) || 6,
+      limit: isManual ? selectedArticles.length : Number(carousel.limit) || 6,
       isManual,
     };
 
@@ -408,11 +460,17 @@ export default function EditCarouselPage() {
                 id="dossier"
                 className="col-span-8 w-full border p-2 rounded"
                 value={selectedDossierId}
-                onChange={(e) => setSelectedDossierId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDossierId(e.target.value);
+                  setSelectedAuthor(null);
+                  setDossierArticles([]);
+                }}
               >
                 <option value="">
                   {t("chooseDossier") || "-- Elige un dossier --"}
                 </option>
+                <option value="nur-online">🌐 Nur Online</option>
+                <option value="por-autor">✍️ Por Autor</option>
                 {dossiers.map((d) => (
                   <option key={d.id} value={d.id}>
                     #{d.number} -{" "}
@@ -422,8 +480,34 @@ export default function EditCarouselPage() {
               </select>
             </div>
 
+            {/* Selector de autor */}
+            {selectedDossierId === "por-autor" && (
+              <div className="grid grid-cols-12 gap-3 items-center">
+                <label className="col-span-4 text-sm font-medium text-gray-700">
+                  {t("selectAuthor") || "Buscar autor"}
+                </label>
+                <div className="col-span-8">
+                  <AsyncSelect
+                    instanceId="author-carousel-edit"
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={loadAuthors}
+                    value={selectedAuthor}
+                    onChange={(selected) => {
+                      setSelectedAuthor(selected);
+                    }}
+                    placeholder={
+                      t("authorPlaceholder") || "Escribe el nombre del autor..."
+                    }
+                    isClearable
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Búsqueda de artículos */}
-            {selectedDossierId && (
+            {((selectedDossierId && selectedDossierId !== "por-autor") ||
+              (selectedDossierId === "por-autor" && selectedAuthor)) && (
               <div className="grid grid-cols-12 gap-3 items-start">
                 <label
                   htmlFor="search"
@@ -588,7 +672,17 @@ export default function EditCarouselPage() {
                         </p>
                         {article.authors && article.authors.length > 0 && (
                           <p className="text-xs text-gray-500 truncate">
-                            {article.authors.map((a) => a.name).join(", ")}
+                            ✍️ {article.authors.map((a) => a.name).join(", ")}
+                          </p>
+                        )}
+                        {article.edition ? (
+                          <p className="text-xs text-gray-400 truncate">
+                            📁 Dossier #{article.edition.number}:{" "}
+                            {article.edition.title}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-gray-400 truncate">
+                            🌐 Nur Online
                           </p>
                         )}
                       </div>
@@ -612,27 +706,27 @@ export default function EditCarouselPage() {
           </>
         )}
 
-        {/* Límite */}
-        <div className="grid grid-cols-12 gap-3 items-center">
-          <label
-            htmlFor="limit"
-            className="col-span-4 text-sm font-medium text-gray-700"
-          >
-            {t("limitLabel")}
-          </label>
-          <input
-            id="limit"
-            type="number"
-            min={1}
-            max={20}
-            placeholder={t("limitPlaceholder")}
-            className="col-span-8 w-full border p-2 rounded"
-            value={carousel.limit}
-            onChange={(e) =>
-              setCarousel({ ...carousel, limit: Number(e.target.value) })
-            }
-          />
-        </div>
+        {/* Límite - solo para automático */}
+        {!isManual && (
+          <div className="grid grid-cols-12 gap-3 items-center">
+            <label
+              htmlFor="limit"
+              className="col-span-4 text-sm font-medium text-gray-700"
+            >
+              {t("limitLabel")}
+            </label>
+            <input
+              id="limit"
+              type="number"
+              min={1}
+              max={20}
+              placeholder={t("limitPlaceholder")}
+              className="col-span-8 w-full border p-2 rounded"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+            />
+          </div>
+        )}
 
         <div className="flex justify-end pt-2">
           <button

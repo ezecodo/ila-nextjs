@@ -92,7 +92,7 @@ export default function FilteredArticlesCarousel(props) {
   const singleSlide = articles.length === 1;
 
   const settings = {
-    infinite: articles.length > effectiveSlidesToShow,
+    infinite: false,
     speed: 500,
     slidesToShow: singleSlide ? 1 : effectiveSlidesToShow,
     slidesToScroll: 1,

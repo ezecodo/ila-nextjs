@@ -414,7 +414,9 @@
       "searchArticles": "Artikel suchen",
       "searchPlaceholder": "Nach Titel suchen...",
       "selectedArticles": "Ausgewählte Artikel",
-      "previewManual": "Vorschau (manuelle Reihenfolge)"
+      "previewManual": "Vorschau (manuelle Reihenfolge)",
+      "selectAuthor": "Autor auswählen",
+      "authorPlaceholder": "Name des Autors eingeben..."
     }
   },
   "stats": {

@@ -385,7 +385,9 @@
       "searchArticles": "Buscar artículos",
       "searchPlaceholder": "Buscar por título...",
       "selectedArticles": "Artículos seleccionados",
-      "previewManual": "Vista previa (orden manual)"
+      "previewManual": "Vista previa (orden manual)",
+      "selectAuthor": "Buscar autor",
+      "authorPlaceholder": "Escribe el nombre del autor..."
     },
     "Aktuelles": {
       "listTitle": "Gestionar Aktuelles",

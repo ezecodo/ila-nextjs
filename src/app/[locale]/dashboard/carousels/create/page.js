@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
+const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 
 export default function CreateCarouselPage() {
   const router = useRouter();
@@ -30,6 +32,7 @@ export default function CreateCarouselPage() {
   const [dossierArticles, setDossierArticles] = useState([]);
   const [selectedArticles, setSelectedArticles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedAuthor, setSelectedAuthor] = useState(null);
 
   // Cargar tipos, regiones y categorías
   useEffect(() => {
@@ -80,6 +83,9 @@ export default function CreateCarouselPage() {
             setDossierArticles(publishedArticles);
           })
           .catch(() => setDossierArticles([]));
+      } else if (selectedDossierId === "por-autor") {
+        // No cargar nada aquí, se carga cuando seleccionen un autor
+        setDossierArticles([]);
       } else {
         fetch(`/api/editions/${selectedDossierId}?includeArticles=true`)
           .then((r) => r.json())
@@ -95,6 +101,19 @@ export default function CreateCarouselPage() {
       setDossierArticles([]);
     }
   }, [isManual, selectedDossierId]);
+  useEffect(() => {
+    if (isManual && selectedDossierId === "por-autor" && selectedAuthor) {
+      fetch(`/api/articles/list?authorId=${selectedAuthor.value}&limit=100`)
+        .then((r) => r.json())
+        .then((data) => {
+          const publishedArticles = (data.articles || []).filter(
+            (a) => a.isPublished
+          );
+          setDossierArticles(publishedArticles);
+        })
+        .catch(() => setDossierArticles([]));
+    }
+  }, [isManual, selectedDossierId, selectedAuthor]);
 
   function renderRegionOptions(list, depth = 0) {
     return list.flatMap((region) => [
@@ -126,7 +145,26 @@ export default function CreateCarouselPage() {
     newList.splice(dropIndex, 0, draggedItem);
     setSelectedArticles(newList);
   }
+  const loadAuthors = async (inputValue) => {
+    try {
+      const res = await fetch("/api/authors");
+      if (!res.ok) return [];
 
+      const data = await res.json();
+
+      const filtered = data.filter((a) =>
+        a.name.toLowerCase().includes(inputValue.toLowerCase())
+      );
+
+      return filtered.map((a) => ({
+        value: a.id,
+        label: a.name,
+      }));
+    } catch (error) {
+      console.error("Error cargando autores:", error);
+      return [];
+    }
+  };
   // 🆕 Función de búsqueda mejorada
   function filterArticles() {
     return dossierArticles.filter((article) => {
@@ -174,7 +212,7 @@ export default function CreateCarouselPage() {
     const payload = {
       titleES,
       titleDE,
-      limit,
+      limit: isManual ? selectedArticles.length : limit,
       isManual,
     };
 
@@ -371,12 +409,17 @@ export default function CreateCarouselPage() {
                 id="dossier"
                 className="col-span-8 w-full border p-2 rounded"
                 value={selectedDossierId}
-                onChange={(e) => setSelectedDossierId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedDossierId(e.target.value);
+                  setSelectedAuthor(null);
+                  setDossierArticles([]);
+                }}
               >
                 <option value="">
                   {t("chooseDossier") || "-- Elige un dossier --"}
                 </option>
                 <option value="nur-online">🌐 Nur Online</option>
+                <option value="por-autor">✍️ Por Autor</option>
                 {dossiers.map((d) => (
                   <option key={d.id} value={d.id}>
                     #{d.number} -{" "}
@@ -387,7 +430,34 @@ export default function CreateCarouselPage() {
             </div>
 
             {/* Búsqueda de artículos */}
-            {selectedDossierId && (
+            {/* Selector de autor */}
+            {selectedDossierId === "por-autor" && (
+              <div className="grid grid-cols-12 gap-3 items-center">
+                <label className="col-span-4 text-sm font-medium text-gray-700">
+                  {t("selectAuthor") || "Buscar autor"}
+                </label>
+                <div className="col-span-8">
+                  <AsyncSelect
+                    instanceId="author-carousel"
+                    cacheOptions
+                    defaultOptions
+                    loadOptions={loadAuthors}
+                    value={selectedAuthor}
+                    onChange={(selected) => {
+                      setSelectedAuthor(selected);
+                    }}
+                    placeholder={
+                      t("authorPlaceholder") || "Escribe el nombre del autor..."
+                    }
+                    isClearable
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Búsqueda de artículos */}
+            {((selectedDossierId && selectedDossierId !== "por-autor") ||
+              (selectedDossierId === "por-autor" && selectedAuthor)) && (
               <div className="grid grid-cols-12 gap-3 items-start">
                 <label
                   htmlFor="search"
@@ -552,7 +622,17 @@ export default function CreateCarouselPage() {
                         </p>
                         {article.authors && article.authors.length > 0 && (
                           <p className="text-xs text-gray-500 truncate">
-                            {article.authors.map((a) => a.name).join(", ")}
+                            ✍️ {article.authors.map((a) => a.name).join(", ")}
+                          </p>
+                        )}
+                        {article.edition ? (
+                          <p className="text-xs text-gray-400 truncate">
+                            📁 Dossier #{article.edition.number}:{" "}
+                            {article.edition.title}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-gray-400 truncate">
+                            🌐 Nur Online
                           </p>
                         )}
                       </div>
@@ -576,25 +656,27 @@ export default function CreateCarouselPage() {
           </>
         )}
 
-        {/* Límite */}
-        <div className="grid grid-cols-12 gap-3 items-center">
-          <label
-            htmlFor="limit"
-            className="col-span-4 text-sm font-medium text-gray-700"
-          >
-            {t("limitLabel")}
-          </label>
-          <input
-            id="limit"
-            type="number"
-            min={1}
-            max={20}
-            placeholder={t("limitPlaceholder")}
-            className="col-span-8 w-full border p-2 rounded"
-            value={limit}
-            onChange={(e) => setLimit(Number(e.target.value))}
-          />
-        </div>
+        {/* Límite - solo para automático */}
+        {!isManual && (
+          <div className="grid grid-cols-12 gap-3 items-center">
+            <label
+              htmlFor="limit"
+              className="col-span-4 text-sm font-medium text-gray-700"
+            >
+              {t("limitLabel")}
+            </label>
+            <input
+              id="limit"
+              type="number"
+              min={1}
+              max={20}
+              placeholder={t("limitPlaceholder")}
+              className="col-span-8 w-full border p-2 rounded"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+            />
+          </div>
+        )}
 
         <div className="flex justify-end pt-2">
           <button
