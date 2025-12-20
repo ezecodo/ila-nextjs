@@ -17,7 +17,19 @@ export async function GET(request) {
         id: { in: ids },
         isPublished: true,
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        titleES: true,
+        subtitle: true,
+        subtitleES: true,
+        content: true,
+        contentES: true,
+        previewText: true,
+        previewTextES: true,
+        publicationDate: true,
+        isTranslatedES: true,
+        articleImage: true,
         authors: {
           select: {
             id: true,
@@ -52,16 +64,23 @@ export async function GET(request) {
             datePublished: true,
           },
         },
+        beitragstyp: {
+          select: {
+            id: true,
+            name: true,
+            nameES: true,
+          },
+        },
       },
     });
-
-    // Cargar imágenes para cada artículo
+    // Cargar imágenes para cada artículo (igual que filtered)
     const articlesWithImages = await Promise.all(
       articles.map(async (article) => {
+        const contentId = article.beitragsId || article.id;
         const images = await prisma.image.findMany({
           where: {
-            contentType: "article",
-            contentId: article.id,
+            contentType: "ARTICLE",
+            contentId,
           },
           orderBy: {
             id: "asc",
