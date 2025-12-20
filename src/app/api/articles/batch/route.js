@@ -19,6 +19,7 @@ export async function GET(request) {
       },
       select: {
         id: true,
+        legacyPath: true,
         title: true,
         titleES: true,
         subtitle: true,

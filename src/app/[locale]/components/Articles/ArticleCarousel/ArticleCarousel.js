@@ -44,35 +44,23 @@ export default function FilteredArticlesCarousel(props) {
   useEffect(() => {
     // 🆕 Si es manual, usar los artículos proporcionados
     if (isManual && manualArticles) {
-      // Cargar artículos completos con sus imágenes
       const articleIds = manualArticles.map((a) => a.id).join(",");
+
       fetch(`/api/articles/batch?ids=${articleIds}`)
         .then((res) => res.json())
         .then((data) => {
-          // Mantener el orden original del carrusel manual
           const orderedArticles = manualArticles
             .map((ma) => data.find((a) => a.id === ma.id))
             .filter(Boolean);
-          console.log("📦 Ordenados:", orderedArticles.length);
-          console.log(
-            "🖼️ Con imágenes:",
-            orderedArticles.filter((a) => a.images?.length > 0).length
-          );
-          console.log(
-            "❌ Sin imágenes:",
-            orderedArticles.filter((a) => !a.images || a.images.length === 0)
-              .length
-          );
 
-          const filtered = orderedArticles.filter(
-            (a) => (a.images && a.images.length > 0) || a.articleImage
+          setArticles(
+            orderedArticles.filter(
+              (a) => (a.images && a.images.length > 0) || a.articleImage
+            )
           );
-          setArticles(filtered);
         })
-        .catch((err) => {
-          console.error("Error cargando artículos manuales:", err);
-          setArticles([]);
-        });
+        .catch(() => setArticles([]));
+
       return;
     }
 
@@ -267,9 +255,13 @@ export default function FilteredArticlesCarousel(props) {
                           </div>
                         )}
 
-                        {article.edition?.number && editionYear && (
+                        {article.edition?.number && editionYear ? (
                           <span className="ml-auto bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-[10px] font-semibold">
                             {article.edition.number}/{editionYear}
+                          </span>
+                        ) : (
+                          <span className="ml-auto bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide">
+                            {locale === "de" ? "Nur online" : "Solo online"}
                           </span>
                         )}
                       </div>

@@ -76,6 +76,15 @@ export async function GET(req, context) {
               isPublished: true,
               isTranslatedES: true,
               articleImage: true,
+              edition: {
+                select: {
+                  id: true,
+                  number: true,
+                  title: true,
+                  titleES: true,
+                  datePublished: true,
+                },
+              },
               authors: {
                 select: {
                   id: true,
