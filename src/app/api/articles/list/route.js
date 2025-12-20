@@ -24,6 +24,7 @@ export async function GET(req) {
     const translatorId = searchParams.get("translatorId");
     const assigned = searchParams.get("assigned") === "true";
     const translated = searchParams.get("translated") === "true";
+    const authorId = searchParams.get("authorId");
 
     let whereCondition = {};
 
@@ -105,6 +106,14 @@ export async function GET(req) {
         some: { id: parseInt(categoryId, 10) },
       };
     }
+
+    // 🆕 Filtro por autor
+    if (authorId) {
+      whereCondition.authors = {
+        some: { id: parseInt(authorId, 10) },
+      };
+    }
+
     if (assigned) {
       whereCondition = {
         ...whereCondition,
