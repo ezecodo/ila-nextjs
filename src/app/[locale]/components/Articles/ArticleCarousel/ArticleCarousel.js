@@ -49,18 +49,15 @@ export default function FilteredArticlesCarousel(props) {
       fetch(`/api/articles/batch?ids=${articleIds}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("🔍 Artículos recibidos del batch:", data.length);
-
           // Mantener el orden original del carrusel manual
           const orderedArticles = manualArticles
             .map((ma) => data.find((a) => a.id === ma.id))
             .filter(Boolean);
 
-          console.log("📦 Artículos ordenados:", orderedArticles.length);
-
-          // Para carruseles manuales, NO filtrar por imágenes
-          // Mostrar TODOS los artículos seleccionados
-          setArticles(orderedArticles);
+          const filtered = orderedArticles.filter(
+            (a) => a.images && a.images.length > 0
+          );
+          setArticles(filtered);
         })
         .catch((err) => {
           console.error("Error cargando artículos manuales:", err);
@@ -95,7 +92,7 @@ export default function FilteredArticlesCarousel(props) {
   const singleSlide = articles.length === 1;
 
   const settings = {
-    infinite: false,
+    infinite: articles.length > effectiveSlidesToShow,
     speed: 500,
     slidesToShow: singleSlide ? 1 : effectiveSlidesToShow,
     slidesToScroll: 1,
@@ -253,13 +250,9 @@ export default function FilteredArticlesCarousel(props) {
                           </div>
                         )}
 
-                        {article.edition?.number && editionYear ? (
+                        {article.edition?.number && editionYear && (
                           <span className="ml-auto bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-[10px] font-semibold">
                             {article.edition.number}/{editionYear}
-                          </span>
-                        ) : (
-                          <span className="ml-auto bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded text-[10px] font-semibold">
-                            🌐 Nur Online
                           </span>
                         )}
                       </div>

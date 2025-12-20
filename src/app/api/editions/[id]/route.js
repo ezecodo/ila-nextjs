@@ -89,14 +89,6 @@ export async function GET(req, context) {
                   nameES: true,
                 },
               },
-              edition: {
-                select: {
-                  id: true,
-                  number: true,
-                  title: true,
-                  titleES: true,
-                },
-              },
             },
             orderBy: {
               id: "asc",

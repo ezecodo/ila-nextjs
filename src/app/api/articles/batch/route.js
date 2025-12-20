@@ -17,19 +17,7 @@ export async function GET(request) {
         id: { in: ids },
         isPublished: true,
       },
-      select: {
-        id: true,
-        title: true,
-        titleES: true,
-        subtitle: true,
-        subtitleES: true,
-        content: true,
-        contentES: true,
-        previewText: true,
-        previewTextES: true,
-        publicationDate: true,
-        isTranslatedES: true,
-        articleImage: true,
+      include: {
         authors: {
           select: {
             id: true,
@@ -79,21 +67,6 @@ export async function GET(request) {
             id: "asc",
           },
         });
-
-        // Si no hay imágenes en la tabla Image, usar articleImage (migrados de Drupal)
-        if (images.length === 0 && article.articleImage) {
-          let imageUrl = article.articleImage;
-
-          // Convertir public:// a la ruta correcta de Next.js
-          if (imageUrl.startsWith("public://")) {
-            imageUrl = imageUrl.replace("public://", "/");
-          }
-
-          return {
-            ...article,
-            images: [{ url: imageUrl, alt: article.title }],
-          };
-        }
 
         return {
           ...article,
