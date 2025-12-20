@@ -722,8 +722,13 @@ export default function EditCarouselPage() {
               max={20}
               placeholder={t("limitPlaceholder")}
               className="col-span-8 w-full border p-2 rounded"
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
+              value={carousel.limit}
+              onChange={(e) =>
+                setCarousel({
+                  ...carousel,
+                  limit: Number(e.target.value),
+                })
+              }
             />
           </div>
         )}
