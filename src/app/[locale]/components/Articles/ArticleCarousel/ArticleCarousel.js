@@ -53,9 +53,19 @@ export default function FilteredArticlesCarousel(props) {
           const orderedArticles = manualArticles
             .map((ma) => data.find((a) => a.id === ma.id))
             .filter(Boolean);
+          console.log("📦 Ordenados:", orderedArticles.length);
+          console.log(
+            "🖼️ Con imágenes:",
+            orderedArticles.filter((a) => a.images?.length > 0).length
+          );
+          console.log(
+            "❌ Sin imágenes:",
+            orderedArticles.filter((a) => !a.images || a.images.length === 0)
+              .length
+          );
 
           const filtered = orderedArticles.filter(
-            (a) => a.images && a.images.length > 0
+            (a) => (a.images && a.images.length > 0) || a.articleImage
           );
           setArticles(filtered);
         })
@@ -92,7 +102,7 @@ export default function FilteredArticlesCarousel(props) {
   const singleSlide = articles.length === 1;
 
   const settings = {
-    infinite: articles.length > effectiveSlidesToShow,
+    infinite: false,
     speed: 500,
     slidesToShow: singleSlide ? 1 : effectiveSlidesToShow,
     slidesToScroll: 1,
@@ -123,7 +133,14 @@ export default function FilteredArticlesCarousel(props) {
       <div className="pb-10">
         <Slider {...settings}>
           {articles.map((article) => {
-            const firstImage = article.images?.[0];
+            const firstImage =
+              article.images?.[0] ||
+              (article.articleImage
+                ? {
+                    url: article.articleImage.replace("public://", "/"),
+                    alt: article.title,
+                  }
+                : null);
             const isES = locale === "es" && article.isTranslatedES;
 
             const articleTitle = isES ? article.titleES : article.title;
