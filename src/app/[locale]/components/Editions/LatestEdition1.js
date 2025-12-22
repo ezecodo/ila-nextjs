@@ -12,7 +12,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
 import { useRouter, useSearchParams } from "next/navigation";
-import { PromoHeroBanner } from "../../order/abo/components/PromoForm/PromoGiftSection";
+
 import NoArticlesAvailable from "../../components/NoArticlesAvailable/NoArticlesAvailable";
 import IlaLoader from "../IlaLoader/IlaLoader";
 
@@ -281,11 +281,7 @@ export default function LatestEditionWithArticles() {
   });
   return (
     <>
-      <div className="max-w-7xl mx-auto px-0 sm:px-6 pb-16">
-        {/* 🎁 Banner Promocional - Diciembre 2025 */}
-        <div className="w-full mb-10">
-          <PromoHeroBanner editions={editions.slice(0, 3)} />
-        </div>
+      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         {currentEdition && (
           <div className="flex flex-col lg:flex-row gap-2 items-start">
             <div className="relative w-full lg:w-1/3 flex items-start justify-center">
@@ -667,7 +663,7 @@ export default function LatestEditionWithArticles() {
               </div>
             </div>
 
-            <div className="w-full lg:w-2/3 flex flex-col gap-6">
+            <div className="w-full lg:w-2/3 flex flex-col gap-6 mt-8 lg:mt-0">
               {/* Desktop */}
               {/* Desktop */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">

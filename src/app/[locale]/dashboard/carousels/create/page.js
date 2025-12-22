@@ -13,6 +13,7 @@ export default function CreateCarouselPage() {
 
   const [titleES, setTitleES] = useState("");
   const [titleDE, setTitleDE] = useState("");
+  const [placement, setPlacement] = useState("after");
 
   const [types, setTypes] = useState([]);
   const [beitragstypId, setBeitragstypId] = useState("");
@@ -214,6 +215,7 @@ export default function CreateCarouselPage() {
       titleDE,
       limit: isManual ? selectedArticles.length : limit,
       isManual,
+      placement, // 🆕 AGREGAR PLACEMENT
     };
 
     if (isManual) {
@@ -317,6 +319,36 @@ export default function CreateCarouselPage() {
               />
               <span>{t("manual") || "Manual (selección de artículos)"}</span>
             </label>
+          </div>
+        </div>
+
+        {/* 🆕 Selector de ubicación */}
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <label
+            htmlFor="placement"
+            className="col-span-4 text-sm font-medium text-gray-700"
+          >
+            {t("placementLabel") || "Ubicación en página"}
+          </label>
+          <select
+            id="placement"
+            className="col-span-8 w-full border p-2 rounded"
+            value={placement}
+            onChange={(e) => setPlacement(e.target.value)}
+          >
+            <option value="top">
+              {t("placementTop") || "🔝 Arriba (antes de ediciones)"}
+            </option>
+            <option value="after">
+              {t("placementAfter") || "📰 Después de ediciones (normal)"}
+            </option>
+          </select>
+          <div className="col-start-5 col-span-8">
+            <p className="text-xs text-gray-500 mt-1">
+              {placement === "top"
+                ? "Este carrusel aparecerá debajo del banner promocional, antes de las ediciones"
+                : "Este carrusel aparecerá después de las ediciones (ubicación estándar)"}
+            </p>
           </div>
         </div>
 

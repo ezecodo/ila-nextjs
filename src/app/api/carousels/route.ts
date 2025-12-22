@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       categoryIds,
       isManual,
       articleIds,
+      placement,
     } = body;
 
     // 🆕 Crear carrusel manual
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
           limit: limit || 10,
           orderBy: orderBy || "date_desc",
           isManual: true,
+          placement: placement || "after",
           articles: {
             create: articleIds.map((articleId: number, index: number) => ({
               articleId: Number(articleId),
@@ -58,6 +60,7 @@ export async function POST(request: NextRequest) {
         orderBy: orderBy || "date_desc",
         regionId: regionId ? Number(regionId) : null,
         isManual: false,
+        placement: placement || "after",
         categories: categoryIds
           ? {
               connect: categoryIds.map((id: number) => ({ id })),
@@ -92,6 +95,7 @@ export async function GET() {
         titleDE: true,
         limit: true,
         position: true,
+        placement: true,
         beitragstypId: true,
         regionId: true,
         isManual: true,

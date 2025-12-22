@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import ArticleCarousel from "../ArticleCarousel/ArticleCarousel";
 import IlaLoader from "../../IlaLoader/IlaLoader";
 
-export default function CarouselFromDb() {
+export default function CarouselFromDb({ placement = "after" }) {
   const [carousels, setCarousels] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +12,8 @@ export default function CarouselFromDb() {
     fetch("/api/carousels")
       .then((res) => res.json())
       .then((data) => {
-        setCarousels(data);
+        const filtered = data.filter((c) => c.placement === placement);
+        setCarousels(filtered);
         setLoading(false);
       })
       .catch((error) => {
