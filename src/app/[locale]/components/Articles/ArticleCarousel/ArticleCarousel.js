@@ -49,15 +49,27 @@ export default function FilteredArticlesCarousel(props) {
       fetch(`/api/articles/batch?ids=${articleIds}`)
         .then((res) => res.json())
         .then((data) => {
+          console.log("🔍 API devuelve:", data.length, "artículos");
+
           const orderedArticles = manualArticles
             .map((ma) => data.find((a) => a.id === ma.id))
             .filter(Boolean);
 
-          setArticles(
+          console.log("📦 Ordenados:", orderedArticles.length);
+          console.log(
+            "🖼️ Con imágenes:",
             orderedArticles.filter(
-              (a) => (a.images && a.images.length > 0) || a.articleImage
-            )
+              (a) => a.images?.length > 0 || a.articleImage
+            ).length
           );
+          console.log(
+            "❌ Sin imágenes:",
+            orderedArticles.filter(
+              (a) => (!a.images || a.images.length === 0) && !a.articleImage
+            ).length
+          );
+
+          setArticles(orderedArticles);
         })
         .catch(() => setArticles([]));
 
@@ -135,17 +147,28 @@ export default function FilteredArticlesCarousel(props) {
             const subtitle = isES ? article.subtitleES : article.subtitle;
 
             // 🔥 Preview text / Teaser
+            const hasImage = firstImage?.url;
+            const previewLength = hasImage ? 200 : 800;
+
             let teaser = "";
             if (isES) {
-              teaser =
+              const fullText =
                 stripHTML(article.previewTextES) ||
-                stripHTML(article.contentES)?.slice(0, 200) ||
+                stripHTML(article.contentES) ||
                 "";
-            } else {
               teaser =
+                fullText.length > previewLength
+                  ? fullText.slice(0, previewLength) + "..."
+                  : fullText;
+            } else {
+              const fullText =
                 stripHTML(article.previewText) ||
-                stripHTML(article.content)?.slice(0, 200) ||
+                stripHTML(article.content) ||
                 "";
+              teaser =
+                fullText.length > previewLength
+                  ? fullText.slice(0, previewLength) + "..."
+                  : fullText;
             }
 
             const editionYear = article.edition?.datePublished
@@ -162,10 +185,10 @@ export default function FilteredArticlesCarousel(props) {
                 }`}
               >
                 <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                  {/* Imagen */}
-                  <div className="relative w-full h-[240px] overflow-hidden bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-gray-900 flex items-center justify-center">
-                    <ArticleLink article={article}>
-                      {firstImage?.url && (
+                  {/* Solo mostrar bloque de imagen si existe */}
+                  {firstImage?.url ? (
+                    <div className="relative w-full h-[240px] overflow-hidden bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-gray-900 flex items-center justify-center">
+                      <ArticleLink article={article}>
                         <Image
                           src={firstImage.url}
                           alt={firstImage.alt || "Artículo"}
@@ -173,32 +196,54 @@ export default function FilteredArticlesCarousel(props) {
                           height={400}
                           className="w-full max-h-[240px] object-contain transition-transform duration-500 group-hover:scale-105"
                         />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-                    </ArticleLink>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+                      </ArticleLink>
 
-                    {/* Badges */}
-                    <div className="absolute bottom-0 left-0 w-full px-3 py-2">
-                      <EntityBadges
-                        categories={article.categories}
-                        regions={article.regions}
-                        topics={article.topics}
-                        context="articles"
-                        disableLinks={true}
-                      />
-                    </div>
+                      {/* Badges */}
+                      <div className="absolute bottom-0 left-0 w-full px-3 py-2">
+                        <EntityBadges
+                          categories={article.categories}
+                          regions={article.regions}
+                          topics={article.topics}
+                          context="articles"
+                          disableLinks={true}
+                        />
+                      </div>
 
-                    {/* Favorito */}
-                    <div className="absolute top-2 right-2 z-20">
-                      <FavoriteButton
-                        articleId={article.id}
-                        variant="compact"
-                      />
+                      {/* Favorito */}
+                      <div className="absolute top-2 right-2 z-20">
+                        <FavoriteButton
+                          articleId={article.id}
+                          variant="compact"
+                        />
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
 
                   {/* Contenido */}
-                  <div className="p-4">
+                  <div className="p-4 relative">
+                    {/* Favorito para artículos sin imagen */}
+                    {!firstImage?.url && (
+                      <div className="absolute top-2 right-2 z-20">
+                        <FavoriteButton
+                          articleId={article.id}
+                          variant="compact"
+                        />
+                      </div>
+                    )}
+
+                    {/* Badges para artículos sin imagen */}
+                    {!firstImage?.url && (
+                      <div className="mb-3">
+                        <EntityBadges
+                          categories={article.categories}
+                          regions={article.regions}
+                          topics={article.topics}
+                          context="articles"
+                          disableLinks={true}
+                        />
+                      </div>
+                    )}
                     {/* Credit de imagen */}
                     {firstImage?.credit && (
                       <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-1 truncate">
@@ -207,7 +252,12 @@ export default function FilteredArticlesCarousel(props) {
                     )}
 
                     {/* Título */}
-                    <h2 className="text-lg font-bold font-serif leading-tight line-clamp-2">
+                    {/* Título */}
+                    <h2
+                      className={`font-bold font-serif leading-tight line-clamp-2 ${
+                        firstImage?.url ? "text-lg" : "text-2xl"
+                      }`}
+                    >
                       <ArticleLink article={article}>
                         <span className="hover:text-red-600 transition-colors duration-200">
                           {articleTitle}
@@ -217,14 +267,27 @@ export default function FilteredArticlesCarousel(props) {
 
                     {/* Subtítulo */}
                     {subtitle && (
-                      <p className="font-serif text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <p
+                        className={`font-serif text-gray-500 dark:text-gray-400 mt-1 ${
+                          firstImage?.url ? "text-sm" : "text-base"
+                        }`}
+                      >
                         {subtitle}
                       </p>
                     )}
 
                     {/* Teaser / Preview */}
                     {teaser && (
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2 leading-relaxed">
+                      <p
+                        className={`text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed overflow-hidden ${
+                          firstImage?.url ? "line-clamp-2" : "line-clamp-15"
+                        }`}
+                        style={{
+                          display: "-webkit-box",
+                          WebkitBoxOrient: "vertical",
+                          WebkitLineClamp: firstImage?.url ? 2 : 15,
+                        }}
+                      >
                         {teaser}
                       </p>
                     )}
