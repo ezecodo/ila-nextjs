@@ -120,7 +120,7 @@ export default function FilteredArticlesCarousel(props) {
           slidesToShow: 1,
           slidesToScroll: 1,
           arrows: articles.length > 1,
-          dots: true,
+          dots: false, // 🔥 CAMBIAR A FALSE
         },
       },
     ],
@@ -148,7 +148,10 @@ export default function FilteredArticlesCarousel(props) {
 
             // 🔥 Preview text / Teaser
             const hasImage = firstImage?.url;
-            const previewLength = hasImage ? 200 : 800;
+            // En mobile: menos texto. En desktop: más texto
+            const isMobile =
+              typeof window !== "undefined" && window.innerWidth < 1024;
+            const previewLength = hasImage ? 200 : isMobile ? 200 : 800;
 
             let teaser = "";
             if (isES) {
@@ -184,7 +187,7 @@ export default function FilteredArticlesCarousel(props) {
                   articles.length === 1 ? "max-w-[400px] mx-auto" : ""
                 }`}
               >
-                <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 min-h-[450px] max-h-[550px] flex flex-col">
                   {/* Solo mostrar bloque de imagen si existe */}
                   {firstImage?.url ? (
                     <div className="relative w-full h-[240px] overflow-hidden bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-gray-900 flex items-center justify-center">
@@ -221,7 +224,7 @@ export default function FilteredArticlesCarousel(props) {
                   ) : null}
 
                   {/* Contenido */}
-                  <div className="p-4 relative">
+                  <div className="p-6 lg:p-4 relative flex-1 flex flex-col">
                     {/* Favorito para artículos sin imagen */}
                     {!firstImage?.url && (
                       <div className="absolute top-2 right-2 z-20">
@@ -280,12 +283,18 @@ export default function FilteredArticlesCarousel(props) {
                     {teaser && (
                       <p
                         className={`text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed overflow-hidden ${
-                          firstImage?.url ? "line-clamp-2" : "line-clamp-15"
+                          firstImage?.url
+                            ? "line-clamp-2"
+                            : "line-clamp-4 lg:line-clamp-15"
                         }`}
                         style={{
                           display: "-webkit-box",
                           WebkitBoxOrient: "vertical",
-                          WebkitLineClamp: firstImage?.url ? 2 : 15,
+                          WebkitLineClamp: firstImage?.url
+                            ? 2
+                            : isMobile
+                              ? 4
+                              : 15,
                         }}
                       >
                         {teaser}
