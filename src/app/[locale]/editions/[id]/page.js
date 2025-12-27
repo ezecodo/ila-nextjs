@@ -94,6 +94,10 @@ export default function EditionDetails() {
         const articlesRes = await fetch(`/api/articles/edition/${data.number}`);
         const articlesData = await articlesRes.json();
         setArticles(articlesData);
+        console.log(
+          "🔍 Artículos cargados:",
+          articlesData.map((a) => a.title)
+        );
 
         // Cargar matches manuales
         const matchesRes = await fetch(`/api/toc-match?editionId=${data.id}`);
@@ -180,6 +184,7 @@ export default function EditionDetails() {
       .replace(/&nbsp;/g, " "); // reemplaza entidades HTML
 
     const lines = normalized.split("\n").filter((line) => line.trim());
+
     const parsedArticles = [];
     let currentArticle = null;
     let beilageBuffer = [];
@@ -205,7 +210,7 @@ export default function EditionDetails() {
 
       // 🔥 NUEVO: Verificar PRIMERO si después del número viene una palabra de tiempo/cantidad
       if (
-        /^(jahre|monate|tage|wochen|stunden|minuten|sekunden|prozent|prozente|mal|personen|leute|meter|kilometer|euro|dollar|grad)/i.test(
+        /^(jahre|monate|tage|wochen|stunden|minuten|sekunden|prozent|prozente|mal|personen|leute|meter|kilometer|euro|dollar|grad)b/i.test(
           restOfLine
         )
       ) {

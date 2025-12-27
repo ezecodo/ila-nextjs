@@ -115,7 +115,7 @@ export default function MiniArticleCardGrid({
 
   return (
     <div
-      className={`group w-full rounded-lg bg-white dark:bg-gray-800 shadow-md hover:shadow-xl dark:shadow-md mb-8 transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${
+      className={`group w-full rounded-lg bg-white dark:bg-gray-800 shadow-md hover:shadow-xl dark:shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${
         isTransitioning ? "opacity-0" : "opacity-100"
       }`}
       style={{

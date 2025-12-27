@@ -281,11 +281,11 @@ export default function LatestEditionWithArticles() {
   });
   return (
     <>
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-4 pb-16">
         {currentEdition && (
-          <div className="flex flex-col lg:flex-row gap-2 items-start">
-            <div className="relative w-full lg:w-1/3 flex items-start justify-center">
-              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm">
+          <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 items-start justify-between">
+            <div className="relative w-full lg:w-auto flex items-start justify-end">
+              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
                 <div className="relative w-full">
                   <div className="text-center flex flex-col items-center space-y-1">
                     <div className="flex items-baseline justify-center gap-3 leading-none relative">
@@ -508,11 +508,11 @@ export default function LatestEditionWithArticles() {
                   {currentEditionIndex < editions.length - 1 && (
                     <div
                       onClick={() => changeEdition(currentEditionIndex + 1)}
-                      className={`absolute left-2 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-left_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
+                      className={`absolute left-0 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-left_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
                       style={{
                         transform: "translateY(-50%) rotate(-5deg)",
                         transformOrigin: "center",
-                        width: "140px",
+                        width: "120px",
                       }}
                     >
                       <Image
@@ -548,12 +548,11 @@ export default function LatestEditionWithArticles() {
                   {/* Portada central (actual) */}
                   <div
                     key={currentEdition.id}
-                    className={`relative z-20 mx-auto transition-all duration-600 ease-in-out ${
+                    className={`relative z-20 mx-auto transition-all duration-600 ease-in-out max-w-[240px] lg:max-w-[280px] ${
                       isTransitioning
                         ? "opacity-0 scale-95"
                         : "opacity-100 scale-100"
                     }`}
-                    style={{ maxWidth: "240px" }}
                   >
                     <Link
                       href={`/editions/${currentEdition.id}`}
@@ -562,8 +561,8 @@ export default function LatestEditionWithArticles() {
                       <Image
                         src={currentEdition.coverImage}
                         alt={`Portada de ${currentEdition.title}`}
-                        width={240}
-                        height={320}
+                        width={360}
+                        height={480}
                         className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
                         priority
                       />
@@ -574,11 +573,11 @@ export default function LatestEditionWithArticles() {
                   {currentEditionIndex > 0 && (
                     <div
                       onClick={() => changeEdition(currentEditionIndex - 1)}
-                      className={`absolute right-2 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-right_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
+                      className={`absolute right-0 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-right_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
                       style={{
                         transform: "translateY(-50%) rotate(5deg)",
                         transformOrigin: "center",
-                        width: "140px",
+                        width: "120px",
                       }}
                     >
                       <Image
@@ -663,7 +662,7 @@ export default function LatestEditionWithArticles() {
               </div>
             </div>
 
-            <div className="w-full lg:w-2/3 flex flex-col gap-6 mt-8 lg:mt-0">
+            <div className="w-full lg:flex-1 flex flex-col gap-6 mt-8 lg:mt-0">
               {/* Desktop */}
               {/* Desktop */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">

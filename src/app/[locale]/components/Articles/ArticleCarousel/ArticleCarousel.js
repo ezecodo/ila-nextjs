@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import SmartImage from "../../SmartImage/SmartImage";
 import Slider from "../../SafeSlick/SafeSlick";
 import { useLocale } from "next-intl";
 import EntityBadges from "../../../components/EntityBadges/EntityBadges";
@@ -190,17 +190,17 @@ export default function FilteredArticlesCarousel(props) {
                 <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 min-h-[450px] max-h-[550px] flex flex-col">
                   {/* Solo mostrar bloque de imagen si existe */}
                   {firstImage?.url ? (
-                    <div className="relative w-full h-[240px] overflow-hidden bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-gray-900 flex items-center justify-center">
+                    <div className="relative w-full aspect-[16/9] overflow-hidden">
                       <ArticleLink article={article}>
-                        <Image
+                        <SmartImage
                           src={firstImage.url}
                           alt={firstImage.alt || "Artículo"}
-                          width={800}
-                          height={400}
-                          className="w-full max-h-[240px] object-contain transition-transform duration-500 group-hover:scale-105"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          faceTopBias
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
                       </ArticleLink>
+
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
 
                       {/* Badges */}
                       <div className="absolute bottom-0 left-0 w-full px-3 py-2">
