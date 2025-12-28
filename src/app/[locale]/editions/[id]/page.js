@@ -1021,46 +1021,46 @@ export default function EditionDetails() {
               day: "numeric",
             })}
           </p>
-          <div className="flex justify-end mb-6">
-            <button
-              onClick={() => {
-                const element = document.querySelector("#tableOfContents h2");
-                if (element) {
-                  const offset = -80; // 👈 ajusta según altura del header
-                  const top =
-                    element.getBoundingClientRect().top +
-                    window.scrollY +
-                    offset;
-                  window.scrollTo({ top, behavior: "smooth" });
-                }
-              }}
-              className="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full 
+        </div>
+
+        <div className="flex justify-end mb-6 mt-4">
+          <button
+            onClick={() => {
+              const element = document.querySelector("#tableOfContents h2");
+              if (element) {
+                const offset = -80;
+                const top =
+                  element.getBoundingClientRect().top + window.scrollY + offset;
+                window.scrollTo({ top, behavior: "smooth" });
+              }
+            }}
+            className="group inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full 
     border border-red-300/70 dark:border-red-700/70 
     bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm
     text-red-700 dark:text-red-300 
     hover:bg-red-600 hover:text-white dark:hover:bg-red-500 
     transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-[2px]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 transition-transform group-hover:-translate-y-[1px]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4 transition-transform group-hover:-translate-y-[1px]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              {locale === "de"
-                ? "Zum Inhaltsverzeichnis"
-                : "Ir al índice de contenidos"}
-            </button>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            {locale === "de"
+              ? "Zum Inhaltsverzeichnis"
+              : "Ir al índice de contenidos"}
+          </button>
         </div>
+
         <div className="article-content font-serif text-lg md:text-xlleading-normal text-gray-800 dark:text-gray-200">
           {summaryToShow ? (
             /<\/?[a-z][\s\S]*>/i.test(summaryToShow) ? (
