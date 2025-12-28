@@ -15,7 +15,6 @@ export default function EditCarouselPage() {
   const [carousel, setCarousel] = useState(null);
   const [types, setTypes] = useState([]);
   const [regions, setRegions] = useState([]);
-  const [carouselType, setCarouselType] = useState("horizontal");
 
   // Para vista previa (no se persisten aún)
   const [categories, setCategories] = useState([]);
@@ -250,7 +249,7 @@ export default function EditCarouselPage() {
       titleDE: carousel.titleDE,
       limit: isManual ? selectedArticles.length : Number(carousel.limit) || 6,
       isManual,
-      carouselType,
+      carouselType: carousel.beitragstypId === 2 ? "vertical" : "horizontal",
     };
 
     if (isManual) {
@@ -356,36 +355,6 @@ export default function EditCarouselPage() {
               />
               <span>{t("manual") || "Manual (selección de artículos)"}</span>
             </label>
-          </div>
-        </div>
-
-        {/* 🆕 Selector de tipo de diseño (horizontal/vertical) */}
-        <div className="grid grid-cols-12 gap-3 items-center">
-          <label
-            htmlFor="carouselType"
-            className="col-span-4 text-sm font-medium text-gray-700"
-          >
-            Diseño del carrusel
-          </label>
-          <select
-            id="carouselType"
-            className="col-span-8 w-full border p-2 rounded"
-            value={carouselType}
-            onChange={(e) => setCarouselType(e.target.value)}
-          >
-            <option value="horizontal">
-              📰 Horizontal (artículos normales)
-            </option>
-            <option value="vertical">
-              📚 Vertical (libros/imágenes verticales)
-            </option>
-          </select>
-          <div className="col-start-5 col-span-8">
-            <p className="text-xs text-gray-500 mt-1">
-              {carouselType === "horizontal"
-                ? "Carrusel estándar con imágenes horizontales (16:9)"
-                : "Carrusel optimizado para imágenes verticales (libros, revistas)"}
-            </p>
           </div>
         </div>
 
