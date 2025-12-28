@@ -14,6 +14,7 @@ export default function CreateCarouselPage() {
   const [titleES, setTitleES] = useState("");
   const [titleDE, setTitleDE] = useState("");
   const [placement, setPlacement] = useState("after");
+  const [carouselType, setCarouselType] = useState("horizontal");
 
   const [types, setTypes] = useState([]);
   const [beitragstypId, setBeitragstypId] = useState("");
@@ -215,7 +216,8 @@ export default function CreateCarouselPage() {
       titleDE,
       limit: isManual ? selectedArticles.length : limit,
       isManual,
-      placement, // 🆕 AGREGAR PLACEMENT
+      placement,
+      carouselType,
     };
 
     if (isManual) {
@@ -348,6 +350,36 @@ export default function CreateCarouselPage() {
               {placement === "top"
                 ? "Este carrusel aparecerá debajo del banner promocional, antes de las ediciones"
                 : "Este carrusel aparecerá después de las ediciones (ubicación estándar)"}
+            </p>
+          </div>
+        </div>
+
+        {/* 🆕 Selector de tipo de carrusel */}
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <label
+            htmlFor="carouselType"
+            className="col-span-4 text-sm font-medium text-gray-700"
+          >
+            {t("carouselTypeLabel") || "Tipo de carrusel"}
+          </label>
+          <select
+            id="carouselType"
+            className="col-span-8 w-full border p-2 rounded"
+            value={carouselType}
+            onChange={(e) => setCarouselType(e.target.value)}
+          >
+            <option value="horizontal">
+              📰 Horizontal (artículos normales)
+            </option>
+            <option value="vertical">
+              📚 Vertical (libros/imágenes verticales)
+            </option>
+          </select>
+          <div className="col-start-5 col-span-8">
+            <p className="text-xs text-gray-500 mt-1">
+              {carouselType === "horizontal"
+                ? "Carrusel estándar con imágenes horizontales (16:9)"
+                : "Carrusel optimizado para imágenes verticales (libros, revistas)"}
             </p>
           </div>
         </div>

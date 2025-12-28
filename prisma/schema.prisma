@@ -461,6 +461,7 @@ model Carousel {
    placement     String            @default("after")
   isManual      Boolean           @default(false)
   isPrimary     Boolean           @default(false)
+  carouselType  String            @default("horizontal")
   activityLogs  ActivityLog[]     @relation("CarouselToActivityLogs")
   beitragstyp   Beitragstyp?      @relation(fields: [beitragstypId], references: [id])
   region        Region?           @relation(fields: [regionId], references: [id])

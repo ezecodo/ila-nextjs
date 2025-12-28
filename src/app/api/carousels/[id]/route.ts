@@ -22,6 +22,7 @@ export async function GET(nextRequest: NextRequest) {
         limit: true,
         orderBy: true,
         position: true,
+        carouselType: true,
         isManual: true,
         createdAt: true,
         updatedAt: true,
@@ -100,6 +101,7 @@ export async function PUT(nextRequest: NextRequest) {
       categoryIds,
       isManual,
       articleIds,
+      carouselType,
     } = body;
 
     // 🆕 Si cambia a manual o actualiza artículos manuales
@@ -117,6 +119,7 @@ export async function PUT(nextRequest: NextRequest) {
           limit,
           orderBy,
           position,
+          carouselType: carouselType || "horizontal",
           isManual: true,
           beitragstypId: null,
           regionId: null,
@@ -161,6 +164,7 @@ export async function PUT(nextRequest: NextRequest) {
         orderBy,
         regionId: regionId || null,
         position,
+        carouselType: carouselType || "horizontal",
         isManual: isManual ?? false,
         categories: categoryIds
           ? {
