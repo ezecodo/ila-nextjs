@@ -556,7 +556,7 @@ export default function LegacyArticlePage() {
           />
           {((isES && article.additionalInfoES) || article.additionalInfo) && (
             <div
-              className="article-content mt-6 text-base text-gray-700 dark:text-gray-300"
+              className="mt-6 text-base text-gray-700 dark:text-gray-300 [&_p]:mb-2"
               dangerouslySetInnerHTML={{
                 __html: rewriteEditionLinksWithLocale(
                   isES && article.additionalInfoES
