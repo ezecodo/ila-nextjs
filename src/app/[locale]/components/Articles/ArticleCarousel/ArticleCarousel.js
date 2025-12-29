@@ -120,17 +120,16 @@ export default function FilteredArticlesCarousel(props) {
           slidesToShow: 1,
           slidesToScroll: 1,
           arrows: articles.length > 1,
-          dots: false, // 🔥 CAMBIAR A FALSE
+          dots: false,
         },
       },
     ],
   };
 
   return (
-    <section className="relative w-full px-4 md:px-8 py-10 border-t border-gray-200 dark:border-gray-700">
-      {title && <SectionHeader title={title} className="mb-8" />}
-
-      <div className="pb-10">
+    <section className="relative w-full px-6 md:px-8 py-1 md:py-8">
+      {title && <SectionHeader title={title} className="mb-4" />}
+      <div className="pb-1 md:pb-8">
         <Slider {...settings}>
           {articles.map((article) => {
             const firstImage =
@@ -187,7 +186,7 @@ export default function FilteredArticlesCarousel(props) {
                   articles.length === 1 ? "max-w-[400px] mx-auto" : ""
                 }`}
               >
-                <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 min-h-[450px] max-h-[550px] flex flex-col">
+                <div className="group bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 min-h-[500px] lg:min-h-[450px] lg:max-h-[550px] flex flex-col">
                   {/* Solo mostrar bloque de imagen si existe */}
                   {firstImage?.url ? (
                     <div className="relative w-full aspect-[16/9] overflow-hidden">
@@ -255,51 +254,41 @@ export default function FilteredArticlesCarousel(props) {
                     )}
 
                     {/* Título */}
-                    {/* Título */}
-                    <h2
-                      className={`font-bold font-serif leading-tight line-clamp-2 ${
-                        firstImage?.url ? "text-lg" : "text-2xl"
-                      }`}
-                    >
-                      <ArticleLink article={article}>
-                        <span className="hover:text-red-600 transition-colors duration-200">
-                          {articleTitle}
-                        </span>
-                      </ArticleLink>
-                    </h2>
-
-                    {/* Subtítulo */}
-                    {subtitle && (
-                      <p
-                        className={`font-serif text-gray-500 dark:text-gray-400 mt-1 ${
-                          firstImage?.url ? "text-sm" : "text-base"
+                    {/* Contenedor de texto con altura fija */}
+                    <div className="flex-1 min-h-[180px] flex flex-col">
+                      {/* Título */}
+                      <h2
+                        className={`font-bold font-serif leading-tight line-clamp-2 ${
+                          firstImage?.url ? "text-lg" : "text-2xl"
                         }`}
                       >
-                        {subtitle}
-                      </p>
-                    )}
+                        <ArticleLink article={article}>
+                          <span className="hover:text-red-600 transition-colors duration-200">
+                            {articleTitle}
+                          </span>
+                        </ArticleLink>
+                      </h2>
+
+                      {/* Subtítulo */}
+                      {subtitle && (
+                        <p
+                          className={`font-serif text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 ${
+                            firstImage?.url ? "text-sm" : "text-base"
+                          }`}
+                        >
+                          {subtitle}
+                        </p>
+                      )}
+
+                      {/* Teaser - ocupa espacio restante */}
+                      {teaser && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed line-clamp-4 flex-1">
+                          {teaser}
+                        </p>
+                      )}
+                    </div>
 
                     {/* Teaser / Preview */}
-                    {teaser && (
-                      <p
-                        className={`text-sm text-gray-600 dark:text-gray-300 mt-2 leading-relaxed overflow-hidden ${
-                          firstImage?.url
-                            ? "line-clamp-2"
-                            : "line-clamp-4 lg:line-clamp-15"
-                        }`}
-                        style={{
-                          display: "-webkit-box",
-                          WebkitBoxOrient: "vertical",
-                          WebkitLineClamp: firstImage?.url
-                            ? 2
-                            : isMobile
-                              ? 4
-                              : 15,
-                        }}
-                      >
-                        {teaser}
-                      </p>
-                    )}
 
                     {/* Metadata */}
                     <div className="mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">

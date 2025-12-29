@@ -120,10 +120,10 @@ export default function ArticleCarouselVer(props) {
   };
 
   return (
-    <section className="relative w-full px-4 md:px-8 py-10 border-t border-gray-200 dark:border-gray-700">
+    <section className="relative w-full px-4 md:px-8 py-6 md:py-8">
       {title && <SectionHeader title={title} className="mb-8" />}
 
-      <div className="pb-10">
+      <div className="pb-6 md:pb-8">
         <Slider {...settings}>
           {articles.map((article) => {
             const isES = locale === "es" && article.isTranslatedES;
