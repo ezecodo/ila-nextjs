@@ -320,7 +320,7 @@ export default function LegacyArticlePage() {
                     className="cursor-pointer rounded-lg shadow-md"
                     onClick={() => openPopup(image)}
                   >
-                    <div className="relative w-full max-w-[800px] mx-auto aspect-[4/3]">
+                    <div className="relative w-full max-w-[500px] mx-auto aspect-[4/3]">
                       <Image
                         src={image.url}
                         alt={
