@@ -127,7 +127,7 @@ export default function FilteredArticlesCarousel(props) {
   };
 
   return (
-    <section className="relative w-full px-6 md:px-8 py-1 md:py-8">
+    <section className="relative w-full px-2 md:px-8 py-1 md:py-8">
       {title && <SectionHeader title={title} className="mb-4" />}
       <div className="pb-1 md:pb-8">
         <Slider {...settings}>
@@ -182,7 +182,7 @@ export default function FilteredArticlesCarousel(props) {
             return (
               <div
                 key={article.id}
-                className={`px-2 ${
+                className={`px-1 ${
                   articles.length === 1 ? "max-w-[400px] mx-auto" : ""
                 }`}
               >

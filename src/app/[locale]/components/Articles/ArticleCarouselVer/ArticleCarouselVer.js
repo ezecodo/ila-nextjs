@@ -120,10 +120,10 @@ export default function ArticleCarouselVer(props) {
   };
 
   return (
-    <section className="relative w-full px-4 md:px-8 py-6 md:py-8">
-      {title && <SectionHeader title={title} className="mb-8" />}
+    <section className="relative w-full px-2 md:px-8 py-1 md:py-8">
+      {title && <SectionHeader title={title} className="mb-4" />}
 
-      <div className="pb-6 md:pb-8">
+      <div className="pb-1 md:pb-8">
         <Slider {...settings}>
           {articles.map((article) => {
             const isES = locale === "es" && article.isTranslatedES;
@@ -164,14 +164,14 @@ export default function ArticleCarouselVer(props) {
             return (
               <div
                 key={article.id}
-                className={`px-2 focus:outline-none ${
-                  articles.length === 1 ? "max-w-[260px] mx-auto" : ""
+                className={`px-1 focus:outline-none ${
+                  articles.length === 1 ? "max-w-[280px] mx-auto" : ""
                 }`}
               >
-                <div className="group w-full max-w-[260px] mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="group w-full mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                   {/* Imagen VERTICAL - aspect ratio 2:3 */}
                   {hasImage && (
-                    <div className="relative w-full aspect-[2/3] overflow-hidden bg-gray-100 dark:bg-gray-700">
+                    <div className="relative w-full max-w-[280px] mx-auto aspect-[2/3] overflow-hidden bg-gray-100 dark:bg-gray-700">
                       <ArticleLink article={article}>
                         <SmartImage
                           src={primaryImage.url}
