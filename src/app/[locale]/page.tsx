@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import LatestEdition1 from "./components/Editions/LatestEdition1";
 import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
 import { PromoHeroBanner } from "./order/abo/components/PromoForm/PromoGiftSection";
+import NetworkCarousel from "./components/NetworkCarousel/NetworkCarousel"; // 👈 AÑADIR
 
 export default function Home() {
   const pathname = usePathname();
@@ -55,6 +56,8 @@ export default function Home() {
 
           {/* Carruseles normales (después de ediciones) */}
           <CarouselFromDb placement="after" />
+          {/* 🌐 Carousel de Partners - AL FINAL */}
+          <NetworkCarousel />
         </div>
       </main>
     </div>
