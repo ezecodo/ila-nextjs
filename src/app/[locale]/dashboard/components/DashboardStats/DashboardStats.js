@@ -14,6 +14,7 @@ import {
   FaSlidersH,
   FaCog,
   FaQuestionCircle,
+  FaNetworkWired,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -125,6 +126,12 @@ const DashboardStats = () => {
         href="/dashboard/carousels"
         pathname={pathname}
       />
+      <StatCard
+        icon={<FaNetworkWired size={18} />}
+        label="Netzwerk"
+        href="/dashboard/network"
+        pathname={pathname}
+      />
       <StatCardDropdown
         icon={<FaLanguage size={18} />}
         label={t("translations")}
@@ -168,7 +175,8 @@ const DashboardStats = () => {
       />
       <StatCard
         icon={<FaCog size={18} />}
-        label={t("account")}
+        label=""
+        value=""
         href="/dashboard/account"
         pathname={pathname}
       />
