@@ -412,7 +412,23 @@ model Favorite {
   @@unique([userId, articleId])
   @@index([articleId], map: "Favorite_articleId_fkey")
 }
+model NetworkPartner {
+  id          String   @id @default(cuid())
+  name        String
+  nameEs      String?  // Nombre en español (si es diferente)
+  description String?  @db.Text
+  descriptionEs String? @db.Text
+  url         String
+  logoUrl     String?  // URL del logo en Cloudinary
+  logoWidth  Int?
+  logoHeight Int?
+  order       Int      @default(0) // Para ordenar manualmente
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
+  @@map("network_partners")
+}
 model Event {
   id            String   @id @default(uuid())
   title         String
