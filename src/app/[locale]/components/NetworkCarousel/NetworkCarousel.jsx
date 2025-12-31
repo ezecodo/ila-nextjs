@@ -110,14 +110,23 @@ export default function NetworkCarousel() {
   }
 
   // VERSIÓN DESKTOP (carousel)
+  // VERSIÓN DESKTOP (carousel)
   return (
     <div className="w-full bg-gray-50 dark:bg-gray-900 py-8 relative">
+      {/* Área invisible DESDE el título */}
       <div
-        ref={scrollRef}
-        className="overflow-x-auto scrollbar-hide"
-        style={{ scrollBehavior: "smooth" }}
+        className="absolute top-0 left-0 right-0 bottom-0"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
+      />
+      <h2 className="text-3xl font-bold text-red-600 dark:text-red-400 mb-8 text-center relative z-10">
+        {locale === "es" ? "Red de Colaboración" : "Netzwerk"}
+      </h2>
+
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto scrollbar-hide relative z-10"
+        style={{ scrollBehavior: "smooth" }}
       >
         <div
           className="flex gap-6 px-6"
