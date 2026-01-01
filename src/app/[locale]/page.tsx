@@ -1,33 +1,13 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import LatestEdition1 from "./components/Editions/LatestEdition1";
 import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
-import { PromoHeroBanner } from "./order/abo/components/PromoForm/PromoGiftSection";
+import DynamicBanner from "./components/DynamicBanner/DynamicBanner";
 import NetworkCarousel from "./components/NetworkCarousel/NetworkCarousel"; // 👈 AÑADIR
 
 export default function Home() {
   const pathname = usePathname();
-  const [editions, setEditions] = useState([]);
-
-  useEffect(() => {
-    async function fetchEditions() {
-      try {
-        const res = await fetch("/api/editions?sort=desc&limit=3");
-        if (!res.ok) return;
-        const data = await res.json();
-        const editions = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.editions)
-            ? data.editions
-            : [];
-        setEditions(editions);
-      } catch (e) {
-        console.error("Error cargando ediciones:", e);
-      }
-    }
-    fetchEditions();
-  }, []);
 
   useEffect(() => {
     if (pathname === "/" && window.location.hash === "#dossiers") {
@@ -44,7 +24,7 @@ export default function Home() {
         <div className="w-full">
           {/* 🎁 Banner Promocional - Diciembre 2025 */}
           <div className="w-full mb-10">
-            <PromoHeroBanner editions={editions} />
+            <DynamicBanner position="top" />
           </div>
 
           {/* 🆕 Carruseles TOP (antes de ediciones) */}
