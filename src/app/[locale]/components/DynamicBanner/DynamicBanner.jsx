@@ -17,7 +17,6 @@ export default function DynamicBanner({ position = "top" }) {
         const res = await fetch(`/api/banners?position=${position}`);
         const data = await res.json();
 
-        // Tomar el primer banner activo para esta posición
         if (data && data.length > 0) {
           setBanner(data[0]);
         }
@@ -48,8 +47,36 @@ export default function DynamicBanner({ position = "top" }) {
       ? banner.buttonTextEs
       : banner.buttonText;
 
+  const getSizeClass = (size, type) => {
+    const sizes = {
+      title: {
+        xs: "text-xs md:text-xs",
+        sm: "text-xs md:text-sm",
+        md: "text-sm md:text-base",
+        lg: "text-base md:text-lg",
+      },
+      subtitle: {
+        xl: "text-lg md:text-xl",
+        "2xl": "text-xl md:text-2xl",
+        "3xl": "text-xl md:text-3xl",
+        "4xl": "text-2xl md:text-4xl",
+      },
+      description: {
+        sm: "text-xs md:text-sm",
+        base: "text-sm md:text-base",
+        lg: "text-base md:text-lg",
+      },
+    };
+    return sizes[type][size] || "";
+  };
+
   return (
-    <div className="mb-0 relative overflow-hidden rounded-lg md:rounded-none bg-gradient-to-br from-red-600 to-red-700 dark:from-red-700 dark:to-red-800 shadow-md">
+    <div
+      className="mb-0 relative overflow-hidden rounded-lg md:rounded-none shadow-md"
+      style={{
+        background: `linear-gradient(to bottom right, ${banner.bgGradientFrom}, ${banner.bgGradientTo})`,
+      }}
+    >
       {/* Patrón de fondo */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -77,19 +104,25 @@ export default function DynamicBanner({ position = "top" }) {
           {/* Contenido */}
           <div className="flex-1">
             {title && (
-              <div className="text-red-100 text-xs md:text-sm font-semibold uppercase tracking-wider mb-2">
+              <div
+                className={`text-red-100 font-semibold uppercase tracking-wider mb-2 ${getSizeClass(banner.titleSize, "title")}`}
+              >
                 {title}
               </div>
             )}
-            <h3 className="text-white text-xl md:text-3xl font-bold leading-tight mb-2">
+            <h3
+              className={`text-white font-bold leading-tight mb-2 ${getSizeClass(banner.subtitleSize, "subtitle")}`}
+            >
               {subtitle}
             </h3>
-            <p className="text-white/90 text-sm md:text-base leading-relaxed">
+            <p
+              className={`text-white/90 leading-relaxed ${getSizeClass(banner.descriptionSize, "description")}`}
+            >
               {description}
             </p>
           </div>
 
-          {/* Imagen decorativa (si existe) */}
+          {/* Imagen decorativa */}
           {banner.imageUrl && (
             <div className="hidden lg:flex flex-shrink-0 relative h-32 w-40">
               <Image
@@ -103,12 +136,21 @@ export default function DynamicBanner({ position = "top" }) {
 
           {/* Botón CTA */}
           <Link href={banner.buttonUrl} className="flex-shrink-0">
-            <div className="bg-white/95 dark:bg-gray-900/95 rounded-lg px-4 md:px-6 py-3 md:py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-red-500 group">
+            <div
+              className="bg-white/95 dark:bg-gray-900/95 rounded-lg px-4 md:px-6 py-3 md:py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2"
+              style={{ borderColor: banner.buttonColor }}
+            >
               <div className="flex items-center gap-2">
-                <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-gray-100">
+                <p
+                  className="text-lg md:text-xl font-bold"
+                  style={{ color: banner.buttonColor }}
+                >
                   {buttonText}
                 </p>
-                <span className="text-red-600 group-hover:translate-x-1 transition-transform duration-300">
+                <span
+                  className="group-hover:translate-x-1 transition-transform duration-300"
+                  style={{ color: banner.buttonColor }}
+                >
                   →
                 </span>
               </div>

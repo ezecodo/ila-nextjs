@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE `banners` ADD COLUMN `bgGradientFrom` VARCHAR(191) NOT NULL DEFAULT '#dc2626',
+    ADD COLUMN `bgGradientTo` VARCHAR(191) NOT NULL DEFAULT '#b91c1c',
+    ADD COLUMN `buttonColor` VARCHAR(191) NOT NULL DEFAULT '#dc2626',
+    ADD COLUMN `descriptionSize` VARCHAR(191) NOT NULL DEFAULT 'base',
+    ADD COLUMN `subtitleSize` VARCHAR(191) NOT NULL DEFAULT '3xl',
+    ADD COLUMN `titleSize` VARCHAR(191) NOT NULL DEFAULT 'sm';

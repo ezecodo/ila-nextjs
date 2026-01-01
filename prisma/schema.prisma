@@ -134,11 +134,20 @@ model Banner {
   buttonText    String
   buttonTextEs  String?
   buttonUrl     String
-  imageUrl      String?  // Para las portadas de ediciones
+  imageUrl      String?
+  
+  // 🎨 Personalización visual
+  bgGradientFrom    String @default("#dc2626") // red-600
+  bgGradientTo      String @default("#b91c1c") // red-700
+  titleSize         String @default("sm")      // xs, sm, md, lg
+  subtitleSize      String @default("3xl")     // xl, 2xl, 3xl, 4xl
+  descriptionSize   String @default("base")    // sm, base, lg
+  buttonColor       String @default("#dc2626") // red-600
+  
   startDate     DateTime
   endDate       DateTime
   isActive      Boolean  @default(true)
-  position      String   @default("top") // "top", "middle", "bottom"
+  position      String   @default("top")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

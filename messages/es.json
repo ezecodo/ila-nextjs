@@ -436,6 +436,83 @@
     "viewOrders": "Dossiers",
     "gifts": "Premios"
   },
+  "banners": {
+    "dashboard": {
+      "title": "Gestión de Banners",
+      "newBanner": "Nuevo Banner",
+      "editBanner": "Editar Banner",
+      "createBanner": "Crear Banner",
+      "updateBanner": "Actualizar Banner",
+      "cancel": "Cancelar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "loading": "Cargando...",
+      "deleteConfirm": "¿Seguro que quieres eliminar este banner?",
+
+      "tabContent": "Contenido",
+      "tabDesign": "Diseño",
+      "tabSettings": "Configuración",
+
+      "titleTop": "Título Superior (DE)",
+      "titleTopES": "Título Superior (ES)",
+      "titleTopPlaceholder": "AKTION",
+      "titleTopPlaceholderES": "PROMOCIÓN",
+
+      "subtitle": "Subtítulo Principal (DE)",
+      "subtitleES": "Subtítulo Principal (ES)",
+      "subtitlePlaceholder": "Haupttitel hier...",
+      "subtitlePlaceholderES": "Título principal aquí...",
+
+      "description": "Descripción (DE)",
+      "descriptionES": "Descripción (ES)",
+      "descriptionPlaceholder": "Beschreibung hier...",
+      "descriptionPlaceholderES": "Descripción aquí...",
+
+      "buttonText": "Texto del Botón (DE)",
+      "buttonTextES": "Texto del Botón (ES)",
+      "buttonTextPlaceholder": "Button Text",
+      "buttonTextPlaceholderES": "Texto del Botón",
+
+      "buttonUrl": "URL del Botón",
+      "buttonUrlPlaceholder": "https://example.com/promo",
+      "decorativeImage": "Imagen Decorativa",
+
+      "bgGradient": "Gradiente de Fondo",
+      "colorStart": "Color Inicio",
+      "colorEnd": "Color Fin",
+
+      "titleSizeLabel": "Tamaño Título Superior",
+      "subtitleSizeLabel": "Tamaño Subtítulo Principal",
+      "descriptionSizeLabel": "Tamaño Descripción",
+      "buttonColorLabel": "Color del Botón",
+
+      "sizeXS": "Extra Pequeño (xs)",
+      "sizeSM": "Pequeño (sm)",
+      "sizeMD": "Mediano (md)",
+      "sizeLG": "Grande (lg)",
+      "sizeXL": "Extra Grande (xl)",
+      "size2XL": "2X Grande (2xl)",
+      "size3XL": "3X Grande (3xl)",
+      "size4XL": "4X Grande (4xl)",
+      "sizeBase": "Normal (base)",
+
+      "startDate": "Fecha Inicio",
+      "endDate": "Fecha Fin",
+      "position": "Posición en la Página",
+      "positionTop": "Arriba (Top)",
+      "positionMiddle": "Medio (Middle)",
+      "positionBottom": "Abajo (Bottom)",
+      "active": "Banner Activo",
+
+      "previewTitle": "Vista Previa en Vivo",
+      "previewTip": "Tip: Los cambios se reflejan en tiempo real. Ajusta colores y tamaños hasta que quede perfecto.",
+
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+
+      "required": "*"
+    }
+  },
   "newArticle": {
     "form": {
       "formTitle": "Crear un nuevo artículo",
