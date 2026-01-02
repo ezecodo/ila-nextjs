@@ -246,9 +246,9 @@ export default function BannersPage() {
           </div>
 
           <div className="p-6">
-            {/* PREVIEW EN VIVO - ARRIBA FULL WIDTH */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4">
+            {/* PREVIEW EN VIVO - ARRIBA FULL WIDTH STICKY */}
+            <div className="mb-8 sticky top-0 z-50 bg-white dark:bg-gray-800 pb-4">
+              <h3 className="text-lg font-semibold mb-4 pt-4">
                 👁️ Vista Previa en Vivo
               </h3>
 
