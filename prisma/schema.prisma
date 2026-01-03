@@ -143,6 +143,7 @@ model Banner {
   subtitleSize      String @default("3xl")     // xl, 2xl, 3xl, 4xl
   descriptionSize   String @default("base")    // sm, base, lg
   buttonColor       String @default("#dc2626") // red-600
+  hasPromoForm      Boolean @default(false) 
   
   startDate     DateTime
   endDate       DateTime

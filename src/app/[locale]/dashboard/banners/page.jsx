@@ -28,6 +28,7 @@ export default function BannersPage() {
     subtitleSize: "3xl",
     descriptionSize: "base",
     buttonColor: "#dc2626",
+    hasPromoForm: false,
     startDate: "",
     endDate: "",
     isActive: true,
@@ -91,6 +92,7 @@ export default function BannersPage() {
       subtitleSize: banner.subtitleSize || "3xl",
       descriptionSize: banner.descriptionSize || "base",
       buttonColor: banner.buttonColor || "#dc2626",
+      hasPromoForm: banner.hasPromoForm || false,
       startDate: banner.startDate.split("T")[0],
       endDate: banner.endDate.split("T")[0],
       isActive: banner.isActive,
@@ -209,8 +211,101 @@ export default function BannersPage() {
 
       {showForm && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg mb-8">
-          {/* TABS */}
-          <div className="border-b border-gray-200 dark:border-gray-700">
+          {/* PREVIEW STICKY - TAMAÑO COMPLETO */}
+          <div className="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 pb-4">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-4">
+                👁️ Vista Previa en Vivo
+              </h3>
+
+              <div
+                className="overflow-hidden shadow-md relative"
+                style={{
+                  background: `linear-gradient(to bottom right, ${formData.bgGradientFrom}, ${formData.bgGradientTo})`,
+                }}
+              >
+                <div className="absolute inset-0 opacity-10">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage:
+                        "radial-gradient(circle at 1px 1px, rgb(255 255 255) 1px, transparent 0)",
+                      backgroundSize: "40px 40px",
+                    }}
+                  ></div>
+                </div>
+
+                <div className="relative px-8 py-6">
+                  <div className="flex items-center gap-6">
+                    <div className="bg-white rounded-sm w-20 h-20 flex items-center justify-center shadow-lg">
+                      <span
+                        className="text-4xl font-bold text-red-600"
+                        style={{ fontFamily: "Futura, sans-serif" }}
+                      >
+                        ila
+                      </span>
+                    </div>
+
+                    <div className="flex-1">
+                      {formData.title && (
+                        <div
+                          className={`text-red-100 font-semibold uppercase tracking-wider mb-2 ${getSizeClass(formData.titleSize, "title")}`}
+                        >
+                          {formData.title}
+                        </div>
+                      )}
+                      <h3
+                        className={`text-white font-bold leading-tight mb-2 ${getSizeClass(formData.subtitleSize, "subtitle")}`}
+                      >
+                        {formData.subtitle || "Subtítulo principal del banner"}
+                      </h3>
+                      <p
+                        className={`text-white/90 leading-relaxed ${getSizeClass(formData.descriptionSize, "description")}`}
+                      >
+                        {formData.description ||
+                          "Descripción detallada de la promoción o campaña."}
+                      </p>
+                    </div>
+
+                    {formData.imageUrl && (
+                      <div className="flex-shrink-0 relative h-32 w-40">
+                        <Image
+                          src={formData.imageUrl}
+                          alt="Preview"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex-shrink-0">
+                      <div
+                        className="bg-white/95 rounded-lg px-6 py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2"
+                        style={{ borderColor: formData.buttonColor }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <p
+                            className="text-xl font-bold"
+                            style={{ color: formData.buttonColor }}
+                          >
+                            {formData.buttonText || "Texto del botón"}
+                          </p>
+                          <span style={{ color: formData.buttonColor }}>→</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                💡 <strong>Tip:</strong> Los cambios se reflejan en tiempo real.
+              </div>
+            </div>
+          </div>
+
+          {/* TABS STICKY */}
+          <div className="sticky top-[240px] z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <div className="flex gap-2 p-4">
               <button
                 onClick={() => setActiveTab("content")}
@@ -246,103 +341,6 @@ export default function BannersPage() {
           </div>
 
           <div className="p-6">
-            {/* PREVIEW EN VIVO - ARRIBA FULL WIDTH STICKY */}
-            <div className="mb-8 sticky top-0 z-50 bg-white dark:bg-gray-800 pb-4">
-              <h3 className="text-lg font-semibold mb-4 pt-4">
-                👁️ Vista Previa en Vivo
-              </h3>
-
-              <div
-                className="overflow-hidden shadow-md relative"
-                style={{
-                  background: `linear-gradient(to bottom right, ${formData.bgGradientFrom}, ${formData.bgGradientTo})`,
-                }}
-              >
-                {/* Patrón de fondo */}
-                <div className="absolute inset-0 opacity-10">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage:
-                        "radial-gradient(circle at 1px 1px, rgb(255 255 255) 1px, transparent 0)",
-                      backgroundSize: "40px 40px",
-                    }}
-                  ></div>
-                </div>
-
-                <div className="relative px-8 py-6">
-                  <div className="flex items-center gap-6">
-                    {/* Logo ILA */}
-                    <div className="bg-white rounded-sm w-20 h-20 flex items-center justify-center shadow-lg">
-                      <span
-                        className="text-4xl font-bold text-red-600"
-                        style={{ fontFamily: "Futura, sans-serif" }}
-                      >
-                        ila
-                      </span>
-                    </div>
-
-                    {/* Contenido */}
-                    <div className="flex-1">
-                      {formData.title && (
-                        <div
-                          className={`text-red-100 font-semibold uppercase tracking-wider mb-2 ${getSizeClass(formData.titleSize, "title")}`}
-                        >
-                          {formData.title}
-                        </div>
-                      )}
-                      <h3
-                        className={`text-white font-bold leading-tight mb-2 ${getSizeClass(formData.subtitleSize, "subtitle")}`}
-                      >
-                        {formData.subtitle || "Subtítulo principal del banner"}
-                      </h3>
-                      <p
-                        className={`text-white/90 leading-relaxed ${getSizeClass(formData.descriptionSize, "description")}`}
-                      >
-                        {formData.description ||
-                          "Descripción detallada de la promoción o campaña."}
-                      </p>
-                    </div>
-
-                    {/* Imagen decorativa */}
-                    {formData.imageUrl && (
-                      <div className="flex-shrink-0 relative h-32 w-40">
-                        <Image
-                          src={formData.imageUrl}
-                          alt="Preview"
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                    )}
-
-                    {/* Botón CTA */}
-                    <div className="flex-shrink-0">
-                      <div
-                        className="bg-white/95 rounded-lg px-6 py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer border-2"
-                        style={{ borderColor: formData.buttonColor }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <p
-                            className="text-xl font-bold"
-                            style={{ color: formData.buttonColor }}
-                          >
-                            {formData.buttonText || "Texto del botón"}
-                          </p>
-                          <span style={{ color: formData.buttonColor }}>→</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-3 rounded">
-                💡 <strong>Tip:</strong> Los cambios se reflejan en tiempo real.
-                Ajusta colores y tamaños hasta que quede perfecto.
-              </div>
-            </div>
-
             {/* FORMULARIO */}
             <div>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -782,6 +780,23 @@ export default function BannersPage() {
                         className="rounded"
                       />
                       <span className="text-sm font-medium">Banner Activo</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-4">
+                      <input
+                        type="checkbox"
+                        checked={formData.hasPromoForm}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            hasPromoForm: e.target.checked,
+                          })
+                        }
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium">
+                        🎁 Activar Formulario de Regalo Promocional
+                      </span>
                     </div>
                   </>
                 )}

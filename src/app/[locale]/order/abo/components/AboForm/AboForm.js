@@ -107,6 +107,7 @@ export default function AboForm({ gifts }) {
     promoGiftRecipientCity: "",
     promoGiftRecipientCountry: "Deutschland",
   });
+  const [activeBanner, setActiveBanner] = useState(null);
 
   const [supporterOpen, setSupporterOpen] = useState(false);
   const [donationError, setDonationError] = useState("");
@@ -129,6 +130,20 @@ export default function AboForm({ gifts }) {
       setForm((prev) => ({ ...prev, trialVariant: "NORMAL" }));
     }
   }, [form.type]);
+  useEffect(() => {
+    async function fetchActiveBanner() {
+      try {
+        const res = await fetch("/api/banners?position=top");
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setActiveBanner(data[0]);
+        }
+      } catch (err) {
+        console.error("Error loading banner:", err);
+      }
+    }
+    fetchActiveBanner();
+  }, []);
 
   const onDonationChange = (val) => {
     if (val === "") {
@@ -391,11 +406,14 @@ export default function AboForm({ gifts }) {
         )}
       </Card>
 
-      {/* 🎁 Banner Promocional */}
-      {(form.type === "NORMAL" || form.type === "SUPPORTER") && <PromoBanner />}
-
-      {/* 🎁 Formulario de Probe Abo */}
-      <PromoGiftForm form={form} handleChange={handleChange} />
+      {/* 🎁 Banner y Formulario de Promo - Solo si hay banner activo con promo Y es Normal/Supporter */}
+      {activeBanner?.hasPromoForm &&
+        (form.type === "NORMAL" || form.type === "SUPPORTER") && (
+          <>
+            <PromoBanner />
+            <PromoGiftForm form={form} handleChange={handleChange} />
+          </>
+        )}
       {/* Info dinámica */}
       {form.type === "NORMAL_PDF" && (
         <InfoBox>

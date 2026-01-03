@@ -27,6 +27,8 @@ export async function PUT(request, { params }) {
         subtitleSize: body.subtitleSize || "3xl",
         descriptionSize: body.descriptionSize || "base",
         buttonColor: body.buttonColor || "#dc2626",
+        hasPromoForm:
+          body.hasPromoForm !== undefined ? body.hasPromoForm : false,
         startDate: new Date(body.startDate),
         endDate: new Date(body.endDate),
         isActive: body.isActive !== undefined ? body.isActive : true,
