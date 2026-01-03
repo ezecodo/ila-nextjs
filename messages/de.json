@@ -416,7 +416,13 @@
       "selectedArticles": "Ausgewählte Artikel",
       "previewManual": "Vorschau (manuelle Reihenfolge)",
       "selectAuthor": "Autor auswählen",
-      "authorPlaceholder": "Name des Autors eingeben..."
+      "authorPlaceholder": "Name des Autors eingeben...",
+      "placementLabel": "Position auf der Seite",
+      "placementHome": "Startseite",
+      "placementArticle": "Nach Artikeln",
+      "choosePlacement": "-- Position wählen --",
+      "placementTop": "🔝 Oben (vor Dossiers)",
+      "placementAfter": "📰 Nach Dossiers (normal)"
     }
   },
   "stats": {
@@ -472,7 +478,7 @@
       "buttonText": "Button-Text (DE)",
       "buttonTextES": "Button-Text (ES)",
       "buttonTextPlaceholder": "Button Text",
-        "buttonTextPlaceholderES": "Texto del Botón",
+      "buttonTextPlaceholderES": "Texto del Botón",
 
       "buttonUrl": "Button-URL",
       "buttonUrlPlaceholder": "https://example.com/promo",

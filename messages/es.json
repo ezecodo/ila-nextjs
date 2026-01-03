@@ -387,7 +387,11 @@
       "selectedArticles": "Artículos seleccionados",
       "previewManual": "Vista previa (orden manual)",
       "selectAuthor": "Buscar autor",
-      "authorPlaceholder": "Escribe el nombre del autor..."
+      "authorPlaceholder": "Escribe el nombre del autor...",
+      "placementLabel": "Position auf der Seite",
+      "placementHome": "Startseite",
+      "placementArticle": "Nach Artikeln",
+      "choosePlacement": "-- Position wählen --"
     },
     "Aktuelles": {
       "listTitle": "Gestionar Aktuelles",

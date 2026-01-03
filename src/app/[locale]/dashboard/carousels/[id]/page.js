@@ -29,6 +29,9 @@ export default function EditCarouselPage() {
   const [selectedArticles, setSelectedArticles] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAuthor, setSelectedAuthor] = useState(null);
+  const [carouselType, setCarouselType] = useState("horizontal");
+  const [placement, setPlacement] = useState("after");
+
   // Cargar carrusel + selects
   useEffect(() => {
     if (!id) return;
@@ -47,6 +50,7 @@ export default function EditCarouselPage() {
 
         // Inicializar tipo de carrusel
         setCarouselType(data.carouselType || "horizontal");
+        setPlacement(data.placement || "after");
         // 👇 Inicializar categorías seleccionadas
         if (Array.isArray(data.categories)) {
           setSelectedCategoryIds(data.categories.map((c) => c.id));
@@ -249,7 +253,8 @@ export default function EditCarouselPage() {
       titleDE: carousel.titleDE,
       limit: isManual ? selectedArticles.length : Number(carousel.limit) || 6,
       isManual,
-      carouselType: carousel.beitragstypId === 2 ? "vertical" : "horizontal",
+      carouselType,
+      placement,
     };
 
     if (isManual) {
@@ -358,6 +363,28 @@ export default function EditCarouselPage() {
           </div>
         </div>
 
+        {/* Selector de ubicación */}
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <label
+            htmlFor="placement"
+            className="col-span-4 text-sm font-medium text-gray-700"
+          >
+            {t("placementLabel") || "Ubicación en página"}
+          </label>
+          <select
+            id="placement"
+            className="col-span-8 w-full border p-2 rounded"
+            value={placement}
+            onChange={(e) => setPlacement(e.target.value)}
+          >
+            <option value="top">
+              {t("placementTop") || "🔝 Arriba (antes de ediciones)"}
+            </option>
+            <option value="after">
+              {t("placementAfter") || "📰 Después de ediciones (normal)"}
+            </option>
+          </select>
+        </div>
         {/* Filtros automáticos - solo si NO es manual */}
         {!isManual && (
           <>

@@ -19,18 +19,16 @@ export default function Home() {
   }, [pathname]);
 
   return (
-    <div className="w-full px-0 py-4">
+    <div className="w-full px-0">
       <main className="w-full">
         <div className="w-full">
           {/* 🎁 Banner Promocional - Diciembre 2025 */}
-          <div className="w-full mb-10">
-            <DynamicBanner position="top" />
-          </div>
+          <DynamicBanner position="top" />
 
           {/* 🆕 Carruseles TOP (antes de ediciones) */}
           <CarouselFromDb placement="top" />
 
-          <div id="dossiers" className="scroll-mt-[120px]">
+          <div id="dossiers" className="scroll-mt-[120px] mt-6">
             <LatestEdition1 />
           </div>
 
