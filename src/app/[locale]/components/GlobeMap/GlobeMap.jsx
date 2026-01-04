@@ -131,6 +131,9 @@ export default function GlobeMap() {
 
     // --- GLOBO ---
     const globeGroup = new THREE.Group();
+    globeGroup.rotation.z = Math.PI;
+    globeGroup.rotation.x = 0.16;
+    globeGroup.rotation.y = 0.5;
     scene.add(globeGroup);
 
     const textureLoader = new THREE.TextureLoader();
