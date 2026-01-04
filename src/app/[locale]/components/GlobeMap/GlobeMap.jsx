@@ -50,11 +50,32 @@ function latLonToVector3(lat, lon, radius) {
 
 export default function GlobeMap() {
   const mountRef = useRef(null);
-  const router = useRouter();
+
   const locale = useLocale();
 
   const [hoveredCountry, setHoveredCountry] = useState(null);
+  const [articleCount, setArticleCount] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleCountryHover = async (code) => {
+    setHoveredCountry(code);
+    if (code) {
+      const regionId = countryToRegionId[code];
+      if (regionId) {
+        try {
+          const res = await fetch(
+            `/api/count/regions/${regionId}?context=articles`
+          );
+          const data = await res.json();
+          setArticleCount(data.count ?? 0);
+        } catch (err) {
+          setArticleCount(null);
+        }
+      }
+    } else {
+      setArticleCount(null);
+    }
+  };
 
   const tooltipName = hoveredCountry
     ? countryNames[hoveredCountry]?.[locale] || countryNames[hoveredCountry]?.de
@@ -63,7 +84,7 @@ export default function GlobeMap() {
   const handleCountryClick = (countryCode) => {
     const regionId = countryToRegionId[countryCode];
     if (regionId) {
-      router.push(`/${locale}/regions/${regionId}`);
+      window.open(`/${locale}/entities/regions/${regionId}`, "_blank");
     }
   };
 
@@ -247,13 +268,13 @@ export default function GlobeMap() {
 
         if (currentHovered !== code) {
           currentHovered = code;
-          setHoveredCountry(code);
+          handleCountryHover(code);
         }
       } else {
         renderer.domElement.style.cursor = "default";
         if (currentHovered !== null) {
           currentHovered = null;
-          setHoveredCountry(null);
+          handleCountryHover(null);
         }
       }
     };
@@ -313,6 +334,11 @@ export default function GlobeMap() {
             {tooltipName}
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-300">
+            {articleCount !== null
+              ? `${articleCount} ${locale === "de" ? "Artikel" : "artículos"}`
+              : "..."}
+          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {locale === "de" ? "Klicken zum Erkunden" : "Click para explorar"}
           </p>
         </div>
