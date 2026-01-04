@@ -12,7 +12,7 @@ export default function MapaPage() {
   const locale = useLocale();
 
   return (
-    <div className="min-h-screen bg-gray-950 py-8 px-4">
+    <div className="min-h-screen bg-white py-8 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-4">
