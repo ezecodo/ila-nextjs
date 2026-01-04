@@ -20,7 +20,7 @@ function renderPlaceholder(text, logoClass) {
   );
 }
 
-const SearchBar = () => {
+const SearchBar = ({ onSearch }) => {
   const t = useTranslations("search");
 
   const searchParams = useSearchParams();
@@ -38,7 +38,12 @@ const SearchBar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (!query.trim()) return;
+
+    // Ejecutar la búsqueda
     router.push(`/search?query=${encodeURIComponent(query)}`);
+
+    // Ejecutar callback para cerrar el menú (si existe)
+    onSearch?.();
   };
 
   return (

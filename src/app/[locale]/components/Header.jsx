@@ -160,6 +160,7 @@ export default function Header() {
           <DesktopNavMenu
             isMobile={true}
             onLinkClick={() => setMenuOpen(false)}
+            onSearch={() => setMenuOpen(false)} // ← AÑADE ESTA LÍNEA
           />
 
           <div className="flex items-center justify-center gap-4 mt-4">

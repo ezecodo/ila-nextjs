@@ -7,7 +7,11 @@ import { useTranslations } from "next-intl";
 import SearchBar from "../SearchBar";
 import { navSections } from "./navMenuConfig";
 
-export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
+export default function DesktopNavMenu({
+  isMobile = false,
+  onLinkClick,
+  onSearch,
+}) {
   const t = useTranslations("navMenu");
   const { data: session } = useSession();
 
@@ -22,7 +26,11 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
     }
     setOpenSections(newOpenSections);
   };
-
+  const handleSearch = () => {
+    setOpenSections(new Set()); // 1. Cierra todas las secciones del acordeón
+    onLinkClick?.(); // 2. Cierra el menú hamburguesa completo (si existe)
+    onSearch?.(); // 3. Notifica al padre si es necesario
+  };
   const isSectionOpen = (sectionKey) => openSections.has(sectionKey);
 
   // ─── MÓVIL: acordeón + auth + locale ─────────────────────────────────
@@ -121,7 +129,7 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
           ))}
 
           <li className="pt-4 px-4">
-            <SearchBar />
+            <SearchBar onSearch={handleSearch} />
           </li>
 
           <li>
@@ -200,7 +208,7 @@ export default function DesktopNavMenu({ isMobile = false, onLinkClick }) {
         )}
 
         <div className="pl-6 border-l border-gray-300 dark:border-gray-600">
-          <SearchBar />
+          <SearchBar onSearch={handleSearch} />
         </div>
       </div>
     </nav>
