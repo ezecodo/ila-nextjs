@@ -90,6 +90,39 @@ export default function GlobeMap() {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
+    // --- FONDO NEGRO ---
+    scene.background = new THREE.Color(0x000000);
+
+    // --- ESTRELLAS ---
+    const starsGeometry = new THREE.BufferGeometry();
+    const starCount = 2000;
+    const positions = new Float32Array(starCount * 3);
+
+    for (let i = 0; i < starCount * 3; i += 3) {
+      // Posiciones aleatorias en una esfera grande
+      const radius = 50 + Math.random() * 50;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+
+      positions[i] = radius * Math.sin(phi) * Math.cos(theta);
+      positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      positions[i + 2] = radius * Math.cos(phi);
+    }
+
+    starsGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(positions, 3)
+    );
+
+    const starsMaterial = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.15,
+      sizeAttenuation: true,
+    });
+
+    const stars = new THREE.Points(starsGeometry, starsMaterial);
+    scene.add(stars);
+
     // --- LUCES ---
     scene.add(new THREE.AmbientLight(0xffffff, 0.8));
     const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
