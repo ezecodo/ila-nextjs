@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import {
+  CSS2DRenderer,
+  CSS2DObject,
+} from "three/examples/jsm/renderers/CSS2DRenderer";
 import { countryToRegionId, countryColors, countryNames } from "./countryData";
 
 const countryCoordinates = {
@@ -50,36 +53,9 @@ function latLonToVector3(lat, lon, radius) {
 
 export default function GlobeMap() {
   const mountRef = useRef(null);
-
   const locale = useLocale();
-
-  const [hoveredCountry, setHoveredCountry] = useState(null);
-  const [articleCount, setArticleCount] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const handleCountryHover = async (code) => {
-    setHoveredCountry(code);
-    if (code) {
-      const regionId = countryToRegionId[code];
-      if (regionId) {
-        try {
-          const res = await fetch(
-            `/api/count/regions/${regionId}?context=articles`
-          );
-          const data = await res.json();
-          setArticleCount(data.count ?? 0);
-        } catch (err) {
-          setArticleCount(null);
-        }
-      }
-    } else {
-      setArticleCount(null);
-    }
-  };
-
-  const tooltipName = hoveredCountry
-    ? countryNames[hoveredCountry]?.[locale] || countryNames[hoveredCountry]?.de
-    : null;
+  const frameRef = useRef({ animationId: null });
 
   const handleCountryClick = (countryCode) => {
     const regionId = countryToRegionId[countryCode];
@@ -92,63 +68,81 @@ export default function GlobeMap() {
     if (!mountRef.current) return;
 
     const container = mountRef.current;
-    let animationId;
-    let currentHovered = null;
+    const markersData = [];
 
     // --- ESCENA ---
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050505);
+    scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
     const camera = new THREE.PerspectiveCamera(
       45,
       container.clientWidth / container.clientHeight,
       0.1,
       1000
     );
-    camera.position.z = 5;
+    camera.position.z = 4.5;
 
+    // --- WEBGL RENDERER ---
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
-    // --- FONDO NEGRO ---
-    scene.background = new THREE.Color(0x000000);
+    // --- CSS2D RENDERER ---
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(container.clientWidth, container.clientHeight);
+    labelRenderer.domElement.style.position = "absolute";
+    labelRenderer.domElement.style.top = "0px";
+    labelRenderer.domElement.style.pointerEvents = "none";
+    container.appendChild(labelRenderer.domElement);
 
     // --- ESTRELLAS ---
-    const starsGeometry = new THREE.BufferGeometry();
-    const starCount = 2000;
-    const positions = new Float32Array(starCount * 3);
+    const createStars = () => {
+      const geometry = new THREE.BufferGeometry();
+      const count = 3000;
+      const positions = new Float32Array(count * 3);
 
-    for (let i = 0; i < starCount * 3; i += 3) {
-      // Posiciones aleatorias en una esfera grande
-      const radius = 50 + Math.random() * 50;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
+      for (let i = 0; i < count; i++) {
+        const r = 80 + Math.random() * 80;
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(2 * Math.random() - 1);
 
-      positions[i] = radius * Math.sin(phi) * Math.cos(theta);
-      positions[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      positions[i + 2] = radius * Math.cos(phi);
-    }
+        positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i * 3 + 2] = r * Math.cos(phi);
+      }
 
-    starsGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(positions, 3)
-    );
+      geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
 
-    const starsMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.15,
-      sizeAttenuation: true,
-    });
+      const material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.15,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.8,
+      });
 
-    const stars = new THREE.Points(starsGeometry, starsMaterial);
-    scene.add(stars);
+      return new THREE.Points(geometry, material);
+    };
+    const starField = createStars();
+    scene.add(starField);
 
-    // --- LUCES ---
-    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    // --- ILUMINACIÓN ---
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
     sunLight.position.set(5, 3, 5);
     scene.add(sunLight);
+    const rimLight = new THREE.SpotLight(0x4455ff, 5.0);
+    rimLight.position.set(-5, 2, -5);
+    rimLight.lookAt(0, 0, 0);
+    scene.add(rimLight);
 
     // --- GLOBO ---
     const globeGroup = new THREE.Group();
@@ -166,14 +160,15 @@ export default function GlobeMap() {
       bumpMap: textureLoader.load(
         "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_normal_2048.jpg"
       ),
-      bumpScale: 0.02,
+      bumpScale: 0.015,
       specularMap: textureLoader.load(
         "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_specular_2048.jpg"
       ),
       specular: new THREE.Color("grey"),
-      shininess: 10,
+      shininess: 15,
     });
-    globeGroup.add(new THREE.Mesh(globeGeometry, globeMaterial));
+    const globeMesh = new THREE.Mesh(globeGeometry, globeMaterial);
+    globeGroup.add(globeMesh);
 
     // --- NUBES ---
     const cloudsMaterial = new THREE.MeshPhongMaterial({
@@ -181,12 +176,16 @@ export default function GlobeMap() {
         "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_clouds_1024.png"
       ),
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.4,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
       depthWrite: false,
     });
-    globeGroup.add(
-      new THREE.Mesh(new THREE.SphereGeometry(0.82, 64, 64), cloudsMaterial)
+    const cloudsMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.805, 64, 64),
+      cloudsMaterial
     );
+    globeGroup.add(cloudsMesh);
 
     // --- ATMÓSFERA ---
     const atmosphereMaterial = new THREE.ShaderMaterial({
@@ -200,26 +199,75 @@ export default function GlobeMap() {
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          float intensity = pow(0.7 - dot(vNormal, vec3(0, 0, 1.0)), 2.0);
+          float intensity = pow(0.65 - dot(vNormal, vec3(0, 0, 1.0)), 4.0);
           gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
         }
       `,
-      side: THREE.BackSide,
       blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
       transparent: true,
     });
     scene.add(
-      new THREE.Mesh(new THREE.SphereGeometry(1.0, 64, 64), atmosphereMaterial)
+      new THREE.Mesh(new THREE.SphereGeometry(1.1, 64, 64), atmosphereMaterial)
     );
 
-    // --- PUNTOS DE PAÍSES ---
-    const countryPoints = [];
+    // --- CREAR TOOLTIP HTML ---
+    const createTooltipDiv = (code) => {
+      const name =
+        countryNames[code]?.[locale] || countryNames[code]?.de || code;
+      const div = document.createElement("div");
+      div.style.cssText = `
+        transition: all 0.3s ease;
+        opacity: 0;
+        transform: scale(0.8) translateY(10px);
+        pointer-events: none;
+      `;
+      div.innerHTML = `
+        <div style="
+          background: rgba(17, 24, 39, 0.9);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,0.2);
+          padding: 12px 16px;
+          border-radius: 12px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+          min-width: 160px;
+        ">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <div style="
+              background: white;
+              border-radius: 4px;
+              width: 32px;
+              height: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+              <span style="color: #dc2626; font-weight: bold; font-size: 14px; font-family: 'Futura', Arial, sans-serif;">ila</span>
+            </div>
+            <span style="color: white; font-weight: bold; font-size: 16px;">${name}</span>
+          </div>
+          <div style="height: 1px; background: rgba(255,255,255,0.2); margin: 8px 0;"></div>
+          <div style="color: #9ca3af; font-size: 12px;" class="article-count">
+            <span style="color: #22d3ee;">...</span> ${locale === "de" ? "Artikel" : "artículos"}
+          </div>
+          <div style="color: #6b7280; font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #22d3ee;"></span>
+            ${locale === "de" ? "Klicken zum Erkunden" : "Click para explorar"}
+          </div>
+        </div>
+      `;
+      return div;
+    };
+
+    // --- MARCADORES DE PAÍSES ---
+    const markerGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+
     Object.entries(countryCoordinates).forEach(([code, coords]) => {
-      const position = latLonToVector3(coords.lat, coords.lon, 0.83);
+      const position = latLonToVector3(coords.lat, coords.lon, 0.82);
       const color = new THREE.Color(countryColors[code] || "#00ffcc");
 
       const point = new THREE.Mesh(
-        new THREE.SphereGeometry(0.025, 16, 16),
+        markerGeometry,
         new THREE.MeshStandardMaterial({
           color: color,
           emissive: color,
@@ -227,21 +275,56 @@ export default function GlobeMap() {
         })
       );
       point.position.copy(position);
-      point.userData = { countryCode: code };
+
+      const tooltipDiv = createTooltipDiv(code);
+      const cssObject = new CSS2DObject(tooltipDiv);
+      cssObject.position.set(-0.15, 0.1, 0);
+      point.add(cssObject);
+
+      point.userData = {
+        countryCode: code,
+        targetScale: 1,
+        isHovered: false,
+        tooltipElement: tooltipDiv,
+      };
 
       globeGroup.add(point);
-      countryPoints.push(point);
+      markersData.push(point);
     });
 
     // --- CONTROLES ---
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.minDistance = 1.5;
-    controls.maxDistance = 5;
+    controls.dampingFactor = 0.05;
+    controls.enablePan = false;
+    controls.minDistance = 1.8;
+    controls.maxDistance = 6;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.8;
 
     // --- RAYCASTER ---
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+    let currentHoveredCode = null;
+
+    // --- FETCH ARTICLE COUNT ---
+    const fetchArticleCount = async (code, tooltipElement) => {
+      const regionId = countryToRegionId[code];
+      if (!regionId) return;
+
+      try {
+        const res = await fetch(
+          `/api/count/regions/${regionId}?context=articles`
+        );
+        const data = await res.json();
+        const countSpan = tooltipElement.querySelector(".article-count span");
+        if (countSpan) {
+          countSpan.textContent = data.count ?? 0;
+        }
+      } catch (err) {
+        console.error("Error fetching count:", err);
+      }
+    };
 
     // --- EVENTOS ---
     const onMouseMove = (e) => {
@@ -250,45 +333,42 @@ export default function GlobeMap() {
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(countryPoints);
+      const intersects = raycaster.intersectObjects(markersData, false);
 
-      // Reset todos
-      countryPoints.forEach((p) => {
-        p.scale.set(1, 1, 1);
-        p.material.emissiveIntensity = 0.3;
+      let hitCode = null;
+
+      markersData.forEach((p) => {
+        p.userData.isHovered = false;
+        p.userData.targetScale = 1;
       });
 
       if (intersects.length > 0) {
         const hit = intersects[0].object;
-        const code = hit.userData.countryCode;
-
-        hit.scale.set(1.5, 1.5, 1.5);
-        hit.material.emissiveIntensity = 0.8;
+        hitCode = hit.userData.countryCode;
+        hit.userData.isHovered = true;
+        hit.userData.targetScale = 2;
         renderer.domElement.style.cursor = "pointer";
-
-        if (currentHovered !== code) {
-          currentHovered = code;
-          handleCountryHover(code);
-        }
       } else {
         renderer.domElement.style.cursor = "default";
-        if (currentHovered !== null) {
-          currentHovered = null;
-          handleCountryHover(null);
+      }
+
+      if (currentHoveredCode !== hitCode) {
+        currentHoveredCode = hitCode;
+
+        if (hitCode) {
+          const hoveredPoint = markersData.find(
+            (p) => p.userData.countryCode === hitCode
+          );
+          if (hoveredPoint) {
+            fetchArticleCount(hitCode, hoveredPoint.userData.tooltipElement);
+          }
         }
       }
     };
 
-    const onClick = (e) => {
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(countryPoints);
-
-      if (intersects.length > 0) {
-        handleCountryClick(intersects[0].object.userData.countryCode);
+    const onClick = () => {
+      if (currentHoveredCode) {
+        handleCountryClick(currentHoveredCode);
       }
     };
 
@@ -297,28 +377,66 @@ export default function GlobeMap() {
 
     // --- ANIMACIÓN ---
     const animate = () => {
-      animationId = requestAnimationFrame(animate);
+      frameRef.current.animationId = requestAnimationFrame(animate);
+
+      cloudsMesh.rotation.y += 0.0002;
+      starField.rotation.y -= 0.0001;
+
+      markersData.forEach((point) => {
+        const { targetScale, isHovered, tooltipElement } = point.userData;
+
+        const newScale = THREE.MathUtils.lerp(point.scale.x, targetScale, 0.1);
+        point.scale.set(newScale, newScale, newScale);
+
+        point.material.emissiveIntensity = THREE.MathUtils.lerp(
+          point.material.emissiveIntensity,
+          isHovered ? 0.8 : 0.3,
+          0.1
+        );
+
+        if (isHovered) {
+          tooltipElement.style.opacity = "1";
+          tooltipElement.style.transform = "scale(1) translateY(0)";
+        } else {
+          tooltipElement.style.opacity = "0";
+          tooltipElement.style.transform = "scale(0.8) translateY(10px)";
+        }
+      });
+
       controls.update();
       renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
     };
     animate();
     setIsLoading(false);
 
-    // --- RESIZE ---
+    // --- RESIZE & CLEANUP ---
     const onResize = () => {
       camera.aspect = container.clientWidth / container.clientHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
+      labelRenderer.setSize(container.clientWidth, container.clientHeight);
     };
     window.addEventListener("resize", onResize);
 
-    // --- CLEANUP ---
     return () => {
-      cancelAnimationFrame(animationId);
+      cancelAnimationFrame(frameRef.current.animationId);
       window.removeEventListener("resize", onResize);
       renderer.domElement.removeEventListener("mousemove", onMouseMove);
       renderer.domElement.removeEventListener("click", onClick);
+
       renderer.dispose();
+      globeGeometry.dispose();
+      globeMaterial.dispose();
+      atmosphereMaterial.dispose();
+      markersData.forEach((p) => {
+        scene.remove(p);
+        p.geometry.dispose();
+        p.material.dispose();
+      });
+
+      labelRenderer.domElement.remove();
+
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -326,38 +444,24 @@ export default function GlobeMap() {
   }, [locale]);
 
   return (
-    <div className="relative w-full h-[600px] rounded-lg overflow-hidden">
-      {/* Tooltip */}
-      {hoveredCountry && (
-        <div className="absolute top-1/2 right-4 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 px-4 py-2 rounded-lg shadow-lg">
-          <p className="text-lg font-bold text-gray-900 dark:text-white">
-            {tooltipName}
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            {articleCount !== null
-              ? `${articleCount} ${locale === "de" ? "Artikel" : "artículos"}`
-              : "..."}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            {locale === "de" ? "Klicken zum Erkunden" : "Click para explorar"}
-          </p>
-        </div>
-      )}
-
-      {/* Canvas container */}
-      <div ref={mountRef} className="w-full h-full">
+    <div className="relative w-full h-[600px] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+      {/* Contenedor Canvas + HTML Overlay */}
+      <div ref={mountRef} className="w-full h-full bg-black">
         {isLoading && (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="text-white">Cargando globo 3D...</div>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+            <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-white/80 text-sm tracking-widest uppercase">
+              Initializing Globe
+            </div>
           </div>
         )}
       </div>
 
       {/* Instrucciones */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/40 text-xs tracking-wider uppercase bg-black/20 px-4 py-1.5 rounded-full backdrop-blur-sm border border-white/5 pointer-events-none">
         {locale === "de"
-          ? "🖱️ Ziehen zum Drehen • Scrollen zum Zoomen"
-          : "🖱️ Arrastra para rotar • Scroll para zoom"}
+          ? "Interaktion: Drag • Scroll • Hover"
+          : "Interacción: Arrastra • Scroll • Hover"}
       </div>
     </div>
   );
