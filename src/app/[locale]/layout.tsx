@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
+import MatomoAnalytics from "./components/MatomoAnalytics/MatomoAnalytics";
 
 import "@/app/globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
@@ -105,6 +106,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <Footer />
               </div>
               <CookieConsent />
+              <MatomoAnalytics />
             </NextIntlClientProvider>
           </SessionProvider>
         </ThemeProvider>

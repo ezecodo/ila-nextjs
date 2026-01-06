@@ -17,6 +17,7 @@ export default function CookieConsent() {
 
   const acceptCookies = () => {
     localStorage.setItem("cookiesAccepted", "true");
+    window.dispatchEvent(new Event("cookieConsentChanged"));
     setShowPopup(false);
   };
 
