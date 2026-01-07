@@ -54,41 +54,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   });
 
-  const articlePages = articles.flatMap((article) => {
-    const pages = [
-      {
-        url: `${baseUrl}/de${article.legacyPath}`,
-        lastModified: article.updatedAt,
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-      },
-    ];
+  const articlePages = articles.flatMap(
+    (article: {
+      legacyPath: string | null;
+      updatedAt: Date;
+      isTranslatedES: boolean;
+    }) => {
+      const pages = [
+        {
+          url: `${baseUrl}/de${article.legacyPath}`,
+          lastModified: article.updatedAt,
+          changeFrequency: "weekly" as const,
+          priority: 0.8,
+        },
+      ];
 
-    // Solo añadir versión ES si está traducido
-    if (article.isTranslatedES) {
-      pages.push({
-        url: `${baseUrl}/es${article.legacyPath}`,
-        lastModified: article.updatedAt,
-        changeFrequency: "weekly" as const,
-        priority: 0.8,
-      });
+      // Solo añadir versión ES si está traducido
+      if (article.isTranslatedES) {
+        pages.push({
+          url: `${baseUrl}/es${article.legacyPath}`,
+          lastModified: article.updatedAt,
+          changeFrequency: "weekly" as const,
+          priority: 0.8,
+        });
+      }
+
+      return pages;
     }
-
-    return pages;
-  });
+  );
 
   // ========== EDICIONES ==========
   const editions = await prisma.edition.findMany({
     select: { id: true, datePublished: true },
   });
 
-  const editionPages = editions.flatMap((edition) =>
-    locales.map((locale) => ({
-      url: `${baseUrl}/${locale}/editions/${edition.id}`,
-      lastModified: edition.datePublished,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    }))
+  const editionPages = editions.flatMap(
+    (edition: { id: number; datePublished: Date }) =>
+      locales.map((locale) => ({
+        url: `${baseUrl}/${locale}/editions/${edition.id}`,
+        lastModified: edition.datePublished,
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      }))
   );
 
   // ========== AUTORES ==========
@@ -96,13 +103,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { id: true, createdAt: true },
   });
 
-  const authorPages = authors.flatMap((author) =>
-    locales.map((locale) => ({
-      url: `${baseUrl}/${locale}/authors/${author.id}`,
-      lastModified: author.createdAt,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }))
+  const authorPages = authors.flatMap(
+    (author: { id: number; createdAt: Date }) =>
+      locales.map((locale) => ({
+        url: `${baseUrl}/${locale}/authors/${author.id}`,
+        lastModified: author.createdAt,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      }))
   );
 
   // ========== EVENTOS ==========
@@ -110,7 +118,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { id: true, date: true },
   });
 
-  const eventPages = events.flatMap((event) =>
+  const eventPages = events.flatMap((event: { id: string; date: Date }) =>
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}/events/${event.id}`,
       lastModified: event.date,
@@ -124,7 +132,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { id: true },
   });
 
-  const categoryPages = categories.flatMap((cat) =>
+  const categoryPages = categories.flatMap((cat: { id: number }) =>
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}/entities/categories/${cat.id}`,
       lastModified: new Date(),
@@ -137,7 +145,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { id: true },
   });
 
-  const regionPages = regions.flatMap((region) =>
+  const regionPages = regions.flatMap((region: { id: number }) =>
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}/entities/regions/${region.id}`,
       lastModified: new Date(),
@@ -150,7 +158,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { id: true },
   });
 
-  const topicPages = topics.flatMap((topic) =>
+  const topicPages = topics.flatMap((topic: { id: number }) =>
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}/entities/topics/${topic.id}`,
       lastModified: new Date(),
