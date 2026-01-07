@@ -29,9 +29,14 @@ export default function MatomoAnalytics() {
     };
   }, []);
 
-  // Inicializar Matomo cuando hay consentimiento
+  // Inicializar Matomo cuando hay consentimiento Y estamos en producción
   useEffect(() => {
-    if (!hasConsent) return;
+    const isProduction =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "www.ila-web.de" ||
+        window.location.hostname === "ila-web.de");
+
+    if (!hasConsent || !isProduction) return;
     if (document.querySelector('script[src*="matomo.js"]')) return;
 
     window._paq = window._paq || [];
@@ -50,7 +55,12 @@ export default function MatomoAnalytics() {
 
   // Trackear cambios de ruta (SPA navigation)
   useEffect(() => {
-    if (!hasConsent || !window._paq) return;
+    const isProduction =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "www.ila-web.de" ||
+        window.location.hostname === "ila-web.de");
+
+    if (!hasConsent || !isProduction || !window._paq) return;
 
     const url =
       pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
