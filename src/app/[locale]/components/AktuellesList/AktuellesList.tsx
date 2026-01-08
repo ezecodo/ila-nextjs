@@ -62,7 +62,7 @@ export default function AktuellesList() {
             element.getBoundingClientRect().top + window.pageYOffset + yOffset;
           window.scrollTo({ top: y, behavior: "smooth" });
         }
-      }, 500);
+      }, 800);
     }
   }, [loading, items, searchParams]);
 
