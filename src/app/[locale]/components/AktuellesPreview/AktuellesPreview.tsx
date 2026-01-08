@@ -23,15 +23,19 @@ export default function AktuellesPreview() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/aktuelles?limit=4")
+    fetch("/api/aktuelles?limit=10")
       .then((res) => res.json())
       .then((data) => {
+        const twoMonthsAgo = new Date();
+        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
         const sorted = (data.items || [])
+          .filter((item: Aktuelles) => new Date(item.date) >= twoMonthsAgo)
           .sort(
             (a: Aktuelles, b: Aktuelles) =>
               new Date(b.date).getTime() - new Date(a.date).getTime()
           )
-          .slice(0, 5);
+          .slice(0, 4);
         setItems(sorted);
         setLoading(false);
       })
