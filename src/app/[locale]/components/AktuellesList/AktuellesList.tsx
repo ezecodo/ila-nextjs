@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import SectionHeader from "../SectionsHeader/SetionHeader";
 import IlaLoader from "../IlaLoader/IlaLoader";
 import Image from "next/image";
@@ -41,6 +42,29 @@ export default function AktuellesList() {
         setLoading(false);
       });
   }, []);
+
+  const searchParams = useSearchParams();
+
+  // Leer id de URL y expandir/scroll al Aktuelles correspondiente
+  useEffect(() => {
+    if (loading || items.length === 0) return;
+
+    const id = searchParams.get("id");
+    if (id) {
+      const numId = parseInt(id, 10);
+      setExpandedIds((prev) => new Set(prev).add(numId));
+
+      setTimeout(() => {
+        const element = document.getElementById(`aktuelles-${numId}`);
+        if (element) {
+          const yOffset = -100; // Offset para mostrar la fecha
+          const y =
+            element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+      }, 500);
+    }
+  }, [loading, items, searchParams]);
 
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
@@ -118,6 +142,7 @@ export default function AktuellesList() {
           return (
             <article
               key={item.id}
+              id={`aktuelles-${item.id}`}
               className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-6">

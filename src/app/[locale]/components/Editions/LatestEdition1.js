@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import DonationBanner from "../DonationBanner/DonationBanner";
 import Events from "../Events/Events";
+import AktuellesPreview from "../AktuellesPreview/AktuellesPreview";
 import EntityBadges from "../EntityBadges/EntityBadges";
 import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
 import { useTranslations, useLocale } from "next-intl";
@@ -657,6 +658,8 @@ export default function LatestEditionWithArticles() {
 
                 <div className="hidden lg:flex flex-col gap-4 w-full">
                   <DonationBanner />
+
+                  <AktuellesPreview />
                   <Events />
                 </div>
               </div>
@@ -776,6 +779,8 @@ export default function LatestEditionWithArticles() {
 
               <div className="block lg:hidden w-full mt-6 space-y-4">
                 <DonationBanner />
+
+                <AktuellesPreview />
                 <Events />
               </div>
             </div>
