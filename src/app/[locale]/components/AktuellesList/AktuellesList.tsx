@@ -58,29 +58,55 @@ export default function AktuellesList() {
     // Expandir el item
     setExpandedIds((prev) => new Set(prev).add(numId));
 
-    // Función simple para hacer scroll
+    // Función MEJORADA para hacer scroll directo a la FECHA
     const scrollToElement = () => {
-      const element = document.getElementById(`aktuelles-${numId}`);
-      if (element) {
-        // Offset fijo de 100px (ajusta si es necesario)
-        const offset = 100;
-        const elementTop = element.getBoundingClientRect().top;
-        const scrollPosition = elementTop + window.pageYOffset - offset;
+      // 1. PRIMERO intentar ir al elemento de FECHA (que tiene ID específico)
+      const dateElement = document.getElementById(`aktuelles-date-${numId}`);
+
+      if (dateElement) {
+        // Calcular posición considerando el header
+        const header = document.querySelector("header");
+        const headerHeight = header ? header.offsetHeight + 20 : 120;
+
+        const elementTop = dateElement.getBoundingClientRect().top;
+        const scrollPosition = Math.max(
+          0,
+          elementTop + window.pageYOffset - headerHeight
+        );
 
         window.scrollTo({
           top: scrollPosition,
           behavior: "smooth",
         });
+        return;
+      }
 
-        // Limpiar la URL después (opcional)
-        setTimeout(() => {
-          router.replace("/aktuell/aktuelles", { scroll: false });
-        }, 1000);
+      // 2. Si no encuentra la fecha, ir al artículo completo (fallback)
+      const articleElement = document.getElementById(`aktuelles-${numId}`);
+      if (articleElement) {
+        const offset = 100;
+        const elementTop = articleElement.getBoundingClientRect().top;
+        const scrollPosition = Math.max(
+          0,
+          elementTop + window.pageYOffset - offset
+        );
+
+        window.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
+        });
       }
     };
 
     // Esperar a que la página termine de cargar
-    setTimeout(scrollToElement, 500);
+    // Más tiempo en producción
+    const isProduction = process.env.NODE_ENV === "production";
+    setTimeout(scrollToElement, isProduction ? 800 : 500);
+
+    // Limpiar la URL después
+    setTimeout(() => {
+      router.replace("/aktuell/aktuelles", { scroll: false });
+    }, 1500);
   }, [loading, items, searchParams, router]);
 
   const toggleExpand = (id: number) => {
@@ -163,7 +189,7 @@ export default function AktuellesList() {
               className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 overflow-hidden"
             >
               {/* Fecha encima de la imagen */}
-              <div className="px-6 pt-6 pb-2">
+              <div className="px-6 pt-6 pb-2" id={`aktuelles-date-${item.id}`}>
                 <span className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded-full border border-red-100 dark:border-red-900/50">
                   {formatDate(item.date)}
                 </span>
