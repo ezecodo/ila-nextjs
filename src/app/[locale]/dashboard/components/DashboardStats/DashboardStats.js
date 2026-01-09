@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -15,6 +14,7 @@ import {
   FaCog,
   FaQuestionCircle,
   FaNetworkWired,
+  FaUsers,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -24,7 +24,6 @@ const DashboardStats = () => {
   const t = useTranslations("stats");
   const fullPathname = usePathname();
 
-  // Remover el locale del pathname (ej: /de/dashboard/articles -> /dashboard/articles)
   const pathname = fullPathname?.replace(/^\/(de|es)/, "") || fullPathname;
 
   useEffect(() => {
@@ -78,7 +77,10 @@ const DashboardStats = () => {
   if (error) return <p className="text-center text-red-500">{t("error")}</p>;
 
   return (
-    <div className="sticky top-0 z-[60] bg-white shadow-sm py-2 flex flex-wrap gap-2 items-center justify-start">
+    // --- CAMBIO CRÍTICO: Quitamos overflow-x-auto ---
+    // Usamos flex-nowrap para forzar una línea, y dejamos que el scroll
+    // lo maneje el contenedor padre o la ventana si es necesario.
+    <div className="sticky top-0 z-[60] bg-white shadow-sm py-2 flex flex-nowrap gap-2 items-center">
       <StatCard
         icon={
           <span
@@ -173,6 +175,12 @@ const DashboardStats = () => {
         newSubscriptions={newSubscriptions}
         t={t}
       />
+      <StatCardDropdown
+        icon={<FaUsers size={18} />}
+        label="Auditoría"
+        items={[{ label: "Autores", href: "/dashboard/authors" }]}
+        pathname={pathname}
+      />
       <StatCard
         icon={<FaCog size={18} />}
         label=""
@@ -194,20 +202,18 @@ const DashboardStats = () => {
 // 🧩 Componente reutilizable
 function StatCard({ label, value, color, icon, onClick, href, pathname }) {
   const isCompact = !label && !value;
-
-  // Detectar si la ruta actual coincide con el href
   const isActive = pathname?.startsWith(href);
 
   const content = (
     <div
       onClick={onClick}
       className={`cursor-pointer flex-shrink-0 ${
-        isCompact ? "w-10 h-10 justify-center" : "min-w-[110px] px-4 py-3"
+        isCompact ? "w-10 h-10 justify-center" : "min-w-[90px] px-3 py-2"
       } bg-white rounded-md shadow-sm border-2 ${
         isActive
-          ? "border-red-500 bg-red-50 dark:bg-red-900/20" // 🔴 Cambiado a rojo
+          ? "border-red-500 bg-red-50 dark:bg-red-900/20"
           : "border-gray-200 hover:bg-gray-50"
-      } flex items-center gap-2 text-sm transition-all`}
+      } flex items-center gap-2 text-sm transition-all whitespace-nowrap`}
     >
       {icon && (
         <span className={isActive ? "font-bold text-red-600" : ""}>{icon}</span>
@@ -243,34 +249,24 @@ export function StatCardDropdown({
   t,
 }) {
   const [open, setOpen] = useState(false);
-
-  // fallback de traducción
   const translate = t || ((key) => key);
-
-  // Detectar si algún item del dropdown está activo
   const isActive = items.some((item) => pathname?.startsWith(item.href));
 
   return (
     <div
-      className="relative"
+      className="relative flex-shrink-0"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      {/* Puente invisible para mantener hover */}
-      <div className="absolute left-0 top-full w-full h-1 opacity-0 group-hover:opacity-100" />
-
       {/* Botón */}
       <div
-        className={`relative cursor-pointer min-w-[140px] px-4 py-3 bg-white rounded-md shadow-sm border-2 ${
+        className={`relative cursor-pointer min-w-[115px] px-3 py-2 bg-white rounded-md shadow-sm border-2 ${
           isActive
             ? "border-red-500 bg-red-50 dark:bg-red-900/20"
             : "border-gray-200 hover:bg-gray-50"
-        } flex items-center gap-3 text-sm transition-all`}
+        } flex items-center gap-2 text-sm transition-all whitespace-nowrap`}
       >
-        {/* Icono */}
         {icon && <span className={isActive ? "text-red-600" : ""}>{icon}</span>}
-
-        {/* Texto */}
         <span
           className={`${
             isActive ? "font-bold text-red-600" : "font-normal text-gray-900"
@@ -279,7 +275,6 @@ export function StatCardDropdown({
           {label}
         </span>
 
-        {/* 🔴 Badge arriba a la derecha del botón */}
         {label === translate("orders") &&
           (newOrders > 0 || newSubscriptions > 0) && (
             <span
@@ -291,7 +286,7 @@ export function StatCardDropdown({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 top-full mt-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 w-56">
+        <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[200px]">
           <ul className="py-2 text-sm text-gray-700">
             {items.map((item) => {
               const isItemActive = pathname?.startsWith(item.href);

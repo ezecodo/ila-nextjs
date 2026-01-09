@@ -106,3 +106,117 @@ export async function GET(request, context) {
     );
   }
 }
+
+export async function PUT(request, context) {
+  try {
+    const params = await context?.params;
+    if (!params || !params.id) {
+      return new Response(
+        JSON.stringify({ error: "Se requiere el ID del autor" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const authorId = parseInt(params.id, 10);
+    if (isNaN(authorId)) {
+      return new Response(JSON.stringify({ error: "ID de autor inválido" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await request.json();
+    const { name, email, bio, location, role } = body;
+
+    if (!name || name.trim() === "") {
+      return new Response(
+        JSON.stringify({ error: "El nombre del autor es obligatorio" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const updatedAuthor = await prisma.author.update({
+      where: { id: authorId },
+      data: {
+        name: name.trim(),
+        email: email?.trim() || null,
+        bio: bio?.trim() || null,
+        location: location?.trim() || null,
+        role: role?.trim() || null,
+      },
+    });
+
+    return new Response(JSON.stringify(updatedAuthor), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("❌ Error actualizando autor:", error.message);
+    return new Response(
+      JSON.stringify({
+        error: "Error al actualizar autor",
+        details: error.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+export async function DELETE(request, context) {
+  try {
+    const params = await context?.params;
+    if (!params || !params.id) {
+      return new Response(
+        JSON.stringify({ error: "Se requiere el ID del autor" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const authorId = parseInt(params.id, 10);
+    if (isNaN(authorId)) {
+      return new Response(JSON.stringify({ error: "ID de autor inválido" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Verificar si el autor tiene artículos asociados
+    const author = await prisma.author.findUnique({
+      where: { id: authorId },
+      include: { _count: { select: { articles: true } } },
+    });
+
+    if (!author) {
+      return new Response(JSON.stringify({ error: "Autor no encontrado" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (author._count.articles > 0) {
+      return new Response(
+        JSON.stringify({
+          error: `No se puede eliminar. El autor tiene ${author._count.articles} artículo(s) asociado(s).`,
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    await prisma.author.delete({
+      where: { id: authorId },
+    });
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("❌ Error eliminando autor:", error.message);
+    return new Response(
+      JSON.stringify({
+        error: "Error al eliminar autor",
+        details: error.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}

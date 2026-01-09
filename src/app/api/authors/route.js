@@ -3,9 +3,25 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const authors = await prisma.author.findMany({
-      orderBy: { name: "asc" }, // Ordenar alfabéticamente
+      orderBy: { name: "asc" },
     });
-    return new Response(JSON.stringify(authors), { status: 200 });
+
+    // Obtener el count de artículos para cada autor
+    const authorsWithCount = await Promise.all(
+      authors.map(async (author) => {
+        const articleCount = await prisma.article.count({
+          where: { authors: { some: { id: author.id } } },
+        });
+        return {
+          ...author,
+          _count: {
+            articles: articleCount,
+          },
+        };
+      })
+    );
+
+    return new Response(JSON.stringify(authorsWithCount), { status: 200 });
   } catch (error) {
     console.error("Error al obtener autores:", error);
     return new Response(
