@@ -54,15 +54,42 @@ export default function AktuellesList() {
       const numId = parseInt(id, 10);
       setExpandedIds((prev) => new Set(prev).add(numId));
 
-      setTimeout(() => {
+      // Esperar a que todas las imágenes carguen
+      const scrollToElement = () => {
         const element = document.getElementById(`aktuelles-${numId}`);
         if (element) {
-          const yOffset = -100; // Offset para mostrar la fecha
+          const yOffset = -20;
           const y =
             element.getBoundingClientRect().top + window.pageYOffset + yOffset;
           window.scrollTo({ top: y, behavior: "smooth" });
         }
-      }, 800);
+      };
+
+      // Verificar si hay imágenes y esperar a que carguen
+      const images = document.querySelectorAll("article img");
+      if (images.length > 0) {
+        let loadedCount = 0;
+        const checkAllLoaded = () => {
+          loadedCount++;
+          if (loadedCount >= images.length) {
+            setTimeout(scrollToElement, 100);
+          }
+        };
+
+        images.forEach((img) => {
+          if ((img as HTMLImageElement).complete) {
+            checkAllLoaded();
+          } else {
+            img.addEventListener("load", checkAllLoaded);
+            img.addEventListener("error", checkAllLoaded);
+          }
+        });
+
+        // Fallback por si algo falla
+        setTimeout(scrollToElement, 2000);
+      } else {
+        setTimeout(scrollToElement, 500);
+      }
     }
   }, [loading, items, searchParams]);
 
