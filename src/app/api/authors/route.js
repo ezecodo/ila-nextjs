@@ -4,28 +4,18 @@ export async function GET() {
   try {
     const authors = await prisma.author.findMany({
       orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: { articles: true },
+        },
+      },
     });
 
-    // Obtener el count de artículos para cada autor
-    const authorsWithCount = await Promise.all(
-      authors.map(async (author) => {
-        const articleCount = await prisma.article.count({
-          where: { authors: { some: { id: author.id } } },
-        });
-        return {
-          ...author,
-          _count: {
-            articles: articleCount,
-          },
-        };
-      })
-    );
-
-    return new Response(JSON.stringify(authorsWithCount), {
+    return new Response(JSON.stringify(authors), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error) {

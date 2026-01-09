@@ -286,26 +286,28 @@ export function StatCardDropdown({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[200px]">
-          <ul className="py-2 text-sm text-gray-700">
-            {items.map((item) => {
-              const isItemActive = pathname?.startsWith(item.href);
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`block px-4 py-2 ${
-                      isItemActive
-                        ? "bg-blue-100 text-blue-700 font-semibold"
-                        : "hover:bg-gray-100"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+        <div className="absolute left-0 top-full pt-1 bg-transparent">
+          <div className="bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[200px]">
+            <ul className="py-2 text-sm text-gray-700">
+              {items.map((item) => {
+                const isItemActive = pathname?.startsWith(item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`block px-4 py-2 ${
+                        isItemActive
+                          ? "bg-blue-100 text-blue-700 font-semibold"
+                          : "hover:bg-gray-100"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </div>
       )}
     </div>
