@@ -21,7 +21,13 @@ export async function GET() {
       })
     );
 
-    return new Response(JSON.stringify(authorsWithCount), { status: 200 });
+    return new Response(JSON.stringify(authorsWithCount), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+      },
+    });
   } catch (error) {
     console.error("Error al obtener autores:", error);
     return new Response(
