@@ -197,14 +197,15 @@ export default function AktuellesList() {
 
               {/* --- IMAGEN --- */}
               {coverImage && (
-                <div className="relative w-full bg-stone-50 dark:bg-stone-900/30 p-6 flex justify-center items-center">
-                  <div className="relative shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                <div className="relative w-full bg-stone-50 dark:bg-stone-900/30 p-4 flex justify-center items-center">
+                  <div className="relative shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 max-w-3xl mx-auto">
                     <Image
                       src={coverImage.url}
                       alt={coverImage.alt || getTitle(item)}
-                      width={800}
-                      height={800}
-                      className="max-h-[600px] w-full h-auto object-contain"
+                      width={700}
+                      height={400}
+                      className="max-h-[350px] md:max-h-[300px] w-full h-auto object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 700px"
                     />
                   </div>
                 </div>
