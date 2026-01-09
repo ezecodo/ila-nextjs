@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+
 import SectionHeader from "../SectionsHeader/SetionHeader";
 import IlaLoader from "../IlaLoader/IlaLoader";
 import Image from "next/image";
@@ -26,6 +27,8 @@ interface Aktuelles {
 
 export default function AktuellesList() {
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [items, setItems] = useState<Aktuelles[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -43,55 +46,42 @@ export default function AktuellesList() {
       });
   }, []);
 
-  const searchParams = useSearchParams();
-
-  // Leer id de URL y expandir/scroll al Aktuelles correspondiente
+  // Leer query parameter y hacer scroll al Aktuelles correspondiente
   useEffect(() => {
     if (loading || items.length === 0) return;
 
-    const id = searchParams.get("id");
-    if (id) {
-      const numId = parseInt(id, 10);
-      setExpandedIds((prev) => new Set(prev).add(numId));
+    const scrollToId = searchParams.get("scrollTo");
+    if (!scrollToId) return;
 
-      // Esperar a que todas las imágenes carguen
-      const scrollToElement = () => {
-        const element = document.getElementById(`aktuelles-${numId}`);
-        if (element) {
-          const yOffset = -20;
-          const y =
-            element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          window.scrollTo({ top: y, behavior: "smooth" });
-        }
-      };
+    const numId = parseInt(scrollToId, 10);
 
-      // Verificar si hay imágenes y esperar a que carguen
-      const images = document.querySelectorAll("article img");
-      if (images.length > 0) {
-        let loadedCount = 0;
-        const checkAllLoaded = () => {
-          loadedCount++;
-          if (loadedCount >= images.length) {
-            setTimeout(scrollToElement, 100);
-          }
-        };
+    // Expandir el item
+    setExpandedIds((prev) => new Set(prev).add(numId));
 
-        images.forEach((img) => {
-          if ((img as HTMLImageElement).complete) {
-            checkAllLoaded();
-          } else {
-            img.addEventListener("load", checkAllLoaded);
-            img.addEventListener("error", checkAllLoaded);
-          }
+    // Función simple para hacer scroll
+    const scrollToElement = () => {
+      const element = document.getElementById(`aktuelles-${numId}`);
+      if (element) {
+        // Offset fijo de 100px (ajusta si es necesario)
+        const offset = 100;
+        const elementTop = element.getBoundingClientRect().top;
+        const scrollPosition = elementTop + window.pageYOffset - offset;
+
+        window.scrollTo({
+          top: scrollPosition,
+          behavior: "smooth",
         });
 
-        // Fallback por si algo falla
-        setTimeout(scrollToElement, 2000);
-      } else {
-        setTimeout(scrollToElement, 500);
+        // Limpiar la URL después (opcional)
+        setTimeout(() => {
+          router.replace("/aktuell/aktuelles", { scroll: false });
+        }, 1000);
       }
-    }
-  }, [loading, items, searchParams]);
+    };
+
+    // Esperar a que la página termine de cargar
+    setTimeout(scrollToElement, 500);
+  }, [loading, items, searchParams, router]);
 
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {

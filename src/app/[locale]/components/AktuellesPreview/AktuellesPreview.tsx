@@ -74,7 +74,7 @@ export default function AktuellesPreview() {
 
                 {/* Título con fuente Serif para dar el toque "Editorial" */}
                 <Link
-                  href={`/aktuell/aktuelles?id=${item.id}`}
+                  href={`/aktuell/aktuelles?scrollTo=${item.id}`}
                   className="block"
                 >
                   <h4 className="font-serif text-base font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-red-700 dark:group-hover:text-red-500 transition-colors">
