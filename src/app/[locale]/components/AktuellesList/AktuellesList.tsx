@@ -128,11 +128,11 @@ export default function AktuellesList() {
       {/* Cabecera */}
       <SectionHeader
         title={locale === "es" ? "Actualidad" : "Aktuelles"}
-        className="mb-2"
+        className="mb-8"
       />
 
       {/* Lista de Aktuelles */}
-      <div className="space-y-8">
+      <div className="space-y-12">
         {items.map((item) => {
           const isExpanded = expandedIds.has(item.id);
           const content = getContent(item);
@@ -142,66 +142,105 @@ export default function AktuellesList() {
           return (
             <article
               key={item.id}
-              id={`aktuelles-${item.id}`}
-              className="relative bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden"
+              className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-6">
-                {/* Fecha en formato destacado */}
-                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-4 py-2 rounded-lg font-semibold">
-                  {formatDate(item.date)}
-                </div>
-              </div>
-              {/* Imagen de portada */}
+              {/* --- NUEVO DISEÑO DE IMAGEN --- */}
               {coverImage && (
-                <Image
-                  src={coverImage.url}
-                  alt={coverImage.alt || getTitle(item)}
-                  width={800}
-                  height={400}
-                  className="w-full h-64 object-cover"
-                />
+                <div className="relative w-full bg-stone-50 dark:bg-stone-900/30 p-6 flex justify-center items-center">
+                  <div className="relative shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                    <Image
+                      src={coverImage.url}
+                      alt={coverImage.alt || getTitle(item)}
+                      width={800}
+                      height={800} // Square base, but height adapts via h-auto
+                      className="max-h-[600px] w-full h-auto object-contain"
+                      // object-contain: Muestra la imagen completa sin cortar.
+                      // max-h-[600px]: Evita que imágenes gigantes rompan el diseño.
+                    />
+                  </div>
+                </div>
               )}
-              <div className="p-4">
-                {/* Encabezado con fecha y badge */}
+
+              <div className="p-8 md:p-10">
+                {/* Fecha y Meta */}
+                <div
+                  id={`aktuelles-${item.id}`}
+                  style={{ scrollMarginTop: "100px" }} // Ajusta esto según la altura de tu header
+                  className="flex items-center gap-3 mb-6"
+                >
+                  <span className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded-full border border-red-100 dark:border-red-900/50">
+                    {formatDate(item.date)}
+                  </span>
+                  {item.link && (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-gray-400 hover:text-red-600 transition-colors flex items-center gap-1"
+                    >
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                      {locale === "es" ? "Fuente externa" : "Externe Quelle"}
+                    </a>
+                  )}
+                </div>
 
                 {/* Título */}
-                <h2 className="text-3xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight">
+                <h2 className="font-serif text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight">
                   {getTitle(item)}
                 </h2>
 
                 {/* Línea decorativa */}
-                <div className="w-20 h-1 bg-red-600 dark:bg-red-500 mb-6 rounded-full"></div>
+                <div className="w-16 h-0.5 bg-gradient-to-r from-red-600 to-transparent mb-8"></div>
 
                 {/* Contenido */}
                 <div
-                  className="prose prose-lg max-w-none
-                             text-gray-700 dark:text-gray-300
-                             dark:prose-headings:text-gray-100
-                             dark:prose-strong:text-gray-100
-                             dark:prose-a:text-red-400
-                             prose-a:text-red-600
-                             mb-6"
+                  className="prose prose-lg max-w-none 
+                             prose-headings:font-serif 
+                             prose-p:text-gray-600 dark:prose-p:text-gray-300 
+                         
+                             prose-a:no-underline 
+                            
+                             prose-a:hover:underline 
+                            
+                             prose-a:hover:underline-offset-4 
+                           
+                             prose-a:hover:decoration-red-600/50
+                             
+                            
+                             prose-u:decoration-transparent
+                             
+                           
+                             prose-strong:text-gray-900 dark:prose-strong:text-white
+                             mb-8 leading-relaxed"
                   dangerouslySetInnerHTML={{
                     __html: isExpanded ? content : truncateText(content),
                   }}
                 />
 
-                {/* Botón Leer más y acciones */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-600">
-                  {showReadMore && (
+                {/* Botón Leer más */}
+                {showReadMore && (
+                  <div className="pt-6 border-t border-gray-100 dark:border-gray-700">
                     <button
                       onClick={() => toggleExpand(item.id)}
-                      className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 
-                                 text-white font-semibold px-6 py-3 rounded-lg 
-                                 transition-all duration-300 hover:shadow-lg
-                                 inline-flex items-center gap-2"
-                      aria-expanded={isExpanded}
+                      className="group inline-flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors"
                     >
                       {isExpanded ? (
                         <>
-                          {locale === "es" ? "Leer menos" : "Weniger lesen"}
+                          {locale === "es" ? "Contraer" : "Einklappen"}
                           <svg
-                            className="w-4 h-4"
+                            className="w-4 h-4 transform rotate-180 transition-transform group-hover:rotate-0"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -216,9 +255,11 @@ export default function AktuellesList() {
                         </>
                       ) : (
                         <>
-                          {locale === "es" ? "Leer más" : "Weiterlesen"}
+                          {locale === "es"
+                            ? "Leer artículo completo"
+                            : "Artikel vollständig lesen"}
                           <svg
-                            className="w-4 h-4"
+                            className="w-4 h-4 transform transition-transform group-hover:translate-y-1"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -233,34 +274,8 @@ export default function AktuellesList() {
                         </>
                       )}
                     </button>
-                  )}
-
-                  {/* Enlace externo si existe */}
-                  {item.link && (
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 
-                                 font-medium inline-flex items-center gap-2 transition-colors"
-                    >
-                      {locale === "es" ? "Enlace externo" : "Externer Link"}
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
-                      </svg>
-                    </a>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </article>
           );
