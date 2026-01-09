@@ -64,19 +64,6 @@ export default function AktuellesPreview() {
             key={item.id}
             className="group flex gap-4 p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-300"
           >
-            {/* Imagen */}
-            {item.images?.[0] && (
-              <div className="relative shrink-0 overflow-hidden bg-gray-100 rounded-md w-20 h-20">
-                <Image
-                  src={item.images[0].url}
-                  alt={item.images[0].alt || getTitle(item)}
-                  width={80}
-                  height={80}
-                  className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-            )}
-
             {/* Contenido Texto */}
             <div className="flex flex-col justify-between flex-1 min-w-0">
               <div>
