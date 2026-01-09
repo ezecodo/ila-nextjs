@@ -142,9 +142,17 @@ export default function AktuellesList() {
           return (
             <article
               key={item.id}
+              id={`aktuelles-${item.id}`}
               className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 overflow-hidden"
             >
-              {/* --- NUEVO DISEÑO DE IMAGEN --- */}
+              {/* Fecha encima de la imagen */}
+              <div className="px-6 pt-6 pb-2">
+                <span className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded-full border border-red-100 dark:border-red-900/50">
+                  {formatDate(item.date)}
+                </span>
+              </div>
+
+              {/* --- IMAGEN --- */}
               {coverImage && (
                 <div className="relative w-full bg-stone-50 dark:bg-stone-900/30 p-6 flex justify-center items-center">
                   <div className="relative shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
@@ -152,25 +160,19 @@ export default function AktuellesList() {
                       src={coverImage.url}
                       alt={coverImage.alt || getTitle(item)}
                       width={800}
-                      height={800} // Square base, but height adapts via h-auto
+                      height={800}
                       className="max-h-[600px] w-full h-auto object-contain"
-                      // object-contain: Muestra la imagen completa sin cortar.
-                      // max-h-[600px]: Evita que imágenes gigantes rompan el diseño.
                     />
                   </div>
                 </div>
               )}
 
               <div className="p-8 md:p-10">
-                {/* Fecha y Meta */}
+                {/* Meta - link externo si existe */}
                 <div
-                  id={`aktuelles-${item.id}`}
-                  style={{ scrollMarginTop: "100px" }} // Ajusta esto según la altura de tu header
+                  style={{ scrollMarginTop: "100px" }}
                   className="flex items-center gap-3 mb-6"
                 >
-                  <span className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded-full border border-red-100 dark:border-red-900/50">
-                    {formatDate(item.date)}
-                  </span>
                   {item.link && (
                     <a
                       href={item.link}
