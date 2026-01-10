@@ -2,8 +2,10 @@
 .footer {
   background-color: #333;
   color: #fff;
-  padding: 0.75rem 1rem; /* Más compacto */
+  padding: 0.75rem 1rem;
   text-align: center;
+
+  min-height: 120px; /* 👈 CLAVE */
 }
 
 .container {

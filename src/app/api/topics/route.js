@@ -72,7 +72,14 @@ export async function GET(req) {
     console.log("Parámetro de búsqueda recibido:", search);
 
     // Consulta todos los temas
-    const topics = await prisma.topic.findMany();
+    // Consulta todos los temas con count de artículos
+    const topics = await prisma.topic.findMany({
+      include: {
+        _count: {
+          select: { articles: true },
+        },
+      },
+    });
     console.log("Temas encontrados:", topics);
 
     // Identificar los temas que coinciden con el filtro

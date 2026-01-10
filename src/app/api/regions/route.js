@@ -74,9 +74,14 @@ export async function GET(req) {
       leafOnly
     );
 
-    // Consulta todas las regiones
-    const regions = await prisma.region.findMany();
-    console.log("Regiones encontradas:", regions.length);
+    // Consulta todas las regiones con count de artículos
+    const regions = await prisma.region.findMany({
+      include: {
+        _count: {
+          select: { articles: true },
+        },
+      },
+    });
 
     // ✅ NUEVO: Si leafOnly=true, devolver solo regiones sin hijos (lista plana)
     if (leafOnly) {

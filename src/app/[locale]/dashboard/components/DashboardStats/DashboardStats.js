@@ -178,7 +178,11 @@ const DashboardStats = () => {
       <StatCardDropdown
         icon={<FaUsers size={18} />}
         label="Auditoría"
-        items={[{ label: "Autores", href: "/dashboard/authors" }]}
+        items={[
+          { label: "Autores", href: "/dashboard/authors" },
+          { label: "Topics", href: "/dashboard/topics" },
+          { label: "Regiones", href: "/dashboard/regions" },
+        ]}
         pathname={pathname}
       />
       <StatCard
