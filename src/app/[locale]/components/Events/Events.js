@@ -13,6 +13,7 @@ export default function InfoBox() {
 
   const [events, setEvents] = useState([]);
   const [index, setIndex] = useState(0);
+
   useEffect(() => {
     async function fetchEvents() {
       try {
@@ -20,26 +21,22 @@ export default function InfoBox() {
         if (!res.ok) throw new Error("Error al cargar eventos");
         const data = await res.json();
 
-        // 🔹 Función para parsear fecha con hora
         function parseEventDate(e) {
           const datePart = e.date;
           const timePart = e.time || "00:00";
           return new Date(`${datePart}T${timePart}`);
         }
 
-        // 🔹 Ordenar por fecha ascendente
         const sorted = data.sort(
           (a, b) => parseEventDate(a) - parseEventDate(b)
         );
 
-        // 🔹 Obtener fecha de HOY sin hora (solo día)
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // 👈 IMPORTANTE: resetear hora a medianoche
+        today.setHours(0, 0, 0, 0);
 
-        // 🔹 Filtrar eventos de HOY o futuros
         const upcoming = sorted.filter((e) => {
           const eventDate = new Date(e.date);
-          eventDate.setHours(0, 0, 0, 0); // 👈 Comparar solo fechas, sin hora
+          eventDate.setHours(0, 0, 0, 0);
           return eventDate >= today;
         });
 
@@ -53,121 +50,142 @@ export default function InfoBox() {
   }, []);
 
   const current = events[index];
+
   if (events.length === 0) {
     return (
       <section className="w-full max-w-md mx-auto">
         <SectionHeader title={t("events")} />
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 text-center">
-          <p className="text-gray-500">
-            {t("noEvents")} {/* 👈 Usar la traducción */}
-          </p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 text-center">
+          <p className="text-gray-500 dark:text-gray-400">{t("noEvents")}</p>
         </div>
       </section>
     );
   }
+
   if (!current) return null;
 
   return (
     <section className="w-full max-w-md mx-auto">
-      <section className="w-full max-w-sm mx-auto">
-        <SectionHeader title={t("events")} />
+      <SectionHeader title={t("events")} />
 
-        <div className="relative bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-          {/* Flechas laterales - MÁS SEPARADAS */}
-          <button
-            onClick={() => index > 0 && setIndex(index - 1)}
-            disabled={index === 0}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all disabled:opacity-30 disabled:cursor-not-allowed z-10 border border-gray-200"
-          >
-            <PrevArrow />
-          </button>
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 overflow-hidden">
+        {/* Flechas */}
+        <button
+          onClick={() => index > 0 && setIndex(index - 1)}
+          disabled={index === 0}
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700/90 hover:scale-110 shadow-md rounded-full p-1.5 transition-all disabled:opacity-0 disabled:cursor-not-allowed z-10 border border-gray-200 dark:border-gray-600"
+        >
+          <PrevArrow />
+        </button>
 
-          <button
-            onClick={() => index < events.length - 1 && setIndex(index + 1)}
-            disabled={index === events.length - 1}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all disabled:opacity-30 disabled:cursor-not-allowed z-10 border border-gray-200"
-          >
-            <NextArrow />
-          </button>
+        <button
+          onClick={() => index < events.length - 1 && setIndex(index + 1)}
+          disabled={index === events.length - 1}
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700/90 hover:scale-110 shadow-md rounded-full p-1.5 transition-all disabled:opacity-0 disabled:cursor-not-allowed z-10 border border-gray-200 dark:border-gray-600"
+        >
+          <NextArrow />
+        </button>
 
-          <div className="p-6">
-            {/* Fecha y Hora */}
-            <div className="text-center mb-4">
-              <div className="inline-flex items-center bg-red-50 text-red-700 px-4 py-2 rounded-full text-sm font-semibold">
-                <span className="text-red-600 mr-2">📅</span>
-                {new Intl.DateTimeFormat(locale, {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                }).format(new Date(current.date))}
-                {current.time && (
-                  <>
-                    <span className="mx-2 text-gray-400">•</span>
-                    <span className="text-gray-600">🕒 {current.time}</span>
-                  </>
-                )}
-              </div>
-            </div>
+        <div className="p-4">
+          {/* --- CAMBIO AQUÍ: MOVIDO ARRIBA --- */}
+          {/* --- AQUÍ EL CAMBIO: FILA ÚNICA DE DATOS (AHORA ARRIBA) --- */}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            {/* Fecha */}
+            <span className="flex items-center gap-1">
+              <span className="text-red-500">📅</span>
+              {new Intl.DateTimeFormat(locale, {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              }).format(new Date(current.date))}
+            </span>
 
-            {/* Imagen rectangular horizontal */}
-            <Link
-              href={`/events/${current.id}`}
-              className="block w-full h-48 relative overflow-hidden bg-gray-100 shadow-md mx-auto mb-4 group"
-            >
-              <Image
-                src={current.image}
-                alt={
-                  locale === "es"
-                    ? current.titleES || current.title
-                    : current.title
-                }
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
-            </Link>
+            {/* Separador */}
+            <span className="text-gray-300 dark:text-gray-700">|</span>
 
-            {/* Título del evento */}
-            <Link href={`/events/${current.id}`}>
-              <h3 className="text-lg font-bold text-gray-800 hover:text-red-600 transition-colors text-center mb-3 leading-tight">
-                {locale === "es"
-                  ? current.titleES || current.title
-                  : current.title}
-              </h3>
-            </Link>
+            {/* Hora (si existe) */}
+            {current.time && (
+              <span className="flex items-center gap-1">
+                <span className="text-red-500">🕒</span>
+                {current.time}
+              </span>
+            )}
+
+            {/* Separador (solo si hay hora) */}
+            {current.time && (
+              <span className="text-gray-300 dark:text-gray-700">|</span>
+            )}
 
             {/* Ubicación */}
-            <div className="flex items-center justify-center text-gray-600 mb-4">
-              <span className="text-red-500 mr-2">📍</span>
-              <span className="text-sm">{current.location}</span>
-            </div>
-
-            {/* Línea divisoria */}
-            <div className="border-t border-gray-200 my-4"></div>
-            {/* Indicador de evento activo */}
-            <div className="flex justify-center mb-4 pt-4">
-              <div className="flex space-x-1">
-                {events.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setIndex(i)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      i === index ? "bg-red-600 w-6" : "bg-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-            {/* Botón de calendario */}
-            <Link
-              href="/events"
-              className="block w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold px-6 py-3 rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-md hover:shadow-lg text-center"
-            >
-              {t("calendarButton")}
-            </Link>
+            <span className="flex items-center gap-1 truncate max-w-[150px]">
+              <span className="text-red-500">📍</span>
+              {current.location}
+            </span>
           </div>
+
+          {/* IMAGEN - CAMBIO PRINCIPAL */}
+          <Link
+            href={`/events/${current.id}`}
+            className="block w-full h-40 relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-lg mb-3 group"
+          >
+            <Image
+              src={current.image}
+              alt={
+                locale === "es"
+                  ? current.titleES || current.title
+                  : current.title
+              }
+              fill
+              className="object-contain group-hover:scale-105 transition-transform duration-500 bg-white dark:bg-gray-800" // ← CAMBIADO AQUÍ
+              sizes="(max-width: 768px) 100vw, 400px"
+            />
+            <div className="absolute inset-0 bg-black/0 dark:bg-black/20 transition-all duration-300" />
+          </Link>
+
+          {/* TÍTULO */}
+          <Link href={`/events/${current.id}`}>
+            <h3 className="font-serif text-lg font-bold text-gray-900 dark:text-white leading-snug mb-1 text-center hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              {locale === "es"
+                ? current.titleES || current.title
+                : current.title}
+            </h3>
+          </Link>
+
+          {/* Indicadores */}
+          <div className="flex justify-center mb-3">
+            <div className="flex space-x-1.5">
+              {events.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setIndex(i)}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                    i === index
+                      ? "bg-red-600 w-4"
+                      : "bg-gray-300 dark:bg-gray-600 hover:bg-gray-400"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Botón */}
+          {/* --- BOTÓN CALENDARIO: Estilo Outline Elegante --- */}
+          <Link
+            href="/events"
+            className="block w-full 
+              bg-transparent 
+              border-2 border-red-600 dark:border-red-500 
+              text-red-600 dark:text-red-500 
+              text-xs font-bold uppercase tracking-widest 
+              py-3 rounded-lg 
+              hover:bg-red-600 hover:text-white dark:hover:bg-red-500 dark:hover:text-white
+              transition-all duration-300 
+              text-center"
+          >
+            {t("calendarButton")}
+          </Link>
         </div>
-      </section>
+      </div>
     </section>
   );
 }

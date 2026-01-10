@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import Link from "next/link";
-import Image from "next/image";
+
 import SectionHeader from "../SectionsHeader/SetionHeader";
 
 interface Aktuelles {
@@ -29,13 +29,20 @@ export default function AktuellesPreview() {
         const twoMonthsAgo = new Date();
         twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
+        // Filtramos por fecha y ordenamos
         const sorted = (data.items || [])
-          .filter((item: Aktuelles) => new Date(item.date) >= twoMonthsAgo)
+          .filter((item: Aktuelles) => {
+            const itemDate = new Date(item.date);
+            itemDate.setHours(0, 0, 0, 0); // Normalizamos la fecha
+            twoMonthsAgo.setHours(0, 0, 0, 0);
+            return itemDate >= twoMonthsAgo;
+          })
           .sort(
             (a: Aktuelles, b: Aktuelles) =>
               new Date(b.date).getTime() - new Date(a.date).getTime()
           )
-          .slice(0, 4);
+          .slice(0, 3); // ← CAMBIO AQUÍ: de 4 a 3
+
         setItems(sorted);
         setLoading(false);
       })
