@@ -80,34 +80,45 @@ export default function LinksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        {/* Fondo de ruido para el loading */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJnoiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjY1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2cpIi8+PC9zdmc+')]" />
+      <div className="min-h-screen bg-gradient-to-b from-red-50 to-white flex items-center justify-center">
+        {/* Logo de carga */}
+        <div className="w-16 h-16 rounded-sm bg-red-600 flex items-center justify-center shadow-lg animate-pulse">
+          <span
+            className="text-3xl font-bold text-white"
+            style={{ fontFamily: "Futura, sans-serif" }}
+          >
+            ila
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] py-12 px-4 relative overflow-x-hidden">
-      {/* FONDO DE RUIDO (GRAIN) */}
-      <div className="fixed inset-0 opacity-5 pointer-events-none z-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJnoiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjY1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2cpIi8+PC9zdmc+')]" />
+    <div className="min-h-screen bg-gradient-to-b from-red-50 via-white to-red-50/50 py-12 px-4 relative">
+      {/* Patrón sutil de fondo */}
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-5">
+        <div className="absolute inset-0 bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      </div>
 
       <div className="relative z-10 max-w-md mx-auto">
-        {/* Header con Logo Futura + Rojo */}
-        <div className="text-center mb-10 animate-[slideUp_0.6s_ease-out_forwards]">
+        {/* Header con Logo */}
+        <div className="text-center mb-12 animate-[slideUp_0.6s_ease-out_forwards]">
           <div className="relative mb-6 mx-auto w-fit">
             {/* Logo ila */}
-            <div className="w-28 h-28 rounded-sm bg-white flex items-center justify-center shadow-lg">
+            <div className="w-20 h-20 rounded-sm bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-200/50">
               <span
-                className="text-5xl font-bold text-red-600"
+                className="text-4xl font-bold text-white"
                 style={{ fontFamily: "Futura, sans-serif" }}
               >
                 ila
               </span>
             </div>
+            {/* Anillo decorativo */}
+            <div className="absolute -inset-4 border-2 border-red-200/30 rounded-lg animate-pulse"></div>
           </div>
 
-          <p className="text-sm text-gray-400 font-light tracking-wide">
+          <p className="text-sm text-red-800/70 font-medium tracking-wide">
             {locale === "es"
               ? "La revista de América Latina"
               : "Das Lateinamerika-Magazin"}
@@ -115,7 +126,7 @@ export default function LinksPage() {
         </div>
 
         {/* Links por categoría */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           {Object.entries(groupedLinks).map(
             ([category, categoryLinks], index) => (
               <div
@@ -126,10 +137,12 @@ export default function LinksPage() {
                 }}
               >
                 {Object.keys(groupedLinks).length > 1 && (
-                  <h2 className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3 px-2">
+                  <h2 className="text-red-700/80 text-xs font-semibold uppercase tracking-wider mb-4 px-3 flex items-center">
+                    <span className="h-px flex-1 bg-red-200 mr-3"></span>
                     {locale === "es"
                       ? categoryLabels[category]?.es || category
                       : categoryLabels[category]?.de || category}
+                    <span className="h-px flex-1 bg-red-200 ml-3"></span>
                   </h2>
                 )}
                 <div className="space-y-3">
@@ -139,37 +152,37 @@ export default function LinksPage() {
                       onClick={() => handleClick(link)}
                       className={`w-full group relative overflow-hidden rounded-xl transition-all duration-300 text-left ${
                         link.isFeatured
-                          ? "bg-white text-red-700 shadow-lg hover:shadow-xl hover:scale-[1.02] ring-1 ring-red-500/50"
-                          : "bg-white/5 backdrop-blur-sm text-white hover:bg-white/10 hover:scale-[1.01] border border-white/5"
+                          ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-200/50 hover:shadow-xl hover:scale-[1.02] ring-2 ring-red-500/30"
+                          : "bg-white text-gray-800 shadow-md shadow-red-100/30 hover:shadow-lg hover:scale-[1.01] border border-red-100 hover:border-red-200"
                       }`}
                     >
                       {link.isFeatured && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                       )}
 
                       <div className="relative flex items-center gap-4 px-5 py-4">
                         <span
                           className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
                             link.isFeatured
-                              ? "bg-red-100 text-red-600"
-                              : "bg-white/10 text-white"
+                              ? "bg-white/20 text-white backdrop-blur-sm"
+                              : "bg-red-50 text-red-600"
                           }`}
                         >
                           {getIcon(link.icon)}
                         </span>
-                        <span className="flex-1 font-medium">
+                        <span className="flex-1 font-medium text-left">
                           {getTitle(link)}
                         </span>
                         <FaExternalLinkAlt
                           size={14}
                           className={`flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity ${
-                            link.isFeatured ? "text-red-400" : "text-white"
+                            link.isFeatured ? "text-white/80" : "text-red-400"
                           }`}
                         />
                       </div>
 
                       {link.isFeatured && (
-                        <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">
+                        <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl shadow-sm">
                           ⭐ {locale === "es" ? "Destacado" : "Empfohlen"}
                         </div>
                       )}
@@ -181,13 +194,13 @@ export default function LinksPage() {
           )}
         </div>
 
-        {/* --- ARREGLO AQUÍ: Redes sociales --- */}
-        <div className="mt-10 flex justify-center gap-4">
+        {/* Redes sociales */}
+        <div className="mt-12 flex justify-center gap-5">
           <a
             href="https://www.instagram.com/ila_bonn/"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-12 h-12 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-red-600 hover:border-transparent transition-all duration-300"
+            className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50 hover:shadow-xl hover:scale-110 hover:from-red-600 hover:to-red-700 transition-all duration-300"
           >
             <FaInstagram size={20} />
           </a>
@@ -196,24 +209,24 @@ export default function LinksPage() {
             href="https://www.facebook.com/ila.web"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-12 h-12 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-red-600 hover:border-transparent transition-all duration-300"
+            className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50 hover:shadow-xl hover:scale-110 hover:from-red-600 hover:to-red-700 transition-all duration-300"
           >
             <FaFacebookF size={18} />
           </a>
         </div>
 
-        {/* --- ARREGLO AQUÍ: Footer --- */}
-        <div className="mt-10 text-center">
+        {/* Footer */}
+        <div className="mt-12 text-center">
           <a
             href={`/${locale}`}
-            className="text-gray-500 hover:text-white text-sm transition-colors inline-flex items-center gap-2"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-red-700 font-medium text-sm shadow-md shadow-red-100/30 hover:shadow-lg hover:gap-3 hover:bg-red-50 border border-red-100 transition-all duration-300"
           >
             <span>&larr;</span>
-            {locale === "es" ? " Visitar sitio web" : " Zur Webseite"}
+            {locale === "es" ? "Visitar sitio web" : "Zur Webseite"}
           </a>
         </div>
 
-        <div className="mt-8 text-center text-gray-700 text-xs font-mono">
+        <div className="mt-8 text-center text-red-400/60 text-xs font-medium tracking-wide">
           ila-web.de/links
         </div>
       </div>
