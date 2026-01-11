@@ -15,6 +15,7 @@ import {
   FaQuestionCircle,
   FaNetworkWired,
   FaUsers,
+  FaLink,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -132,6 +133,12 @@ const DashboardStats = () => {
         icon={<FaNetworkWired size={18} />}
         label="Netzwerk"
         href="/dashboard/network"
+        pathname={pathname}
+      />
+      <StatCard
+        icon={<FaLink size={18} />}
+        label="Links"
+        href="/dashboard/links"
         pathname={pathname}
       />
       <StatCardDropdown

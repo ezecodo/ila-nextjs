@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import { FaShoppingCart, FaUserPlus } from "react-icons/fa";
 
 export default function ActivityFeed() {
   const [logs, setLogs] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [newOrders, setNewOrders] = useState(0);
+  const [newSubscriptions, setNewSubscriptions] = useState(0);
   const logsPerPage = 10;
   const locale = useLocale();
   const t = useTranslations("activity");
@@ -31,6 +34,33 @@ export default function ActivityFeed() {
         console.error("❌ Error al cargar logs:", error);
       });
   }, []);
+  // Cargar contadores de pedidos
+  useEffect(() => {
+    async function fetchOrdersCount() {
+      try {
+        const res = await fetch("/api/orders", { cache: "no-store" });
+        const data = await res.json();
+        setNewOrders(data.newOrdersCount || 0);
+      } catch (err) {
+        console.error("Error cargando pedidos:", err);
+      }
+    }
+    fetchOrdersCount();
+  }, []);
+
+  // Cargar contadores de suscripciones
+  useEffect(() => {
+    async function fetchSubscriptionsCount() {
+      try {
+        const res = await fetch("/api/subscriptions", { cache: "no-store" });
+        const data = await res.json();
+        setNewSubscriptions(data.newSubscriptionsCount || 0);
+      } catch (err) {
+        console.error("Error cargando Abos:", err);
+      }
+    }
+    fetchSubscriptionsCount();
+  }, []);
 
   const indexOfLastLog = currentPage * logsPerPage;
   const indexOfFirstLog = indexOfLastLog - logsPerPage;
@@ -51,6 +81,73 @@ export default function ActivityFeed() {
 
   return (
     <div className="mt-6 max-w-4xl mx-auto">
+      {/* === ALERTAS MINIMALISTAS SIN BORDES ROJOS === */}
+      {(newOrders > 0 || newSubscriptions > 0) && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Alerta Pedidos */}
+          {newOrders > 0 && (
+            <Link
+              href="/dashboard/orders"
+              className="flex items-center justify-between bg-gradient-to-r from-red-50 to-white dark:from-red-950/20 dark:to-gray-800 border border-gray-100 dark:border-gray-700 p-4 rounded-lg shadow-sm hover:shadow-md hover:scale-[1.02] transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <FaShoppingCart className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                    {newOrders}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    {t("pendingOrders")}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    {t("newOrders", { count: newOrders })}
+                  </p>
+                </div>
+              </div>
+              <div className="text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors text-sm">
+                →
+              </div>
+            </Link>
+          )}
+
+          {/* Alerta Suscripciones */}
+          {newSubscriptions > 0 && (
+            <Link
+              href="/dashboard/subscriptions"
+              className="flex items-center justify-between bg-gradient-to-r from-blue-50 to-white dark:from-blue-950/20 dark:to-gray-800 border border-gray-100 dark:border-gray-700 p-4 rounded-lg shadow-sm hover:shadow-md hover:scale-[1.02] transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <FaUserPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 h-5 w-5 bg-blue-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                    {newSubscriptions}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    {t("newSubscriptions")}
+                  </p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                    {t("newSubscriptionsCount", {
+                      count: newSubscriptions,
+                    })}
+                  </p>
+                </div>
+              </div>
+              <div className="text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-sm">
+                →
+              </div>
+            </Link>
+          )}
+        </div>
+      )}
+
       <ul className="space-y-3">
         {currentLogs.map((log) => (
           <li
@@ -323,7 +420,6 @@ export default function ActivityFeed() {
           </li>
         ))}
       </ul>
-
       {/* Paginación */}
       {totalPages > 1 && (
         <div className="mt-8 flex items-center justify-center gap-2">

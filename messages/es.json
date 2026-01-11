@@ -680,6 +680,10 @@
     "cta": "Donar"
   },
   "activity": {
+    "pendingOrders": "Pedidos pendientes",
+    "newOrders": "{count, plural, one {# nuevo} other {# nuevos}}",
+    "newSubscriptions": "Suscripciones nuevas",
+    "newSubscriptionsCount": "{count, plural, one {# nueva} other {# nuevas}}",
     "title": "ila Actividad",
     "createdArticle": "creó un artículo",
     "recent": "📝 Actividad reciente",

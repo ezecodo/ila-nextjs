@@ -11,8 +11,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import LayoutShell from "../[locale]/components/LayoutShell/LayoutShell";
 import CookieConsent from "./components/CookieConsent/CookieConsent";
 
 import { locales, type Locale } from "../../../i18n";
@@ -73,7 +72,6 @@ export async function generateMetadata() {
 }
 
 export default async function LocaleLayout({ children, params }: Props) {
-  // 👇 desestructuramos esperando la Promise
   const { locale } = await params;
 
   if (!locales.includes(locale as Locale)) {
@@ -98,13 +96,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SessionProvider>
             <NextIntlClientProvider locale={locale} messages={messages}>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className="flex-grow w-full px-2 sm:px-3 md:px-4 lg:px-6">
-                  {children}
-                </main>
-                <Footer />
-              </div>
+              <LayoutShell>{children}</LayoutShell>
               <CookieConsent />
               <MatomoAnalytics />
             </NextIntlClientProvider>

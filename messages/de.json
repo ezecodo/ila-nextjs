@@ -682,6 +682,10 @@
     "cta": "Jetzt spenden"
   },
   "activity": {
+    "pendingOrders": "Ausstehende Bestellungen",
+    "newOrders": "{count, plural, one {# neue} other {# neue}}",
+    "newSubscriptions": "Neue Abonnements",
+    "newSubscriptionsCount": "{count, plural, one {# neues} other {# neue}}",
     "title": "ila Aktivität",
     "createdArticle": "hat einen Artikel angelegt",
     "recent": "📝 Letzte Aktivitäten",
