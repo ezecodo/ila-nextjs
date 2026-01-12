@@ -11,6 +11,8 @@ const stripHTML = (html) => {
   if (!html) return "";
   return html
     .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&[a-z]+;/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
 };
@@ -184,8 +186,12 @@ export default function MiniArticleCardGrid({
 
         {/* Vorspann */}
         {teaser && (
-          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mt-1">
-            {teaser}
+          <p
+            className={`text-sm text-gray-600 dark:text-gray-300 mt-1 overflow-hidden ${
+              hasImage ? "line-clamp-3" : "line-clamp-[12]"
+            }`}
+          >
+            {teaser}...
           </p>
         )}
 

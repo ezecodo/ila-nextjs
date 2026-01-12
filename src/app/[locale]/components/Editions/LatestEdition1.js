@@ -206,7 +206,7 @@ export default function LatestEditionWithArticles() {
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: orderedArticles.length > 1,
-    dots: true,
+    dots: false,
     swipe: true,
     swipeToSlide: true,
     prevArrow: <PrevArrow />,
@@ -697,7 +697,7 @@ export default function LatestEditionWithArticles() {
                 {mobileArticles.length > 0 ? (
                   <Slider {...mobileCarouselSettings}>
                     {mobileArticles.map((article) => (
-                      <div key={article.id} className="w-full">
+                      <div key={article.id} className="w-full min-h-[500px]">
                         <MiniArticleCardGrid
                           article={article}
                           isTransitioning={isTransitioning}
