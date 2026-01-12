@@ -878,6 +878,7 @@ export default function LinksPage() {
         </div>
 
         {/* ===== COLUMNA DERECHA: Preview Móvil ===== */}
+        {/* ===== COLUMNA DERECHA: Preview Móvil (CORREGIDO) ===== */}
         <div className="lg:w-[380px] flex-shrink-0">
           <div className="sticky top-4">
             <div className="flex items-center justify-between mb-4">
@@ -914,41 +915,44 @@ export default function LinksPage() {
                 {/* Notch */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-900 rounded-b-2xl z-10" />
 
-                {/* Pantalla */}
-                <div className="relative bg-[#050505] rounded-[2.5rem] overflow-hidden h-[640px]">
-                  {/* Status bar */}
-                  <div className="h-12 flex items-end justify-center pb-1">
-                    <div className="w-20 h-1 bg-gray-700 rounded-full" />
+                {/* Pantalla: FONDO IGUAL A LA PÁGINA REAL */}
+                <div className="relative bg-gradient-to-b from-red-50 via-white to-red-50/50 rounded-[2.5rem] overflow-hidden h-[640px]">
+                  {/* Status bar (transparente o blanco para este tema) */}
+                  <div className="h-8 flex items-end justify-center pb-1 z-20 relative bg-white/50 backdrop-blur-sm">
+                    <div className="w-20 h-1 bg-gray-300 rounded-full" />
+                  </div>
+
+                  {/* Patrón sutil de fondo (igual que real) */}
+                  <div className="absolute inset-0 pointer-events-none z-0 opacity-5 top-8">
+                    <div className="w-full h-full bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]"></div>
                   </div>
 
                   {/* Contenido scrolleable */}
-                  <div className="h-[580px] overflow-y-auto px-4 pb-8">
-                    {/* Header con Logo Futura */}
-                    <div className="text-center mb-6 pt-4">
-                      <div className="relative mb-6 mx-auto w-fit">
-                        <div className="w-28 h-28 rounded-sm bg-white flex items-center justify-center shadow-lg">
+                  <div className="h-[610px] overflow-y-auto px-4 pb-8 relative z-10">
+                    {/* Header con Logo Estilo Real */}
+                    <div className="text-center mb-8 mt-4">
+                      <div className="relative mb-4 mx-auto w-fit">
+                        {/* Logo Real */}
+                        <div className="w-16 h-16 rounded-sm bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-200/50">
                           <span
-                            className="text-5xl font-bold text-red-600"
+                            className="text-3xl font-bold text-white"
                             style={{ fontFamily: "Futura, sans-serif" }}
                           >
                             ila
                           </span>
                         </div>
-                        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-black px-2 py-0.5 rounded-full border border-red-600/30">
-                          <span className="text-[10px] uppercase font-bold text-red-500 tracking-widest">
-                            Links
-                          </span>
-                        </div>
+                        {/* Anillo decorativo */}
+                        <div className="absolute -inset-3 border-2 border-red-200/30 rounded-lg animate-pulse"></div>
                       </div>
-                      <p className="text-sm text-gray-400 font-light tracking-wide">
+                      <p className="text-xs text-red-800/70 font-medium tracking-wide">
                         {previewLocale === "es"
                           ? "La revista de América Latina"
                           : "Das Lateinamerika-Magazin"}
                       </p>
                     </div>
 
-                    {/* Links por categoría */}
-                    <div className="space-y-4">
+                    {/* Links por categoría (ESTILO REAL) */}
+                    <div className="space-y-6">
                       {Object.entries(groupedLinks).map(
                         ([category, categoryLinks], index) => (
                           <div
@@ -959,55 +963,83 @@ export default function LinksPage() {
                             }}
                           >
                             {Object.keys(groupedLinks).length > 1 && (
-                              <h2 className="text-gray-500 text-[10px] font-semibold uppercase tracking-wider mb-2 px-2">
+                              <h2 className="text-red-700/80 text-[10px] font-semibold uppercase tracking-wider mb-3 px-2 flex items-center">
+                                <span className="h-px flex-1 bg-red-200 mr-2"></span>
                                 {previewLocale === "es"
                                   ? categoryLabels[category]?.es || category
                                   : categoryLabels[category]?.de || category}
+                                <span className="h-px flex-1 bg-red-200 ml-2"></span>
                               </h2>
                             )}
                             <div className="space-y-3">
                               {categoryLinks.map((link) => (
                                 <div
                                   key={link.id}
-                                  className={`w-full group relative overflow-hidden rounded-xl transition-all duration-300 text-left ${
+                                  className={`group relative overflow-hidden rounded-xl transition-all duration-300 text-left ${
                                     link.isFeatured
-                                      ? "bg-white text-red-700 shadow-lg ring-1 ring-red-500/50"
-                                      : "bg-white/5 backdrop-blur-sm text-white border border-white/5"
+                                      ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-200/50 hover:shadow-xl hover:scale-[1.02] ring-1 ring-red-500/30"
+                                      : "bg-white text-gray-800 shadow-md shadow-red-100/30 hover:shadow-lg hover:scale-[1.01] border border-red-100 hover:border-red-200"
                                   }`}
                                 >
                                   {link.isFeatured && (
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                                   )}
 
-                                  <div className="relative flex items-center gap-4 px-5 py-4">
-                                    <span
-                                      className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                                        link.isFeatured
-                                          ? "bg-red-100 text-red-600"
-                                          : "bg-white/10 text-white"
-                                      }`}
-                                    >
-                                      {getIcon(link.icon)}
-                                    </span>
-                                    <span className="flex-1 font-medium">
-                                      {getPreviewTitle(link)}
-                                    </span>
+                                  <div className="relative flex items-center gap-3 px-4 py-3">
+                                    {/* Lógica de Imagen o Icono (Copiado de Real) */}
+                                    {link.imageUrl ? (
+                                      <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden shadow-sm">
+                                        <img
+                                          src={link.imageUrl}
+                                          alt={link.title}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    ) : (
+                                      <span
+                                        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                                          link.isFeatured
+                                            ? "bg-white/20 text-white"
+                                            : "bg-red-100 text-red-600"
+                                        }`}
+                                      >
+                                        {/* Icono escalado a 18px para encajar en mockup */}
+                                        <div className="scale-75 origin-center">
+                                          {getIcon(link.icon)}
+                                        </div>
+                                      </span>
+                                    )}
+
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-sm font-medium block leading-tight">
+                                        {getPreviewTitle(link)}
+                                      </span>
+                                      {link.authorName && (
+                                        <span
+                                          className={`text-[10px] block mt-0.5 truncate ${
+                                            link.isFeatured
+                                              ? "text-red-100"
+                                              : "text-gray-400"
+                                          }`}
+                                        >
+                                          {link.authorName}
+                                        </span>
+                                      )}
+                                    </div>
+
                                     <FaExternalLinkAlt
-                                      size={14}
+                                      size={12}
                                       className={`flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity ${
                                         link.isFeatured
-                                          ? "text-red-400"
-                                          : "text-white"
+                                          ? "text-red-100"
+                                          : "text-red-600"
                                       }`}
                                     />
                                   </div>
 
                                   {link.isFeatured && (
-                                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl">
-                                      ⭐{" "}
-                                      {previewLocale === "es"
-                                        ? "Destacado"
-                                        : "Empfohlen"}
+                                    <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg shadow-sm">
+                                      ⭐
                                     </div>
                                   )}
                                 </div>
@@ -1018,41 +1050,41 @@ export default function LinksPage() {
                       )}
 
                       {activeLinks.length === 0 && (
-                        <div className="text-center py-8 text-gray-500 text-sm">
+                        <div className="text-center py-8 text-red-300 text-sm">
                           No hay links activos
                         </div>
                       )}
                     </div>
 
-                    {/* Redes sociales */}
-                    <div className="mt-6 flex justify-center gap-3">
-                      <div className="w-10 h-10 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white">
-                        <FaInstagram size={18} />
+                    {/* Redes sociales (Estilo Real) */}
+                    <div className="mt-8 flex justify-center gap-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50">
+                        <FaInstagram size={16} />
                       </div>
-                      <div className="w-10 h-10 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full flex items-center justify-center text-white">
-                        <FaFacebookF size={16} />
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50">
+                        <FaFacebookF size={14} />
                       </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="mt-6 text-center">
-                      <span className="text-gray-500 text-sm">
-                        ←{" "}
+                    {/* Footer (Estilo Real) */}
+                    <div className="mt-8 flex justify-center pb-4">
+                      <div className="px-4 py-2 rounded-lg bg-white text-red-700 font-medium text-xs shadow-md shadow-red-100/30 border border-red-100 flex items-center gap-2">
+                        <span>←</span>
                         {previewLocale === "es"
-                          ? "Visitar sitio web"
+                          ? "Visitar web"
                           : "Zur Webseite"}
-                      </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Home indicator */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-600 rounded-full" />
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-gray-300 rounded-full z-20" />
                 </div>
               </div>
             </div>
 
             <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-4">
-              Los cambios se reflejan en tiempo real
+              El preview ahora coincide 100% con el diseño real.
             </p>
           </div>
         </div>
