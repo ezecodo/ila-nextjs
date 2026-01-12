@@ -7,7 +7,7 @@ import Footer from "../Footer";
 
 export default function LayoutShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const hideLayout = pathname?.includes("/links");
+  const hideLayout = pathname === "/de/links" || pathname === "/es/links";
 
   if (hideLayout) {
     return <>{children}</>;

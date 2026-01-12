@@ -90,7 +90,6 @@ export default function LinksPage() {
     isFeatured: false,
     startDate: "",
     endDate: "",
-    authorName: "",
   });
 
   // Verificar acceso admin
@@ -255,7 +254,6 @@ export default function LinksPage() {
           isFeatured: false,
           startDate: "",
           endDate: "",
-          authorName: "",
         });
         setShowAddForm(false);
       } else {
@@ -366,15 +364,9 @@ export default function LinksPage() {
                       onArticlesSelected={(articles) => {
                         if (articles.length > 0) {
                           const article = articles[0];
-                          console.log("DEBUG - Artículo completo:", article);
-                          console.log("DEBUG - Autores:", article.authors);
-                          const articleUrl = article.legacyPath;
-
-                          // Obtener URL de imagen
-                          const imageUrl =
-                            article.images?.[0]?.url ||
-                            article.articleImage ||
-                            "";
+                          const articleUrl = article.legacyPath
+                            ? `/${locale}${article.legacyPath}`
+                            : `/${locale}/articles/${article.id}`;
 
                           setNewLink({
                             ...newLink,
@@ -383,10 +375,6 @@ export default function LinksPage() {
                             url: `https://ila-web.de${articleUrl}`,
                             icon: "newspaper",
                             category: "articles",
-                            authorName:
-                              article.authors?.map((a) => a.name).join(", ") ||
-                              "",
-                            imageUrl: imageUrl,
                           });
                           setShowArticleSelector(false);
                         }

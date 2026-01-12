@@ -22,6 +22,8 @@ model Link {
   clicks      Int       @default(0)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+   imageUrl    String?
+  authorName  String?
 }
 model Article {
   id                Int               @id @default(autoincrement())

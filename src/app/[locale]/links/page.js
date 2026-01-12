@@ -161,22 +161,45 @@ export default function LinksPage() {
                       )}
 
                       <div className="relative flex items-center gap-4 px-5 py-4">
-                        <span
-                          className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                            link.isFeatured
-                              ? "bg-white/20 text-white backdrop-blur-sm"
-                              : "bg-red-50 text-red-600"
-                          }`}
-                        >
-                          {getIcon(link.icon)}
-                        </span>
-                        <span className="flex-1 font-medium text-left">
-                          {getTitle(link)}
-                        </span>
+                        {link.imageUrl ? (
+                          <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden shadow-sm">
+                            <img
+                              src={link.imageUrl}
+                              alt={link.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <span
+                            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                              link.isFeatured
+                                ? "bg-white/20 text-white"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {getIcon(link.icon)}
+                          </span>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium block leading-snug">
+                            {getTitle(link)}
+                          </span>
+                          {link.authorName && (
+                            <span
+                              className={`text-xs block mt-1 ${
+                                link.isFeatured
+                                  ? "text-red-400/70"
+                                  : "text-gray-400"
+                              }`}
+                            >
+                              {link.authorName}
+                            </span>
+                          )}
+                        </div>
                         <FaExternalLinkAlt
                           size={14}
                           className={`flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity ${
-                            link.isFeatured ? "text-white/80" : "text-red-400"
+                            link.isFeatured ? "text-red-400" : "text-white"
                           }`}
                         />
                       </div>

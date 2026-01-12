@@ -47,6 +47,8 @@ export async function POST(req) {
       isFeatured,
       startDate,
       endDate,
+      authorName,
+      imageUrl,
     } = body;
 
     if (!title || !url) {
@@ -72,6 +74,8 @@ export async function POST(req) {
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         order: (maxOrder?.order || 0) + 1,
+        authorName: authorName || null,
+        imageUrl: imageUrl || null,
       },
     });
 
