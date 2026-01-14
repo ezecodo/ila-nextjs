@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import {
   FaSearch,
@@ -29,6 +30,9 @@ export default function RegionsManagement() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("dashboard.audit");
+  const tCommon = useTranslations("dashboard.audit.common");
+  const tRegions = useTranslations("dashboard.audit.regions");
   const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -240,10 +244,10 @@ export default function RegionsManagement() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Gestión de Regiones
+            {tRegions("title")}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Administra las regiones y países de Latinoamérica.
+            {tRegions("subtitle")}
           </p>
         </div>
 
@@ -254,7 +258,7 @@ export default function RegionsManagement() {
             </div>
             <input
               type="text"
-              placeholder="Buscar por nombre..."
+              placeholder={tCommon("searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 sm:text-sm transition-shadow shadow-sm"
@@ -268,7 +272,9 @@ export default function RegionsManagement() {
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             }`}
           >
-            {filterNoTranslation ? "✓ Sin traducción" : "⚡ Sin traducción"}
+            {filterNoTranslation
+              ? `✓ ${tRegions("fields.filterNoTranslation")}`
+              : `⚡ ${tRegions("fields.filterNoTranslation")}`}
           </button>
         </div>
       </div>
@@ -276,7 +282,7 @@ export default function RegionsManagement() {
       <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6 flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-            Total de Regiones Registradas
+            {tRegions("total")}
           </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {regions.length}
@@ -293,16 +299,16 @@ export default function RegionsManagement() {
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Región
+                  {tRegions("columns.region")}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
-                  Nombre (ES)
+                  {tRegions("columns.nameES")}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">
-                  Artículos
+                  {tRegions("columns.articles")}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
-                  Acciones
+                  {tCommon("actions")}
                 </th>
               </tr>
             </thead>
@@ -338,7 +344,7 @@ export default function RegionsManagement() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                          Editando...
+                          {tCommon("editing")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
@@ -382,7 +388,7 @@ export default function RegionsManagement() {
                         <div className="text-sm text-gray-600 dark:text-gray-300">
                           {region.nameES || (
                             <span className="italic text-gray-400">
-                              Sin traducción
+                              {tRegions("fields.noTranslation")}
                             </span>
                           )}
                         </div>
@@ -396,7 +402,7 @@ export default function RegionsManagement() {
                           }`}
                         >
                           {region._count?.articles || 0}{" "}
-                          {locale === "es" ? "arts." : "Art."}
+                          {locale === "es" ? tCommon("articles") : "Art."}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
@@ -406,7 +412,7 @@ export default function RegionsManagement() {
                             onClick={() => handleTranslate(region)}
                             disabled={translating === region.id}
                             className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-400 rounded-lg transition-colors disabled:opacity-50"
-                            title="Traducir con DeepL"
+                            title={tCommon("buttons.translate")}
                           >
                             {translating === region.id ? (
                               <span className="animate-spin">⏳</span>
@@ -418,14 +424,14 @@ export default function RegionsManagement() {
                           <button
                             onClick={() => handleEdit(region)}
                             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 rounded-lg transition-colors"
-                            title="Editar"
+                            title={tCommon("buttons.edit")}
                           >
                             <FaEdit size={16} />
                           </button>
                           <button
                             onClick={() => handleDelete(region)}
                             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 rounded-lg transition-colors"
-                            title="Eliminar"
+                            title={tCommon("buttons.delete")}
                           >
                             <FaTrash size={16} />
                           </button>
@@ -457,7 +463,7 @@ export default function RegionsManagement() {
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                Traducción Automática
+                {tRegions("translation.modalTitle")}
               </h3>
               <button
                 onClick={() => setShowTranslationModal(false)}
@@ -471,7 +477,7 @@ export default function RegionsManagement() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                  Original ({locale === "es" ? "Alemán" : "Deutsch"})
+                  {tRegions("translation.originalLabel")}
                 </label>
                 <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
                   {currentTranslation.name}
@@ -480,7 +486,7 @@ export default function RegionsManagement() {
 
               <div>
                 <label className="block text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-1">
-                  Traducción (Español) - Edita si es necesario
+                  {tRegions("translation.translationLabel")}
                 </label>
                 <textarea
                   value={currentTranslation.finalTranslation}
@@ -495,7 +501,7 @@ export default function RegionsManagement() {
                   autoFocus
                 />
                 <p className="text-xs text-gray-400 mt-2">
-                  La IA ha sugerido el texto. Puedes editarlo antes de guardar.
+                  {tRegions("translation.aiSuggestion")}
                 </p>
               </div>
             </div>
@@ -506,14 +512,14 @@ export default function RegionsManagement() {
                 onClick={() => setShowTranslationModal(false)}
                 className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium text-sm transition-colors"
               >
-                Cancelar
+                {tCommon("buttons.cancel")}
               </button>
               <button
                 onClick={handleSaveTranslation}
                 className="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 font-medium text-sm flex items-center gap-2 transition-colors shadow-md"
               >
                 <FaCheck size={14} />
-                Confirmar y Guardar
+                {tRegions("translation.confirmSave")}
               </button>
             </div>
           </div>
