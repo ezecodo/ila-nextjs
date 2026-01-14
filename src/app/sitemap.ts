@@ -2,10 +2,19 @@ import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
 export const revalidate = 3600;
-const baseUrl = "https://ila-web.de";
+const baseUrl = "https://www.ila-web.de";
 const locales = ["de", "es"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date();
+
+  // ========== PÁGINA RAÍZ (SIN LOCALE) ==========
+  const rootPage = {
+    url: `${baseUrl}/`, // https://www.ila-web.de/
+    lastModified: now,
+    changeFrequency: "daily" as const,
+    priority: 1.0,
+  };
   // ========== PÁGINAS ESTÁTICAS ==========
   const staticRoutes = [
     "", // home
@@ -35,9 +44,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = staticRoutes.flatMap((route) =>
     locales.map((locale) => ({
       url: `${baseUrl}/${locale}${route}`,
-      lastModified: new Date(),
+      lastModified: now,
       changeFrequency: "monthly" as const,
-      priority: route === "" ? 1 : 0.5,
+      priority: route === "" ? 0.9 : 0.5, // /de y /es prioridad 0.9 (no 1.0)
     }))
   );
 
@@ -168,6 +177,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   return [
+    rootPage,
     ...staticPages,
     ...articlePages,
     ...editionPages,

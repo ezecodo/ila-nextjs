@@ -11,6 +11,16 @@ const GiftIcon = ({ className = "" }) => (
   </svg>
 );
 
+// Helper para convertir Markdown links a HTML
+const processDescriptionLinks = (html) => {
+  if (!html) return "";
+
+  // Convertir [texto](url) a <a href="url">texto</a>
+  return html.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300 font-medium">$1</a>'
+  );
+};
 const ChevronDown = ({ className = "" }) => (
   <svg
     className={className}
@@ -223,12 +233,14 @@ export default function GiftSelector({
                             </p>
                           )}
 
-                          {/* Descripción con HTML */}
+                          {/* Descripción con HTML y links convertidos */}
                           {gift.description && (
                             <div
                               className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed flex-1 gift-description"
                               dangerouslySetInnerHTML={{
-                                __html: gift.description,
+                                __html: processDescriptionLinks(
+                                  gift.description
+                                ),
                               }}
                             />
                           )}
@@ -335,6 +347,26 @@ export default function GiftSelector({
 
         :global(.gift-description p:last-child) {
           margin-bottom: 0;
+        }
+        /* Estilos para los enlaces dentro de gift-description */
+        :global(.gift-description a) {
+          color: #2563eb; /* blue-600 */
+          text-decoration: underline;
+          font-weight: 500;
+          transition: color 0.2s;
+        }
+
+        :global(.gift-description a:hover) {
+          color: #1d4ed8; /* blue-700 */
+          text-decoration: underline;
+        }
+
+        .dark :global(.gift-description a) {
+          color: #60a5fa; /* blue-400 */
+        }
+
+        .dark :global(.gift-description a:hover) {
+          color: #93c5fd; /* blue-300 */
         }
       `}</style>
     </div>

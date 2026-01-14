@@ -328,6 +328,90 @@
       "title": "Panel K2",
       "description": "Bienvenido al panel K2. Usa el menú lateral para crear, traducir o editar artículos."
     },
+    "audit": {
+      "common": {
+        "searchPlaceholder": "Buscar por nombre...",
+        "noResults": "No se encontraron resultados con ese nombre.",
+        "editing": "Editando...",
+        "id": "ID:",
+        "articles": "arts.",
+        "buttons": {
+          "save": "Guardar",
+          "cancel": "Cancelar",
+          "edit": "Editar",
+          "delete": "Eliminar",
+          "translate": "Traducir",
+          "confirm": "Confirmar"
+        },
+        "status": {
+          "active": "Activo",
+          "inactive": "Inactivo"
+        },
+        "actions": "Acciones"
+      },
+      "authors": {
+        "title": "Gestión de Autores",
+        "subtitle": "Administra colaboradores y redactores del contenido.",
+        "total": "Total de Autores Registrados",
+        "columns": {
+          "author": "Autor",
+          "contact": "Contacto",
+          "location": "Ubicación",
+          "status": "Estado"
+        },
+        "fields": {
+          "emailNotSpecified": "No especificado",
+          "locationUnknown": "Desconocida"
+        },
+        "alerts": {
+          "deleteConfirm": "¿Eliminar a \"{name}\"? Esta acción no se puede deshacer.",
+          "deleteError": "Error al eliminar",
+          "saveError": "Error al guardar"
+        }
+      },
+      "regions": {
+        "title": "Gestión de Regiones",
+        "subtitle": "Administra las regiones y países de Latinoamérica.",
+        "total": "Total de Regiones Registradas",
+        "columns": {
+          "region": "Región",
+          "nameES": "Nombre (ES)",
+          "articles": "Artículos"
+        },
+        "fields": {
+          "noTranslation": "Sin traducción",
+          "filterNoTranslation": "Sin traducción"
+        },
+        "translation": {
+          "modalTitle": "Traducción Automática",
+          "originalLabel": "Original (Alemán)",
+          "translationLabel": "Traducción (Español) - Edita si es necesario",
+          "aiSuggestion": "La IA ha sugerido el texto. Puedes editarlo antes de guardar.",
+          "confirmSave": "Confirmar y Guardar"
+        }
+      },
+      "topics": {
+        "title": "Gestión de Topics",
+        "subtitle": "Administra los temas y categorías temáticas.",
+        "total": "Total de Topics Registrados",
+        "columns": {
+          "topic": "Topic",
+          "nameES": "Nombre (ES)",
+          "articles": "Artículos"
+        },
+        "fields": {
+          "noTranslation": "Sin traducción",
+          "filterNoTranslation": "Sin traducción"
+        },
+        "translation": {
+          "modalTitle": "Traducción Automática",
+          "originalLabel": "Original (Alemán)",
+          "translationLabel": "Traducción (Español) - Edita si es necesario",
+          "aiSuggestion": "La IA ha sugerido el texto. Puedes editarlo antes de guardar.",
+          "confirmSave": "Confirmar y Guardar"
+        }
+      }
+    },
     "Carousels": {
       "title": "Crear nuevo carrusel",
       "editTitle": "Editar carrusel",

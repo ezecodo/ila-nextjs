@@ -38,6 +38,8 @@ export default function TopicsManagement() {
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState<number | null>(null);
   const [filterNoTranslation, setFilterNoTranslation] = useState(false);
+  const t = useTranslations("dashboard.audit.topics");
+  const tCommon = useTranslations("dashboard.audit.common");
 
   // --- ESTADO DEL MODAL DE TRADUCCIÓN ---
   const [showTranslationModal, setShowTranslationModal] = useState(false);

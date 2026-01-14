@@ -3,8 +3,12 @@ import { getArticleByLegacyPath } from "@/lib/api/articles";
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+// 👇 CAMBIA ESTO - Añade "await" delante de params
 export async function generateMetadata({ params }) {
-  const slug = params.legacyPath.join("/");
+  // 👇 DESESTRUCTURA params DESPUÉS de await
+  const { locale, legacyPath } = await params;
+
+  const slug = legacyPath.join("/");
   const fullPath = `/ausgaben/${slug}`;
   const canonicalUrl = `${SITE_URL}${fullPath}`;
 
@@ -18,16 +22,21 @@ export async function generateMetadata({ params }) {
     };
   }
 
-  const isES = params.locale === "es";
+  // 👇 Ahora usa "locale" en lugar de "params.locale"
+  const isES = locale === "es";
 
   const title = `${
     isES && article.isTranslatedES ? article.titleES : article.title
   } – ila`;
 
+  const fallbackDescription = isES
+    ? "Artículo publicado en ILA – Revista sobre América Latina."
+    : "Artikel erschienen in ILA – Das Lateinamerika-Magazin.";
+
   const description =
-    isES && article.isTranslatedES
-      ? article.subtitleES || article.previewTextES || ""
-      : article.subtitle || article.previewText || "";
+    (isES && article.isTranslatedES
+      ? article.subtitleES || article.previewTextES
+      : article.subtitle || article.previewText) || fallbackDescription;
 
   const imageUrl = article.images?.[0]?.url;
   const ogImages = imageUrl
@@ -67,37 +76,6 @@ export async function generateMetadata({ params }) {
     ...article.topics.map((t) => t.name),
   ].join(", ");
 
-  // 👇 JSON-LD structured data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "NewsArticle", // o "Article"
-    headline: title,
-    description,
-    image: ogImages.map((i) => i.url),
-    datePublished: article.publicationDate,
-    dateModified: article.updatedAt,
-    author: authorsMeta.map((a) => ({
-      "@type": "Person",
-      name: a.name,
-      url: a.url,
-    })),
-    publisher: {
-      "@type": "Organization",
-      name: "ILA – Das Lateinamerika-Magazin",
-      logo: {
-        "@type": "ImageObject",
-        url: `${SITE_URL}/ila-logo.png`, // 👈 pon un logo real de ILA aquí
-        width: 196,
-        height: 196,
-      },
-    },
-    inLanguage: params.locale,
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": canonicalUrl,
-    },
-  };
-
   return {
     title,
     description,
@@ -131,13 +109,8 @@ export async function generateMetadata({ params }) {
       creator: authorsMeta[0]?.name,
     },
 
-    // 👇 Aquí inyectamos JSON-LD
-    other: [
-      { name: "language", content: params.locale },
-      {
-        name: "structured-data",
-        content: JSON.stringify(jsonLd),
-      },
-    ],
+    other: {
+      language: locale,
+    },
   };
 }

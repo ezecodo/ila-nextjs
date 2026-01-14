@@ -24,6 +24,9 @@ model Link {
   updatedAt   DateTime  @updatedAt
    imageUrl    String?
   authorName  String?
+   linkType           String   @default("general") // "general" | "article" | "edition"
+  editionNumber      Int?
+  editionCoverImage  String?
 }
 model Article {
   id                Int               @id @default(autoincrement())

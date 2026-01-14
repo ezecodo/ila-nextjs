@@ -87,6 +87,8 @@ export default function LegacyArticlePage() {
   }, [fullPath]);
 
   if (error) return <p className="text-red-500">{t("notFound")}</p>;
+  // URL canónica para JSON-LD
+  const canonicalUrl = `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`;
   if (!article) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -181,38 +183,49 @@ export default function LegacyArticlePage() {
   return (
     <>
       {/* JSON-LD structured data */}
+      {/* JSON-LD estructurado para Google */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "NewsArticle",
+            "@type": "Article",
+            "@id": `${canonicalUrl}#article`,
+
             headline:
               isES && article.isTranslatedES ? article.titleES : article.title,
-            description:
-              isES && article.isTranslatedES
-                ? article.subtitleES || article.previewTextES || ""
-                : article.subtitle || article.previewText || "",
-            url: `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`, // 👈 URL principal
-            // 👇 Aseguramos string + array de imágenes
+            description: (() => {
+              const fallback = isES
+                ? "Artículo publicado en ILA – Revista sobre América Latina."
+                : "Artikel erschienen in ILA – Das Lateinamerika-Magazin.";
+              return (
+                (isES && article.isTranslatedES
+                  ? article.subtitleES || article.previewTextES
+                  : article.subtitle || article.previewText) || fallback
+              );
+            })(),
+
+            url: canonicalUrl,
+            mainEntityOfPage: canonicalUrl,
+
             image: article.images?.length
-              ? [
-                  article.images[0].url, // string directo (primera imagen)
-                  ...article.images.map((i) => i.url), // array completo
-                ]
+              ? [article.images[0].url, ...article.images.map((i) => i.url)]
               : [`${process.env.NEXT_PUBLIC_APP_URL}/ila-logo.png`],
+
             datePublished: article.publicationDate,
             dateModified: article.updatedAt,
+
             author: article.authors.map((a) => ({
               "@type": "Person",
               name: a.name,
-              // 👇 si no hay id → ponemos aunque sea la home del sitio
               url: a.id
                 ? `${process.env.NEXT_PUBLIC_APP_URL}/authors/${a.id}`
                 : process.env.NEXT_PUBLIC_APP_URL,
             })),
+
             publisher: {
               "@type": "Organization",
+              "@id": `${process.env.NEXT_PUBLIC_APP_URL}/#organization`,
               name: "ILA – Das Lateinamerika-Magazin",
               logo: {
                 "@type": "ImageObject",
@@ -221,12 +234,8 @@ export default function LegacyArticlePage() {
                 height: 196,
               },
             },
+
             inLanguage: locale,
-            mainEntityOfPage: {
-              "@type": "WebPage",
-              "@id": `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`,
-            },
-            // 👇 BONUS: puedes incluir articleBody para más puntos SEO
             articleBody:
               isES && article.isTranslatedES
                 ? article.contentES

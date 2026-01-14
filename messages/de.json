@@ -359,6 +359,90 @@
       "cancel": "Abbrechen",
       "author": "Autor/in"
     },
+    "audit": {
+      "common": {
+        "searchPlaceholder": "Nach Namen suchen...",
+        "noResults": "Keine Ergebnisse mit diesem Namen gefunden.",
+        "editing": "Wird bearbeitet...",
+        "id": "ID:",
+        "articles": "Art.",
+        "buttons": {
+          "save": "Speichern",
+          "cancel": "Abbrechen",
+          "edit": "Bearbeiten",
+          "delete": "Löschen",
+          "translate": "Übersetzen",
+          "confirm": "Bestätigen"
+        },
+        "status": {
+          "active": "Aktiv",
+          "inactive": "Inaktiv"
+        },
+        "actions": "Aktionen"
+      },
+      "authors": {
+        "title": "Autorenverwaltung",
+        "subtitle": "Verwalten Sie Mitarbeiter und Redakteure der Inhalte.",
+        "total": "Registrierte Autoren insgesamt",
+        "columns": {
+          "author": "Autor",
+          "contact": "Kontakt",
+          "location": "Standort",
+          "status": "Status"
+        },
+        "fields": {
+          "emailNotSpecified": "Nicht angegeben",
+          "locationUnknown": "Unbekannt"
+        },
+        "alerts": {
+          "deleteConfirm": "\"{name}\" löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+          "deleteError": "Fehler beim Löschen",
+          "saveError": "Fehler beim Speichern"
+        }
+      },
+      "regions": {
+        "title": "Regionenverwaltung",
+        "subtitle": "Verwalten Sie Regionen und Länder Lateinamerikas.",
+        "total": "Registrierte Regionen insgesamt",
+        "columns": {
+          "region": "Region",
+          "nameES": "Name (ES)",
+          "articles": "Artikel"
+        },
+        "fields": {
+          "noTranslation": "Keine Übersetzung",
+          "filterNoTranslation": "Keine Übersetzung"
+        },
+        "translation": {
+          "modalTitle": "Automatische Übersetzung",
+          "originalLabel": "Original (Deutsch)",
+          "translationLabel": "Übersetzung (Spanisch) - Bei Bedarf bearbeiten",
+          "aiSuggestion": "Die KI hat den Text vorgeschlagen. Sie können ihn vor dem Speichern bearbeiten.",
+          "confirmSave": "Bestätigen und Speichern"
+        }
+      },
+      "topics": {
+        "title": "Themenverwaltung",
+        "subtitle": "Verwalten Sie Themen und thematische Kategorien.",
+        "total": "Registrierte Themen insgesamt",
+        "columns": {
+          "topic": "Thema",
+          "nameES": "Name (ES)",
+          "articles": "Artikel"
+        },
+        "fields": {
+          "noTranslation": "Keine Übersetzung",
+          "filterNoTranslation": "Keine Übersetzung"
+        },
+        "translation": {
+          "modalTitle": "Automatische Übersetzung",
+          "originalLabel": "Original (Deutsch)",
+          "translationLabel": "Übersetzung (Spanisch) - Bei Bedarf bearbeiten",
+          "aiSuggestion": "Die KI hat den Text vorgeschlagen. Sie können ihn vor dem Speichern bearbeiten.",
+          "confirmSave": "Bestätigen und Speichern"
+        }
+      }
+    },
     "Carousels": {
       "title": "Neues Karussell erstellen",
       "editTitle": "Karussell bearbeiten",

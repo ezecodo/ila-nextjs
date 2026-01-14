@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl"; // <--- IMPORTANTE: AÑADIDO ESTE
+import { useLocale, useTranslations } from "next-intl";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import {
   FaSearch,
@@ -31,7 +31,10 @@ interface Author {
 export default function AuthorsManagement() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const locale = useLocale(); // <--- IMPORTANTE: AÑADIDO ESTO
+  const locale = useLocale();
+  const t = useTranslations("dashboard.audit.authors");
+  const tCommon = useTranslations("dashboard.audit.common");
+
   const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -103,17 +106,13 @@ export default function AuthorsManagement() {
       }
     } catch (err) {
       console.error("Error guardando:", err);
-      alert("Error al guardar");
+      alert(t("alerts.saveError"));
     }
     setSaving(false);
   };
 
   const handleDelete = async (author: Author) => {
-    if (
-      !confirm(
-        `¿Eliminar a "${author.name}"? Esta acción no se puede deshacer.`
-      )
-    ) {
+    if (!confirm(t("alerts.deleteConfirm", { name: author.name }))) {
       return;
     }
 
@@ -130,7 +129,7 @@ export default function AuthorsManagement() {
       }
     } catch (err) {
       console.error("Error eliminando:", err);
-      alert("Error al eliminar");
+      alert(t("alerts.deleteError"));
     }
   };
 
@@ -156,10 +155,10 @@ export default function AuthorsManagement() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Gestión de Autores
+            {t("title")}
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Administra colaboradores y redactores del contenido.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -169,7 +168,7 @@ export default function AuthorsManagement() {
           </div>
           <input
             type="text"
-            placeholder="Buscar por nombre..."
+            placeholder={tCommon("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 sm:text-sm transition-shadow shadow-sm"
@@ -180,7 +179,7 @@ export default function AuthorsManagement() {
       <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6 flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-blue-700 dark:text-blue-300">
-            Total de Autores Registrados
+            {t("total")}
           </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white">
             {authors.length}
@@ -197,19 +196,19 @@ export default function AuthorsManagement() {
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Autor
+                  {t("columns.author")}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">
-                  Contacto
+                  {t("columns.contact")}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell">
-                  Ubicación
+                  {t("columns.location")}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">
-                  Estado
+                  {t("columns.status")}
                 </th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">
-                  Acciones
+                  {tCommon("actions")}
                 </th>
               </tr>
             </thead>
@@ -267,7 +266,7 @@ export default function AuthorsManagement() {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                          Editando...
+                          {tCommon("editing")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
@@ -276,14 +275,14 @@ export default function AuthorsManagement() {
                             onClick={() => handleSave(author.id)}
                             disabled={saving}
                             className="p-2 text-white bg-green-600 rounded-full hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Guardar"
+                            title={tCommon("buttons.save")}
                           >
                             <FaSave size={14} />
                           </button>
                           <button
                             onClick={handleCancel}
                             className="p-2 text-white bg-gray-500 rounded-full hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors"
-                            title="Cancelar"
+                            title={tCommon("buttons.cancel")}
                           >
                             <FaTimes size={14} />
                           </button>
@@ -302,7 +301,7 @@ export default function AuthorsManagement() {
                               {author.name}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
-                              ID: {author.id}
+                              {tCommon("id")} {author.id}
                             </div>
                           </div>
                         </div>
@@ -312,7 +311,7 @@ export default function AuthorsManagement() {
                           <FaEnvelope className="text-gray-400 text-xs" />
                           {author.email || (
                             <span className="italic text-gray-400">
-                              No especificado
+                              {t("fields.emailNotSpecified")}
                             </span>
                           )}
                         </div>
@@ -322,7 +321,7 @@ export default function AuthorsManagement() {
                           <FaMapMarkerAlt className="text-gray-400 text-xs" />
                           {author.location || (
                             <span className="italic text-gray-400">
-                              Desconocida
+                              {t("fields.locationUnknown")}
                             </span>
                           )}
                         </div>
@@ -335,8 +334,7 @@ export default function AuthorsManagement() {
                               : "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
                           }`}
                         >
-                          {author._count?.articles || 0}{" "}
-                          {locale === "es" ? "arts." : "Art."}
+                          {author._count?.articles || 0} {tCommon("articles")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right whitespace-nowrap">
@@ -344,14 +342,14 @@ export default function AuthorsManagement() {
                           <button
                             onClick={() => handleEdit(author)}
                             className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 rounded-lg transition-colors"
-                            title="Editar"
+                            title={tCommon("buttons.edit")}
                           >
                             <FaEdit size={16} />
                           </button>
                           <button
                             onClick={() => handleDelete(author)}
                             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 rounded-lg transition-colors"
-                            title="Eliminar"
+                            title={tCommon("buttons.delete")}
                           >
                             <FaTrash size={16} />
                           </button>
@@ -367,7 +365,7 @@ export default function AuthorsManagement() {
                     colSpan={5}
                     className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                   >
-                    No se encontraron autores con ese nombre.
+                    {tCommon("noResults")}
                   </td>
                 </tr>
               )}
