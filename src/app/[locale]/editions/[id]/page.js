@@ -6,7 +6,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import CartButton from "../../components/CartButton/CartButton";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 
 export default function EditionDetails() {
@@ -22,10 +22,10 @@ export default function EditionDetails() {
 
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
-  const locale = useLocale();
+  const params = useParams(); // Obtenemos todos los parámetros de la URL
+  const locale = params.locale; // Extraemos el locale directamente de la ruta ([locale])
+  const isES = locale === "es"; // Solo será true si la URL es /es/...
   const articleRefs = useRef({});
-  const isES = locale === "es";
-  // 🧠 Mostrar versión traducida si el idioma es español
 
   const titleToShow =
     isES && edition?.isTranslatedES ? edition.titleES : edition?.title;
