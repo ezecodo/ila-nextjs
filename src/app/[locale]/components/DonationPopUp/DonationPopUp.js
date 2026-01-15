@@ -226,7 +226,7 @@ export default function DonationPopup({ articleId }) {
             <div className="flex flex-row items-center justify-center gap-2 sm:gap-8">
               <div className="text-center">
                 <div className="text-xl sm:text-4xl font-bold text-red-600 dark:text-red-400">
-                  49
+                  50
                 </div>
                 <div className="text-xs sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {t("years")}
