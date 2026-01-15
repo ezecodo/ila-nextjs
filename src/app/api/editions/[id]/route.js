@@ -26,8 +26,8 @@ export async function GET(req, context) {
     const userRole = session?.user?.role || null;
 
     // Obtener el idioma del header
-    const acceptLanguage = req.headers.get("accept-language") || "de";
-    const locale = acceptLanguage.includes("es") ? "es" : "de";
+    /*   const acceptLanguage = req.headers.get("accept-language") || "de";
+    const locale = acceptLanguage.includes("es") ? "es" : "de"; */
 
     // 🆕 Parámetro opcional para incluir artículos
     const { searchParams } = new URL(req.url);
@@ -149,9 +149,9 @@ export async function GET(req, context) {
       userRole === "admin" || edition.translatorId === userId;
 
     // Si el locale es español y hay traducción, mezclar los campos
-    let responseData = { ...edition };
+    const responseData = { ...edition };
 
-    if (locale === "es" && edition.isTranslatedES) {
+    /*  if (locale === "es" && edition.isTranslatedES) {
       responseData = {
         ...edition,
         title: edition.titleES || edition.title,
@@ -159,7 +159,7 @@ export async function GET(req, context) {
         summary: edition.summaryES || edition.summary,
         tableOfContents: edition.tableOfContentsES || edition.tableOfContents,
       };
-    }
+    } */
 
     // 🚫 Si el usuario NO tiene acceso completo, eliminar campos privados
     if (!hasFullAccess) {
