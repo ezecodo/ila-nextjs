@@ -11,6 +11,7 @@ import styles from "./Header.module.css";
 
 import { useLocale } from "next-intl";
 import DesktopNavMenu from "./DesktopNavMenu/DesktopNavMenu";
+import LatinAmericaBackground from "../components/LatinAmericaBackground/LatinAmericaBackground";
 import {
   FaBars,
   FaUser,
@@ -272,9 +273,12 @@ export default function Header() {
       {/* --- CUERPO DEL HEADER (Unificado para Compact y Expandido) --- */}
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
-        className={`hidden md:block bg-[#cc0000] text-white transition-all duration-300 ${isCompact ? "py-2 shadow-lg" : "py-8"}`}
+        className={`hidden md:block bg-[#cc0000] text-white transition-all duration-300 relative ${isCompact ? "py-2 shadow-lg" : "py-8"}`}
       >
-        <div className="max-w-[1400px] mx-auto px-6 relative">
+        {/* 🌎 Fondo tipográfico con nombres de países */}
+        <LatinAmericaBackground compact={isCompact} />
+
+        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
           <div className="flex items-center justify-center gap-8">
             {/* El logo se integra solo porque comparte el mismo color de fondo */}
             <Link
