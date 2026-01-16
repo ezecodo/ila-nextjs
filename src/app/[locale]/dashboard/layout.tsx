@@ -109,7 +109,7 @@ export default function DashboardLayout({
     <div className="h-screen flex flex-col bg-gray-100">
       {/* Stats solo admin */}
       {role === "admin" && (
-        <div className="bg-white border-b shadow py-2">
+        <div className="bg-white border-b shadow py-2 relative z-40">
           <DashboardStats />
         </div>
       )}

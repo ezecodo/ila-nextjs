@@ -25,19 +25,9 @@ const countries = [
   "Brasil",
   "Haití",
   "Belice",
-  "Suriname",
-  "Guyana",
-  "Trinidad y Tobago",
 ];
 
-const rowConfigs = [
-  { size: "text-lg", offset: "0%" },
-  { size: "text-2xl", offset: "-10%" },
-  { size: "text-sm", offset: "5%" },
-  { size: "text-xl", offset: "-5%" },
-  { size: "text-base", offset: "15%" },
-  { size: "text-lg", offset: "-15%" },
-];
+const sizes = ["text-sm", "text-xl", "text-3xl", "text-lg"];
 
 function shuffle(array) {
   const result = [...array];
@@ -48,22 +38,27 @@ function shuffle(array) {
   return result;
 }
 
-export default function LatinAmericaBackground({ compact = false }) {
+export default function LatinAmericaBackground() {
   const [rows, setRows] = useState([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Generar el shuffle solo en el cliente
-    const shuffledRows = rowConfigs.map((config) => ({
-      countries: shuffle(countries),
-      size: config.size,
-      offset: config.offset,
-    }));
-    setRows(shuffledRows);
+    const newRows = [];
+
+    for (let i = 0; i < 8; i++) {
+      const shuffledCountries = shuffle([...countries, ...countries]);
+      const offset = i % 2 === 0 ? 0 : -10;
+
+      newRows.push({
+        countries: shuffledCountries,
+        offset,
+      });
+    }
+
+    setRows(newRows);
     setMounted(true);
   }, []);
 
-  // No renderizar nada hasta que el cliente monte (evita hydration mismatch)
   if (!mounted) {
     return (
       <div className="absolute inset-0 overflow-hidden pointer-events-none" />
@@ -72,24 +67,30 @@ export default function LatinAmericaBackground({ compact = false }) {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div
-        className={`absolute inset-0 flex flex-col justify-center gap-3 ${compact ? "opacity-[0.06]" : "opacity-[0.10]"}`}
-      >
+      <div className="absolute inset-0 flex flex-col justify-between py-4 opacity-[0.10]">
         {rows.map((row, rowIndex) => (
           <div
             key={rowIndex}
-            className={`whitespace-nowrap ${row.size} font-bold uppercase tracking-widest text-white`}
-            style={{
-              marginLeft: row.offset,
-            }}
+            className="whitespace-nowrap text-white font-bold uppercase tracking-wide"
+            style={{ marginLeft: `${row.offset}%` }}
           >
-            {[...row.countries, ...row.countries, ...row.countries].map(
-              (country, i) => (
-                <span key={`${rowIndex}-${i}`} className="mx-4 inline-block">
+            {row.countries.map((country, i) => {
+              // Elegir tamaño que sea diferente al anterior
+              let sizeIndex = i % sizes.length;
+              const prevIndex = i > 0 ? (i - 1) % sizes.length : -1;
+              if (sizeIndex === prevIndex) {
+                sizeIndex = (sizeIndex + 1) % sizes.length;
+              }
+
+              return (
+                <span
+                  key={`${rowIndex}-${i}`}
+                  className={`mx-4 inline-block ${sizes[sizeIndex]}`}
+                >
                   {country}
                 </span>
-              )
-            )}
+              );
+            })}
           </div>
         ))}
       </div>

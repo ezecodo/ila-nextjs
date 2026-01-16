@@ -218,11 +218,46 @@ export default function Header() {
       <div className="w-full flex md:hidden items-center px-4 py-3 bg-white dark:bg-gray-900 border-b-2 border-[#cc0000]">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/ila-logo.png" alt="ila Logo" width={50} height={50} />
-          <span className="futura text-lg font-bold">{t("tagline")}</span>
+          <span className="futura text-lg font-bold">
+            {locale === "es" ? (
+              <>
+                La revista de Am
+                <span style={{ position: "relative", display: "inline-block" }}>
+                  e
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      left: "0.24em",
+                      top: "0.32em",
+                      width: "0.17em",
+                      height: "0.08em",
+                      background: "#222",
+                      borderRadius: "0.03em",
+                      transform: "rotate(-35deg)",
+                      zIndex: 2,
+                    }}
+                  />
+                </span>
+                rica Latina
+              </>
+            ) : (
+              t("tagline")
+            )}
+          </span>
         </Link>
-        <button className="ml-auto p-2" onClick={toggleMenu}>
-          <FaBars size={24} />
-        </button>
+        <div className="ml-auto flex flex-col items-center gap-1">
+          <div className="text-xs font-bold">
+            {locale === "es" ? (
+              <button onClick={() => handleLocaleSwitch("de")}>DE</button>
+            ) : (
+              <button onClick={() => handleLocaleSwitch("es")}>ES</button>
+            )}
+          </div>
+          <button className="p-2" onClick={toggleMenu}>
+            <FaBars size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -273,13 +308,17 @@ export default function Header() {
       {/* --- CUERPO DEL HEADER (Unificado para Compact y Expandido) --- */}
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
-        className={`hidden md:block bg-[#cc0000] text-white transition-all duration-300 relative ${isCompact ? "py-2 shadow-lg" : "py-8"}`}
+        className={`hidden md:block w-full bg-[#cc0000] text-white transition-all duration-300 relative ${isCompact ? "py-2 shadow-lg" : "py-8"}`}
       >
-        {/* 🌎 Fondo tipográfico con nombres de países */}
-        <LatinAmericaBackground compact={isCompact} />
+        {/* 🌎 Fondo tipográfico con nombres de países (solo en modo expandido) */}
+        {!isCompact && <LatinAmericaBackground />}
 
-        <div className="max-w-[1400px] mx-auto px-6 relative z-10">
-          <div className="flex items-center justify-center gap-8">
+        <div
+          className={`mx-auto px-6 relative z-10 ${isCompact ? "w-full" : "max-w-[1400px]"}`}
+        >
+          <div
+            className={`flex items-center gap-8 ${isCompact ? "justify-center" : "justify-center"}`}
+          >
             {/* El logo se integra solo porque comparte el mismo color de fondo */}
             <Link
               href="/"
@@ -297,17 +336,44 @@ export default function Header() {
             {!isCompact && (
               <div className="hidden lg:block">
                 {/* Título en blanco para máximo contraste */}
-                <h1 className="futura text-[2.2rem] xl:text-[3rem] font-bold text-white leading-tight tracking-tighter">
-                  {locale === "es"
-                    ? "La revista de América Latina"
-                    : t("tagline")}
+                <h1 className="futura text-[2.2rem] xl:text-[3rem] font-bold text-white leading-tight tracking-normal">
+                  {locale === "es" ? (
+                    <>
+                      La revista de Am
+                      <span
+                        style={{
+                          position: "relative",
+                          display: "inline-block",
+                        }}
+                      >
+                        e
+                        <span
+                          aria-hidden="true"
+                          style={{
+                            position: "absolute",
+                            left: "0.24em",
+                            top: "0.32em",
+                            width: "0.17em",
+                            height: "0.08em",
+                            background: "#fff",
+                            borderRadius: "0.03em",
+                            transform: "rotate(-35deg)",
+                            zIndex: 2,
+                          }}
+                        />
+                      </span>
+                      rica Latina
+                    </>
+                  ) : (
+                    t("tagline")
+                  )}
                 </h1>
               </div>
             )}
 
             {/* En modo compacto, el menú a la derecha */}
             {isCompact && (
-              <div className="ml-auto flex items-center">
+              <div className="flex items-center">
                 <DesktopNavMenu invert={true} />
               </div>
             )}

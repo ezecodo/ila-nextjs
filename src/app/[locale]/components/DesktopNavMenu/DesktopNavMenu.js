@@ -9,6 +9,7 @@ import { navSections } from "./navMenuConfig";
 
 export default function DesktopNavMenu({
   isMobile = false,
+  invert = false,
   onLinkClick,
   onSearch,
 }) {
@@ -32,6 +33,15 @@ export default function DesktopNavMenu({
     onSearch?.(); // 3. Notifica al padre si es necesario
   };
   const isSectionOpen = (sectionKey) => openSections.has(sectionKey);
+
+  // Estilos condicionales para modo invertido (texto blanco sobre fondo rojo)
+  const textColor = invert
+    ? "text-white hover:text-white/80"
+    : "text-gray-800 dark:text-gray-100 hover:text-[#cc0000] dark:hover:text-red-400";
+
+  const borderColor = invert
+    ? "border-white/30"
+    : "border-gray-200 dark:border-gray-700";
 
   // ─── MÓVIL: acordeón + auth + locale ─────────────────────────────────
   if (isMobile) {
@@ -141,14 +151,15 @@ export default function DesktopNavMenu({
   }
 
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
-  // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   return (
     <nav className="relative inline-block">
       <div className="flex items-center gap-8 relative">
         {navSections.map((sec) =>
           sec.items ? (
             <div key={sec.labelKey} className="relative group">
-              <span className="text-[13px] font-bold uppercase tracking-wide text-gray-800 dark:text-gray-100 hover:text-[#cc0000] dark:hover:text-red-400 transition-colors cursor-pointer py-3 block">
+              <span
+                className={`text-[13px] font-bold uppercase tracking-wide ${textColor} transition-colors cursor-pointer py-3 block`}
+              >
                 {t(sec.labelKey)}
               </span>
 
@@ -205,7 +216,7 @@ export default function DesktopNavMenu({
             <Link
               key={sec.labelKey}
               href={sec.href}
-              className="text-[13px] font-bold uppercase tracking-wide text-gray-800 dark:text-gray-100 hover:text-[#cc0000] transition-colors py-3 block"
+              className={`text-[13px] font-bold uppercase tracking-wide ${textColor} transition-colors py-3 block`}
             >
               {t(sec.labelKey)}
             </Link>
@@ -213,8 +224,8 @@ export default function DesktopNavMenu({
         )}
 
         {/* Buscador integrado sin bordes pesados */}
-        <div className="pl-6 border-l border-gray-200 dark:border-gray-700 h-8 flex items-center">
-          <SearchBar onSearch={handleSearch} />
+        <div className={`pl-6 border-l ${borderColor} h-8 flex items-center`}>
+          <SearchBar onSearch={handleSearch} invert={invert} />
         </div>
       </div>
     </nav>

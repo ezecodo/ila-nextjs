@@ -251,8 +251,8 @@
 }
 /* 🔥 Estilos cuando el header está en modo compacto */
 .compact {
-  padding: 0.25rem 1rem;
-  background-color: var(--background);
+  padding: 0;
+  background-color: #cc0000;
   border-bottom: 1px solid #ddd;
   position: sticky;
   top: 0;
