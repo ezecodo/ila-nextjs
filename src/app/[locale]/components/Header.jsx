@@ -6,12 +6,20 @@ import { useTranslations } from "next-intl";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FaBars, FaUser, FaSignOutAlt, FaTachometerAlt } from "react-icons/fa";
 
 import styles from "./Header.module.css";
 
 import { useLocale } from "next-intl";
 import DesktopNavMenu from "./DesktopNavMenu/DesktopNavMenu";
+import {
+  FaBars,
+  FaUser,
+  FaSignOutAlt,
+  FaSignInAlt,
+  FaTachometerAlt,
+  FaSun,
+  FaMoon,
+} from "react-icons/fa";
 
 export default function Header() {
   const pathname = usePathname();
@@ -110,6 +118,7 @@ export default function Header() {
   } else if (session?.user?.role === "k2") {
     dashboardRoute = "/dashboard/k2";
   }
+
   const handleLocaleSwitch = (newLocale) => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -124,55 +133,116 @@ export default function Header() {
   };
 
   return (
-    <header className={`${styles.header} ${isCompact ? styles.compact : ""}`}>
-      {/* Mobile top */}
-      <div className="w-full flex md:hidden items-center px-4 py-2">
-        <Link href="/" className="flex items-center gap-3 shrink-0">
-          <Image src="/ila-logo.png" alt="ila Logo" width={45} height={45} />
-          <span className="futura text-base md:text-lg font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[55vw] text-center">
-            {t("tagline")}
-          </span>
-        </Link>
+    // 🎨 CAMBIO VISUAL: Fondo sólido y borde inferior para dar "peso" y separar del contenido
+    <header
+      className={`${styles.header} z-50 shadow-md ${isCompact ? styles.compact : ""}`}
+    >
+      {/* --- BARRA NEGRA SUPERIOR (Ancho total de pantalla) --- */}
+      {/* --- BARRA NEGRA SUPERIOR (Minimalismo Total) --- */}
+      <div className="hidden md:flex w-full bg-black text-white py-1 px-4 justify-center border-b border-black/20">
+        <div className="w-full max-w-[1400px] flex justify-end items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-4">
+            {/* Saludo de usuario (Solo si hay sesión) */}
+            {session && (
+              <span
+                className="hidden sm:inline text-[10px] opacity-70 lowercase font-normal border-r border-white/20 pr-4"
+                title={t("user_profile")}
+              >
+                {t("greeting", { name: session.user?.name || "Usuario" })}
+              </span>
+            )}
 
-        <div className="ml-auto flex flex-col items-center gap-1 w-10">
-          <div className="text-xs font-semibold uppercase tracking-wide text-center">
-            {locale === "de" && (
-              <button onClick={() => handleLocaleSwitch("es")}>ES</button>
-            )}
-            {locale === "es" && (
-              <button onClick={() => handleLocaleSwitch("de")}>DE</button>
-            )}
+            {/* Switcher de Idioma Dinámico */}
+            <div className="text-[11px] font-bold hover:text-red-500 transition-colors cursor-pointer">
+              {locale === "es" ? (
+                <button
+                  onClick={() => handleLocaleSwitch("de")}
+                  title="Auf Deutsch umstellen"
+                >
+                  DE
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleLocaleSwitch("es")}
+                  title="Cambiar a Español"
+                >
+                  ES
+                </button>
+              )}
+            </div>
+
+            {/* Toggle Dark Mode con Icono */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-1.5 rounded-full hover:bg-white/10 transition-all"
+              title={darkMode ? t("switch_light") : t("switch_dark")}
+            >
+              {darkMode ? (
+                <FaSun className="text-yellow-400" size={16} />
+              ) : (
+                <FaMoon className="text-gray-300" size={14} />
+              )}
+            </button>
+
+            {/* Acciones de Sesión (Dashboard y Login/Logout) */}
+            <div className="flex items-center gap-1">
+              {session && (
+                <Link href={dashboardRoute}>
+                  <button
+                    className="p-1.5 rounded-full hover:bg-white/10 transition-all text-white"
+                    title={t("dashboard_access")}
+                  >
+                    <FaTachometerAlt size={14} />
+                  </button>
+                </Link>
+              )}
+
+              <button
+                onClick={() => (session ? handleSignOut() : signIn())}
+                className="p-1.5 rounded-full hover:bg-white/10 transition-all text-white"
+                title={session ? t("logout") : t("login")}
+              >
+                {session ? (
+                  <FaSignOutAlt size={14} />
+                ) : (
+                  <FaSignInAlt size={14} />
+                )}
+              </button>
+            </div>
           </div>
-
-          <button
-            className="p-2 text-current"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            <FaBars size={20} />
-          </button>
         </div>
+      </div>
+
+      {/* Mobile top (Para que en el móvil se siga viendo bien) */}
+      <div className="w-full flex md:hidden items-center px-4 py-3 bg-white dark:bg-gray-900 border-b-2 border-[#cc0000]">
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/ila-logo.png" alt="ila Logo" width={50} height={50} />
+          <span className="futura text-lg font-bold">{t("tagline")}</span>
+        </Link>
+        <button className="ml-auto p-2" onClick={toggleMenu}>
+          <FaBars size={24} />
+        </button>
       </div>
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-md flex flex-col gap-4">
+        <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-lg flex flex-col gap-4 border-t border-gray-100 dark:border-gray-800">
           <DesktopNavMenu
             isMobile={true}
             onLinkClick={() => setMenuOpen(false)}
-            onSearch={() => setMenuOpen(false)} // ← AÑADE ESTA LÍNEA
+            onSearch={() => setMenuOpen(false)}
           />
 
-          <div className="flex items-center justify-center gap-4 mt-4">
+          <div className="flex items-center justify-center gap-6 mt-4">
             {session ? (
               <>
                 <Link href={dashboardRoute} onClick={() => setMenuOpen(false)}>
-                  <button className="p-2 rounded-full bg-red-700 text-white">
+                  <button className="p-3 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors">
                     <FaTachometerAlt />
                   </button>
                 </Link>
                 <button
-                  className="p-2 rounded-full bg-red-700 text-white"
+                  className="p-3 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors"
                   onClick={() => {
                     handleSignOut();
                     setMenuOpen(false);
@@ -183,7 +253,7 @@ export default function Header() {
               </>
             ) : (
               <button
-                className="p-2 rounded-full bg-red-700 text-white"
+                className="p-3 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors"
                 onClick={() => {
                   signIn();
                   setMenuOpen(false);
@@ -196,238 +266,61 @@ export default function Header() {
         </div>
       )}
 
-      {/* Desktop compact - ACTUALIZADO con controles a la derecha */}
-      {isCompact && (
-        <div className="hidden md:flex w-full px-4 py-2 overflow-visible">
-          <div className="max-w-7xl mx-auto w-full flex items-center gap-4 overflow-visible">
-            {/* Logo a la izquierda */}
-            <Link href="/" className="shrink-0">
+      {/* Desktop compact */}
+
+      {/* Desktop Expanded: La parte con MÁS PRESENCIA */}
+      {/* --- CUERPO DEL HEADER (Unificado para Compact y Expandido) --- */}
+      {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
+      <div
+        className={`hidden md:block bg-[#cc0000] text-white transition-all duration-300 ${isCompact ? "py-2 shadow-lg" : "py-8"}`}
+      >
+        <div className="max-w-[1400px] mx-auto px-6 relative">
+          <div className="flex items-center justify-center gap-8">
+            {/* El logo se integra solo porque comparte el mismo color de fondo */}
+            <Link
+              href="/"
+              className="shrink-0 transition-all duration-300 transform hover:scale-105"
+            >
               <Image
                 src="/ila-logo.png"
                 alt="ILA Logo"
-                width={40}
-                height={40}
+                width={isCompact ? 65 : 140}
+                height={isCompact ? 65 : 140}
+                priority
               />
             </Link>
 
-            {/* 🎯 SOLUCIÓN FLEXBOX: Menú ocupa todo el espacio disponible */}
-            <div className="flex-1 flex justify-center min-w-0">
-              <div className="whitespace-nowrap min-w-0">
-                <div className="overflow-x-auto overflow-y-visible">
-                  <DesktopNavMenu />
-                </div>
+            {!isCompact && (
+              <div className="hidden lg:block">
+                {/* Título en blanco para máximo contraste */}
+                <h1 className="futura text-[2.2rem] xl:text-[3rem] font-bold text-white leading-tight tracking-tighter">
+                  {locale === "es"
+                    ? "La revista de América Latina"
+                    : t("tagline")}
+                </h1>
               </div>
-            </div>
-
-            {/* Controles a la derecha - siempre visibles */}
-            <div className="flex items-center gap-2 shrink-0 ml-auto">
-              {session && (
-                <span className={styles.welcomeText}>
-                  {t("greeting", { name: session.user?.name || "Usuario" })}
-                </span>
-              )}
-
-              {/* Menú de usuario unificado con dropdown */}
-              {session ? (
-                <div className="relative group pointer-events-none">
-                  <button
-                    className={`${styles.iconButton} pointer-events-auto`}
-                  >
-                    <FaUser />
-                  </button>
-                  <div className="hidden group-hover:block absolute right-0 top-full bg-white dark:bg-gray-800 shadow-lg rounded-md py-1 min-w-[140px] z-50 pointer-events-auto">
-                    <Link
-                      href={dashboardRoute}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                      <FaTachometerAlt className="text-xs" />
-                      <span>Dashboard</span>
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                    >
-                      <FaSignOutAlt className="text-xs" />
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button className={styles.iconButton} onClick={() => signIn()}>
-                  <FaUser />
-                </button>
-              )}
-
-              {/* Dark mode toggle */}
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={darkMode}
-                  onChange={() => setDarkMode(!darkMode)}
-                  aria-label="Toggle dark mode"
-                />
-                <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-black transition-colors" />
-                <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white dark:bg-gray-200 flex items-center justify-center text-[10px]">
-                  {mounted ? (darkMode ? "🌙" : "☀️") : "☀️"}
-                </div>
-              </label>
-
-              {/* Language switcher */}
-              <div className={styles.languageSwitcher}>
-                {locale === "de" && (
-                  <button
-                    onClick={() => handleLocaleSwitch("es")}
-                    className={styles.langButton}
-                  >
-                    ES
-                  </button>
-                )}
-                {locale === "es" && (
-                  <button
-                    onClick={() => handleLocaleSwitch("de")}
-                    className={styles.langButton}
-                  >
-                    DE
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Desktop top: auth + locale */}
-      {!isCompact && (
-        <div className="w-full hidden md:flex justify-center px-4 py-1">
-          <div className="max-w-7xl w-full flex justify-end items-center gap-2">
-            {session && (
-              <span className={styles.welcomeText}>
-                {t("greeting", { name: session.user?.name || "Usuario" })}
-              </span>
             )}
 
-            {session ? (
-              <>
-                <Link href={dashboardRoute}>
-                  <button className={styles.iconButton}>
-                    <FaTachometerAlt />
-                  </button>
-                </Link>
-                <button className={styles.iconButton} onClick={handleSignOut}>
-                  <FaSignOutAlt />
-                </button>
-              </>
-            ) : (
-              <button className={styles.iconButton} onClick={() => signIn()}>
-                <FaUser />
-              </button>
+            {/* En modo compacto, el menú a la derecha */}
+            {isCompact && (
+              <div className="ml-auto flex items-center">
+                <DesktopNavMenu invert={true} />
+              </div>
             )}
-
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={darkMode}
-                onChange={() => setDarkMode(!darkMode)}
-                aria-label="Toggle dark mode"
-              />
-              <div className="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-black transition-colors" />
-              <div className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white dark:bg-gray-200 flex items-center justify-center text-[10px]">
-                {mounted ? (darkMode ? "🌙" : "☀️") : "☀️"}
-              </div>
-            </label>
-
-            <div className={styles.languageSwitcher}>
-              {locale === "de" && (
-                <button
-                  onClick={() => handleLocaleSwitch("es")}
-                  className={styles.langButton}
-                >
-                  ES
-                </button>
-              )}
-              {locale === "es" && (
-                <button
-                  onClick={() => handleLocaleSwitch("de")}
-                  className={styles.langButton}
-                >
-                  DE
-                </button>
-              )}
-            </div>
           </div>
-        </div>
-      )}
 
-      {/* Desktop main */}
-      {!isCompact && (
-        <div className="w-full hidden md:flex px-4 pt-2 pb-0">
-          <div className="max-w-7xl mx-auto w-full">
-            <div className="flex items-center justify-center gap-4 h-[96px] lg:gap-6">
-              <div className="justify-self-start">
-                <Link
-                  href="/"
-                  aria-label="ILA Home"
-                  className="flex items-center"
-                >
-                  <Image
-                    src="/ila-logo.png"
-                    alt="ILA Logo"
-                    width={80}
-                    height={80}
-                    priority
-                  />
-                </Link>
-              </div>
-
-              <div className="text-center xl:whitespace-nowrap whitespace-normal">
-                <span
-                  className="futura text-[1.4rem] lg:text-[1.9rem] xl:text-[2.4rem] font-bold leading-tight"
-                  style={{ letterSpacing: "-0.5px" }}
-                >
-                  {locale === "es" ? (
-                    <>
-                      La revista de Am
-                      <span
-                        style={{
-                          position: "relative",
-                          display: "inline-block",
-                        }}
-                      >
-                        e
-                        <span
-                          aria-hidden="true"
-                          style={{
-                            position: "absolute",
-                            left: "0.24em",
-                            top: "0.25em",
-                            width: "0.21em",
-                            height: "0.10em",
-                            background: "#222",
-                            borderRadius: "0.03em",
-                            transform: "rotate(-18deg)",
-                            zIndex: 2,
-                          }}
-                        />
-                      </span>
-                      rica Latina
-                    </>
-                  ) : (
-                    t("tagline")
-                  )}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center py-2">
-              <div className="shrink-0 overflow-x-visible whitespace-nowrap">
+          {/* En modo expandido, el menú centrado abajo con una línea sutil */}
+          {/* --- SECCIÓN DEL MENÚ (Modo Expandido) --- */}
+          {/* --- SECCIÓN DEL MENÚ (Isla Blanca Estilizada) --- */}
+          {!isCompact && (
+            <div className="mt-8 flex justify-center">
+              <div className="bg-white dark:bg-gray-900 px-8 py-0 rounded-full shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center">
                 <DesktopNavMenu />
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 }

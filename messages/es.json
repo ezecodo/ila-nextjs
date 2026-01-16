@@ -4,11 +4,15 @@
   },
   "header": {
     "tagline": "La revista de América Latina",
+    "switch_light": "Cambiar a modo claro",
+    "switch_dark": "Cambiar a modo oscuro",
+    "dashboard_access": "Ir al panel de control",
     "greeting": "Hola, {name}",
     "login": "Iniciar sesión",
     "signup": "Registrarse",
     "dashboard": "Panel",
     "logout": "Cerrar sesión",
+    "user_profile": "Tu perfil",
     "nav": {
       "home": "Inicio",
       "about": "Sobre Nosotros",

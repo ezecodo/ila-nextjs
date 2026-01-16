@@ -4,11 +4,16 @@
   },
   "header": {
     "tagline": "Das Lateinamerika-Magazin",
+    "switch_light": "Zum hellen Modus wechseln",
+    "switch_dark": "Zum dunklen Modus wechseln",
+    "dashboard_access": "Zum Dashboard",
     "greeting": "Hallo, {name}",
     "login": "Anmelden",
+    "logout": "Ausloggen",
+    "user_profile": "Dein Profil",
     "signup": "Registrieren",
     "dashboard": "Panel",
-    "logout": "Abmelden",
+
     "nav": {
       "home": "Home",
       "about": "Über Uns",

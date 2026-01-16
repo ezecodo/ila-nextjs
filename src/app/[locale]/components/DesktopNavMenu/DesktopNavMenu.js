@@ -141,41 +141,43 @@ export default function DesktopNavMenu({
   }
 
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
+  // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   return (
-    <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md px-4 py-2 rounded-lg shadow-md dark:shadow-lg relative inline-block">
-      <div className="flex items-center gap-6 relative">
+    <nav className="relative inline-block">
+      <div className="flex items-center gap-8 relative">
         {navSections.map((sec) =>
           sec.items ? (
-            <div key={sec.labelKey} className="relative group static">
-              <span className="font-semibold text-gray-800 dark:text-gray-200 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer py-2">
+            <div key={sec.labelKey} className="relative group">
+              <span className="text-[13px] font-bold uppercase tracking-wide text-gray-800 dark:text-gray-100 hover:text-[#cc0000] dark:hover:text-red-400 transition-colors cursor-pointer py-3 block">
                 {t(sec.labelKey)}
               </span>
 
               {/* Puente invisible para mantener hover */}
-              <div className="absolute left-0 top-full w-full h-2 opacity-0 group-hover:opacity-100" />
+              <div className="absolute left-0 top-full w-full h-4" />
 
-              {/* Dropdown con delay reducido */}
-              <ul className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-150 z-[100]">
+              {/* Dropdown estilizado */}
+              <ul className="absolute left-0 top-[100%] pt-2 w-64 bg-white dark:bg-gray-800 rounded-b-md shadow-xl opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-200 z-[100] border-t-2 border-[#cc0000]">
                 {sec.items.map((item) =>
                   item.items ? (
                     <li
                       key={item.labelKey}
-                      className="relative group/item static"
+                      className="relative group/item border-b border-gray-50 dark:border-gray-700 last:border-0"
                     >
-                      <span className="block px-4 py-2 font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                        {t(item.labelKey)} →
+                      <span className="flex justify-between items-center px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                        {t(item.labelKey)}{" "}
+                        <span className="text-[10px]">▶</span>
                       </span>
 
-                      {/* Puente invisible para submenú */}
-                      <div className="absolute left-full top-0 w-2 h-full opacity-0 group-hover/item:opacity-100" />
-
-                      {/* Submenú con delay reducido */}
-                      <ul className="absolute left-full top-0 min-w-[16rem] bg-white dark:bg-gray-800 rounded shadow-lg dark:shadow-gray-900 opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-all duration-150 whitespace-normal z-[101]">
+                      {/* Submenú lateral */}
+                      <ul className="absolute left-[100%] top-0 min-w-[18rem] bg-white dark:bg-gray-800 rounded-md shadow-2xl opacity-0 invisible group-hover/item:visible group-hover/item:opacity-100 transition-all duration-200 z-[101] border-l border-gray-100 dark:border-gray-700">
                         {item.items.map((sub) => (
-                          <li key={sub.href}>
+                          <li
+                            key={sub.href}
+                            className="border-b border-gray-50 dark:border-gray-700 last:border-0"
+                          >
                             <Link
                               href={sub.href}
-                              className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-400"
+                              className="block px-5 py-3 text-[13px] text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-gray-700 hover:text-[#cc0000] transition-colors"
                             >
                               {t(sub.labelKey)}
                             </Link>
@@ -184,10 +186,13 @@ export default function DesktopNavMenu({
                       </ul>
                     </li>
                   ) : (
-                    <li key={item.href}>
+                    <li
+                      key={item.href}
+                      className="border-b border-gray-50 dark:border-gray-700 last:border-0"
+                    >
                       <Link
                         href={item.href}
-                        className="block px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
                         {t(item.labelKey)}
                       </Link>
@@ -200,14 +205,15 @@ export default function DesktopNavMenu({
             <Link
               key={sec.labelKey}
               href={sec.href}
-              className="font-semibold hover:text-red-600 transition-colors"
+              className="text-[13px] font-bold uppercase tracking-wide text-gray-800 dark:text-gray-100 hover:text-[#cc0000] transition-colors py-3 block"
             >
               {t(sec.labelKey)}
             </Link>
           )
         )}
 
-        <div className="pl-6 border-l border-gray-300 dark:border-gray-600">
+        {/* Buscador integrado sin bordes pesados */}
+        <div className="pl-6 border-l border-gray-200 dark:border-gray-700 h-8 flex items-center">
           <SearchBar onSearch={handleSearch} />
         </div>
       </div>
