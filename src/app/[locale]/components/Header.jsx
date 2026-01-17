@@ -141,7 +141,7 @@ export default function Header() {
     >
       {/* --- BARRA NEGRA SUPERIOR (Ancho total de pantalla) --- */}
       {/* --- BARRA NEGRA SUPERIOR (Minimalismo Total) --- */}
-      <div className="hidden md:flex w-full bg-black text-white py-px px-4 justify-center border-b border-black/20">
+      <div className="hidden md:flex w-full bg-[#d63031] text-white py-1 px-4 justify-center border-b border-white/20">
         <div className="w-full max-w-[1400px] flex justify-end items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
           <div className="flex items-center gap-4">
             {/* Saludo de usuario (Solo si hay sesión) */}
@@ -221,24 +221,25 @@ export default function Header() {
 
         {/* Contenedor relativo para que el tagline absoluto se base en este ancho */}
         <div className="relative z-10 w-full h-full flex items-center justify-between">
-          {/* 1. LOGO (Izquierda) */}
+          {/* 1. LOGO (Izquierda) - Cambiado fondo a rojo */}
           <Link
             href="/"
-            className="bg-white w-14 h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
+            className="bg-[#e60000] w-16 h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
           >
             <IlaLogo
-              size="mini"
+              size="default"
               isLink={false}
-              variant="red-solid"
-              className="transform scale-75"
+              /* Cambiado a variant="white-outline" o similar */
+              variant="white-solid"
+              className="transform scale-90"
             />
           </Link>
 
-          {/* 2. TAGLINE (Centrado Absoluto Real) */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-14">
+          {/* 2. TAGLINE */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-16 z-30">
             <span
-              className="futura text-[clamp(1.05rem,5vw,1.42rem)] font-bold text-white whitespace-nowrap leading-none tracking-tighter text-center pointer-events-auto"
-              style={{ transform: "translateY(1px)" }}
+              className="futura text-[clamp(1.1rem,5.5vw,1.6rem)] font-bold text-white whitespace-nowrap leading-none tracking-tight text-center pointer-events-auto"
+              style={{ transform: "translateY(1px) translateX(13px)" }}
             >
               {locale === "es" ? (
                 <>
@@ -252,7 +253,7 @@ export default function Header() {
                       style={{
                         position: "absolute",
                         left: "0.24em",
-                        top: "0.12em", // 🎯 El "punto dulce"
+                        top: "0.12em",
                         width: "0.17em",
                         height: "0.08em",
                         background: "#fff",
@@ -271,8 +272,8 @@ export default function Header() {
           </div>
 
           {/* 3. CONTROLES (Derecha) */}
-          <div className="bg-white w-14 h-full flex flex-col items-center justify-center shadow-sm z-20 flex-shrink-0">
-            <div className="text-[11px] font-black text-[#e60000] mb-0.5">
+          <div className="bg-[#e60000] w-10 h-full flex flex-col items-center justify-center shadow-sm z-20 flex-shrink-0">
+            <div className="text-[10px] font-black text-white mb-0.5 leading-none">
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -283,13 +284,13 @@ export default function Header() {
               </button>
             </div>
             <button
-              className="text-[#e60000]"
+              className="text-white flex items-center justify-center"
               onClick={(e) => {
                 e.preventDefault();
                 toggleMenu();
               }}
             >
-              <FaBars size={20} />
+              <FaBars size={18} />
             </button>
           </div>
         </div>
