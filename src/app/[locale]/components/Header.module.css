@@ -2,30 +2,30 @@
 
 /* 🔥 Estilos generales del header */
 .header {
-  width: 100% !important;
+  width: 100%;
+  position: sticky;
+  top: 0;
   left: 0;
   right: 0;
-  padding: 0 !important; /* Eliminamos el padding para que la barra negra toque los bordes */
-  margin: 0 !important;
-  display: flex;
-  flex-direction: column; /* Para que la barra negra vaya arriba y el cuerpo abajo */
+  z-index: 50;
+  display: block; /* Cambiado de flex a block para evitar colapsos */
 }
 
 /* 🔥 Contenedor superior con logo y botones */
 /* .headerTop {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-} */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  } */
 
 /* 🔥 Contenedor del logo */
 /* .logoContainer {
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  margin-bottom: 0.5rem;
-} */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  } */
 
 .logoContainer span {
   font-size: 1rem;
@@ -249,54 +249,43 @@
     font-size: 14px;
   }
 }
-/* 🔥 Estilos cuando el header está en modo compacto */
-.compact {
-  padding: 0;
-  background-color: #cc0000;
-  border-bottom: 1px solid #ddd;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  overflow: visible; /* ← AÑADIDO */
-}
+/* 🔥 Estilos cuando el header está en modo compacto - SOLO DESKTOP */
+@media (min-width: 768px) {
+  .compact .desktopMain,
+  .compact .desktopTop {
+    display: none;
+  }
 
-.compact .desktopMain,
-.compact .desktopTop {
-  display: none;
-}
+  .compact .compactMenu {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    overflow: visible;
+  }
 
-.compact .compactMenu {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  overflow: visible; /* ← AÑADIDO */
-}
+  .compact .logo {
+    width: 40px;
+    height: auto;
+    max-height: 40px;
+  }
 
-.compact .logo {
-  width: 40px;
-  height: auto;
-  max-height: 40px;
-}
-/* 🔥 FIX para dropdowns en header compacto */
-.compact > div {
-  overflow: visible !important;
-}
+  /* 🔥 FIX para dropdowns en header compacto */
+  .compact > div {
+    overflow: visible !important;
+  }
 
-.compact * {
-  overflow: visible !important;
-}
-/* 🔥 FIX CRÍTICO: Asegurar que dropdowns sean visibles */
-.compact > div,
-.compact > div > div {
-  overflow: visible !important;
-}
+  .compact * {
+    overflow: visible !important;
+  }
 
-/* Permitir que elementos dentro del compact sean visibles */
-.compact nav,
-.compact nav > div {
-  overflow: visible !important;
+  .compact > div,
+  .compact > div > div {
+    overflow: visible !important;
+  }
+
+  .compact nav,
+  .compact nav > div {
+    overflow: visible !important;
+  }
 }

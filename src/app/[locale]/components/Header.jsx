@@ -5,7 +5,8 @@ import { useRouter, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+
+import IlaLogo from "../components/IlaLogo/IlaLogo";
 
 import styles from "./Header.module.css";
 
@@ -64,7 +65,7 @@ export default function Header() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      if (currentScrollY > 150 && currentScrollY > lastScrollY) {
+      if (currentScrollY > 100 && currentScrollY > lastScrollY) {
         setIsCompact(true);
       }
 
@@ -134,9 +135,9 @@ export default function Header() {
   };
 
   return (
-    // 🎨 CAMBIO VISUAL: Fondo sólido y borde inferior para dar "peso" y separar del contenido
+    // 🔴 CAMBIO AQUÍ: Added 'fixed top-0 left-0 w-full z-50' and 'md:relative'
     <header
-      className={`${styles.header} z-50 shadow-md ${isCompact ? styles.compact : ""}`}
+      className={`${styles.header} fixed top-0 left-0 w-full z-50 md:sticky md:top-0 shadow-md ${isCompact ? styles.compact : ""}`}
     >
       {/* --- BARRA NEGRA SUPERIOR (Ancho total de pantalla) --- */}
       {/* --- BARRA NEGRA SUPERIOR (Minimalismo Total) --- */}
@@ -214,55 +215,83 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile top (Para que en el móvil se siga viendo bien) */}
-      <div className="w-full flex md:hidden items-center px-4 py-3 bg-white dark:bg-gray-900 border-b-2 border-[#cc0000]">
-        <Link href="/" className="flex items-center gap-3">
-          <Image src="/ila-logo.png" alt="ila Logo" width={50} height={50} />
-          <span className="futura text-lg font-bold">
-            {locale === "es" ? (
-              <>
-                La revista de Am
-                <span style={{ position: "relative", display: "inline-block" }}>
-                  e
+      {/* Mobile top - Con estética roja como desktop */}
+      <div className="w-screen flex md:hidden items-center px-4 py-0 bg-[#e60000] text-white relative overflow-hidden -mx-4">
+        {/* Fondo de países - versión móvil */}
+        <LatinAmericaBackground variant="mobile" />
+        {/* Contenido del header móvil */}
+        <div className="relative z-10 w-full flex items-center">
+          <Link href="/" className="flex items-center gap-2">
+            <IlaLogo
+              size="mini"
+              animated={true}
+              isLink={false}
+              variant="white-outline"
+            />
+
+            <span className="futura text-lg font-bold text-white">
+              {locale === "es" ? (
+                <>
+                  La revista de Am
                   <span
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      left: "0.24em",
-                      top: "0.32em",
-                      width: "0.17em",
-                      height: "0.08em",
-                      background: "#222",
-                      borderRadius: "0.03em",
-                      transform: "rotate(-35deg)",
-                      zIndex: 2,
-                    }}
-                  />
-                </span>
-                rica Latina
-              </>
-            ) : (
-              t("tagline")
-            )}
-          </span>
-        </Link>
-        <div className="ml-auto flex flex-col items-center gap-1">
-          <div className="text-xs font-bold">
-            {locale === "es" ? (
-              <button onClick={() => handleLocaleSwitch("de")}>DE</button>
-            ) : (
-              <button onClick={() => handleLocaleSwitch("es")}>ES</button>
-            )}
+                    style={{ position: "relative", display: "inline-block" }}
+                  >
+                    e
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        left: "0.24em",
+                        top: "0.32em",
+                        width: "0.17em",
+                        height: "0.08em",
+                        background: "#fff",
+                        borderRadius: "0.03em",
+                        transform: "rotate(-35deg)",
+                        zIndex: 2,
+                      }}
+                    />
+                  </span>
+                  rica Latina
+                </>
+              ) : (
+                t("tagline")
+              )}
+            </span>
+          </Link>
+
+          <div className="ml-auto flex flex-col items-center gap-1">
+            <div className="text-xs font-bold text-white">
+              {locale === "es" ? (
+                <button
+                  onClick={() => handleLocaleSwitch("de")}
+                  className="hover:text-white/70 transition-colors"
+                >
+                  DE
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleLocaleSwitch("es")}
+                  className="hover:text-white/70 transition-colors"
+                >
+                  ES
+                </button>
+              )}
+            </div>
+            <button
+              className="p-2 text-white hover:text-white/70 transition-colors"
+              onClick={toggleMenu}
+            >
+              <FaBars size={24} />
+            </button>
           </div>
-          <button className="p-2" onClick={toggleMenu}>
-            <FaBars size={24} />
-          </button>
         </div>
       </div>
 
       {/* Mobile menu */}
+      {/* 🔴 CAMBIO AQUÍ: Added z-[60] to ensure it sits above the fixed header if needed, though typically fixed elements stack based on DOM order or explicit z-index */}
       {menuOpen && (
-        <div className="w-full md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-lg flex flex-col gap-4 border-t border-gray-100 dark:border-gray-800">
+        <div className="fixed left-0 right-0 md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-lg flex flex-col gap-4 border-t border-gray-100 dark:border-gray-800 max-h-[calc(100vh-80px)] overflow-y-auto z-[60]">
           <DesktopNavMenu
             isMobile={true}
             onLinkClick={() => setMenuOpen(false)}
@@ -308,35 +337,37 @@ export default function Header() {
       {/* --- CUERPO DEL HEADER (Unificado para Compact y Expandido) --- */}
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
-        className={`hidden md:block w-full bg-[#cc0000] text-white transition-all duration-300 relative ${isCompact ? "py-2 shadow-lg" : "py-8"}`}
+        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0 shadow-lg" : "py-8"}`}
       >
         {/* 🌎 Fondo tipográfico con nombres de países (solo en modo expandido) */}
         {!isCompact && <LatinAmericaBackground />}
 
         <div
-          className={`mx-auto px-6 relative z-10 ${isCompact ? "w-full" : "max-w-[1400px]"}`}
+          className={`mx-auto px-6 relative z-10 ${isCompact ? "w-full py-1" : "max-w-[1400px]"}`}
         >
+          {/* Layout Flex con alineación centrada */}
           <div
-            className={`flex items-center gap-8 ${isCompact ? "justify-center" : "justify-center"}`}
+            className={`flex items-center justify-center ${isCompact ? "gap-4" : "gap-8"}`}
           >
-            {/* El logo se integra solo porque comparte el mismo color de fondo */}
-            <Link
-              href="/"
-              className="shrink-0 transition-all duration-300 transform hover:scale-105"
-            >
-              <Image
-                src="/ila-logo.png"
-                alt="ILA Logo"
-                width={isCompact ? 65 : 140}
-                height={isCompact ? 65 : 140}
-                priority
-              />
-            </Link>
+            {/* LOGO */}
+            <IlaLogo
+              size={isCompact ? "mini" : "default"}
+              animated={true}
+              animationType="hover-scale"
+              variant="white-solid"
+              className={isCompact ? "translate-y-1 -my-3" : ""}
+            />
 
+            {/* TAGLINE - Alineación Precisa */}
             {!isCompact && (
               <div className="hidden lg:block">
-                {/* Título en blanco para máximo contraste */}
-                <h1 className="futura text-[2.2rem] xl:text-[3rem] font-bold text-white leading-tight tracking-normal">
+                <h1
+                  className="futura text-[2.2rem] xl:text-[3rem] font-bold text-white leading-none tracking-normal"
+                  style={{
+                    marginLeft: "-15px", // Espacio negativo suave para acercar, pero no tanto
+                    transform: "translateY(15px)", // Baja el texto 10px para alinear visualmente con la base de "ila"
+                  }}
+                >
                   {locale === "es" ? (
                     <>
                       La revista de Am
@@ -352,7 +383,7 @@ export default function Header() {
                           style={{
                             position: "absolute",
                             left: "0.24em",
-                            top: "0.32em",
+                            top: "0.22em",
                             width: "0.17em",
                             height: "0.08em",
                             background: "#fff",
@@ -371,7 +402,7 @@ export default function Header() {
               </div>
             )}
 
-            {/* En modo compacto, el menú a la derecha */}
+            {/* MENÚ EN MODO COMPACTO */}
             {isCompact && (
               <div className="flex items-center">
                 <DesktopNavMenu invert={true} />
@@ -379,12 +410,12 @@ export default function Header() {
             )}
           </div>
 
-          {/* En modo expandido, el menú centrado abajo con una línea sutil */}
-          {/* --- SECCIÓN DEL MENÚ (Modo Expandido) --- */}
-          {/* --- SECCIÓN DEL MENÚ (Isla Blanca Estilizada) --- */}
+          {/* SECCIÓN DEL MENÚ (Isla Blanca) */}
           {!isCompact && (
-            <div className="mt-8 flex justify-center">
-              <div className="bg-white dark:bg-gray-900 px-8 py-0 rounded-full shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center">
+            <div className="-mt-2 flex justify-center">
+              {" "}
+              {/* mt-8 → mt-2 (más cerca) */}
+              <div className="bg-white dark:bg-gray-900 px-8 py-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center">
                 <DesktopNavMenu />
               </div>
             </div>

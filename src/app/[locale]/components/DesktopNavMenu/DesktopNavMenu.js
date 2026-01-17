@@ -152,7 +152,7 @@ export default function DesktopNavMenu({
 
   // ─── DESKTOP: horizontal + dropdown + SearchBar ────────────────────────
   return (
-    <nav className="relative inline-block">
+    <nav className="relative inline-block mb-0 pb-0">
       <div className="flex items-center gap-8 relative">
         {navSections.map((sec) =>
           sec.items ? (
@@ -224,7 +224,7 @@ export default function DesktopNavMenu({
         )}
 
         {/* Buscador integrado sin bordes pesados */}
-        <div className={`pl-6 border-l ${borderColor} h-8 flex items-center`}>
+        <div className={`pl-6 border-l ${borderColor} h-6 flex items-center`}>
           <SearchBar onSearch={handleSearch} invert={invert} />
         </div>
       </div>

@@ -27,7 +27,20 @@ const countries = [
   "Belice",
 ];
 
-const sizes = ["text-sm", "text-xl", "text-3xl", "text-lg"];
+const sizesConfig = {
+  desktop: ["text-sm", "text-xl", "text-3xl", "text-lg"],
+  mobile: ["text-[6px]", "text-[8px]", "text-[10px]", "text-[7px]"],
+};
+
+const rowsConfig = {
+  desktop: 8,
+  mobile: 4,
+};
+
+const styleConfig = {
+  desktop: { opacity: "opacity-[0.10]", py: "py-4", mx: "mx-4" },
+  mobile: { opacity: "opacity-[0.12]", py: "py-1", mx: "mx-2" },
+};
 
 function shuffle(array) {
   const result = [...array];
@@ -38,14 +51,18 @@ function shuffle(array) {
   return result;
 }
 
-export default function LatinAmericaBackground() {
+export default function LatinAmericaBackground({ variant = "desktop" }) {
   const [rows, setRows] = useState([]);
   const [mounted, setMounted] = useState(false);
+
+  const sizes = sizesConfig[variant] || sizesConfig.desktop;
+  const numRows = rowsConfig[variant] || rowsConfig.desktop;
+  const styles = styleConfig[variant] || styleConfig.desktop;
 
   useEffect(() => {
     const newRows = [];
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < numRows; i++) {
       const shuffledCountries = shuffle([...countries, ...countries]);
       const offset = i % 2 === 0 ? 0 : -10;
 
@@ -57,7 +74,7 @@ export default function LatinAmericaBackground() {
 
     setRows(newRows);
     setMounted(true);
-  }, []);
+  }, [numRows]);
 
   if (!mounted) {
     return (
@@ -67,7 +84,9 @@ export default function LatinAmericaBackground() {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0 flex flex-col justify-between py-4 opacity-[0.10]">
+      <div
+        className={`absolute inset-0 flex flex-col justify-between ${styles.py} ${styles.opacity}`}
+      >
         {rows.map((row, rowIndex) => (
           <div
             key={rowIndex}
@@ -75,7 +94,6 @@ export default function LatinAmericaBackground() {
             style={{ marginLeft: `${row.offset}%` }}
           >
             {row.countries.map((country, i) => {
-              // Elegir tamaño que sea diferente al anterior
               let sizeIndex = i % sizes.length;
               const prevIndex = i > 0 ? (i - 1) % sizes.length : -1;
               if (sizeIndex === prevIndex) {
@@ -85,7 +103,7 @@ export default function LatinAmericaBackground() {
               return (
                 <span
                   key={`${rowIndex}-${i}`}
-                  className={`mx-4 inline-block ${sizes[sizeIndex]}`}
+                  className={`${styles.mx} inline-block ${sizes[sizeIndex]}`}
                 >
                   {country}
                 </span>
