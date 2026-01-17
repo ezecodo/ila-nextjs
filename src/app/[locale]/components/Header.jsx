@@ -337,7 +337,7 @@ export default function Header() {
       {/* --- CUERPO DEL HEADER (Unificado para Compact y Expandido) --- */}
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
-        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0 shadow-lg" : "py-8"}`}
+        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0 shadow-lg" : "pt-0 pb-4"}`}
       >
         {/* 🌎 Fondo tipográfico con nombres de países (solo en modo expandido) */}
         {!isCompact && <LatinAmericaBackground />}
