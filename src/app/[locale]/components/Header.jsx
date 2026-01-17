@@ -141,7 +141,7 @@ export default function Header() {
     >
       {/* --- BARRA NEGRA SUPERIOR (Ancho total de pantalla) --- */}
       {/* --- BARRA NEGRA SUPERIOR (Minimalismo Total) --- */}
-      <div className="hidden md:flex w-full bg-black text-white py-1 px-4 justify-center border-b border-black/20">
+      <div className="hidden md:flex w-full bg-black text-white py-px px-4 justify-center border-b border-black/20">
         <div className="w-full max-w-[1400px] flex justify-end items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
           <div className="flex items-center gap-4">
             {/* Saludo de usuario (Solo si hay sesión) */}
@@ -337,7 +337,7 @@ export default function Header() {
       {/* --- CUERPO DEL HEADER (Unificado para Compact y Expandido) --- */}
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
-        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0 shadow-lg" : "pt-0 pb-4"}`}
+        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0" : "pt-2 pb-4"}`}
       >
         {/* 🌎 Fondo tipográfico con nombres de países (solo en modo expandido) */}
         {!isCompact && <LatinAmericaBackground />}
