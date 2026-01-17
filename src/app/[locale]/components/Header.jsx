@@ -219,20 +219,27 @@ export default function Header() {
       <div className="w-screen flex md:hidden items-center bg-[#e60000] text-white relative overflow-hidden -mx-4 h-14">
         <LatinAmericaBackground variant="mobile" />
 
+        {/* Contenedor relativo para que el tagline absoluto se base en este ancho */}
         <div className="relative z-10 w-full h-full flex items-center justify-between">
-          {/* BLOQUE IZQUIERDO: Logo en cuadrado blanco */}
-          <Link href="/" className="flex items-center h-full">
-            <div className="bg-white w-14 h-full flex items-center justify-center shadow-sm flex-shrink-0">
-              <IlaLogo
-                size="mini"
-                isLink={false}
-                variant="red-solid"
-                className="transform scale-75"
-              />
-            </div>
+          {/* 1. LOGO (Izquierda) */}
+          <Link
+            href="/"
+            className="bg-white w-14 h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
+          >
+            <IlaLogo
+              size="mini"
+              isLink={false}
+              variant="red-solid"
+              className="transform scale-75"
+            />
+          </Link>
 
-            {/* TAGLINE: Ahora tiene el máximo espacio posible entre los dos bloques */}
-            <span className="futura text-[clamp(1.1rem,5.2vw,1.5rem)] font-bold text-white whitespace-nowrap block leading-none tracking-tighter ml-3">
+          {/* 2. TAGLINE (Centrado Absoluto Real) */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-14">
+            <span
+              className="futura text-[clamp(1.05rem,5vw,1.42rem)] font-bold text-white whitespace-nowrap leading-none tracking-tighter text-center pointer-events-auto"
+              style={{ transform: "translateY(1px)" }}
+            >
               {locale === "es" ? (
                 <>
                   La revista de Am
@@ -245,7 +252,7 @@ export default function Header() {
                       style={{
                         position: "absolute",
                         left: "0.24em",
-                        top: "0.32em",
+                        top: "0.12em", // 🎯 El "punto dulce"
                         width: "0.17em",
                         height: "0.08em",
                         background: "#fff",
@@ -261,10 +268,10 @@ export default function Header() {
                 "Das Lateinamerika-Magazin"
               )}
             </span>
-          </Link>
+          </div>
 
-          {/* BLOQUE DERECHO: Controles en cuadrado blanco (Simetría) */}
-          <div className="bg-white w-14 h-full flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+          {/* 3. CONTROLES (Derecha) */}
+          <div className="bg-white w-14 h-full flex flex-col items-center justify-center shadow-sm z-20 flex-shrink-0">
             <div className="text-[11px] font-black text-[#e60000] mb-0.5">
               <button
                 onClick={(e) => {
@@ -282,7 +289,7 @@ export default function Header() {
                 toggleMenu();
               }}
             >
-              <FaBars size={22} />
+              <FaBars size={20} />
             </button>
           </div>
         </div>
@@ -380,7 +387,9 @@ export default function Header() {
                           style={{
                             position: "absolute",
                             left: "0.24em",
-                            top: "0.22em",
+                            // 🔧 CAMBIO: Antes estaba en 0.32em.
+                            // Al bajar el número (ej. 0.18em), el acento sube.
+                            top: "0.18em",
                             width: "0.17em",
                             height: "0.08em",
                             background: "#fff",
