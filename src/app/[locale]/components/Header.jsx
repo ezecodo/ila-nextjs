@@ -215,21 +215,24 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile top - Con estética roja como desktop */}
-      <div className="w-screen flex md:hidden items-center px-4 py-0 bg-[#e60000] text-white relative overflow-hidden -mx-4">
-        {/* Fondo de países - versión móvil */}
+      {/* Mobile top */}
+      <div className="w-screen flex md:hidden items-center bg-[#e60000] text-white relative overflow-hidden -mx-4 h-14">
         <LatinAmericaBackground variant="mobile" />
-        {/* Contenido del header móvil */}
-        <div className="relative z-10 w-full flex items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <IlaLogo
-              size="mini"
-              animated={true}
-              isLink={false}
-              variant="white-outline"
-            />
 
-            <span className="futura text-lg font-bold text-white">
+        <div className="relative z-10 w-full h-full flex items-center justify-between">
+          {/* BLOQUE IZQUIERDO: Logo en cuadrado blanco */}
+          <Link href="/" className="flex items-center h-full">
+            <div className="bg-white w-14 h-full flex items-center justify-center shadow-sm flex-shrink-0">
+              <IlaLogo
+                size="mini"
+                isLink={false}
+                variant="red-solid"
+                className="transform scale-75"
+              />
+            </div>
+
+            {/* TAGLINE: Ahora tiene el máximo espacio posible entre los dos bloques */}
+            <span className="futura text-[clamp(1.1rem,5.2vw,1.5rem)] font-bold text-white whitespace-nowrap block leading-none tracking-tighter ml-3">
               {locale === "es" ? (
                 <>
                   La revista de Am
@@ -255,39 +258,35 @@ export default function Header() {
                   rica Latina
                 </>
               ) : (
-                t("tagline")
+                "Das Lateinamerika-Magazin"
               )}
             </span>
           </Link>
 
-          <div className="ml-auto flex flex-col items-center gap-1">
-            <div className="text-xs font-bold text-white">
-              {locale === "es" ? (
-                <button
-                  onClick={() => handleLocaleSwitch("de")}
-                  className="hover:text-white/70 transition-colors"
-                >
-                  DE
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleLocaleSwitch("es")}
-                  className="hover:text-white/70 transition-colors"
-                >
-                  ES
-                </button>
-              )}
+          {/* BLOQUE DERECHO: Controles en cuadrado blanco (Simetría) */}
+          <div className="bg-white w-14 h-full flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="text-[11px] font-black text-[#e60000] mb-0.5">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLocaleSwitch(locale === "es" ? "de" : "es");
+                }}
+              >
+                {locale === "es" ? "DE" : "ES"}
+              </button>
             </div>
             <button
-              className="p-2 text-white hover:text-white/70 transition-colors"
-              onClick={toggleMenu}
+              className="text-[#e60000]"
+              onClick={(e) => {
+                e.preventDefault();
+                toggleMenu();
+              }}
             >
-              <FaBars size={24} />
+              <FaBars size={22} />
             </button>
           </div>
         </div>
       </div>
-
       {/* Mobile menu */}
       {/* 🔴 CAMBIO AQUÍ: Added z-[60] to ensure it sits above the fixed header if needed, though typically fixed elements stack based on DOM order or explicit z-index */}
       {menuOpen && (
@@ -333,8 +332,6 @@ export default function Header() {
 
       {/* Desktop compact */}
 
-      {/* Desktop Expanded: La parte con MÁS PRESENCIA */}
-      {/* --- CUERPO DEL HEADER (Unificado para Compact y Expandido) --- */}
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
         className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0" : "pt-2 pb-4"}`}

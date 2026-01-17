@@ -7,28 +7,30 @@ import {
   FaEnvelope,
   FaLink,
   FaPrint,
-  FaEdit, // 👈 NUEVO
+  FaEdit,
 } from "react-icons/fa";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-/** Item con tooltip (solo desktop) */
+/** Item con tooltip (solo desktop) - ESTILO ROJO SÓLIDO */
 function ShareItem({ children, label, title }) {
   return (
     <div className="relative group hidden md:block">
+      {/* 🎨 CAMBIO: Fondo rojo sólido, texto blanco y sombra para impacto visual */}
       <div
-        className="bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition cursor-pointer"
+        className="bg-[#cc0000] text-white p-2.5 rounded-full hover:bg-[#a30000] transition-all shadow-md hover:shadow-lg cursor-pointer"
         title={title}
         aria-label={label}
       >
         {children}
       </div>
+      {/* Tooltip mejorado */}
       <span
-        className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-2
-                   whitespace-nowrap rounded bg-black/80 text-white text-sm px-2 py-1
-                   opacity-0 group-hover:opacity-100 transition-opacity"
+        className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3
+                   whitespace-nowrap rounded bg-[#cc0000] text-white text-xs font-bold px-3 py-1.5
+                   opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-50"
         role="tooltip"
       >
         {label}
@@ -112,7 +114,7 @@ export default function ShareBar({
     <>
       {/* Desktop */}
       <div
-        className={`hidden md:flex fixed z-40 flex-col items-center gap-2 print:hidden ${className}`}
+        className={`hidden md:flex fixed z-40 flex-col items-center gap-3 print:hidden ${className}`}
         style={{ top: computedTop, left }}
         aria-label={t("ariaShare")}
       >
@@ -173,6 +175,8 @@ export default function ShareBar({
             <FaPrint size={20} />
           </ShareItem>
         </button>
+
+        {/* Editar artículo (solo admin) */}
         {isAdmin && articleId != null && (
           <Link
             href={`/dashboard/articles/edit/${articleId}`}
@@ -184,24 +188,27 @@ export default function ShareBar({
           </Link>
         )}
       </div>
-      {/* Editar artículo (solo admin) */}
 
       {/* Aviso “copiado” (desktop) */}
       <div
-        className={`hidden md:block fixed z-40 text-xs text-gray-600 bg-white border rounded px-1 py-0.5 transition-opacity print:hidden ${
-          copied ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`hidden md:block fixed z-50 text-xs text-white font-bold bg-[#cc0000] rounded-full px-3 py-1 shadow-lg transition-opacity print:hidden ${
+          copied
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-90 pointer-events-none"
         }`}
-        style={{ top: computedTop, left: `calc(${left} + 0px)` }}
+        style={{ top: computedTop + 60, left: `calc(${left} + 10px)` }} // Ajuste de posición para que flote mejor
         aria-live="polite"
       >
         {t("copied")}
       </div>
 
       {/* Mobile */}
-      <div className="fixed bottom-0 left-0 w-full bg-white border-t z-50 md:hidden print:hidden">
-        <div className="flex justify-around items-center px-4 py-2">
+      {/* 🎨 CAMBIO: Barra inferior entera con el gradiente rojo del Header */}
+      <div className="fixed bottom-0 left-0 w-full bg-[#e60000] text-white z-50 md:hidden print:hidden">
+        <div className="flex justify-around items-center px-2 py-3">
+          {/* Botones móviles: Fondo transparente, icono blanco, hover sutil */}
           {articleId != null && (
-            <div className="bg-white border border-red-500 text-red-600 p-2 rounded">
+            <div className="hover:bg-white/10 p-2 rounded-full transition-colors cursor-pointer">
               <FavoriteButton articleId={articleId} variant="icon" />
             </div>
           )}
@@ -210,59 +217,65 @@ export default function ShareBar({
             href={`https://wa.me/?text=${encodedTitle}%20${encodedURL}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            className="hover:bg-white/10 p-2 rounded-full transition-colors"
             title={t("whatsapp")}
             aria-label={t("whatsapp")}
           >
-            <FaWhatsapp size={20} />
+            <FaWhatsapp size={22} />
           </a>
 
           <a
             href={`https://t.me/share/url?url=${encodedURL}&text=${encodedTitle}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            className="hover:bg-white/10 p-2 rounded-full transition-colors"
             title={t("telegram")}
             aria-label={t("telegram")}
           >
-            <FaTelegramPlane size={20} />
+            <FaTelegramPlane size={22} />
           </a>
 
           <a
             href={`mailto:?subject=${encodedTitle}&body=${encodedURL}`}
-            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            className="hover:bg-white/10 p-2 rounded-full transition-colors"
             title={t("email")}
             aria-label={t("email")}
           >
-            <FaEnvelope size={20} />
+            <FaEnvelope size={22} />
           </a>
 
           <button
             onClick={handleCopy}
-            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            className="hover:bg-white/10 p-2 rounded-full transition-colors relative"
             title={t("copyLink")}
             aria-label={t("copyLink")}
           >
-            <FaLink size={20} />
+            <FaLink size={22} />
+            {copied && (
+              <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold bg-white text-red-600 px-2 py-0.5 rounded shadow">
+                OK
+              </span>
+            )}
           </button>
 
           {/* Imprimir (mobile) */}
           <button
             onClick={handlePrint}
-            className="bg-white border border-red-500 text-red-600 p-2 rounded"
+            className="hover:bg-white/10 p-2 rounded-full transition-colors"
             title={t("printTooltip")}
             aria-label={t("printAria")}
           >
-            <FaPrint size={20} />
+            <FaPrint size={22} />
           </button>
+
           {isAdmin && articleId != null && (
             <Link
               href={`/dashboard/articles/edit/${articleId}`}
-              className="bg-white border border-red-500 text-red-600 p-2 rounded"
+              className="hover:bg-white/10 p-2 rounded-full transition-colors"
               title="Editar artículo"
               aria-label="Editar artículo"
             >
-              <FaEdit size={20} />
+              <FaEdit size={22} />
             </Link>
           )}
         </div>

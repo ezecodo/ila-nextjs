@@ -18,6 +18,10 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
   const [showModal, setShowModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const modalRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // 🔥 DETECCIÓN DE ESTILO: Para saber si estamos en la barra roja nueva
+  const isIconVariant = variant === "icon";
 
   useEffect(() => {
     setMounted(true);
@@ -27,7 +31,7 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
     const fetchData = async () => {
       try {
         const res = await fetch(
-          `/api/articles/favorites?articleId=${articleId}&checkUser=true`
+          `/api/articles/favorites?articleId=${articleId}&checkUser=true`,
         );
         const data = await res.json();
         setFavorites(data.count || 0);
@@ -75,8 +79,8 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
     variant === "shareBar"
       ? "bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition flex items-center justify-center leading-none"
       : variant === "icon"
-        ? "bg-transparent p-0 m-0 border-0 flex items-center justify-center leading-none"
-        : "bg-transparent p-1 transition-transform hover:scale-110 flex items-center justify-center leading-none";
+        ? "p-0 m-0 border-0 flex items-center justify-center leading-none text-white hover:text-white/70 transition-all duration-300"
+        : "text-red-600 p-1.5 flex items-center justify-center leading-none transition-all duration-300";
 
   const modalContent = (
     <div
@@ -196,24 +200,34 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
       >
         <button
           onClick={toggleFavorite}
-          className={`${buttonClass} ${clicked ? "animate-ping-once" : ""} ${
-            isFavorited ? "text-red-600 bg-red-50" : "text-red-600"
-          }`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={`${buttonClass} ${clicked ? "animate-ping-once" : ""}`}
           aria-label={
             isFavorited ? "Quitar de favoritos" : "Añadir a favoritos"
           }
           title={isFavorited ? "Quitar de favoritos" : "Añadir a favoritos"}
           aria-pressed={isFavorited}
         >
-          {isFavorited ? (
-            <FaBookmark size={20} className="text-red-600" />
+          {isFavorited || isHovered ? (
+            <FaBookmark size={20} className="text-current transition-colors" />
           ) : (
-            <FaRegBookmark size={20} className="text-red-600" />
+            <FaRegBookmark
+              size={20}
+              className="text-current transition-colors"
+            />
           )}
         </button>
 
+        {/* BADGE DEL CONTADOR */}
         {showTooltip && favorites > 0 && (
-          <div className="absolute -top-2 left-4 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-md z-10">
+          <div
+            className={`absolute -top-2 left-4 shadow-md z-10 transition-transform ${
+              isIconVariant
+                ? "bg-white text-red-600" // 🔥 Badge Blanco/Rojo para fondo Rojo
+                : "bg-red-500 text-white" // Badge Rojo/Blanco para fondo Blanco
+            } text-[10px] px-1.5 py-0.5 rounded-full`}
+          >
             {favorites}
           </div>
         )}
