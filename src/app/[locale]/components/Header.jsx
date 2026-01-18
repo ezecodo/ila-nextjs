@@ -141,21 +141,21 @@ export default function Header() {
     >
       {/* --- BARRA NEGRA SUPERIOR (Ancho total de pantalla) --- */}
       {/* --- BARRA NEGRA SUPERIOR (Minimalismo Total) --- */}
-      <div className="hidden md:flex w-full bg-[#d63031] text-white py-1 px-4 justify-center border-b border-white/20">
+      <div className="hidden md:flex w-full bg-white text-gray-900 py-0.2 px-4 justify-center border-b border-gray-100 shadow-sm">
         <div className="w-full max-w-[1400px] flex justify-end items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
           <div className="flex items-center gap-4">
-            {/* Saludo de usuario (Solo si hay sesión) */}
+            {/* Saludo de usuario: Ahora en gris oscuro para que sea sutil */}
             {session && (
               <span
-                className="hidden sm:inline text-[10px] opacity-70 lowercase font-normal border-r border-white/20 pr-4"
+                className="hidden sm:inline text-[10px] text-gray-500 lowercase font-normal border-r border-gray-200 pr-4"
                 title={t("user_profile")}
               >
                 {t("greeting", { name: session.user?.name || "Usuario" })}
               </span>
             )}
 
-            {/* Switcher de Idioma Dinámico */}
-            <div className="text-[11px] font-bold hover:text-red-500 transition-colors cursor-pointer">
+            {/* Switcher de Idioma: Texto negro, hover en rojo ILA */}
+            <div className="text-[11px] font-black text-gray-900 hover:text-[#e60000] transition-colors cursor-pointer">
               {locale === "es" ? (
                 <button
                   onClick={() => handleLocaleSwitch("de")}
@@ -173,25 +173,25 @@ export default function Header() {
               )}
             </div>
 
-            {/* Toggle Dark Mode con Icono */}
+            {/* Toggle Dark Mode: Icono en negro (o amarillo si es sol) */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-1.5 rounded-full hover:bg-white/10 transition-all"
+              className="p-1.5 rounded-full hover:bg-gray-100 transition-all"
               title={darkMode ? t("switch_light") : t("switch_dark")}
             >
               {darkMode ? (
-                <FaSun className="text-yellow-400" size={16} />
+                <FaSun className="text-yellow-500" size={16} />
               ) : (
-                <FaMoon className="text-gray-300" size={14} />
+                <FaMoon className="text-gray-900" size={14} />
               )}
             </button>
 
-            {/* Acciones de Sesión (Dashboard y Login/Logout) */}
+            {/* Acciones de Sesión: Iconos en Negro Sólido */}
             <div className="flex items-center gap-1">
               {session && (
                 <Link href={dashboardRoute}>
                   <button
-                    className="p-1.5 rounded-full hover:bg-white/10 transition-all text-white"
+                    className="p-1.5 rounded-full hover:bg-gray-100 transition-all text-gray-900"
                     title={t("dashboard_access")}
                   >
                     <FaTachometerAlt size={14} />
@@ -201,7 +201,7 @@ export default function Header() {
 
               <button
                 onClick={() => (session ? handleSignOut() : signIn())}
-                className="p-1.5 rounded-full hover:bg-white/10 transition-all text-white"
+                className="p-1.5 rounded-full hover:bg-gray-100 transition-all text-gray-900"
                 title={session ? t("logout") : t("login")}
               >
                 {session ? (
