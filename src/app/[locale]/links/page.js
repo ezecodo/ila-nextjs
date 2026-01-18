@@ -5,8 +5,6 @@ import { useLocale } from "next-intl";
 import {
   FaInstagram,
   FaFacebookF,
-  FaTwitter,
-  FaYoutube,
   FaGlobe,
   FaNewspaper,
   FaCalendarAlt,
@@ -14,6 +12,9 @@ import {
   FaEnvelope,
   FaExternalLinkAlt,
 } from "react-icons/fa";
+
+import LatinAmericaBackground from "../components/LatinAmericaBackground/LatinAmericaBackground";
+import IlaLogo from "../components/IlaLogo/IlaLogo";
 
 const iconMap = {
   globe: <FaGlobe size={20} />,
@@ -23,8 +24,6 @@ const iconMap = {
   envelope: <FaEnvelope size={20} />,
   instagram: <FaInstagram size={20} />,
   facebook: <FaFacebookF size={20} />,
-  twitter: <FaTwitter size={20} />,
-  youtube: <FaYoutube size={20} />,
 };
 
 const categoryLabels = {
@@ -68,7 +67,6 @@ export default function LinksPage() {
     return iconMap[icon] || <FaExternalLinkAlt size={18} />;
   };
 
-  // Agrupar por categoría
   const groupedLinks = Array.isArray(links)
     ? links.reduce((acc, link) => {
         const cat = link.category || "general";
@@ -80,192 +78,170 @@ export default function LinksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-red-50 to-white flex items-center justify-center">
-        {/* Logo de carga */}
-        <div className="w-16 h-16 rounded-sm bg-red-600 flex items-center justify-center shadow-lg animate-pulse">
-          <span
-            className="text-3xl font-bold text-white"
-            style={{ fontFamily: "Futura, sans-serif" }}
-          >
-            ila
-          </span>
+      <div className="min-h-screen bg-[#e60000] flex items-center justify-center">
+        <div className="animate-pulse">
+          <IlaLogo size="default" variant="white-solid" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-50 via-white to-red-50/50 py-12 px-4 relative">
-      {/* Patrón sutil de fondo */}
-      <div className="fixed inset-0 pointer-events-none z-0 opacity-5">
-        <div className="absolute inset-0 bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]"></div>
-      </div>
+    <div className="min-h-screen bg-white dark:bg-gray-900 relative">
+      {/* --- HEADER IDENTICO AL MOBILE TOP --- */}
+      <div className="w-full flex items-center bg-[#e60000] text-white relative overflow-hidden h-14 z-50">
+        <LatinAmericaBackground variant="mobile" />
 
-      <div className="relative z-10 max-w-md mx-auto">
-        {/* Header con Logo */}
-        <div className="text-center mb-12 animate-[slideUp_0.6s_ease-out_forwards]">
-          <div className="relative mb-6 mx-auto w-fit">
-            {/* Logo ila */}
-            <div className="w-20 h-20 rounded-sm bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-200/50">
-              <span
-                className="text-4xl font-bold text-white"
-                style={{ fontFamily: "Futura, sans-serif" }}
-              >
-                ila
-              </span>
-            </div>
-            {/* Anillo decorativo */}
-            <div className="absolute -inset-4 border-2 border-red-200/30 rounded-lg animate-pulse"></div>
+        <div className="relative z-10 w-full h-full flex items-center justify-between">
+          {/* 1. LOGO (Mismo tamaño que el Header) */}
+          <div className="bg-[#e60000] w-16 h-full flex items-center justify-center flex-shrink-0">
+            <IlaLogo
+              size="default"
+              isLink={false}
+              variant="white-solid"
+              className="transform scale-90"
+            />
           </div>
 
-          <p className="text-sm text-red-800/70 font-medium tracking-wide">
-            {locale === "es"
-              ? "La revista de América Latina"
-              : "Das Lateinamerika-Magazin"}
-          </p>
-        </div>
+          {/* 2. TAGLINE (Mismo tamaño, clamp y desplazamiento) */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-16">
+            <span
+              className="futura text-[clamp(1.1rem,5.5vw,1.6rem)] font-bold text-white whitespace-nowrap leading-none tracking-tight text-center"
+              style={{ transform: "translateY(1px) translateX(13px)" }}
+            >
+              {locale === "es" ? (
+                <>
+                  La revista de Am
+                  <span
+                    style={{ position: "relative", display: "inline-block" }}
+                  >
+                    e
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        left: "0.24em",
+                        top: "0.12em",
+                        width: "0.17em",
+                        height: "0.08em",
+                        background: "#fff",
+                        borderRadius: "0.03em",
+                        transform: "rotate(-35deg)",
+                        zIndex: 2,
+                      }}
+                    />
+                  </span>
+                  rica Latina
+                </>
+              ) : (
+                "Das Lateinamerika-Magazin"
+              )}
+            </span>
+          </div>
 
-        {/* Links por categoría */}
-        <div className="space-y-8">
+          {/* 3. ESPACIADOR (Para mantener el equilibrio del flex) */}
+          <div className="w-16 h-full flex-shrink-0" />
+        </div>
+      </div>
+
+      {/* --- CONTENIDO DE LINKS --- */}
+      <div className="relative z-10 max-w-md mx-auto px-4 pt-10 pb-20">
+        <div className="space-y-10">
           {Object.entries(groupedLinks).map(
             ([category, categoryLinks], index) => (
               <div
                 key={category}
-                style={{
-                  animation: `slideUp 0.6s ease-out forwards ${index * 0.1}s`,
-                  opacity: 0,
-                }}
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
               >
-                {Object.keys(groupedLinks).length > 1 && (
-                  <h2 className="text-red-700/80 text-xs font-semibold uppercase tracking-wider mb-4 px-3 flex items-center">
-                    <span className="h-px flex-1 bg-red-200 mr-3"></span>
+                <h2 className="flex items-center gap-3 mb-5 px-1">
+                  <span className="text-[#e60000] text-xs font-black uppercase tracking-[0.3em]">
                     {locale === "es"
-                      ? categoryLabels[category]?.es || category
-                      : categoryLabels[category]?.de || category}
-                    <span className="h-px flex-1 bg-red-200 ml-3"></span>
-                  </h2>
-                )}
+                      ? categoryLabels[category]?.es
+                      : categoryLabels[category]?.de}
+                  </span>
+                  <span className="h-[1px] flex-1 bg-gray-200 dark:bg-gray-800"></span>
+                </h2>
+
                 <div className="space-y-3">
                   {categoryLinks.map((link) => (
                     <button
                       key={link.id}
                       onClick={() => handleClick(link)}
-                      className={`w-full group relative overflow-hidden rounded-xl transition-all duration-300 text-left ${
+                      className={`w-full group relative transition-all duration-200 text-left border flex items-center shadow-sm ${
                         link.isFeatured
-                          ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-200/50 hover:shadow-xl hover:scale-[1.02] ring-2 ring-red-500/30"
-                          : "bg-white text-gray-800 shadow-md shadow-red-100/30 hover:shadow-lg hover:scale-[1.01] border border-red-100 hover:border-red-200"
+                          ? "bg-[#e60000] border-[#e60000] text-white"
+                          : "bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-100 dark:border-gray-800"
                       }`}
                     >
-                      {link.isFeatured && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                      )}
-
-                      <div className="relative flex items-center gap-4 px-5 py-4">
+                      <div
+                        className={`w-14 h-14 flex-shrink-0 flex items-center justify-center border-r ${
+                          link.isFeatured
+                            ? "border-white/10"
+                            : "border-gray-100 dark:border-gray-800 text-[#e60000]"
+                        }`}
+                      >
                         {link.imageUrl ? (
-                          <div className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden shadow-sm">
-                            <img
-                              src={link.imageUrl}
-                              alt={link.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
+                          <img
+                            src={link.imageUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <span
-                            className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                              link.isFeatured
-                                ? "bg-white/20 text-white"
-                                : "bg-red-100 text-red-600"
-                            }`}
-                          >
-                            {getIcon(link.icon)}
-                          </span>
+                          getIcon(link.icon)
                         )}
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium block leading-snug">
-                            {getTitle(link)}
-                          </span>
-                          {link.authorName && (
-                            <span
-                              className={`text-xs block mt-1 ${
-                                link.isFeatured
-                                  ? "text-red-400/70"
-                                  : "text-gray-400"
-                              }`}
-                            >
-                              {link.authorName}
-                            </span>
-                          )}
-                        </div>
-                        <FaExternalLinkAlt
-                          size={14}
-                          className={`flex-shrink-0 opacity-50 group-hover:opacity-100 transition-opacity ${
-                            link.isFeatured ? "text-red-400" : "text-white"
-                          }`}
-                        />
                       </div>
 
-                      {link.isFeatured && (
-                        <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg rounded-tr-xl shadow-sm">
-                          ⭐ {locale === "es" ? "Destacado" : "Empfohlen"}
-                        </div>
-                      )}
+                      <div className="flex-1 px-4 py-3 min-w-0">
+                        <span className="font-bold futura text-base uppercase leading-tight block truncate">
+                          {getTitle(link)}
+                        </span>
+                        {link.authorName && (
+                          <span
+                            className={`text-[10px] font-black uppercase tracking-widest mt-0.5 block ${
+                              link.isFeatured
+                                ? "text-white/70"
+                                : "text-gray-400"
+                            }`}
+                          >
+                            {link.authorName}
+                          </span>
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>
               </div>
-            )
+            ),
           )}
         </div>
 
-        {/* Redes sociales */}
-        <div className="mt-12 flex justify-center gap-5">
-          <a
-            href="https://www.instagram.com/ila_bonn/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50 hover:shadow-xl hover:scale-110 hover:from-red-600 hover:to-red-700 transition-all duration-300"
-          >
-            <FaInstagram size={20} />
-          </a>
+        {/* FOOTER */}
+        <div className="mt-16 text-center">
+          <div className="flex justify-center gap-8 mb-10">
+            <a
+              href="https://instagram.com/ila_bonn"
+              target="_blank"
+              className="text-gray-400 hover:text-[#e60000] transition-colors"
+            >
+              <FaInstagram size={24} />
+            </a>
+            <a
+              href="https://facebook.com/ila.web"
+              target="_blank"
+              className="text-gray-400 hover:text-[#e60000] transition-colors"
+            >
+              <FaFacebookF size={22} />
+            </a>
+          </div>
 
-          <a
-            href="https://www.facebook.com/ila.web"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50 hover:shadow-xl hover:scale-110 hover:from-red-600 hover:to-red-700 transition-all duration-300"
-          >
-            <FaFacebookF size={18} />
-          </a>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-12 text-center">
           <a
             href={`/${locale}`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-white text-red-700 font-medium text-sm shadow-md shadow-red-100/30 hover:shadow-lg hover:gap-3 hover:bg-red-50 border border-red-100 transition-all duration-300"
+            className="inline-block w-full py-4 bg-black text-white font-black futura text-sm tracking-[0.2em] hover:bg-[#e60000] transition-all"
           >
-            <span>&larr;</span>
-            {locale === "es" ? "Visitar sitio web" : "Zur Webseite"}
+            {locale === "es" ? "VOLVER A LA WEB" : "ZUR WEBSEITE"}
           </a>
         </div>
-
-        <div className="mt-8 text-center text-red-400/60 text-xs font-medium tracking-wide">
-          ila-web.de/links
-        </div>
       </div>
-
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

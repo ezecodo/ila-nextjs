@@ -8,6 +8,8 @@ import Link from "next/link";
 import ArticleSelector from "../components/ArticleSelector/ArticleSelector";
 import EditionSelector from "../components/EditionSelector/EditionSelector";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
+import LatinAmericaBackground from "../../components/LatinAmericaBackground/LatinAmericaBackground";
+import IlaLogo from "../../components/IlaLogo/IlaLogo";
 import {
   FaEdit,
   FaTrash,
@@ -157,7 +159,7 @@ export default function LinksPage() {
       if (res.ok) {
         const updated = await res.json();
         setLinks((prev) =>
-          prev.map((l) => (l.id === id ? { ...l, ...updated } : l))
+          prev.map((l) => (l.id === id ? { ...l, ...updated } : l)),
         );
         setEditingId(null);
         setEditForm({});
@@ -207,8 +209,8 @@ export default function LinksPage() {
       if (res.ok) {
         setLinks((prev) =>
           prev.map((l) =>
-            l.id === link.id ? { ...l, isActive: !l.isActive } : l
-          )
+            l.id === link.id ? { ...l, isActive: !l.isActive } : l,
+          ),
         );
       }
     } catch (err) {
@@ -227,8 +229,8 @@ export default function LinksPage() {
       if (res.ok) {
         setLinks((prev) =>
           prev.map((l) =>
-            l.id === link.id ? { ...l, isFeatured: !l.isFeatured } : l
-          )
+            l.id === link.id ? { ...l, isFeatured: !l.isFeatured } : l,
+          ),
         );
       }
     } catch (err) {
@@ -425,65 +427,43 @@ export default function LinksPage() {
   const NormalLinkPreview = ({ link }) => {
     return (
       <div
-        className={`w-full group relative overflow-hidden rounded-xl transition-all duration-300 text-left ${
+        className={`w-full group relative transition-all duration-200 text-left border flex items-center shadow-sm ${
           link.isFeatured
-            ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg shadow-red-200/50 ring-2 ring-red-500/30"
-            : "bg-white text-gray-800 shadow-md shadow-red-100/30 border border-red-100"
+            ? "bg-[#e60000] border-[#e60000] text-white"
+            : "bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-100 dark:border-gray-800"
         }`}
       >
-        {link.isFeatured && (
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-        )}
-
-        <div className="relative flex items-center gap-3 px-4 py-3">
+        <div
+          className={`w-10 h-10 flex-shrink-0 flex items-center justify-center border-r ${
+            link.isFeatured
+              ? "border-white/10"
+              : "border-gray-100 dark:border-gray-800 text-[#e60000]"
+          }`}
+        >
           {link.imageUrl ? (
-            <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden shadow-sm">
-              <img
-                src={link.imageUrl}
-                alt={link.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <img
+              src={link.imageUrl}
+              alt=""
+              className="w-full h-full object-cover"
+            />
           ) : (
+            <div className="scale-75">{getIcon(link.icon)}</div>
+          )}
+        </div>
+        <div className="flex-1 px-3 py-2 min-w-0">
+          <span className="font-bold futura text-[11px] uppercase leading-tight block truncate">
+            {getPreviewTitle(link)}
+          </span>
+          {link.authorName && (
             <span
-              className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                link.isFeatured
-                  ? "bg-white/20 text-white"
-                  : "bg-red-100 text-red-600"
+              className={`text-[8px] font-black uppercase tracking-widest block mt-0.5 ${
+                link.isFeatured ? "text-white/70" : "text-gray-400"
               }`}
             >
-              <div className="scale-75 origin-center">{getIcon(link.icon)}</div>
+              {link.authorName}
             </span>
           )}
-
-          <div className="flex-1 min-w-0">
-            <span className="text-sm font-medium block leading-tight truncate">
-              {getPreviewTitle(link)}
-            </span>
-            {link.authorName && (
-              <span
-                className={`text-[10px] block mt-0.5 truncate ${
-                  link.isFeatured ? "text-red-100" : "text-gray-400"
-                }`}
-              >
-                {link.authorName}
-              </span>
-            )}
-          </div>
-
-          <FaExternalLinkAlt
-            size={12}
-            className={`flex-shrink-0 opacity-50 ${
-              link.isFeatured ? "text-red-200" : "text-gray-400"
-            }`}
-          />
         </div>
-
-        {link.isFeatured && link.linkType !== "edition" && (
-          <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-xl shadow-sm">
-            ⭐
-          </div>
-        )}
       </div>
     );
   };
@@ -1098,7 +1078,7 @@ export default function LinksPage() {
                             : link.linkType === "article"
                               ? "Artículo"
                               : categoryOptions.find(
-                                  (c) => c.value === link.category
+                                  (c) => c.value === link.category,
                                 )?.label || "General"}
                         </span>
                       </td>
@@ -1179,149 +1159,141 @@ export default function LinksPage() {
           </div>
         </div>
 
-        {/* ===== COLUMNA DERECHA: Preview Móvil ===== */}
-        <div className="lg:w-[380px] flex-shrink-0">
-          <div className="sticky top-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Vista Previa
-              </h2>
-              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+        {/* ===== COLUMNA DERECHA: Preview (Mockup) ===== */}
+        <div className="lg:w-80 flex-shrink-0">
+          <div className="sticky top-8">
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <FaEye className="text-red-600" /> Vista previa
+            </h2>
+
+            {/* MOCKUP DEL CELULAR */}
+            <div className="relative mx-auto w-full max-w-[320px] h-[600px] bg-white dark:bg-gray-900 border-[8px] border-gray-800 rounded-[2.5rem] shadow-2xl overflow-hidden ring-4 ring-gray-700/20">
+              {/* Sensor de cámara del mockup */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-2xl z-[60]" />
+
+              {/* HEADER IDENTICO AL SCREENSHOT 1 (SIN MENU) */}
+              <div className="w-full flex items-center bg-[#e60000] text-white relative overflow-hidden h-14 z-50">
+                {/* Fondo de países con opacidad suave */}
+                <LatinAmericaBackground variant="mobile" />
+
+                {/* Contenedor principal con padding-top para esquivar el notch del mockup */}
+                {/* HEADER IDENTICO AL SCREENSHOT 1 (AJUSTADO: Logo más abajo, Tagline más pequeño) */}
+                <div className="w-full flex items-center bg-[#e60000] text-white relative overflow-hidden h-16 z-50">
+                  {/* Fondo de países con opacidad suave */}
+                  <div className="absolute inset-0 opacity-20">
+                    <LatinAmericaBackground variant="mobile" />
+                  </div>
+
+                  {/* Sensor de cámara del mockup */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-2xl z-[70]" />
+
+                  {/* Contenedor principal 
+      pt-3: Baja el contenido (logo y tagline) para que no pegue al notch 
+  */}
+                  <div className="relative z-10 w-full h-full flex items-center justify-between pt-4 pb-1">
+                    {/* 1. LOGO IZQUIERDA: Le agregamos ml-2 para empujarlo a la derecha */}
+                    <div className="bg-[#e60000] w-14 h-full flex items-center justify-center z-20 flex-shrink-0 ml-1">
+                      <IlaLogo
+                        size="default"
+                        isLink={false}
+                        variant="white-solid"
+                        className="transform scale-90 translate-x-1"
+                      />
+                    </div>
+
+                    {/* 2. TAGLINE: Manteniendo el tamaño potente que definimos */}
+                    <div className="absolute inset-0 flex items-center justify-center pt-4 pointer-events-none px-12 z-10">
+                      <span
+                        className="futura text-[17px] font-bold text-white whitespace-nowrap leading-none tracking-tighter text-center"
+                        style={{
+                          fontFamily: "'Futura', sans-serif",
+                          transform: "translateX(12px)", // Ajustamos esto si el logo lo "empuja" visualmente
+                        }}
+                      >
+                        {previewLocale === "es" ? (
+                          <>
+                            La revista de Am
+                            <span
+                              style={{
+                                position: "relative",
+                                display: "inline-block",
+                              }}
+                            >
+                              e
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  position: "absolute",
+                                  left: "0.24em",
+                                  top: "0.12em",
+                                  width: "0.17em",
+                                  height: "0.08em",
+                                  background: "#fff",
+                                  borderRadius: "0.03em",
+                                  transform: "rotate(-35deg)",
+                                  zIndex: 2,
+                                }}
+                              />
+                            </span>
+                            rica Latina
+                          </>
+                        ) : (
+                          "Das Lateinamerika-Magazin"
+                        )}
+                      </span>
+                    </div>
+
+                    {/* 3. ESPACIADOR DERECHA (Equilibrio visual) */}
+                    <div className="w-10 h-full flex-shrink-0 z-20" />
+                  </div>
+                </div>
+              </div>
+
+              {/* CONTENIDO SCROLLABLE */}
+              <div className="h-full overflow-y-auto pb-20 bg-white dark:bg-gray-950">
+                <div className="p-4 pt-6 space-y-6">
+                  {Object.entries(groupedLinks).map(
+                    ([category, categoryLinks]) => (
+                      <div key={category}>
+                        <h3 className="flex items-center gap-2 mb-3">
+                          <span className="text-[#e60000] text-[9px] font-black uppercase tracking-[0.2em]">
+                            {previewLocale === "es"
+                              ? categoryLabels[category]?.es
+                              : categoryLabels[category]?.de}
+                          </span>
+                          <span className="h-[1px] flex-1 bg-gray-100 dark:bg-gray-800"></span>
+                        </h3>
+                        <div className="space-y-2">
+                          {categoryLinks.map((link) =>
+                            link.linkType === "edition" ? (
+                              <EditionLinkPreview key={link.id} link={link} />
+                            ) : (
+                              <NormalLinkPreview key={link.id} link={link} />
+                            ),
+                          )}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+
+              {/* Botón Switch de Idioma en el Preview */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex bg-gray-100 dark:bg-gray-800 rounded-full p-1 shadow-lg z-50">
                 <button
                   onClick={() => setPreviewLocale("de")}
-                  className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                    previewLocale === "de"
-                      ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
-                      : "text-gray-600 dark:text-gray-400"
-                  }`}
+                  className={`px-3 py-1 text-[10px] font-bold rounded-full transition-colors ${previewLocale === "de" ? "bg-red-600 text-white" : "text-gray-500"}`}
                 >
                   DE
                 </button>
                 <button
                   onClick={() => setPreviewLocale("es")}
-                  className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                    previewLocale === "es"
-                      ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm"
-                      : "text-gray-600 dark:text-gray-400"
-                  }`}
+                  className={`px-3 py-1 text-[10px] font-bold rounded-full transition-colors ${previewLocale === "es" ? "bg-red-600 text-white" : "text-gray-500"}`}
                 >
                   ES
                 </button>
               </div>
             </div>
-
-            {/* Mockup del iPhone */}
-            <div className="relative mx-auto w-[320px]">
-              <div className="relative bg-gray-900 rounded-[3rem] p-3 shadow-2xl border border-gray-800">
-                {/* Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-gray-900 rounded-b-2xl z-10" />
-
-                {/* Pantalla */}
-                <div className="relative bg-gradient-to-b from-red-50 via-white to-red-50/50 rounded-[2.5rem] overflow-hidden h-[640px]">
-                  {/* Status bar */}
-                  <div className="h-8 flex items-end justify-center pb-1 z-20 relative bg-white/50 backdrop-blur-sm">
-                    <div className="w-20 h-1 bg-gray-300 rounded-full" />
-                  </div>
-
-                  {/* Patrón sutil de fondo */}
-                  <div className="absolute inset-0 pointer-events-none z-0 opacity-5 top-8">
-                    <div className="w-full h-full bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]"></div>
-                  </div>
-
-                  {/* Contenido scrolleable */}
-                  <div className="h-[610px] overflow-y-auto px-4 pb-8 relative z-10">
-                    {/* Header con Logo */}
-                    <div className="text-center mb-8 mt-4">
-                      <div className="relative mb-4 mx-auto w-fit">
-                        <div className="w-16 h-16 rounded-sm bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center shadow-lg shadow-red-200/50">
-                          <span
-                            className="text-3xl font-bold text-white"
-                            style={{ fontFamily: "Futura, sans-serif" }}
-                          >
-                            ila
-                          </span>
-                        </div>
-                        <div className="absolute -inset-3 border-2 border-red-200/30 rounded-lg animate-pulse"></div>
-                      </div>
-                      <p className="text-xs text-red-800/70 font-medium tracking-wide">
-                        {previewLocale === "es"
-                          ? "La revista de América Latina"
-                          : "Das Lateinamerika-Magazin"}
-                      </p>
-                    </div>
-
-                    {/* Links por categoría */}
-                    <div className="space-y-6">
-                      {Object.entries(groupedLinks).map(
-                        ([category, categoryLinks], index) => (
-                          <div
-                            key={category}
-                            style={{
-                              animation: `slideUp 0.6s ease-out forwards ${index * 0.1}s`,
-                              opacity: 0,
-                            }}
-                          >
-                            {Object.keys(groupedLinks).length > 1 && (
-                              <h2 className="text-red-700/80 text-[10px] font-semibold uppercase tracking-wider mb-3 px-2 flex items-center">
-                                <span className="h-px flex-1 bg-red-200 mr-2"></span>
-                                {previewLocale === "es"
-                                  ? categoryLabels[category]?.es || category
-                                  : categoryLabels[category]?.de || category}
-                                <span className="h-px flex-1 bg-red-200 ml-2"></span>
-                              </h2>
-                            )}
-                            <div className="space-y-3">
-                              {categoryLinks.map((link) => (
-                                <div key={link.id}>
-                                  {link.linkType === "edition" ? (
-                                    <EditionLinkPreview link={link} />
-                                  ) : (
-                                    <NormalLinkPreview link={link} />
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      )}
-
-                      {activeLinks.length === 0 && (
-                        <div className="text-center py-8 text-red-300 text-sm">
-                          No hay links activos
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Redes sociales */}
-                    <div className="mt-8 flex justify-center gap-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50">
-                        <FaInstagram size={16} />
-                      </div>
-                      <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-red-200/50">
-                        <FaFacebookF size={14} />
-                      </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="mt-8 flex justify-center pb-4">
-                      <div className="px-4 py-2 rounded-lg bg-white text-red-700 font-medium text-xs shadow-md shadow-red-100/30 border border-red-100 flex items-center gap-2">
-                        <span>←</span>
-                        {previewLocale === "es"
-                          ? "Visitar web"
-                          : "Zur Webseite"}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Home indicator */}
-                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-20 h-1 bg-gray-300 rounded-full z-20" />
-                </div>
-              </div>
-            </div>
-
-            <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-4">
-              Los cambios se reflejan en tiempo real
-            </p>
           </div>
         </div>
       </div>
