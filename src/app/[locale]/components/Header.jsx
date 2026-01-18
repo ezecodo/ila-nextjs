@@ -35,6 +35,7 @@ export default function Header() {
   const t = useTranslations("header");
 
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const [darkMode, setDarkMode] = useState(() => {
@@ -141,77 +142,98 @@ export default function Header() {
     >
       {/* --- BARRA NEGRA SUPERIOR (Ancho total de pantalla) --- */}
       {/* --- BARRA NEGRA SUPERIOR (Minimalismo Total) --- */}
-      <div className="hidden md:flex w-full bg-white text-gray-900 py-0.2 px-4 justify-center border-b border-gray-100 shadow-sm">
-        <div className="w-full max-w-[1400px] flex justify-end items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
-          <div className="flex items-center gap-4">
-            {/* Saludo de usuario: Ahora en gris oscuro para que sea sutil */}
-            {session && (
-              <span
-                className="hidden sm:inline text-[10px] text-gray-500 lowercase font-normal border-r border-gray-200 pr-4"
-                title={t("user_profile")}
-              >
-                {t("greeting", { name: session.user?.name || "Usuario" })}
-              </span>
-            )}
-
-            {/* Switcher de Idioma: Texto negro, hover en rojo ILA */}
-            <div className="text-[11px] font-black text-gray-900 hover:text-[#e60000] transition-colors cursor-pointer">
-              {locale === "es" ? (
-                <button
-                  onClick={() => handleLocaleSwitch("de")}
-                  title="Auf Deutsch umstellen"
-                >
-                  DE
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleLocaleSwitch("es")}
-                  title="Cambiar a Español"
-                >
-                  ES
-                </button>
-              )}
-            </div>
-
-            {/* Toggle Dark Mode: Icono en negro (o amarillo si es sol) */}
+      {/* --- BARRA BLANCA SUPERIOR (Minimalismo con Dropdown) --- */}
+      <div className="hidden md:flex w-full bg-white text-gray-900 h-6 items-center justify-center border-b border-gray-100 shadow-sm overflow-visible font-sans">
+        <div className="w-full max-w-[1400px] flex justify-end items-center gap-5 px-4 h-full">
+          {/* IDIOMA */}
+          <div className="text-[10px] font-black text-gray-900 h-full flex items-center">
             <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-1.5 rounded-full hover:bg-gray-100 transition-all"
-              title={darkMode ? t("switch_light") : t("switch_dark")}
+              onClick={() => handleLocaleSwitch(locale === "es" ? "de" : "es")}
+              className="futura hover:text-[#e60000] transition-colors leading-none"
+              title={
+                locale === "es" ? "Auf Deutsch umstellen" : "Cambiar a Español"
+              }
             >
-              {darkMode ? (
-                <FaSun className="text-yellow-500" size={16} />
-              ) : (
-                <FaMoon className="text-gray-900" size={14} />
-              )}
+              {locale === "es" ? "DE" : "ES"}
             </button>
-
-            {/* Acciones de Sesión: Iconos en Negro Sólido */}
-            <div className="flex items-center gap-1">
-              {session && (
-                <Link href={dashboardRoute}>
-                  <button
-                    className="p-1.5 rounded-full hover:bg-gray-100 transition-all text-gray-900"
-                    title={t("dashboard_access")}
-                  >
-                    <FaTachometerAlt size={14} />
-                  </button>
-                </Link>
-              )}
-
-              <button
-                onClick={() => (session ? handleSignOut() : signIn())}
-                className="p-1.5 rounded-full hover:bg-gray-100 transition-all text-gray-900"
-                title={session ? t("logout") : t("login")}
-              >
-                {session ? (
-                  <FaSignOutAlt size={14} />
-                ) : (
-                  <FaSignInAlt size={14} />
-                )}
-              </button>
-            </div>
           </div>
+
+          {/* DARK MODE */}
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="text-gray-900 hover:text-[#e60000] transition-all flex items-center justify-center"
+            title={darkMode ? t("switch_light") : t("switch_dark")}
+          >
+            {darkMode ? (
+              <FaSun size={12} className="text-yellow-500" />
+            ) : (
+              <FaMoon size={11} />
+            )}
+          </button>
+
+          {/* USUARIO + DROPDOWN (Solo si hay sesión) */}
+          {session ? (
+            <div
+              className="relative h-full flex items-center"
+              onMouseEnter={() => setShowUserMenu(true)}
+              onMouseLeave={() => setShowUserMenu(false)}
+            >
+              {/* Botón que activa el menú (Tu Saludo) */}
+              <div className="text-[10px] text-gray-900 font-bold border-l border-gray-100 pl-4 h-4 flex items-center cursor-pointer hover:text-[#e60000] transition-colors gap-1.5">
+                <span className="futura tracking-tight">
+                  <span className="capitalize">
+                    {locale === "es" ? "hola" : "hallo"}
+                  </span>
+                  <span className="ml-1 font-medium italic">
+                    {session.user?.name || "User"}
+                  </span>
+                </span>
+                {/* Flechita sutil */}
+                <svg
+                  className={`w-2 h-2 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+
+              {/* EL DROPDOWN: Dashboard y Logout ocultos aquí */}
+              {showUserMenu && (
+                <div className="absolute top-full right-0 w-40 bg-white border border-gray-100 shadow-xl z-[100] py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                  <Link
+                    href={dashboardRoute}
+                    className="flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-gray-700 hover:bg-gray-50 hover:text-[#e60000] transition-colors"
+                  >
+                    <FaTachometerAlt size={12} />
+                    {t("dashboard_access")}
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-red-600 hover:bg-red-50 transition-colors border-t border-gray-50"
+                  >
+                    <FaSignOutAlt size={12} />
+                    {t("logout")}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Login simple si no hay sesión */
+            <button
+              onClick={() => signIn()}
+              className="text-[10px] font-bold futura hover:text-[#e60000] transition-colors border-l border-gray-100 pl-4 h-4 flex items-center"
+            >
+              <FaSignInAlt size={11} className="mr-2" />
+              {t("login")}
+            </button>
+          )}
         </div>
       </div>
 

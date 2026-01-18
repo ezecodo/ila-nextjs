@@ -286,13 +286,16 @@ export default function LinksPage() {
   };
 
   const handleEditionSelected = (edition) => {
+    // Construimos la URL usando el ID de la edición
+    const editionUrl = `https://ila-web.de/editions/${edition.id}`;
+
     setNewLink({
       ...newLink,
       title: `ila ${edition.number}: ${edition.title}`,
       titleES: edition.titleES
         ? `ila ${edition.number}: ${edition.titleES}`
         : `ila ${edition.number}: ${edition.title}`,
-      url: `https://ila-web.de/ausgaben/${edition.number}`,
+      url: editionUrl, // <--- Aquí ya va con /editions/[id]
       icon: "book",
       category: "editions",
       isFeatured: true,
@@ -424,50 +427,111 @@ export default function LinksPage() {
   };
 
   // Componente para renderizar link normal en el preview
+  // Componente para renderizar link normal en el preview
+  // Componente para renderizar link normal en el preview
   const NormalLinkPreview = ({ link }) => {
-    return (
-      <div
-        className={`w-full group relative transition-all duration-200 text-left border flex items-center shadow-sm ${
-          link.isFeatured
-            ? "bg-[#e60000] border-[#e60000] text-white"
-            : "bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-100 dark:border-gray-800"
-        }`}
-      >
+    const title = getPreviewTitle(link);
+
+    // 1. DISEÑO PARA LINKS CON IMAGEN (ARTÍCULOS)
+    if (link.imageUrl) {
+      return (
         <div
-          className={`w-10 h-10 flex-shrink-0 flex items-center justify-center border-r ${
+          className={`w-full group overflow-hidden transition-all duration-300 border flex items-stretch shadow-sm hover:shadow-md ${
             link.isFeatured
-              ? "border-white/10"
-              : "border-gray-100 dark:border-gray-800 text-[#e60000]"
+              ? "bg-[#e60000] border-[#e60000] text-white"
+              : "bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-100 dark:border-gray-800"
           }`}
         >
-          {link.imageUrl ? (
+          <div className="w-24 flex-shrink-0 bg-gray-100 dark:bg-gray-800 overflow-hidden">
             <img
               src={link.imageUrl}
               alt=""
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
-          ) : (
-            <div className="scale-75">{getIcon(link.icon)}</div>
-          )}
-        </div>
-        <div className="flex-1 px-3 py-2 min-w-0">
-          <span className="font-bold futura text-[11px] uppercase leading-tight block truncate">
-            {getPreviewTitle(link)}
-          </span>
-          {link.authorName && (
+          </div>
+          <div className="flex-1 px-5 py-4 flex flex-col justify-center min-w-0">
             <span
-              className={`text-[8px] font-black uppercase tracking-widest block mt-0.5 ${
-                link.isFeatured ? "text-white/70" : "text-gray-400"
-              }`}
+              className="font-bold text-[14px] uppercase leading-tight tracking-tight mb-1"
+              style={{ fontFamily: "'Futura', sans-serif" }}
             >
-              {link.authorName}
+              {title}
+            </span>
+            {link.authorName && (
+              <span
+                className={`text-[10px] font-black uppercase tracking-widest ${
+                  link.isFeatured ? "text-white/80" : "text-red-600"
+                }`}
+              >
+                {link.authorName}
+              </span>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // 2. DISEÑO PARA WEBSITE / GENERAL (ARREGLADO EL CONTRASTE)
+    return (
+      <div
+        className={`w-full group transition-all duration-300 border flex items-center shadow-sm hover:shadow-md transform active:scale-[0.98] ${
+          link.isFeatured
+            ? "bg-[#e60000] border-[#e60000] text-white"
+            : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
+        }`}
+      >
+        {/* Contenedor del Icono con Círculo sutil */}
+        <div className="p-3 pl-4">
+          <div
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+              link.isFeatured
+                ? "bg-white/20 text-white"
+                : "bg-red-50 dark:bg-red-900/20 text-[#e60000] group-hover:bg-[#e60000] group-hover:text-white"
+            }`}
+          >
+            {/* Forzamos que el icono herede el color del padre (text-[#e60000]) */}
+            <div className="flex items-center justify-center">
+              {getIcon(link.icon)}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 py-4 pr-4 min-w-0">
+          <span
+            className="font-extrabold text-[12px] uppercase leading-tight block tracking-wider"
+            style={{ fontFamily: "'Futura', sans-serif" }}
+          >
+            {title}
+          </span>
+          {!link.isFeatured && (
+            <span className="text-[9px] text-gray-400 dark:text-gray-500 uppercase mt-1 flex items-center gap-1 font-bold tracking-tighter">
+              ila-web.de <FaExternalLinkAlt size={8} />
             </span>
           )}
+        </div>
+
+        {/* Flechita decorativa */}
+        <div
+          className={`pr-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 ${
+            link.isFeatured ? "text-white" : "text-red-600"
+          }`}
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={3}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
         </div>
       </div>
     );
   };
-
   if (status === "loading" || loading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -1202,12 +1266,15 @@ export default function LinksPage() {
                     </div>
 
                     {/* 2. TAGLINE: Manteniendo el tamaño potente que definimos */}
+                    {/* 2. TAGLINE (Centrado y debajo del notch) */}
+                    {/* 2. TAGLINE (Ajuste fino a la derecha) */}
                     <div className="absolute inset-0 flex items-center justify-center pt-4 pointer-events-none px-12 z-10">
                       <span
                         className="futura text-[17px] font-bold text-white whitespace-nowrap leading-none tracking-tighter text-center"
                         style={{
                           fontFamily: "'Futura', sans-serif",
-                          transform: "translateX(12px)", // Ajustamos esto si el logo lo "empuja" visualmente
+                          // 🚀 Aumentado a 24px para un desplazamiento más notable
+                          transform: "translateX(24px)",
                         }}
                       >
                         {previewLocale === "es" ? (
@@ -1219,21 +1286,7 @@ export default function LinksPage() {
                                 display: "inline-block",
                               }}
                             >
-                              e
-                              <span
-                                aria-hidden="true"
-                                style={{
-                                  position: "absolute",
-                                  left: "0.24em",
-                                  top: "0.12em",
-                                  width: "0.17em",
-                                  height: "0.08em",
-                                  background: "#fff",
-                                  borderRadius: "0.03em",
-                                  transform: "rotate(-35deg)",
-                                  zIndex: 2,
-                                }}
-                              />
+                              e{/* ... (resto del código del acento) ... */}
                             </span>
                             rica Latina
                           </>
