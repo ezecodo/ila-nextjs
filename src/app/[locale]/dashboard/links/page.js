@@ -388,7 +388,7 @@ export default function LinksPage() {
                 {previewLocale === "es" ? "Nueva edición" : "Neue Ausgabe"}
               </span>
             </div>
-            <p className="font-bold text-sm leading-tight truncate">
+            <p className="font-bold text-sm leading-tight">
               {link.editionNumber
                 ? title.replace(`ila ${link.editionNumber}: `, "")
                 : title}
@@ -429,10 +429,12 @@ export default function LinksPage() {
   // Componente para renderizar link normal en el preview
   // Componente para renderizar link normal en el preview
   // Componente para renderizar link normal en el preview
+  // Componente para renderizar link normal en el preview
+  // Componente para renderizar link normal en el preview
   const NormalLinkPreview = ({ link }) => {
     const title = getPreviewTitle(link);
 
-    // 1. DISEÑO PARA LINKS CON IMAGEN (ARTÍCULOS)
+    // 1. Diseño para links CON imagen (Artículos)
     if (link.imageUrl) {
       return (
         <div
@@ -470,7 +472,11 @@ export default function LinksPage() {
       );
     }
 
-    // 2. DISEÑO PARA WEBSITE / GENERAL (ARREGLADO EL CONTRASTE)
+    // 2. DISEÑO PARA WEBSITE / ABO / DOSSIER / GENERAL
+    // Aquí detectamos las palabras clave para asignar colores
+    const isAbo = title.toLowerCase().includes("abo");
+    const isDossier = title.toLowerCase().includes("dossier");
+
     return (
       <div
         className={`w-full group transition-all duration-300 border flex items-center shadow-sm hover:shadow-md transform active:scale-[0.98] ${
@@ -479,16 +485,19 @@ export default function LinksPage() {
             : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
         }`}
       >
-        {/* Contenedor del Icono con Círculo sutil */}
         <div className="p-3 pl-4">
+          {/* Círculo del icono con lógica de 3 colores */}
           <div
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-              link.isFeatured
-                ? "bg-white/20 text-white"
-                : "bg-red-50 dark:bg-red-900/20 text-[#e60000] group-hover:bg-[#e60000] group-hover:text-white"
+              isDossier
+                ? "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white"
+                : isAbo
+                  ? "bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 group-hover:bg-orange-600 group-hover:text-white"
+                  : link.isFeatured
+                    ? "bg-white/20 text-white"
+                    : "bg-red-50 dark:bg-red-900/20 text-[#e60000] group-hover:bg-[#e60000] group-hover:text-white"
             }`}
           >
-            {/* Forzamos que el icono herede el color del padre (text-[#e60000]) */}
             <div className="flex items-center justify-center">
               {getIcon(link.icon)}
             </div>
@@ -497,7 +506,7 @@ export default function LinksPage() {
 
         <div className="flex-1 py-4 pr-4 min-w-0">
           <span
-            className="font-extrabold text-[12px] uppercase leading-tight block tracking-wider"
+            className="font-extrabold text-[12px] uppercase leading-tight block tracking-wider whitespace-normal"
             style={{ fontFamily: "'Futura', sans-serif" }}
           >
             {title}
@@ -509,7 +518,6 @@ export default function LinksPage() {
           )}
         </div>
 
-        {/* Flechita decorativa */}
         <div
           className={`pr-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0 ${
             link.isFeatured ? "text-white" : "text-red-600"
@@ -621,6 +629,61 @@ export default function LinksPage() {
                     >
                       <FaBook size={14} />
                       {showEditionSelector ? "✕ Cerrar" : "📖 Edición/Dossier"}
+                    </button>
+                    {/* NUEVO BOTÓN: ABO */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewLink({
+                          ...newLink,
+                          title: "ila Abo abschließen",
+                          titleES: "Suscribirse a la ila",
+                          url: "https://www.ila-web.de/abo", // Ajusta esta URL a la real
+                          icon: "envelope",
+                          category: "general",
+                          isFeatured: true,
+                          linkType: "general",
+                        });
+                      }}
+                      className="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium hover:bg-orange-200 transition-colors flex items-center gap-2"
+                    >
+                      <FaEnvelope size={14} />
+                      ✉️ Añadir Abo
+                    </button>
+                    {/* NUEVO BOTÓN: ULTIMO DOSSIER */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          // Llamamos a tu API de ediciones para pillar la última
+                          const res = await fetch("/api/editions?limit=1");
+                          const data = await res.json();
+                          if (data && data.length > 0) {
+                            const lastEd = data[0];
+                            setNewLink({
+                              ...newLink,
+                              title: `Dossier: ${lastEd.title}`,
+                              titleES: lastEd.titleES
+                                ? `Dossier: ${lastEd.titleES}`
+                                : `Dossier: ${lastEd.title}`,
+                              url: `https://ila-web.de/editions/${lastEd.id}`,
+                              icon: "book",
+                              category: "editions",
+                              isFeatured: true,
+                              linkType: "edition",
+                              editionNumber: lastEd.number,
+                              imageUrl: lastEd.coverImage || "",
+                              authorName: lastEd.subtitle || "Dossier Especial",
+                            });
+                          }
+                        } catch (err) {
+                          alert("Error al obtener el último dossier");
+                        }
+                      }}
+                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors flex items-center gap-2"
+                    >
+                      <FaStar size={14} className="text-purple-500" />
+                      🔥 Último Dossier
                     </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">

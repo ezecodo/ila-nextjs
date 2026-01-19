@@ -37,6 +37,7 @@ const categoryLabels = {
 
 // --- COMPONENTE 1: Tarjeta Estándar (Artículos, Web, Eventos) ---
 // --- COMPONENTE 1: Tarjeta Estándar (Artículos, Web, Eventos) ---
+// --- COMPONENTE 1: Tarjeta Estándar (Artículos, Web, Eventos) ---
 const StandardLinkCard = ({ link, onClick, locale }) => {
   const getTitle = () => {
     if (locale === "es" && link.titleES) return link.titleES;
@@ -47,6 +48,11 @@ const StandardLinkCard = ({ link, onClick, locale }) => {
     if (!link.icon) return <FaExternalLinkAlt size={18} />;
     return iconMap[link.icon] || <FaExternalLinkAlt size={18} />;
   };
+
+  // Detectamos si es un link de suscripción para el color naranja
+  const title = getTitle();
+  const isAbo = title.toLowerCase().includes("abo");
+  const isDossier = title.toLowerCase().includes("dossier"); // <--- Nueva detección
 
   return (
     <button
@@ -75,12 +81,16 @@ const StandardLinkCard = ({ link, onClick, locale }) => {
             loading="lazy"
           />
         ) : (
-          /* SOLUCIÓN AL ICONO INVISIBLE: Círculo de contraste */
+          /* Círculo con lógica de colores: Naranja para Abo, Rojo para el resto */
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-              link.isFeatured
-                ? "bg-white/20 text-white"
-                : "bg-red-50 dark:bg-red-900/30 text-[#e60000] group-hover:bg-[#e60000] group-hover:text-white"
+              isDossier
+                ? "bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white"
+                : isAbo
+                  ? "bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 group-hover:bg-orange-600 group-hover:text-white"
+                  : link.isFeatured
+                    ? "bg-white/20 text-white"
+                    : "bg-red-50 dark:bg-red-900/30 text-[#e60000] group-hover:bg-[#e60000] group-hover:text-white"
             }`}
           >
             {getIcon()}
@@ -96,29 +106,43 @@ const StandardLinkCard = ({ link, onClick, locale }) => {
           }`}
           style={{ fontFamily: "'Futura', sans-serif" }}
         >
-          {getTitle()}
+          {title}
         </span>
         {link.authorName ? (
           <span
-            className={`text-[9px] font-black uppercase tracking-widest block ${
-              link.isFeatured ? "text-white/70" : "text-red-600"
+            className={`text-[9px] font-black uppercase tracking-widest block whitespace-normal ${
+              link.isFeatured
+                ? "text-white/70"
+                : isDossier
+                  ? "text-purple-600"
+                  : isAbo
+                    ? "text-orange-600"
+                    : "text-red-600"
             }`}
           >
             {link.authorName}
           </span>
         ) : (
           !link.isFeatured && (
-            <span className="text-[8px] text-gray-400 uppercase font-bold flex items-center gap-1">
+            <span
+              className={`text-[8px] uppercase font-bold flex items-center gap-1 ${isAbo ? "text-orange-400" : "text-gray-400"}`}
+            >
               ila-web.de <FaExternalLinkAlt size={7} />
             </span>
           )
         )}
       </div>
 
-      {/* Flechita final para indicar clic */}
+      {/* Flechita final */}
       <div
         className={`flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-all ${
-          link.isFeatured ? "text-white" : "text-red-600"
+          link.isFeatured
+            ? "text-white"
+            : isDossier
+              ? "text-purple-600"
+              : isAbo
+                ? "text-orange-600"
+                : "text-red-600"
         }`}
       >
         <svg
@@ -138,7 +162,6 @@ const StandardLinkCard = ({ link, onClick, locale }) => {
     </button>
   );
 };
-
 // --- COMPONENTE 2: Tarjeta Especial para Ediciones (Imagen Vertical) ---
 const EditionLinkCard = ({ link, onClick, locale }) => {
   const getTitle = () => {
@@ -185,12 +208,14 @@ const EditionLinkCard = ({ link, onClick, locale }) => {
             </div>
           )}
 
-          <h3 className="font-bold text-lg leading-tight mb-1 line-clamp-2">
+          {/* Cambia el h3 por este (sin line-clamp) */}
+          <h3 className="font-bold text-lg leading-tight mb-1 whitespace-normal">
             {getTitle()}
           </h3>
 
+          {/* Cambia el p del autor por este (sin line-clamp) */}
           {link.authorName && (
-            <p className="text-sm text-red-100 font-medium line-clamp-1">
+            <p className="text-sm text-red-100 font-medium whitespace-normal">
               {link.authorName}
             </p>
           )}
