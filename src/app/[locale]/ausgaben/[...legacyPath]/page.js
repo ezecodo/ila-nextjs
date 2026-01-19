@@ -73,7 +73,7 @@ export default function LegacyArticlePage() {
     async function fetchArticle() {
       try {
         const res = await fetch(
-          `/api/articles/by-legacy-path?path=${encodeURIComponent(fullPath)}`
+          `/api/articles/by-legacy-path?path=${encodeURIComponent(fullPath)}`,
         );
         if (!res.ok) throw new Error("Artículo no encontrado");
         const data = await res.json();
@@ -148,7 +148,7 @@ export default function LegacyArticlePage() {
           !/[.!?]$/.test(inner);
 
         return isHeadingLike ? `<h3>${inner}</h3>` : m;
-      }
+      },
     );
   }
   function rewriteEditionLinksWithLocale(html, locale) {
@@ -157,25 +157,25 @@ export default function LegacyArticlePage() {
     // 1) Links con marcador explícito: <a data-ila="edition" data-id="123" href="/editions/123">
     html = html.replace(
       /<a([^>]*\sdata-ila="edition"[^>]*)\s+href="\/?editions\/(\d+)"([^>]*)>/gi,
-      (m, pre, id, post) => `<a${pre} href="/${locale}/editions/${id}"${post}>`
+      (m, pre, id, post) => `<a${pre} href="/${locale}/editions/${id}"${post}>`,
     );
 
     // 2) Cualquier href relativo tipo /editions/123
     html = html.replace(
       /href="\/editions\/(\d+)"/gi,
-      (_, id) => `href="/${locale}/editions/${id}"`
+      (_, id) => `href="/${locale}/editions/${id}"`,
     );
 
     // 3) Reparar los casos rotos tipo https://de/editions/123 o https://es/editions/123
     html = html.replace(
       /href="https?:\/\/(de|es)\/editions\/(\d+)"/gi,
-      (_, __, id) => `href="/${locale}/editions/${id}"`
+      (_, __, id) => `href="/${locale}/editions/${id}"`,
     );
 
     // 4) Reparar cualquier host absoluto (localhost, vercel, hetzner, etc.)
     html = html.replace(
       /href="https?:\/\/[^"]*\/editions\/(\d+)"/gi,
-      (_, id) => `href="/${locale}/editions/${id}"`
+      (_, id) => `href="/${locale}/editions/${id}"`,
     );
 
     return html;
@@ -304,7 +304,7 @@ export default function LegacyArticlePage() {
                     isES && article.previewTextES
                       ? article.previewTextES
                       : article.previewText,
-                    locale
+                    locale,
                   ),
                 }}
               />
@@ -555,26 +555,33 @@ export default function LegacyArticlePage() {
                     normalizeContentForRender(
                       isES && article.contentES
                         ? article.contentES
-                        : article.content
-                    )
-                  )
+                        : article.content,
+                    ),
+                  ),
                 ),
-                locale
+                locale,
               ),
             }}
           />
           {((isES && article.additionalInfoES) || article.additionalInfo) && (
-            <div
-              className="mt-6 text-base text-gray-700 dark:text-gray-300 [&_p]:mb-2"
-              dangerouslySetInnerHTML={{
-                __html: rewriteEditionLinksWithLocale(
-                  isES && article.additionalInfoES
-                    ? article.additionalInfoES
-                    : article.additionalInfo,
-                  locale
-                ),
-              }}
-            />
+            <div className="mt-8 mb-6 p-5 bg-gray-50 dark:bg-gray-800 border-l-4 border-red-600 rounded-r-lg shadow-sm">
+              <h4 className="text-sm uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-3">
+                {locale === "es"
+                  ? "Información adicional"
+                  : "Zusätzliche Informationen"}
+              </h4>
+              <div
+                className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 [&_p]:mb-2 [&_a]:text-blue-600 [&_a]:hover:underline"
+                dangerouslySetInnerHTML={{
+                  __html: rewriteEditionLinksWithLocale(
+                    isES && article.additionalInfoES
+                      ? article.additionalInfoES
+                      : article.additionalInfo,
+                    locale,
+                  ),
+                }}
+              />
+            </div>
           )}
           {/* 👇 Créditos de traducción al final del artículo */}
 
