@@ -10,14 +10,34 @@ export async function GET(req) {
         title: true,
         titleES: true,
         coverImage: true,
-        datePublished: true, // ✅ Este es el campo correcto
-        _count: {
-          select: { articles: true },
+        datePublished: true,
+        // Traer artículos para contarlos manualmente
+        articles: {
+          select: {
+            isTranslatedES: true,
+            needsReviewES: true,
+          },
         },
       },
     });
 
-    return new Response(JSON.stringify(editions), {
+    // Procesar para agregar el conteo de traducidos
+    const editionsWithCounts = editions.map((edition) => ({
+      id: edition.id,
+      number: edition.number,
+      title: edition.title,
+      titleES: edition.titleES,
+      coverImage: edition.coverImage,
+      datePublished: edition.datePublished,
+      _count: {
+        articles: edition.articles.length,
+        translatedArticles: edition.articles.filter(
+          (a) => a.isTranslatedES && !a.needsReviewES,
+        ).length,
+      },
+    }));
+
+    return new Response(JSON.stringify(editionsWithCounts), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

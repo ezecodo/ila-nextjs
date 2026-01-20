@@ -5,6 +5,7 @@ import { useLocale } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import IlaLoader from "../components/IlaLoader/IlaLoader";
+import IlaLogo from "../components/IlaLogo/IlaLogo";
 
 export default function ArchivePage() {
   const locale = useLocale();
@@ -91,12 +92,12 @@ export default function ArchivePage() {
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]" />
 
       <main className="relative z-10 max-w-5xl mx-auto px-4 md:pl-48 md:pr-6 py-8 md:py-16">
-        {/* --- CABECERA REFINADA (Estilo Editorial) --- */}
         {/* --- CABECERA MINIMALISTA --- */}
-        <header className="mb-16 relative z-10">
-          <h1 className="text-4xl md:text-5xl">
-            <span className="font-black futura text-gray-900">ila</span>{" "}
-            <span className="font-bold text-[#e60000]">Jahrgänge</span>
+        {/* --- CABECERA MINIMALISTA --- */}
+        <header className="mb-16 relative z-10 flex items-center gap-3">
+          <IlaLogo size="compact" variant="black-solid" isLink={false} />
+          <h1 className="text-4xl md:text-5xl font-bold text-[#e60000]">
+            Jahrgänge
           </h1>
         </header>
 
@@ -129,7 +130,7 @@ export default function ArchivePage() {
                         {year}
                       </span>
                       <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                        {editions.length} {isES ? "Ausgaben" : "Ediciones"}
+                        {editions.length} {isES ? "Ediciones" : "Dossiers"}
                       </span>
                     </div>
                     <svg
@@ -198,7 +199,8 @@ export default function ArchivePage() {
 
                               <div className="flex items-start gap-4 md:gap-5">
                                 {/* Portada */}
-                                <div className="flex-shrink-0 w-16 h-24 md:w-20 md:h-28 relative rounded overflow-hidden shadow-md transform group-hover:rotate-1 group-hover:scale-105 transition-all duration-300">
+                                {/* Portada MÁS GRANDE */}
+                                <div className="flex-shrink-0 w-24 h-36 md:w-28 md:h-40 relative rounded overflow-hidden shadow-md transform group-hover:rotate-1 group-hover:scale-105 transition-all duration-300">
                                   {edition.coverImage ? (
                                     <Image
                                       src={edition.coverImage}
@@ -228,14 +230,24 @@ export default function ArchivePage() {
                                       : edition.title}
                                   </h3>
 
-                                  {edition._count?.articles > 0 && (
-                                    <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wide">
-                                      {/* PUNTO VERDE AHORA */}
-                                      <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                      {edition._count.articles}{" "}
-                                      {isES ? "online" : "Artikel"}
-                                    </div>
-                                  )}
+                                  {/* Badges de artículos */}
+                                  <div className="flex flex-wrap gap-2">
+                                    {edition._count?.articles > 0 && (
+                                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wide">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                        {edition._count.articles}{" "}
+                                        {isES ? "artículos" : "Artikel"}
+                                      </div>
+                                    )}
+
+                                    {edition._count?.translatedArticles > 0 && (
+                                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-50 text-[10px] font-bold text-[#e60000] uppercase tracking-wide">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]"></span>
+                                        {edition._count.translatedArticles}{" "}
+                                        {isES ? "en español" : "auf Spanisch"}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
