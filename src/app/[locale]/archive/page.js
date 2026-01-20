@@ -36,7 +36,7 @@ export default function ArchivePage() {
         setEditionsByYear(grouped);
 
         const sortedYearsList = Object.keys(grouped).sort((a, b) => b - a);
-        const recent = sortedYearsList.slice(0, 3);
+        const recent = sortedYearsList.slice(0, 0);
         const initialExpanded = recent.reduce((acc, year) => {
           acc[year] = true;
           return acc;
@@ -52,10 +52,27 @@ export default function ArchivePage() {
   }, []);
 
   const toggleYear = (year) => {
-    setExpandedYears((prev) => ({
-      ...prev,
-      [year]: !prev[year],
-    }));
+    setExpandedYears((prev) => {
+      if (prev[year]) {
+        return {};
+      }
+      return { [year]: true };
+    });
+
+    // Scroll suave al botón del año
+    setTimeout(() => {
+      const yearElement = document.getElementById(`year-${year}`);
+      if (yearElement) {
+        const offset = 150; // 👈 Aumenté de 100 a 150
+        const elementPosition = yearElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+      }
+    }, 100);
   };
 
   if (loading) {
@@ -73,8 +90,16 @@ export default function ArchivePage() {
       {/* Patrón de fondo muy sutil */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]" />
 
-      {/* --- TIMELINE VERTICAL --- */}
       <main className="relative z-10 max-w-5xl mx-auto px-4 md:pl-48 md:pr-6 py-8 md:py-16">
+        {/* --- CABECERA REFINADA (Estilo Editorial) --- */}
+        {/* --- CABECERA MINIMALISTA --- */}
+        <header className="mb-16 relative z-10">
+          <h1 className="text-4xl md:text-5xl">
+            <span className="font-black futura text-gray-900">ila</span>{" "}
+            <span className="font-bold text-[#e60000]">Jahrgänge</span>
+          </h1>
+        </header>
+
         <div className="relative">
           {/* Línea vertical roja (Solo desktop) */}
           <div className="hidden md:block absolute left-12 top-0 bottom-0 w-1 bg-[#e60000]" />
@@ -88,9 +113,14 @@ export default function ArchivePage() {
                 {/* --- BOTÓN AÑO --- */}
                 <div className="flex items-center gap-4 mb-4 md:mb-8 relative z-20">
                   {/* Círculo en línea (Solo desktop) */}
-                  <div className="hidden md:block absolute left-12 w-6 h-6 -ml-3 bg-white border-4 border-[#e60000] rounded-full shadow-md" />
+                  <div
+                    className={`hidden md:block absolute left-12 w-6 h-6 -ml-3 rounded-full shadow-md border-4 border-[#e60000] transition-colors duration-300 ${
+                      isExpanded ? "bg-[#e60000]" : "bg-white"
+                    }`}
+                  />
 
                   <button
+                    id={`year-${year}`}
                     onClick={() => toggleYear(year)}
                     className="w-full md:w-auto md:ml-24 group flex items-center justify-between md:justify-start gap-3 bg-white px-6 py-3 rounded-xl md:rounded-full shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-[#e60000]"
                   >
@@ -200,7 +230,8 @@ export default function ArchivePage() {
 
                                   {edition._count?.articles > 0 && (
                                     <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wide">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]"></span>
+                                      {/* PUNTO VERDE AHORA */}
+                                      <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                       {edition._count.articles}{" "}
                                       {isES ? "online" : "Artikel"}
                                     </div>
