@@ -28,7 +28,7 @@ export default function Home() {
           {/* 🆕 Carruseles TOP (antes de ediciones) */}
           <CarouselFromDb placement="top" />
 
-          <div id="dossiers" className="scroll-mt-[120px] mt-2">
+          <div id="dossiers" className="scroll-mt-[120px] mt-6">
             <LatestEdition1 />
           </div>
 

@@ -5,18 +5,8 @@ import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import IlaLogo from "../IlaLogo/IlaLogo";
 
-export default function DonationBanner({
-  hideForRoles = ["admin", "editor", "reviewer", "translator"],
-}) {
+export default function DonationBanner() {
   const t = useTranslations("donation");
-  const { data: session, status } = useSession();
-
-  // ⏳ Evitar parpadeo mientras se resuelve la sesión
-  if (status === "loading") return null;
-
-  // 🔒 Ocultar a roles internos (por defecto: admin, editor, reviewer, translator)
-  const role = session?.user?.role;
-  if (role && hideForRoles.includes(role)) return null;
 
   const donateHref = "/donar";
 
