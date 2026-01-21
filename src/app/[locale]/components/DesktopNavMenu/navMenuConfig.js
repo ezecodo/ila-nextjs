@@ -20,7 +20,7 @@ export const navSections = [
   {
     labelKey: "contents",
     items: [
-      /*   { labelKey: "onlineOnly", href: "/contents/online-only" },*/
+      { labelKey: "onlineOnly", href: "/contents/online-only" },
       { labelKey: "archive", href: "/archive" },
     ],
   },

@@ -9,8 +9,13 @@ export async function GET(req: NextRequest) {
     const regionId = url.searchParams.get("regionId");
     const locale = url.searchParams.get("locale");
     const limit = parseInt(url.searchParams.get("limit") || "10");
+    const onlineOnly = url.searchParams.get("onlineOnly") === "true";
 
     const baseWhere: Prisma.ArticleWhereInput[] = [{ isPublished: true }];
+
+    if (onlineOnly) {
+      baseWhere.push({ editionId: null });
+    }
 
     if (locale === "es") {
       baseWhere.push({ isTranslatedES: true });
@@ -29,7 +34,7 @@ export async function GET(req: NextRequest) {
 
       const collectDescendantIds = (
         id: number,
-        regions: Region[]
+        regions: Region[],
       ): number[] => {
         const children = regions.filter((r) => r.parentId === id);
         return children.reduce<number[]>(
@@ -38,7 +43,7 @@ export async function GET(req: NextRequest) {
             child.id,
             ...collectDescendantIds(child.id, regions),
           ],
-          []
+          [],
         );
       };
 
@@ -64,8 +69,10 @@ export async function GET(req: NextRequest) {
         new Set(
           articlesInRegions
             .map((a: { beitragsId: number | null }) => a.beitragsId)
-            .filter((id: number | null): id is number => typeof id === "number")
-        )
+            .filter(
+              (id: number | null): id is number => typeof id === "number",
+            ),
+        ),
       );
 
       if (regionFilteredBeitragsIds.length === 0) {
@@ -114,7 +121,7 @@ export async function GET(req: NextRequest) {
         });
 
         return { ...article, images };
-      })
+      }),
     );
 
     return NextResponse.json({ articles: articlesWithImages });
@@ -122,7 +129,7 @@ export async function GET(req: NextRequest) {
     console.error("❌ Error final:", error);
     return NextResponse.json(
       { error: "Error en el servidor" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

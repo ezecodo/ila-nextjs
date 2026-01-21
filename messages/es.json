@@ -21,6 +21,11 @@
       "events": "Eventos"
     }
   },
+  "onlineOnly": {
+    "title": "Solo Online",
+    "description": "Artículos disponibles exclusivamente en línea",
+    "noArticlesFound": "No se encontraron artículos online"
+  },
   "search": {
     "placeholder": "buscar en ila...",
     "ariaLabel": "buscar en ila",
