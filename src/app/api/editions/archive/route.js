@@ -11,7 +11,8 @@ export async function GET(req) {
         titleES: true,
         coverImage: true,
         datePublished: true,
-        // Traer artículos para contarlos manualmente
+        summary: true, // 👈 Agregamos summary
+        summaryES: true, // 👈 Agregamos summaryES
         articles: {
           select: {
             isTranslatedES: true,
@@ -21,7 +22,6 @@ export async function GET(req) {
       },
     });
 
-    // Procesar para agregar el conteo de traducidos
     const editionsWithCounts = editions.map((edition) => ({
       id: edition.id,
       number: edition.number,
@@ -29,6 +29,8 @@ export async function GET(req) {
       titleES: edition.titleES,
       coverImage: edition.coverImage,
       datePublished: edition.datePublished,
+      summary: edition.summary, // 👈
+      summaryES: edition.summaryES, // 👈
       _count: {
         articles: edition.articles.length,
         translatedArticles: edition.articles.filter(

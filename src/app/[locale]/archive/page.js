@@ -64,7 +64,7 @@ export default function ArchivePage() {
     setTimeout(() => {
       const yearElement = document.getElementById(`year-${year}`);
       if (yearElement) {
-        const offset = 150; // 👈 Aumenté de 100 a 150
+        const offset = 150;
         const elementPosition = yearElement.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - offset;
 
@@ -91,19 +91,18 @@ export default function ArchivePage() {
       {/* Patrón de fondo muy sutil */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]" />
 
-      <main className="relative z-10 max-w-5xl mx-auto px-4 md:pl-48 md:pr-6 py-8 md:py-16">
+      <main className="relative z-10 max-w-6xl mx-auto pl-4 md:pl-12 pr-6 pt-2 md:pt-4 pb-8 md:pb-16">
         {/* --- CABECERA MINIMALISTA --- */}
-        {/* --- CABECERA MINIMALISTA --- */}
-        <header className="mb-16 relative z-10 flex items-center gap-3">
-          <IlaLogo size="compact" variant="black-solid" isLink={false} />
-          <h1 className="text-4xl md:text-5xl font-bold text-[#e60000]">
+        <header className="flex items-center gap-3 mb-0 pb-4 pl-4 border-l-4 border-[#e60000] relative ml-8 md:ml-28">
+          <IlaLogo size="mini" variant="black-solid" isLink={false} />
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Jahrgänge
           </h1>
         </header>
 
-        <div className="relative">
-          {/* Línea vertical roja (Solo desktop) */}
-          <div className="hidden md:block absolute left-12 top-0 bottom-0 w-1 bg-[#e60000]" />
+        <div className="relative ml-8 md:ml-16 pt-0">
+          {/* Línea vertical roja (Solo desktop) - CONECTADA */}
+          <div className="hidden md:block absolute left-[48px] top-0 bottom-0 w-1 bg-[#e60000]" />
 
           {years.map((year) => {
             const editions = editionsByYear[year];
@@ -113,9 +112,9 @@ export default function ArchivePage() {
               <div key={year} className="mb-8 md:mb-16 relative">
                 {/* --- BOTÓN AÑO --- */}
                 <div className="flex items-center gap-4 mb-4 md:mb-8 relative z-20">
-                  {/* Círculo en línea (Solo desktop) */}
+                  {/* Círculo en línea (Solo desktop) - CENTRADO EN LÍNEA */}
                   <div
-                    className={`hidden md:block absolute left-12 w-6 h-6 -ml-3 rounded-full shadow-md border-4 border-[#e60000] transition-colors duration-300 ${
+                    className={`hidden md:block absolute left-[48px] w-6 h-6 -ml-[11px] rounded-full shadow-md border-4 border-[#e60000] transition-colors duration-300 ${
                       isExpanded ? "bg-[#e60000]" : "bg-white"
                     }`}
                   />
@@ -123,7 +122,7 @@ export default function ArchivePage() {
                   <button
                     id={`year-${year}`}
                     onClick={() => toggleYear(year)}
-                    className="w-full md:w-auto md:ml-24 group flex items-center justify-between md:justify-start gap-3 bg-white px-6 py-3 rounded-xl md:rounded-full shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-[#e60000]"
+                    className="w-full md:w-auto md:ml-20 group flex items-center justify-between md:justify-start gap-3 bg-white px-6 py-3 rounded-xl md:rounded-full shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-[#e60000]"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl md:text-3xl font-black text-[#e60000] futura">
@@ -153,7 +152,7 @@ export default function ArchivePage() {
 
                 {/* --- EDICIONES --- */}
                 {isExpanded && (
-                  <div className="space-y-4 md:space-y-8 md:ml-24 md:pb-8">
+                  <div className="space-y-4 md:space-y-8 md:ml-20 md:pb-8">
                     {editions.map((edition) => {
                       const dateString = new Date(edition.datePublished)
                         .toLocaleDateString(isES ? "es-ES" : "de-DE", {
@@ -171,8 +170,8 @@ export default function ArchivePage() {
                             </span>
                           </div>
 
-                          {/* Punto de intersección (Solo desktop) */}
-                          <div className="hidden md:block absolute -left-[4.5rem] top-1/2 -translate-y-1/2 w-3 h-3 bg-[#e60000] rounded-full border-2 border-white shadow-sm" />
+                          {/* Punto de intersección (Solo desktop) - CONECTADO A LÍNEA */}
+                          <div className="hidden md:block absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-3 h-3 bg-[#e60000] rounded-full border-2 border-white shadow-sm" />
 
                           <Link
                             href={`/${locale}/editions/${edition.id}`}
@@ -199,7 +198,6 @@ export default function ArchivePage() {
 
                               <div className="flex items-start gap-4 md:gap-5">
                                 {/* Portada */}
-                                {/* Portada MÁS GRANDE */}
                                 <div className="flex-shrink-0 w-24 h-36 md:w-28 md:h-40 relative rounded overflow-hidden shadow-md transform group-hover:rotate-1 group-hover:scale-105 transition-all duration-300">
                                   {edition.coverImage ? (
                                     <Image
@@ -229,14 +227,29 @@ export default function ArchivePage() {
                                       ? edition.titleES
                                       : edition.title}
                                   </h3>
+                                  {/* Preview del editorial */}
+                                  {(isES
+                                    ? edition.summaryES
+                                    : edition.summary) && (
+                                    <div
+                                      className="text-xs text-gray-600 leading-relaxed mb-3 line-clamp-3"
+                                      dangerouslySetInnerHTML={{
+                                        __html: isES
+                                          ? edition.summaryES
+                                          : edition.summary,
+                                      }}
+                                    />
+                                  )}
 
                                   {/* Badges de artículos */}
                                   <div className="flex flex-wrap gap-2">
                                     {edition._count?.articles > 0 && (
-                                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wide">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-50 text-[10px] font-bold text-green-700 uppercase tracking-wide">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                         {edition._count.articles}{" "}
-                                        {isES ? "artículos" : "Artikel"}
+                                        {isES
+                                          ? "Srtículos online"
+                                          : "Artikel online"}
                                       </div>
                                     )}
 
@@ -262,29 +275,6 @@ export default function ArchivePage() {
           })}
         </div>
       </main>
-
-      {/* --- HOVER PREVIEW (Solo desktop) --- */}
-      {hoveredEdition && (
-        <div
-          className="fixed z-50 pointer-events-none hidden lg:block animate-in fade-in zoom-in duration-150"
-          style={{
-            left: `${hoverPosition.x + 20}px`,
-            top: `${hoverPosition.y - 200}px`,
-          }}
-        >
-          <div className="bg-white border-2 border-[#e60000] shadow-2xl rounded-xl p-2 w-48 h-64 relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent rounded-xl pointer-events-none" />
-            <div className="relative w-full h-full rounded-lg overflow-hidden">
-              <Image
-                src={hoveredEdition}
-                alt="Portada"
-                fill
-                className="object-contain"
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
