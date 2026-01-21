@@ -3,7 +3,7 @@
   position: relative; /* para posicionar el placeholder falso */
   display: flex;
   align-items: center;
-  padding: 0.25rem 0.5rem;
+  padding: 0.1rem 0.5rem;
   background-color: #f3f4f6;
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
@@ -21,13 +21,13 @@
   outline: none;
   background: transparent;
   font-size: 0.875rem;
-  padding: 0.25rem;
+  padding: 0.1rem;
   color: #111827;
 }
 
 /* Botón */
 .searchButton {
-  padding: 0.25rem 0.75rem;
+  padding: 0.1rem 0.55rem;
   background-color: #e5e7eb;
   border: none;
   border-radius: 0 0.375rem 0.375rem 0;

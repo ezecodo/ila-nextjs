@@ -80,7 +80,7 @@ export default function LatestEditionWithArticles() {
             ? raw.editions
             : [];
         const byNumberDesc = [...data].sort(
-          (a, b) => (b?.number ?? -Infinity) - (a?.number ?? -Infinity)
+          (a, b) => (b?.number ?? -Infinity) - (a?.number ?? -Infinity),
         );
         setEditions(byNumberDesc);
 
@@ -88,7 +88,7 @@ export default function LatestEditionWithArticles() {
         const editionParam = searchParams.get("edition");
         if (editionParam && byNumberDesc.length) {
           const savedIndex = byNumberDesc.findIndex(
-            (e) => String(e.number) === editionParam
+            (e) => String(e.number) === editionParam,
           );
           setCurrentEditionIndex(savedIndex >= 0 ? savedIndex : 0);
         } else if (byNumberDesc.length) {
@@ -117,7 +117,7 @@ export default function LatestEditionWithArticles() {
   async function fetchArticles(editionId) {
     setLoading(true);
     const res = await fetch(
-      `/api/articles/list?editionId=${editionId}&limit=200`
+      `/api/articles/list?editionId=${editionId}&limit=200`,
     );
     const data = await res.json();
     setArticles(data.articles || []);
@@ -133,20 +133,20 @@ export default function LatestEditionWithArticles() {
       Promise.all(
         (edition.regions || []).map(async (region) => {
           const res = await fetch(
-            `/api/count/regions/${region.id}?context=editions`
+            `/api/count/regions/${region.id}?context=editions`,
           );
           const data = await res.json();
           return { id: region.id, count: data.count };
-        })
+        }),
       ),
       Promise.all(
         (edition.topics || []).map(async (topic) => {
           const res = await fetch(
-            `/api/count/topics/${topic.id}?context=editions`
+            `/api/count/topics/${topic.id}?context=editions`,
           );
           const data = await res.json();
           return { id: topic.id, count: data.count };
-        })
+        }),
       ),
     ]);
 
@@ -163,7 +163,7 @@ export default function LatestEditionWithArticles() {
   // 🌍 Filtrado base según idioma
   if (locale === "es") {
     filteredArticles = articles.filter(
-      (a) => a.isTranslatedES && !a.needsReviewES
+      (a) => a.isTranslatedES && !a.needsReviewES,
     );
   } else {
     filteredArticles = articles;
@@ -176,7 +176,7 @@ export default function LatestEditionWithArticles() {
   });
 
   // 💻 Desktop → mostrar solo 6 artículos con imagen
-  const desktopArticles = articlesWithImages.slice(0, 6);
+  const desktopArticles = articlesWithImages.slice(0, 8);
 
   // 📱 Mobile → mantener todos los artículos como antes
   const mobileArticles = filteredArticles;
@@ -187,10 +187,10 @@ export default function LatestEditionWithArticles() {
   const firstImg = (a) => a?.images?.[0] || a?.image || null;
 
   const horizontalArticles = filteredArticles.filter(
-    (a) => firstImg(a) && !isVertical(firstImg(a))
+    (a) => firstImg(a) && !isVertical(firstImg(a)),
   );
   const verticalArticles = filteredArticles.filter(
-    (a) => firstImg(a) && isVertical(firstImg(a))
+    (a) => firstImg(a) && isVertical(firstImg(a)),
   );
   const withoutImage = filteredArticles.filter((a) => !firstImg(a));
 
@@ -232,7 +232,7 @@ export default function LatestEditionWithArticles() {
     // Si hay edition → respétala
     if (editionParam && editions.length) {
       const savedIndex = editions.findIndex(
-        (e) => String(e.number) === editionParam
+        (e) => String(e.number) === editionParam,
       );
       setCurrentEditionIndex(savedIndex >= 0 ? savedIndex : 0);
       return;
@@ -298,7 +298,7 @@ export default function LatestEditionWithArticles() {
                           setShowNumberPicker((v) => !v);
                           setPickerValue(String(currentEdition.number ?? ""));
                           const idx = editions.findIndex(
-                            (e) => e.id === currentEdition.id
+                            (e) => e.id === currentEdition.id,
                           );
                           setHighlightedIndex(idx >= 0 ? idx : null);
                           focusInputSoon();
@@ -314,7 +314,7 @@ export default function LatestEditionWithArticles() {
                           setShowNumberPicker((v) => !v);
                           setPickerValue(String(currentEdition.number ?? ""));
                           const idx = editions.findIndex(
-                            (e) => e.id === currentEdition.id
+                            (e) => e.id === currentEdition.id,
                           );
                           setHighlightedIndex(idx >= 0 ? idx : null);
                           focusInputSoon();
@@ -347,7 +347,7 @@ export default function LatestEditionWithArticles() {
                               {
                                 month: "short",
                                 year: "numeric",
-                              }
+                              },
                             )
                             .replace(".", "")
                             .replace(/^\w/, (c) => c.toUpperCase())}
@@ -377,13 +377,13 @@ export default function LatestEditionWithArticles() {
                                 return;
                               }
                               const idx = editions.findIndex((ed) =>
-                                String(ed.number ?? "").startsWith(val)
+                                String(ed.number ?? "").startsWith(val),
                               );
                               setHighlightedIndex(idx >= 0 ? idx : null);
 
                               if (idx >= 0) {
                                 const el = listRef.current?.querySelector(
-                                  `[data-idx="${idx}"]`
+                                  `[data-idx="${idx}"]`,
                                 );
                                 el?.scrollIntoView({ block: "nearest" });
                               }
@@ -394,13 +394,13 @@ export default function LatestEditionWithArticles() {
                                 if (targetIdx == null && pickerValue) {
                                   targetIdx = editions.findIndex(
                                     (ed) =>
-                                      Number(ed.number) === Number(pickerValue)
+                                      Number(ed.number) === Number(pickerValue),
                                   );
                                 }
                                 if (targetIdx != null && targetIdx >= 0) {
                                   changeEdition(targetIdx);
                                   router.push(
-                                    `/editions/${editions[targetIdx].id}`
+                                    `/editions/${editions[targetIdx].id}`,
                                   );
                                   setShowNumberPicker(false);
                                 }
@@ -409,10 +409,10 @@ export default function LatestEditionWithArticles() {
                                 setHighlightedIndex((i) => {
                                   const next = Math.min(
                                     (i ?? -1) + 1,
-                                    editions.length - 1
+                                    editions.length - 1,
                                   );
                                   const el = listRef.current?.querySelector(
-                                    `[data-idx="${next}"]`
+                                    `[data-idx="${next}"]`,
                                   );
                                   el?.scrollIntoView({ block: "nearest" });
                                   return next;
@@ -422,10 +422,10 @@ export default function LatestEditionWithArticles() {
                                 setHighlightedIndex((i) => {
                                   const next = Math.max(
                                     (i ?? editions.length) - 1,
-                                    0
+                                    0,
                                   );
                                   const el = listRef.current?.querySelector(
-                                    `[data-idx="${next}"]`
+                                    `[data-idx="${next}"]`,
                                   );
                                   el?.scrollIntoView({ block: "nearest" });
                                   return next;
@@ -616,7 +616,7 @@ export default function LatestEditionWithArticles() {
                     {editions
                       .slice(
                         Math.max(0, currentEditionIndex - 2),
-                        Math.min(editions.length, currentEditionIndex + 3)
+                        Math.min(editions.length, currentEditionIndex + 3),
                       )
                       .map((_, idx) => {
                         const actualIdx =

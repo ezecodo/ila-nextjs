@@ -59,14 +59,14 @@ export default function FilteredArticlesCarousel(props) {
           console.log(
             "🖼️ Con imágenes:",
             orderedArticles.filter(
-              (a) => a.images?.length > 0 || a.articleImage
-            ).length
+              (a) => a.images?.length > 0 || a.articleImage,
+            ).length,
           );
           console.log(
             "❌ Sin imágenes:",
             orderedArticles.filter(
-              (a) => (!a.images || a.images.length === 0) && !a.articleImage
-            ).length
+              (a) => (!a.images || a.images.length === 0) && !a.articleImage,
+            ).length,
           );
 
           setArticles(orderedArticles);
@@ -87,7 +87,7 @@ export default function FilteredArticlesCarousel(props) {
       .then((res) => res.json())
       .then((data) => {
         const filtered = (data.articles || []).filter(
-          (a) => a.images && a.images.length > 0
+          (a) => a.images && a.images.length > 0,
         );
         setArticles(filtered);
       })
@@ -127,9 +127,9 @@ export default function FilteredArticlesCarousel(props) {
   };
 
   return (
-    <section className="relative w-full px-2 md:px-8 py-1 md:py-8">
+    <section className="relative w-full px-2 md:px-8 py-1 md:py-0">
       {title && <SectionHeader title={title} className="mb-4" />}
-      <div className="pb-1 md:pb-8">
+      <div className="pb-1 md:pb-2">
         <Slider {...settings}>
           {articles.map((article) => {
             const firstImage =

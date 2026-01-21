@@ -16,7 +16,7 @@ function renderPlaceholder(text, logoClass) {
       </span>
     ) : (
       <span key={`t-${i}`}>{part}</span>
-    )
+    ),
   );
 }
 
@@ -48,16 +48,6 @@ const SearchBar = ({ onSearch }) => {
 
   return (
     <form onSubmit={handleSearch} className={styles.searchContainer}>
-      {/* Placeholder “falso”: solo mientras no hay texto */}
-      {!query && (
-        <div
-          className={styles.customPlaceholder}
-          onClick={() => inputRef.current?.focus()}
-        >
-          {renderPlaceholder(t("placeholder"), styles.logoFont)}
-        </div>
-      )}
-
       <input
         ref={inputRef}
         type="text"

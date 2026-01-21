@@ -364,7 +364,7 @@ export default function Header() {
 
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
-        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0" : "pt-2 pb-4"}`}
+        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0" : "pt-1 pb-2"}`}
       >
         {/* 🌎 Fondo tipográfico con nombres de países (solo en modo expandido) */}
         {!isCompact && <LatinAmericaBackground />}
@@ -441,10 +441,10 @@ export default function Header() {
 
           {/* SECCIÓN DEL MENÚ (Isla Blanca) */}
           {!isCompact && (
-            <div className="-mt-2 flex justify-center">
+            <div className="-mt-5 flex justify-center">
               {" "}
               {/* mt-8 → mt-2 (más cerca) */}
-              <div className="bg-white dark:bg-gray-900 px-8 py-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center">
+              <div className="bg-white dark:bg-gray-900 px-8 py-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center h-8">
                 <DesktopNavMenu />
               </div>
             </div>

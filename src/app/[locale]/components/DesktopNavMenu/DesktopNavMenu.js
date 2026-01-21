@@ -158,7 +158,7 @@ export default function DesktopNavMenu({
           sec.items ? (
             <div key={sec.labelKey} className="relative group">
               <span
-                className={`text-[13px] font-bold uppercase tracking-wide ${textColor} transition-colors cursor-pointer py-3 block`}
+                className={`text-[13px] font-bold uppercase tracking-wide ${textColor} transition-colors cursor-pointer py-2 block`}
               >
                 {t(sec.labelKey)}
               </span>
@@ -208,7 +208,7 @@ export default function DesktopNavMenu({
                         {t(item.labelKey)}
                       </Link>
                     </li>
-                  )
+                  ),
                 )}
               </ul>
             </div>
@@ -216,15 +216,15 @@ export default function DesktopNavMenu({
             <Link
               key={sec.labelKey}
               href={sec.href}
-              className={`text-[13px] font-bold uppercase tracking-wide ${textColor} transition-colors py-3 block`}
+              className={`text-[13px] font-bold uppercase tracking-wide ${textColor} transition-colors py-2 block`}
             >
               {t(sec.labelKey)}
             </Link>
-          )
+          ),
         )}
 
         {/* Buscador integrado sin bordes pesados */}
-        <div className={`pl-6 border-l ${borderColor} h-6 flex items-center`}>
+        <div className={`pl-6 border-l ${borderColor} h-5 flex items-center`}>
           <SearchBar onSearch={handleSearch} invert={invert} />
         </div>
       </div>
