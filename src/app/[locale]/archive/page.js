@@ -93,7 +93,7 @@ export default function ArchivePage() {
 
       <main className="relative z-10 max-w-6xl mx-auto pl-4 md:pl-12 pr-6 pt-2 md:pt-4 pb-8 md:pb-16">
         {/* --- CABECERA MINIMALISTA --- */}
-        <header className="flex items-center gap-3 mb-0 pb-4 pl-4 border-l-4 border-[#e60000] relative ml-8 md:ml-28">
+        <header className="flex items-center gap-3 mb-0 pb-4 pl-4 md:border-l-4 border-[#e60000] relative ml-8 md:ml-28">
           <IlaLogo size="mini" variant="black-solid" isLink={false} />
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Jahrgänge
