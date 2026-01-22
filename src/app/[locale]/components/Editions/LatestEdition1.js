@@ -657,10 +657,9 @@ export default function LatestEditionWithArticles() {
                 </Link>
 
                 <div className="hidden lg:flex flex-col gap-4 w-full">
-                  <DonationBanner />
-
                   <AktuellesPreview />
                   <Events />
+                  <DonationBanner />
                 </div>
               </div>
             </div>
@@ -778,10 +777,9 @@ export default function LatestEditionWithArticles() {
               </div>
 
               <div className="block lg:hidden w-full mt-6 space-y-4">
-                <DonationBanner />
-
                 <AktuellesPreview />
                 <Events />
+                <DonationBanner />
               </div>
             </div>
           </div>
