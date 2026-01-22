@@ -1,19 +1,14 @@
 "use client";
-import { useEffect, useState, Suspense, lazy } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import LatestEdition1 from "./components/Editions/LatestEdition1";
 import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
 import DynamicBanner from "./components/DynamicBanner/DynamicBanner";
-import IlaLoader from "./components/IlaLoader/IlaLoader";
-
-// Carga diferida de NetworkCarousel
-const NetworkCarousel = lazy(
-  () => import("./components/NetworkCarousel/NetworkCarousel"),
-);
+import NetworkCarousel from "./components/NetworkCarousel/NetworkCarousel";
 
 export default function Home() {
   const pathname = usePathname();
-  const [showNetworkCarousel, setShowNetworkCarousel] = useState(false);
+  const [showNetwork, setShowNetwork] = useState(false);
 
   useEffect(() => {
     if (pathname === "/" && window.location.hash === "#dossiers") {
@@ -24,43 +19,45 @@ export default function Home() {
     }
   }, [pathname]);
 
-  // Esperar a que el contenido principal se renderice primero
   useEffect(() => {
-    // Pequeño delay para asegurar que el contenido principal está en pantalla
-    const timer = setTimeout(() => {
-      setShowNetworkCarousel(true);
-    }, 800); // 800ms debería ser suficiente para que el contenido principal se vea
+    // Estrategia en 3 pasos:
 
-    return () => clearTimeout(timer);
+    // 1. Bloqueamos NetworkCarousel completamente al inicio
+    setShowNetwork(false);
+
+    // 2. Esperamos a que el contenido principal tenga tiempo de renderizarse
+    const timer1 = setTimeout(() => {
+      // 3. Forzamos un reflow y luego mostramos
+      requestAnimationFrame(() => {
+        setShowNetwork(true);
+      });
+    }, 1500); // 1.5 segundos - ajusta según tu contenido
+
+    return () => clearTimeout(timer1);
   }, []);
 
   return (
     <div className="w-full px-0">
       <main className="w-full">
         <div className="w-full">
-          {/* 🎁 Banner Promocional */}
           <DynamicBanner position="top" />
-
-          {/* 🆕 Carruseles TOP */}
           <CarouselFromDb placement="top" />
 
           <div id="dossiers" className="scroll-mt-[120px] mt-6">
             <LatestEdition1 />
           </div>
 
-          {/* Carruseles normales */}
           <CarouselFromDb placement="after" />
 
-          {/* 🌐 Carousel de Partners - SOLO se muestra después */}
-          {showNetworkCarousel && (
-            <Suspense
-              fallback={
-                <div className="h-32 w-full bg-gray-50 animate-pulse rounded-lg"></div>
-              }
-            >
-              <NetworkCarousel />
-            </Suspense>
-          )}
+          {/* Contenedor con display: none inicial */}
+          <div
+            style={{
+              display: showNetwork ? "block" : "none",
+              willChange: "display",
+            }}
+          >
+            <NetworkCarousel />
+          </div>
         </div>
       </main>
     </div>
