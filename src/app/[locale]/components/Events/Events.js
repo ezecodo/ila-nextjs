@@ -28,7 +28,7 @@ export default function InfoBox() {
         }
 
         const sorted = data.sort(
-          (a, b) => parseEventDate(a) - parseEventDate(b)
+          (a, b) => parseEventDate(a) - parseEventDate(b),
         );
 
         const today = new Date();
@@ -51,11 +51,23 @@ export default function InfoBox() {
 
   const current = events[index];
 
+  const calendarLink = (
+    <Link
+      href="/events"
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 hover:text-white transition-colors group"
+    >
+      <span className="border-b border-transparent group-hover:border-white/70 transition-all">
+        {locale === "es" ? "Ver calendario" : "Kalender ansehen"}
+      </span>
+      <span className="group-hover:translate-x-1 transition-transform">→</span>
+    </Link>
+  );
+
   if (events.length === 0) {
     return (
       <section className="w-full max-w-md mx-auto">
-        <SectionHeader title={t("events")} />
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 text-center">
+        <SectionHeader title={t("events")} rightElement={calendarLink} />
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 text-center mt-4">
           <p className="text-gray-500 dark:text-gray-400">{t("noEvents")}</p>
         </div>
       </section>
@@ -66,9 +78,9 @@ export default function InfoBox() {
 
   return (
     <section className="w-full max-w-md mx-auto">
-      <SectionHeader title={t("events")} />
+      <SectionHeader title={t("events")} rightElement={calendarLink} />
 
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 overflow-hidden">
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 overflow-hidden mt-4">
         {/* Flechas */}
         <button
           onClick={() => index > 0 && setIndex(index - 1)}
@@ -87,8 +99,7 @@ export default function InfoBox() {
         </button>
 
         <div className="p-4">
-          {/* --- CAMBIO AQUÍ: MOVIDO ARRIBA --- */}
-          {/* --- AQUÍ EL CAMBIO: FILA ÚNICA DE DATOS (AHORA ARRIBA) --- */}
+          {/* Fila de datos */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
             {/* Fecha */}
             <span className="flex items-center gap-1">
@@ -123,7 +134,7 @@ export default function InfoBox() {
             </span>
           </div>
 
-          {/* IMAGEN - CAMBIO PRINCIPAL */}
+          {/* IMAGEN */}
           <Link
             href={`/events/${current.id}`}
             className="block w-full h-40 relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-lg mb-3 group"
@@ -136,7 +147,7 @@ export default function InfoBox() {
                   : current.title
               }
               fill
-              className="object-contain group-hover:scale-105 transition-transform duration-500 bg-white dark:bg-gray-800" // ← CAMBIADO AQUÍ
+              className="object-contain group-hover:scale-105 transition-transform duration-500 bg-white dark:bg-gray-800"
               sizes="(max-width: 768px) 100vw, 400px"
             />
             <div className="absolute inset-0 bg-black/0 dark:bg-black/20 transition-all duration-300" />
@@ -152,7 +163,7 @@ export default function InfoBox() {
           </Link>
 
           {/* Indicadores */}
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center">
             <div className="flex space-x-1.5">
               {events.map((_, i) => (
                 <button
@@ -167,23 +178,6 @@ export default function InfoBox() {
               ))}
             </div>
           </div>
-
-          {/* Botón */}
-          {/* --- BOTÓN CALENDARIO: Estilo Outline Elegante --- */}
-          <Link
-            href="/events"
-            className="block w-full 
-              bg-transparent 
-              border-2 border-red-600 dark:border-red-500 
-              text-red-600 dark:text-red-500 
-              text-xs font-bold uppercase tracking-widest 
-              py-3 rounded-lg 
-              hover:bg-red-600 hover:text-white dark:hover:bg-red-500 dark:hover:text-white
-              transition-all duration-300 
-              text-center"
-          >
-            {t("calendarButton")}
-          </Link>
         </div>
       </div>
     </section>

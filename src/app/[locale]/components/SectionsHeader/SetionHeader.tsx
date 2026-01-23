@@ -4,11 +4,13 @@ import LatinAmericaBackground from "../LatinAmericaBackground/LatinAmericaBackgr
 interface SectionHeaderProps {
   title: string;
   className?: string;
+  rightElement?: React.ReactNode;
 }
 
 export default function SectionHeader({
   title,
   className = "",
+  rightElement,
 }: SectionHeaderProps) {
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -17,10 +19,15 @@ export default function SectionHeader({
         <LatinAmericaBackground variant="mobile" />
 
         {/* Contenido */}
-        <h1 className="relative z-10 text-xl font-semibold tracking-wide flex items-center">
-          <span className="mr-3">▶</span>
-          {title}
-        </h1>
+        <div className="relative z-10 flex items-center justify-between">
+          <h1 className="text-xl font-semibold tracking-wide flex items-center">
+            <span className="mr-3">▶</span>
+            {title}
+          </h1>
+          {rightElement && (
+            <div className="flex items-center">{rightElement}</div>
+          )}
+        </div>
       </div>
     </div>
   );

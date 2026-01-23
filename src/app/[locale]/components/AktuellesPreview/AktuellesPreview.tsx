@@ -33,15 +33,15 @@ export default function AktuellesPreview() {
         const sorted = (data.items || [])
           .filter((item: Aktuelles) => {
             const itemDate = new Date(item.date);
-            itemDate.setHours(0, 0, 0, 0); // Normalizamos la fecha
+            itemDate.setHours(0, 0, 0, 0);
             twoMonthsAgo.setHours(0, 0, 0, 0);
             return itemDate >= twoMonthsAgo;
           })
           .sort(
             (a: Aktuelles, b: Aktuelles) =>
-              new Date(b.date).getTime() - new Date(a.date).getTime()
+              new Date(b.date).getTime() - new Date(a.date).getTime(),
           )
-          .slice(0, 3); // ← CAMBIO AQUÍ: de 4 a 3
+          .slice(0, 3);
 
         setItems(sorted);
         setLoading(false);
@@ -62,11 +62,26 @@ export default function AktuellesPreview() {
 
   return (
     <div className="w-full">
-      <SectionHeader title={locale === "es" ? "Actualidad" : "Aktuelles"} />
+      <SectionHeader
+        title={locale === "es" ? "Actualidad" : "Aktuelles"}
+        rightElement={
+          <Link
+            href="/aktuell/aktuelles"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 hover:text-white transition-colors group"
+          >
+            <span className="border-b border-transparent group-hover:border-white/70 transition-all">
+              {locale === "es" ? "Ver archivo" : "Zum Archiv"}
+            </span>
+            <span className="group-hover:translate-x-1 transition-transform">
+              →
+            </span>
+          </Link>
+        }
+      />
 
       {/* --- Lista de Noticias --- */}
-      <div className="flex flex-col gap-4">
-        {items.map((item, index) => (
+      <div className="flex flex-col gap-4 mt-4">
+        {items.map((item) => (
           <div
             key={item.id}
             className="group flex gap-4 p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-300"
@@ -92,21 +107,6 @@ export default function AktuellesPreview() {
             </div>
           </div>
         ))}
-      </div>
-
-      {/* --- Footer / Botón --- */}
-      <div className="mt-4 pt-2">
-        <Link
-          href="/aktuell/aktuelles"
-          className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-red-700 dark:hover:text-red-400 transition-colors group"
-        >
-          <span className="border-b border-transparent group-hover:border-red-700 dark:group-hover:border-red-400 pb-0.5 transition-all">
-            {locale === "es" ? "Ver todo el archivo" : "Zum Archiv"}
-          </span>
-          <span className="group-hover:translate-x-1 transition-transform">
-            →
-          </span>
-        </Link>
       </div>
     </div>
   );
