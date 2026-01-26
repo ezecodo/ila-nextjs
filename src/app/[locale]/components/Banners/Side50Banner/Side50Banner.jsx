@@ -36,7 +36,8 @@ export default function Banner50Compact() {
             size="small"
             show50={true}
             isLink={false}
-            animated={false}
+            animated={true}
+            animationType="fifty-pulse" // <-- La nueva animación
           />
         </div>
 

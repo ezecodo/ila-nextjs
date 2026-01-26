@@ -124,6 +124,8 @@ export default function IlaLogo50({
         return "animate-fadeInRight animation-delay-400";
       case "float":
         return "animate-float-delayed";
+      case "fifty-pulse":
+        return "animate-fifty-pulse"; // <-- Agrega esta línea
       default:
         return "";
     }
@@ -249,7 +251,21 @@ export default function IlaLogo50({
             filter: drop-shadow(0 0 10px #ff0000);
           }
         }
+        @keyframes fifty-pulse {
+          0%,
+          100% {
+            transform: scale(1);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+          }
+          50% {
+            transform: scale(1.1);
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+          }
+        }
 
+        .animate-fifty-pulse {
+          animation: fifty-pulse 1.5s ease-in-out infinite;
+        }
         @keyframes lgbt-pulse-anim {
           0% {
             transform: scale(1);
