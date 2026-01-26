@@ -133,25 +133,25 @@ export default function Banner50({ variant = "gold" }) {
               {/* Botones de Acción */}
               <div className="flex flex-wrap justify-center gap-4 pt-6 border-t border-gray-100">
                 <Link
-                  href="/bestellen"
+                  href="/order/abo"
                   className={`px-8 py-3 rounded-lg font-bold text-lg transition-all hover:scale-105 shadow-md hover:shadow-lg ${
                     variant === "gold"
-                      ? "bg-[#EEB546] text-gray-900 hover:bg-[#d9a03e]" // Gold buttons
-                      : "bg-[#89B881] text-white hover:bg-[#76a36f]" // Green buttons
+                      ? "bg-[#EEB546] text-gray-900 hover:bg-[#d9a03e]"
+                      : "bg-[#89B881] text-white hover:bg-[#76a36f]"
                   }`}
                 >
                   {t.cta1}
                 </Link>
 
                 <Link
-                  href="/mitmachen"
+                  href="/support/participate"
                   className="px-8 py-3 rounded-lg font-bold text-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all hover:scale-105"
                 >
                   {t.cta2}
                 </Link>
 
                 <Link
-                  href="/spenden"
+                  href="/support/donations"
                   className="px-8 py-3 rounded-lg font-bold text-lg text-gray-700 border-2 border-gray-200 hover:border-gray-900 hover:text-gray-900 transition-all hover:scale-105"
                 >
                   {t.cta3}
