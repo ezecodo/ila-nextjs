@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
+
 import IlaLogo from "../IlaLogo/IlaLogo";
 
 export default function DonationBanner() {

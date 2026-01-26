@@ -13,6 +13,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
 import { useRouter, useSearchParams } from "next/navigation";
+import SideBanner50 from "../Banners/Side50Banner/Side50Banner";
 
 import NoArticlesAvailable from "../../components/NoArticlesAvailable/NoArticlesAvailable";
 import IlaLoader from "../IlaLoader/IlaLoader";
@@ -659,7 +660,7 @@ export default function LatestEditionWithArticles() {
                 <div className="hidden lg:flex flex-col gap-4 w-full">
                   <AktuellesPreview />
                   <Events />
-                  <DonationBanner />
+                  <SideBanner50 />
                 </div>
               </div>
             </div>
