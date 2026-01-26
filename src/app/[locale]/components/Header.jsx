@@ -149,7 +149,7 @@ export default function Header() {
           <div className="text-[10px] font-black text-gray-900 h-full flex items-center">
             <button
               onClick={() => handleLocaleSwitch(locale === "es" ? "de" : "es")}
-              className="futura hover:text-[#e60000] transition-colors leading-none"
+              className="futura hover:text-[#BD0E0D]transition-colors leading-none"
               title={
                 locale === "es" ? "Auf Deutsch umstellen" : "Cambiar a Español"
               }
@@ -161,7 +161,7 @@ export default function Header() {
           {/* DARK MODE */}
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className="text-gray-900 hover:text-[#e60000] transition-all flex items-center justify-center"
+            className="text-gray-900 hover:text-[#BD0E0D]transition-all flex items-center justify-center"
             title={darkMode ? t("switch_light") : t("switch_dark")}
           >
             {darkMode ? (
@@ -179,7 +179,7 @@ export default function Header() {
               onMouseLeave={() => setShowUserMenu(false)}
             >
               {/* Botón que activa el menú (Tu Saludo) */}
-              <div className="text-[10px] text-gray-900 font-bold border-l border-gray-100 pl-4 h-4 flex items-center cursor-pointer hover:text-[#e60000] transition-colors gap-1.5">
+              <div className="text-[10px] text-gray-900 font-bold border-l border-gray-100 pl-4 h-4 flex items-center cursor-pointer hover:text-[#BD0E0D] transition-colors gap-1.5">
                 <span className="futura tracking-tight">
                   <span className="capitalize">
                     {locale === "es" ? "hola" : "hallo"}
@@ -209,7 +209,7 @@ export default function Header() {
                 <div className="absolute top-full right-0 w-40 bg-white border border-gray-100 shadow-xl z-[100] py-1 animate-in fade-in slide-in-from-top-1 duration-150">
                   <Link
                     href={dashboardRoute}
-                    className="flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-gray-700 hover:bg-gray-50 hover:text-[#e60000] transition-colors"
+                    className="flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-gray-700 hover:bg-gray-50 hover:text-[#BD0E0D] transition-colors"
                   >
                     <FaTachometerAlt size={12} />
                     {t("dashboard_access")}
@@ -228,7 +228,7 @@ export default function Header() {
             /* Login simple si no hay sesión */
             <button
               onClick={() => signIn()}
-              className="text-[10px] font-bold futura hover:text-[#e60000] transition-colors border-l border-gray-100 pl-4 h-4 flex items-center"
+              className="text-[10px] font-bold futura hover:text-[#BD0E0D]transition-colors border-l border-gray-100 pl-4 h-4 flex items-center"
             >
               <FaSignInAlt size={11} className="mr-2" />
               {t("login")}
@@ -238,7 +238,7 @@ export default function Header() {
       </div>
 
       {/* Mobile top */}
-      <div className="w-screen flex md:hidden items-center bg-[#e60000] text-white relative overflow-hidden -mx-4 h-14">
+      <div className="w-screen flex md:hidden items-center bg-[#BD0E0D] text-white relative overflow-hidden -mx-4 h-14">
         <LatinAmericaBackground variant="mobile" />
 
         {/* Contenedor relativo para que el tagline absoluto se base en este ancho */}
@@ -246,7 +246,7 @@ export default function Header() {
           {/* 1. LOGO (Izquierda) - Cambiado fondo a rojo */}
           <Link
             href="/"
-            className="bg-[#e60000] w-16 h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
+            className="bg-[#BD0E0D] w-16 h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
           >
             <IlaLogo
               size="default"
@@ -294,7 +294,7 @@ export default function Header() {
           </div>
 
           {/* 3. CONTROLES (Derecha) */}
-          <div className="bg-[#e60000] w-10 h-full flex flex-col items-center justify-center shadow-sm z-20 flex-shrink-0">
+          <div className="bg-[#BD0E0D] w-10 h-full flex flex-col items-center justify-center shadow-sm z-20 flex-shrink-0">
             <div className="text-[10px] font-black text-white mb-0.5 leading-none">
               <button
                 onClick={(e) => {
@@ -331,12 +331,12 @@ export default function Header() {
             {session ? (
               <>
                 <Link href={dashboardRoute} onClick={() => setMenuOpen(false)}>
-                  <button className="p-3 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors">
+                  <button className="p-3 rounded-full bg-[#BD0E0D] text-white hover:bg-[#A30C0B]transition-colors">
                     <FaTachometerAlt />
                   </button>
                 </Link>
                 <button
-                  className="p-3 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors"
+                  className="p-3 rounded-full bg-[#BD0E0D] text-white hover:bg-[#A30C0B] transition-colors"
                   onClick={() => {
                     handleSignOut();
                     setMenuOpen(false);
@@ -347,7 +347,7 @@ export default function Header() {
               </>
             ) : (
               <button
-                className="p-3 rounded-full bg-red-700 text-white hover:bg-red-800 transition-colors"
+                className="p-3 rounded-full bg-[#BD0E0D] text-white hover:bg-[#A30C0B] transition-colors"
                 onClick={() => {
                   signIn();
                   setMenuOpen(false);
@@ -364,7 +364,7 @@ export default function Header() {
 
       {/* --- CUERPO DEL HEADER EN ROJO (Fuerza Total) --- */}
       <div
-        className={`hidden md:block w-full bg-[#e60000] text-white transition-all duration-300 relative ${isCompact ? "py-0" : "pt-1 pb-2"}`}
+        className={`hidden md:block w-full bg-[#BD0E0D] text-white transition-all duration-300 relative ${isCompact ? "py-0" : "pt-1 pb-2"}`}
       >
         {/* 🌎 Fondo tipográfico con nombres de países (solo en modo expandido) */}
         {!isCompact && <LatinAmericaBackground />}

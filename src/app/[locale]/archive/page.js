@@ -93,7 +93,7 @@ export default function ArchivePage() {
 
       <main className="relative z-10 max-w-6xl mx-auto pl-4 md:pl-12 pr-6 pt-2 md:pt-4 pb-8 md:pb-16">
         {/* --- CABECERA MINIMALISTA --- */}
-        <header className="flex items-center gap-3 mb-0 pb-4 pl-4 md:border-l-4 border-[#e60000] relative ml-8 md:ml-28">
+        <header className="flex items-center gap-3 mb-0 pb-4 pl-4 md:border-l-4 border-[#BD0E0D]relative ml-8 md:ml-28">
           <IlaLogo size="mini" variant="black-solid" isLink={false} />
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Jahrgänge
@@ -102,7 +102,7 @@ export default function ArchivePage() {
 
         <div className="relative ml-8 md:ml-16 pt-0">
           {/* Línea vertical roja (Solo desktop) - CONECTADA */}
-          <div className="hidden md:block absolute left-[48px] top-0 bottom-0 w-1 bg-[#e60000]" />
+          <div className="hidden md:block absolute left-[48px] top-0 bottom-0 w-1 bg-[#BD0E0D]" />
 
           {years.map((year) => {
             const editions = editionsByYear[year];
@@ -114,18 +114,18 @@ export default function ArchivePage() {
                 <div className="flex items-center gap-4 mb-4 md:mb-8 relative z-20">
                   {/* Círculo en línea (Solo desktop) - CENTRADO EN LÍNEA */}
                   <div
-                    className={`hidden md:block absolute left-[48px] w-6 h-6 -ml-[11px] rounded-full shadow-md border-4 border-[#e60000] transition-colors duration-300 ${
-                      isExpanded ? "bg-[#e60000]" : "bg-white"
+                    className={`hidden md:block absolute left-[48px] w-6 h-6 -ml-[11px] rounded-full shadow-md border-4 border-[#BD0E0D] transition-colors duration-300 ${
+                      isExpanded ? "bg-[#BD0E0D]" : "bg-white"
                     }`}
                   />
 
                   <button
                     id={`year-${year}`}
                     onClick={() => toggleYear(year)}
-                    className="w-full md:w-auto md:ml-20 group flex items-center justify-between md:justify-start gap-3 bg-white px-6 py-3 rounded-xl md:rounded-full shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-[#e60000]"
+                    className="w-full md:w-auto md:ml-20 group flex items-center justify-between md:justify-start gap-3 bg-white px-6 py-3 rounded-xl md:rounded-full shadow-sm hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-[#BD0E0D]"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl md:text-3xl font-black text-[#e60000] futura">
+                      <span className="text-2xl md:text-3xl font-black text-[#BD0E0D] futura">
                         {year}
                       </span>
                       <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
@@ -133,7 +133,7 @@ export default function ArchivePage() {
                       </span>
                     </div>
                     <svg
-                      className={`w-5 h-5 text-[#e60000] transition-transform duration-300 ${
+                      className={`w-5 h-5 text-[#BD0E0D] transition-transform duration-300 ${
                         isExpanded ? "rotate-180" : ""
                       }`}
                       fill="none"
@@ -171,7 +171,7 @@ export default function ArchivePage() {
                           </div>
 
                           {/* Punto de intersección (Solo desktop) - CONECTADO A LÍNEA */}
-                          <div className="hidden md:block absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-3 h-3 bg-[#e60000] rounded-full border-2 border-white shadow-sm" />
+                          <div className="hidden md:block absolute -left-[2.25rem] top-1/2 -translate-y-1/2 w-3 h-3 bg-[#BD0E0D] rounded-full border-2 border-white shadow-sm" />
 
                           <Link
                             href={`/${locale}/editions/${edition.id}`}
@@ -186,11 +186,11 @@ export default function ArchivePage() {
                             onMouseLeave={() => setHoveredEdition(null)}
                           >
                             {/* --- CARD --- */}
-                            <div className="bg-white rounded-xl shadow-sm hover:shadow-xl hover:shadow-red-200/30 border border-gray-100 hover:border-[#e60000]/20 transition-all duration-300 p-4 md:p-5 relative overflow-hidden group-hover:-translate-x-1">
+                            <div className="bg-white rounded-xl shadow-sm hover:shadow-xl hover:shadow-red-200/30 border border-gray-100 hover:border-[#BD0E0D]/20 transition-all duration-300 p-4 md:p-5 relative overflow-hidden group-hover:-translate-x-1">
                               {/* Fecha móvil (arriba) */}
                               <div className="md:hidden mb-3 flex items-center gap-2">
                                 <div className="h-px flex-1 bg-red-200" />
-                                <span className="text-[10px] font-bold text-[#e60000] uppercase tracking-widest px-2">
+                                <span className="text-[10px] font-bold text-[#BD0E0D] uppercase tracking-widest px-2">
                                   {dateString}
                                 </span>
                                 <div className="h-px flex-1 bg-red-200" />
@@ -208,7 +208,7 @@ export default function ArchivePage() {
                                       sizes="(max-width: 768px) 64px, 80px"
                                     />
                                   ) : (
-                                    <div className="w-full h-full bg-red-50 flex items-center justify-center text-[#e60000] font-black text-xs futura">
+                                    <div className="w-full h-full bg-red-50 flex items-center justify-center text-[#BD0E0D]font-black text-xs futura">
                                       ila
                                     </div>
                                   )}
@@ -217,12 +217,12 @@ export default function ArchivePage() {
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-baseline gap-2 mb-1">
-                                    <span className="text-xl md:text-2xl font-bold text-[#e60000] futura">
+                                    <span className="text-xl md:text-2xl font-bold text-[#BD0E0D] futura">
                                       #{edition.number}
                                     </span>
                                   </div>
 
-                                  <h3 className="font-bold text-gray-900 text-base md:text-lg leading-tight mb-2 line-clamp-2 group-hover:text-[#e60000] transition-colors">
+                                  <h3 className="font-bold text-gray-900 text-base md:text-lg leading-tight mb-2 line-clamp-2 group-hover:text-[#BD0E0D] transition-colors">
                                     {isES && edition.titleES
                                       ? edition.titleES
                                       : edition.title}
@@ -254,8 +254,8 @@ export default function ArchivePage() {
                                     )}
 
                                     {edition._count?.translatedArticles > 0 && (
-                                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-50 text-[10px] font-bold text-[#e60000] uppercase tracking-wide">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-[#e60000]"></span>
+                                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-red-50 text-[10px] font-bold text-[#BD0E0D]uppercase tracking-wide">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#BD0E0D]"></span>
                                         {edition._count.translatedArticles}{" "}
                                         {isES ? "en español" : "auf Spanisch"}
                                       </div>

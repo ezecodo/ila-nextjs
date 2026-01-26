@@ -14,7 +14,7 @@ export default function SectionHeader({
 }: SectionHeaderProps) {
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      <div className="bg-[#e60000] text-white px-6 py-4 relative">
+      <div className="bg-[#BD0E0D] text-white px-6 py-4 relative">
         {/* Fondo de países */}
         <LatinAmericaBackground variant="mobile" />
 
