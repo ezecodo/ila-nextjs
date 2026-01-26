@@ -5,6 +5,7 @@ import LatestEdition1 from "./components/Editions/LatestEdition1";
 import CarouselFromDb from "./components/Articles/CarouselFromDb/CarouselFromDb";
 import DynamicBanner from "./components/DynamicBanner/DynamicBanner";
 import NetworkCarousel from "./components/NetworkCarousel/NetworkCarousel";
+import Banner50 from "./components/Banners/Ila50/Ila50";
 
 export default function Home() {
   const pathname = usePathname();
@@ -65,6 +66,7 @@ export default function Home() {
         <div className="w-full">
           <DynamicBanner position="top" />
           <CarouselFromDb placement="top" />
+          <Banner50 variant="green" />
 
           <div id="dossiers" className="scroll-mt-[120px] mt-6">
             <LatestEdition1 />
