@@ -293,7 +293,7 @@ export default function LatestEditionWithArticles() {
                     <div className="flex items-baseline justify-center gap-3 leading-none relative">
                       <button
                         type="button"
-                        className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none hover:text-red-700"
+                        className="ila-edition font-bold text-[1.75rem] md:text-[2rem] leading-none hover:text-[#BD0E0D]"
                         title="Cambiar dossier (Enter para ir)"
                         onClick={() => {
                           setShowNumberPicker((v) => !v);
@@ -320,7 +320,7 @@ export default function LatestEditionWithArticles() {
                           setHighlightedIndex(idx >= 0 ? idx : null);
                           focusInputSoon();
                         }}
-                        className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/40 transition-colors cursor-pointer"
+                        className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#BD0E0D]/10 dark:bg-[#BD0E0D]/30 hover:bg-[#BD0E0D]/20"
                         title="Seleccionar edición"
                       >
                         <svg
@@ -367,7 +367,7 @@ export default function LatestEditionWithArticles() {
                             ref={inputRef}
                             type="number"
                             value={pickerValue}
-                            className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-red-500"
+                            className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-[#BD0E0D]"
                             placeholder={t("pickerPlaceholder")}
                             onChange={(e) => {
                               const val = e.target.value;
@@ -454,10 +454,10 @@ export default function LatestEditionWithArticles() {
                                     "w-full text-left px-2 py-1 rounded text-sm",
                                     "hover:bg-red-50 dark:hover:bg-gray-700",
                                     isHighlighted
-                                      ? "bg-red-200 dark:bg-gray-600 ring-1 ring-red-400 dark:ring-gray-500"
+                                      ? "bg-[#BD0E0D]/20 dark:bg-gray-600 ring-1 ring-[#BD0E0D]/40 dark:ring-gray-500"
                                       : "",
                                     !isHighlighted && isActive
-                                      ? "bg-red-100/60 dark:bg-gray-700"
+                                      ? "bg-[#BD0E0D]/10 dark:bg-gray-700"
                                       : "",
                                   ].join(" ")}
                                   onClick={() => {
@@ -492,7 +492,7 @@ export default function LatestEditionWithArticles() {
                       )}
                     </div>
 
-                    <div className="font-serif font-bold text-red-800 dark:text-red-400 text-xl md:text-2xl leading-snug">
+                    <div className="font-serif font-bold text-[#BD0E0D] !important dark:text-[#BD0E0D]/80 text-xl md:text-2xl leading-snug">
                       {locale === "es" && currentEdition.titleES
                         ? currentEdition.titleES
                         : currentEdition.title}
@@ -527,7 +527,7 @@ export default function LatestEditionWithArticles() {
                       <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded">
                         <div className="bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <svg
-                            className="w-6 h-6 text-red-600 animate-pulse"
+                            className="w-6 h-6 text-[#BD0E0D] animate-pulse"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -541,7 +541,7 @@ export default function LatestEditionWithArticles() {
                           </svg>
                         </div>
                       </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
                         ila {editions[currentEditionIndex + 1].number}
                       </div>
                     </div>
@@ -592,7 +592,7 @@ export default function LatestEditionWithArticles() {
                       <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded">
                         <div className="bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <svg
-                            className="w-6 h-6 text-red-600 animate-pulse"
+                            className="w-6 h-6 text-[#BD0E0D] animate-pulse"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -606,7 +606,7 @@ export default function LatestEditionWithArticles() {
                           </svg>
                         </div>
                       </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
                         ila {editions[currentEditionIndex - 1].number}
                       </div>
                     </div>
@@ -627,7 +627,7 @@ export default function LatestEditionWithArticles() {
                             key={actualIdx}
                             className={`h-1 rounded-full transition-all duration-300 ${
                               actualIdx === currentEditionIndex
-                                ? "w-8 bg-red-600"
+                                ? "w-8 bg-[#BD0E0D]"
                                 : "w-2 bg-gray-400 dark:bg-gray-600"
                             }`}
                           />
@@ -652,7 +652,7 @@ export default function LatestEditionWithArticles() {
 
                 <Link
                   href={`/editions/${currentEdition.id}`}
-                  className="bg-white text-red-600 font-semibold px-4 py-2 rounded hover:bg-gray-100 transition border border-red-600"
+                  className="bg-white text-[#BD0E0D] font-semibold px-4 py-2 rounded hover:bg-gray-100 transition border border-[#BD0E0D]"
                 >
                   {t("editorialButton")}
                 </Link>
@@ -706,13 +706,13 @@ export default function LatestEditionWithArticles() {
                     ))}
                   </Slider>
                 ) : (
-                  <div className="bg-gray-50 dark:bg-gray-800 border-l-4 border-red-500 rounded-r-lg shadow-md my-6 overflow-hidden">
+                  <div className="bg-gray-50 dark:bg-gray-800 border-l-4 border-[#BD0E0D] rounded-r-lg shadow-md my-6 overflow-hidden">
                     <div className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="flex-shrink-0">
-                          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                          <div className="w-12 h-12 bg-[#BD0E0D]/10 dark:bg-[#BD0E0D]/30 rounded-full flex items-center justify-center">
                             <svg
-                              className="w-6 h-6 text-red-500"
+                              className="w-6 h-6 text-[#BD0E0D]"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -732,7 +732,7 @@ export default function LatestEditionWithArticles() {
                           </h3>
                           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                             <svg
-                              className="w-5 h-5 animate-spin text-red-500"
+                              className="w-5 h-5 animate-spin text-[#BD0E0D]"
                               fill="none"
                               viewBox="0 0 24 24"
                             >
@@ -755,7 +755,7 @@ export default function LatestEditionWithArticles() {
                         </div>
                       </div>
                     </div>
-                    <div className="bg-red-50 dark:bg-red-900/10 px-6 py-3 border-t border-red-100 dark:border-red-900/30">
+                    <div className="bg-[#BD0E0D]/5 dark:bg-[#BD0E0D]/10 px-6 py-3 border-t border-[#BD0E0D]/10 dark:border-[#BD0E0D]/30">
                       <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-2">
                         <svg
                           className="w-4 h-4"
