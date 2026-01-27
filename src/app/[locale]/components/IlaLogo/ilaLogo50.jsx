@@ -134,7 +134,9 @@ export default function IlaLogo50({
       case "float":
         return "animate-float-delayed";
       case "fifty-pulse":
-        return "animate-fifty-pulse"; // <-- Agrega esta línea
+        return "animate-fifty-pulse";
+      case "fifty-pulse-green":
+        return "animate-fifty-pulse-green";
       default:
         return "";
     }
@@ -270,6 +272,23 @@ export default function IlaLogo50({
             transform: scale(1.1);
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
           }
+        }
+        @keyframes fifty-pulse-green {
+          0%,
+          100% {
+            transform: scale(1);
+            text-shadow: 0 0 5px rgba(137, 184, 129, 0.4);
+          }
+          50% {
+            transform: scale(1.1);
+            text-shadow:
+              0 0 20px rgba(137, 184, 129, 1),
+              0 0 40px rgba(137, 184, 129, 0.6);
+          }
+        }
+
+        .animate-fifty-pulse-green {
+          animation: fifty-pulse-green 1.5s ease-in-out infinite;
         }
 
         .animate-fifty-pulse {

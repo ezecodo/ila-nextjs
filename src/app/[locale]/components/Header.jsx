@@ -3,7 +3,8 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 import Link from "next/link";
 
 import IlaLogo50 from "../components/IlaLogo/ilaLogo50";
@@ -33,6 +34,8 @@ export default function Header() {
   const { data: session } = useSession();
   const router = useRouter();
   const t = useTranslations("header");
+  const [showPopup50, setShowPopup50] = useState(false);
+  const logoRef = useRef(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -50,6 +53,45 @@ export default function Header() {
   });
 
   const [mounted, setMounted] = useState(false);
+  const launchConfetti = () => {
+    // Primera ráfaga
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { x: 0.5, y: 0.3 },
+      colors: ["#89B881", "#BD0E0D", "#ffffff", "#FFD700", "#00A86B"],
+      scalar: 1.5, // 👈 más grandes (default es 1)
+    });
+
+    // Segunda ráfaga desde la izquierda
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { x: 0.3, y: 0.4 },
+        colors: ["#89B881", "#BD0E0D", "#ffffff", "#FFD700", "#00A86B"],
+        scalar: 1.5,
+      });
+    }, 150);
+
+    // Tercera ráfaga desde la derecha
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { x: 0.7, y: 0.4 },
+        colors: ["#89B881", "#BD0E0D", "#ffffff", "#FFD700", "#00A86B"],
+        scalar: 1.5,
+      });
+    }, 300);
+  };
+
+  const handleLogoHover = () => {
+    if (!showPopup50) {
+      launchConfetti();
+      setShowPopup50(true);
+    }
+  };
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
@@ -378,15 +420,100 @@ export default function Header() {
             className={`flex items-center justify-center ${isCompact ? "gap-4" : "gap-8"}`}
           >
             {/* LOGO */}
-            <IlaLogo50
-              size={isCompact ? "mini" : "default"}
-              show50={true}
-              isLink={true}
-              animated={true}
-              animationType={isCompact ? "hover-scale" : "fifty-pulse"}
-              variant="white-solid"
-              className={isCompact ? "-translate-y-1 -my-3" : ""}
-            />
+            {/* LOGO */}
+            <div
+              className="relative"
+              onMouseEnter={handleLogoHover}
+              onMouseLeave={() => setShowPopup50(false)}
+              ref={logoRef}
+            >
+              <IlaLogo50
+                size={isCompact ? "mini" : "default"}
+                show50={true}
+                isLink={true}
+                animated={true}
+                animationType={isCompact ? "hover-scale" : "fifty-pulse-green"}
+                variant="white-solid"
+                className={isCompact ? "-translate-y-1 -my-3" : ""}
+              />
+
+              {/* Popup 50 años */}
+              {/* Popup 50 años - Modal centrado */}
+              {showPopup50 && (
+                <>
+                  {/* Overlay oscuro */}
+                  <div
+                    className="fixed inset-0 bg-black/40 z-40"
+                    onMouseEnter={() => setShowPopup50(false)}
+                  />
+
+                  {/* Modal centrado */}
+                  {/* Modal centrado */}
+                  <div
+                    className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-2xl bg-[#89B881] text-white p-8 md:p-10 rounded-none shadow-2xl border-t-4 border-green-700 animate-in fade-in zoom-in-95 duration-300"
+                    onMouseLeave={() => setShowPopup50(false)}
+                  >
+                    {/* Logo */}
+                    <div className="flex justify-center mb-6">
+                      <IlaLogo50
+                        size="default"
+                        show50={true}
+                        isLink={false}
+                        animated={true}
+                        animationType="fifty-pulse-green"
+                      />
+                    </div>
+
+                    <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-none mb-6 text-center futura">
+                      {locale === "es" ? "¡Cumplimos 50!" : "Wir werden 50!"}
+                    </h3>
+
+                    <p
+                      className="text-lg md:text-xl leading-relaxed font-medium text-white/95 mb-8 text-center"
+                      style={{
+                        fontFamily:
+                          "'Inter', 'Segoe UI', system-ui, sans-serif",
+                      }}
+                    >
+                      {locale === "es"
+                        ? 'Sería tiempo de colgar los guantes y relajarse. ¿En un mundo donde el presidente de EE. UU. vuelve a hacer de "América para los estadounidenses" la guía de su política y el canciller alemán solo ve todo esto como "complejo"? ¿En un presente donde las fuerzas de derecha están en auge y, sin embargo, en todas partes la gente resiste día a día, luchando por una buena vida y sociedades solidarias? Celebramos y seguimos. ¿Y tú?'
+                        : 'Es wäre Zeit, die ila an den Nagel zu hängen und sich zurückzulehnen. In einer Welt in der der US-Präsident "Amerika den (US-)Amerikanern" wieder zur Leitlinie seiner Politik macht und der deutsche Kanzler das Ganze nur als "komplex" sehen kann? In einer Gegenwart wo rechte Kräfte im Vormarsch sind und dennoch überall Menschen tagtäglich widerstehen, für ein gutes Leben und solidarische Gesellschaften kämpfen? Wir feiern und machen weiter. Und ihr?'}
+                    </p>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <Link
+                        href="/order/abo"
+                        className="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-4 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base md:text-lg futura"
+                      >
+                        {locale === "es" ? "Suscríbete" : "Abonnieren"}
+                      </Link>
+                      <Link
+                        href="/support/participate"
+                        className="bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base md:text-lg futura"
+                      >
+                        {locale === "es" ? "Únete" : "Mitmachen"}
+                      </Link>
+                      <Link
+                        href="/support/donations"
+                        className="bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base md:text-lg futura"
+                      >
+                        {locale === "es" ? "Dona" : "Spenden"}
+                      </Link>
+                    </div>
+
+                    {/* Botón cerrar */}
+                    <button
+                      onClick={() => setShowPopup50(false)}
+                      className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                    >
+                      <span className="text-white text-2xl leading-none">
+                        &times;
+                      </span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* TAGLINE - Alineación Precisa */}
             {!isCompact && (
