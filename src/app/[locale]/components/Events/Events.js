@@ -67,7 +67,7 @@ export default function InfoBox() {
     return (
       <section className="w-full max-w-md mx-auto">
         <SectionHeader title={t("events")} rightElement={calendarLink} />
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 text-center mt-4">
+        <div className="bg-white dark:bg-gray-800 rounded-none shadow-sm border border-gray-100 dark:border-gray-700 p-6 text-center mt-4">
           <p className="text-gray-500 dark:text-gray-400">{t("noEvents")}</p>
         </div>
       </section>
@@ -98,7 +98,15 @@ export default function InfoBox() {
           <NextArrow />
         </button>
 
-        <div className="p-4">
+        <div className="p-0">
+          {/* TÍTULO */}
+          <Link href={`/events/${current.id}`}>
+            <h3 className="font-serif text-lg font-bold text-gray-900 dark:text-white leading-snug mb-1 text-center hover:text-red-600 dark:hover:text-red-500 transition-colors">
+              {locale === "es"
+                ? current.titleES || current.title
+                : current.title}
+            </h3>
+          </Link>
           {/* Fila de datos */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
             {/* Fecha */}
@@ -137,7 +145,7 @@ export default function InfoBox() {
           {/* IMAGEN */}
           <Link
             href={`/events/${current.id}`}
-            className="block w-full h-40 relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-lg mb-3 group"
+            className="block w-full h-40 relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-none mb-3 group"
           >
             <Image
               src={current.image}
@@ -147,19 +155,10 @@ export default function InfoBox() {
                   : current.title
               }
               fill
-              className="object-contain group-hover:scale-105 transition-transform duration-500 bg-white dark:bg-gray-800"
+              className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
               sizes="(max-width: 768px) 100vw, 400px"
             />
             <div className="absolute inset-0 bg-black/0 dark:bg-black/20 transition-all duration-300" />
-          </Link>
-
-          {/* TÍTULO */}
-          <Link href={`/events/${current.id}`}>
-            <h3 className="font-serif text-lg font-bold text-gray-900 dark:text-white leading-snug mb-1 text-center hover:text-red-600 dark:hover:text-red-500 transition-colors">
-              {locale === "es"
-                ? current.titleES || current.title
-                : current.title}
-            </h3>
           </Link>
 
           {/* Indicadores */}
