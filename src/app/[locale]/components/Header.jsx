@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 
-import IlaLogo from "../components/IlaLogo/IlaLogo";
+import IlaLogo50 from "../components/IlaLogo/ilaLogo50";
 
 import styles from "./Header.module.css";
 
@@ -248,12 +248,13 @@ export default function Header() {
             href="/"
             className="bg-[#BD0E0D] w-16 h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
           >
-            <IlaLogo
-              size="default"
+            <IlaLogo50
+              size="mobile"
+              show50={true}
               isLink={false}
-              /* Cambiado a variant="white-outline" o similar */
-              variant="white-solid"
-              className="transform scale-90"
+              animated={true}
+              animationType="fifty-pulse"
+              className="transform scale-75 -translate-y-1"
             />
           </Link>
 
@@ -377,12 +378,14 @@ export default function Header() {
             className={`flex items-center justify-center ${isCompact ? "gap-4" : "gap-8"}`}
           >
             {/* LOGO */}
-            <IlaLogo
+            <IlaLogo50
               size={isCompact ? "mini" : "default"}
+              show50={true}
+              isLink={true}
               animated={true}
-              animationType="hover-scale"
+              animationType={isCompact ? "hover-scale" : "fifty-pulse"}
               variant="white-solid"
-              className={isCompact ? "translate-y-1 -my-3" : ""}
+              className={isCompact ? "-translate-y-1 -my-3" : ""}
             />
 
             {/* TAGLINE - Alineación Precisa */}

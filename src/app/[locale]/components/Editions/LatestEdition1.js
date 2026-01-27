@@ -780,7 +780,7 @@ export default function LatestEditionWithArticles() {
               <div className="block lg:hidden w-full mt-6 space-y-4">
                 <AktuellesPreview />
                 <Events />
-                <DonationBanner />
+                <SideBanner50 />
               </div>
             </div>
           </div>

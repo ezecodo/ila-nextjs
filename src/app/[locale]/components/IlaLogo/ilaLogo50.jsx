@@ -17,32 +17,41 @@ export default function IlaLogo50({
 
   const sizeConfig = {
     mini: {
-      width: 100,
-      height: 70,
-      fontSize: 72,
-      map: { width: 12, height: 26, top: -8, left: 16 },
-      fifty: { fontSize: 23, top: -4, right: 18 },
+      width: 80,
+      height: 80,
+      fontSize: 60,
+      letterSpacing: 0,
+      map: { width: 12, height: 26, top: 12, left: 6 },
+      fifty: { fontSize: 20, top: 14, right: 8 },
+    },
+    mobile: {
+      width: 80,
+      height: 80,
+      fontSize: 60,
+      letterSpacing: 0,
+      map: { width: 12, height: 26, top: 10, left: 6 },
+      fifty: { fontSize: 19, top: 14, right: -6 }, // ajustado para mobile
     },
     compact: {
-      width: 140,
-      height: 95,
-      fontSize: 100,
-      map: { width: 18, height: 38, top: -11, left: 22 },
-      fifty: { fontSize: 33, top: -7, right: 26 },
+      width: 96,
+      height: 96,
+      fontSize: 132,
+      map: { width: 17, height: 36, top: -1, left: 1 },
+      fifty: { fontSize: 28, top: 5, right: 6 },
     },
     default: {
-      width: 200,
-      height: 130,
-      fontSize: 140,
-      map: { width: 26, height: 54, top: -15, left: 30 },
-      fifty: { fontSize: 47, top: -12, right: 36 },
+      width: 168,
+      height: 168,
+      fontSize: 162,
+      map: { width: 30, height: 64, top: -2, left: 2 },
+      fifty: { fontSize: 48, top: 8, right: 10 },
     },
     large: {
-      width: 300,
-      height: 195,
-      fontSize: 210,
-      map: { width: 38, height: 80, top: -22, left: 45 },
-      fifty: { fontSize: 70, top: -18, right: 52 },
+      width: 240,
+      height: 240,
+      fontSize: 216,
+      map: { width: 43, height: 91, top: -3, left: 3 },
+      fifty: { fontSize: 69, top: 11, right: 14 },
     },
   };
 
@@ -473,7 +482,7 @@ export default function IlaLogo50({
           fontFamily="'Futura PT', Futura, 'Jost', sans-serif"
           fontSize={config.fontSize}
           fontWeight="600"
-          letterSpacing="-4"
+          letterSpacing={config.letterSpacing ?? -4}
         >
           ıla
         </text>

@@ -2,7 +2,6 @@
 
 import { useLocale } from "next-intl";
 import Link from "next/link";
-import IlaLogo50 from "../../IlaLogo/ilaLogo50";
 
 export default function Banner50Compact() {
   const locale = useLocale();
@@ -27,20 +26,9 @@ export default function Banner50Compact() {
   const t = content[locale] || content.de;
 
   return (
-    <div className="bg-[#89B881] text-white p-6 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 rounded-lg">
+    <div className="bg-[#89B881] text-white p-6 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700">
       {/* HEADER: Logo y Título con presencia */}
       <div className="flex items-center w-full justify-center gap-4">
-        {/* Logo a tamaño natural */}
-        <div className="shrink-0">
-          <IlaLogo50
-            size="small"
-            show50={true}
-            isLink={false}
-            animated={true}
-            animationType="fifty-pulse" // <-- La nueva animación
-          />
-        </div>
-
         {/* Título muy grande y visible */}
         <div className="text-left flex-1 min-w-0">
           <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-none text-white break-words">
@@ -57,27 +45,24 @@ export default function Banner50Compact() {
       </div>
 
       {/* BOTONES DE ACCIÓN - Con jerarquía de colores */}
+      {/* BOTONES DE ACCIÓN - Los 3 en línea */}
       <div className="w-full mt-0">
-        {/* Botón PRIMARIO (Abonnieren) - OPCIÓN 3: Rojo ILA */}
-        <div className="mb-2">
+        <div className="grid grid-cols-3 gap-2">
           <Link
             href="/order/abo"
-            className="block w-full bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-4 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-lg md:text-xl"
+            className="bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-3 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base md:text-lg"
           >
             {t.cta1}
           </Link>
-        </div>
-        {/* Botones SECUNDARIOS en línea */}
-        <div className="grid grid-cols-2 gap-2">
           <Link
             href="/support/participate"
-            className="bg-white/10 hover:bg-white/20 text-white font-semibold  py-2 px-3 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02]  text-base"
+            className="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-3 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base md:text-lg"
           >
             {t.cta2}
           </Link>
           <Link
             href="/support/donations"
-            className="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-3 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base"
+            className="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-3 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base md:text-lg"
           >
             {t.cta3}
           </Link>
