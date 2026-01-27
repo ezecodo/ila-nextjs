@@ -26,7 +26,7 @@ export default function Banner50Compact() {
   const t = content[locale] || content.de;
 
   return (
-    <div className="bg-[#89B881] text-white p-6 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700">
+    <div className="bg-[#89B881] text-white p-6 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0">
       {/* HEADER: Logo y Título con presencia */}
       <div className="flex items-center w-full justify-center gap-4">
         {/* Título muy grande y visible */}
@@ -39,15 +39,14 @@ export default function Banner50Compact() {
 
       {/* TEXTO PRINCIPAL */}
       <div className="w-full text-left">
-        <p className="text-lg md:text-xl leading-loose font-medium text-white/95">
+        <p className="text-base md:text-xl leading-relaxed md:leading-loose font-medium text-white/95">
           {t.fullText}
         </p>
       </div>
 
-      {/* BOTONES DE ACCIÓN - Con jerarquía de colores */}
       {/* BOTONES DE ACCIÓN - Los 3 en línea */}
       <div className="w-full mt-0">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Link
             href="/order/abo"
             className="bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-3 text-center border border-white/30 hover:border-white/50 transition-all duration-200 hover:scale-[1.02] text-base md:text-lg"

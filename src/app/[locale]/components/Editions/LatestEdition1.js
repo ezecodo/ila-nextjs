@@ -283,7 +283,7 @@ export default function LatestEditionWithArticles() {
   });
   return (
     <>
-      <div className="w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-4 pb-16">
+      <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-6 lg:px-4 pb-16">
         {currentEdition && (
           <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 items-start justify-between">
             <div className="relative w-full lg:w-auto flex items-start justify-end">
