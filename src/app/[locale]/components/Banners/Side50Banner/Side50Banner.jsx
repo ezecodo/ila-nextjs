@@ -39,7 +39,7 @@ export default function Banner50Compact() {
 
       {/* TEXTO PRINCIPAL */}
       <div className="w-full text-left">
-        <p className="text-base md:text-xl leading-relaxed md:leading-loose font-medium text-white/95">
+        <p className="text-lg md:text-xl leading-tight md:leading-snug font-medium text-white/95">
           {t.fullText}
         </p>
       </div>
