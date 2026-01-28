@@ -26,9 +26,9 @@ export default function Banner50Compact() {
   const t = content[locale] || content.de;
 
   return (
-    <div className="bg-[#89B881] text-white p-6 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0">
+    <div className="bg-[#89B881] text-white p-4 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0">
       {/* HEADER: Logo y Título con presencia */}
-      <div className="flex items-center w-full justify-center gap-4">
+      <div className="flex items-center w-full justify-center gap-2">
         {/* Título muy grande y visible */}
         <div className="text-left flex-1 min-w-0">
           <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-none text-white break-words">

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import SectionHeader from "../../components/SectionsHeader/SetionHeader";
 
 export default function InfoBox() {
@@ -76,77 +75,78 @@ export default function InfoBox() {
 
   if (!current) return null;
 
+  const ChevronLeft = () => (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-[#BD0E0D]"
+    >
+      <polyline points="15 18 9 12 15 6"></polyline>
+    </svg>
+  );
+
+  const ChevronRight = () => (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-[#BD0E0D]"
+    >
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  );
+
   return (
     <section className="w-full max-w-md mx-auto">
       <SectionHeader title={t("events")} rightElement={calendarLink} />
 
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 dark:border-gray-700 overflow-hidden mt-4">
-        {/* Flechas */}
-        <button
-          onClick={() => index > 0 && setIndex(index - 1)}
-          disabled={index === 0}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700/90 hover:scale-110 shadow-md rounded-full p-1.5 transition-all disabled:opacity-0 disabled:cursor-not-allowed z-10 border border-gray-200 dark:border-gray-600"
-        >
-          <PrevArrow />
-        </button>
+      <div className="relative bg-white dark:bg-gray-800 rounded-none shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 overflow-hidden mt-0 flex flex-col">
+        {/* 1. CONTENIDO (METADATOS + TÍTULO) - Ahora arriba */}
+        <div className="px-0 flex flex-col">
+          {/* METADATOS - Arriba con tinte visual */}
+          <div className="flex items-center justify-start gap-2 text-xs font-bold text-gray-700 bg-white dark:bg-gray-800 dark:text-gray-200 py-1 px-1 ml-2">
+            <span className=" text-red-600 font-semibold uppercase tracking-wider">
+              {new Intl.DateTimeFormat(locale, {
+                day: "numeric",
+                month: "short",
+              }).format(new Date(current.date))}
+            </span>
 
-        <button
-          onClick={() => index < events.length - 1 && setIndex(index + 1)}
-          disabled={index === events.length - 1}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-700/90 hover:scale-110 shadow-md rounded-full p-1.5 transition-all disabled:opacity-0 disabled:cursor-not-allowed z-10 border border-gray-200 dark:border-gray-600"
-        >
-          <NextArrow />
-        </button>
+            <span className="text-[#BD0E0D]">|</span>
 
-        <div className="p-0">
+            {current.time && (
+              <>
+                <span>{current.time}</span>
+                <span className="text-[#BD0E0D]">|</span>
+              </>
+            )}
+
+            <span className="truncate max-w-[150px]">{current.location}</span>
+          </div>
           {/* TÍTULO */}
           <Link href={`/events/${current.id}`}>
-            <h3 className="font-serif text-lg font-bold text-gray-900 dark:text-white leading-snug mb-1 text-center hover:text-red-600 dark:hover:text-red-500 transition-colors">
+            <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-white leading-tight mb-2 mt-2 justify-start hover:text-red-600 dark:hover:text-red-500 transition-colors line-clamp-2 ml-2">
               {locale === "es"
                 ? current.titleES || current.title
                 : current.title}
             </h3>
           </Link>
-          {/* Fila de datos */}
-          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            {/* Fecha */}
-            <span className="flex items-center gap-1">
-              <span className="text-red-500">📅</span>
-              {new Intl.DateTimeFormat(locale, {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              }).format(new Date(current.date))}
-            </span>
+        </div>
 
-            {/* Separador */}
-            <span className="text-gray-300 dark:text-gray-700">|</span>
-
-            {/* Hora (si existe) */}
-            {current.time && (
-              <span className="flex items-center gap-1">
-                <span className="text-red-500">🕒</span>
-                {current.time}
-              </span>
-            )}
-
-            {/* Separador (solo si hay hora) */}
-            {current.time && (
-              <span className="text-gray-300 dark:text-gray-700">|</span>
-            )}
-
-            {/* Ubicación */}
-            <span className="flex items-center gap-1 truncate max-w-[150px]">
-              <span className="text-red-500">📍</span>
-              {current.location}
-            </span>
-          </div>
-
-          {/* IMAGEN */}
-          <Link
-            href={`/events/${current.id}`}
-            className="block w-full h-40 relative overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-none mb-3 group"
-          >
+        {/* 2. IMAGEN (HERO) - Ahora debajo */}
+        <div className="relative w-full h-40 bg-gray-100 dark:bg-gray-700 shrink-0 group">
+          <Link href={`/events/${current.id}`} className="block w-full h-full">
             <Image
               src={current.image}
               alt={
@@ -155,27 +155,52 @@ export default function InfoBox() {
                   : current.title
               }
               fill
-              className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+              className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
               sizes="(max-width: 768px) 100vw, 400px"
             />
-            <div className="absolute inset-0 bg-black/0 dark:bg-black/20 transition-all duration-300" />
           </Link>
 
-          {/* Indicadores */}
-          <div className="flex justify-center">
-            <div className="flex space-x-1.5">
+          {/* Indicador de cantidad */}
+          <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-none">
+            {index + 1} / {events.length}
+          </div>
+        </div>
+
+        {/* 4. NAVEGACIÓN (Flechitas + Puntos) */}
+        <div className="border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-0">
+          <div className="flex items-center justify-between w-full">
+            <button
+              onClick={() => index > 0 && setIndex(index - 1)}
+              disabled={index === 0}
+              className="text-[#BD0E0D] hover:text-red-800 hover:scale-125 disabled:opacity-20 disabled:hover:scale-100 transition-all p-1"
+              aria-label="Anterior"
+            >
+              <ChevronLeft />
+            </button>
+
+            <div className="flex items-center gap-2">
               {events.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setIndex(i)}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  className={`h-1 rounded-none transition-all duration-300 ${
                     i === index
-                      ? "bg-red-600 w-4"
-                      : "bg-gray-300 dark:bg-gray-600 hover:bg-gray-400"
+                      ? "bg-red-600 w-5"
+                      : "bg-gray-300 dark:bg-gray-600 w-1 hover:bg-gray-400"
                   }`}
+                  aria-label={`Ir a evento ${i + 1}`}
                 />
               ))}
             </div>
+
+            <button
+              onClick={() => index < events.length - 1 && setIndex(index + 1)}
+              disabled={index === events.length - 1}
+              className="text-[#BD0E0D] hover:text-red-800 hover:scale-125 disabled:opacity-20 disabled:hover:scale-100 transition-all p-1"
+              aria-label="Siguiente"
+            >
+              <ChevronRight />
+            </button>
           </div>
         </div>
       </div>

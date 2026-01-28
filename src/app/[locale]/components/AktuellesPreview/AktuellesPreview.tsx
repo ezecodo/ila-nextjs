@@ -99,7 +99,7 @@ export default function AktuellesPreview() {
                   href={`/aktuell/aktuelles?scrollTo=${item.id}`}
                   className="block"
                 >
-                  <h4 className="font-serif text-base font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-red-700 dark:group-hover:text-red-500 transition-colors">
+                  <h4 className="font-serif text-base font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors">
                     {getTitle(item)}
                   </h4>
                 </Link>
