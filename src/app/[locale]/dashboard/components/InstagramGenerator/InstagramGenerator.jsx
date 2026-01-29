@@ -74,6 +74,7 @@ export default function InstagramGenerator({ initialArticle }) {
   const [customTitle, setCustomTitle] = useState("");
   const [isExporting, setIsExporting] = useState(false);
   const [showArticleSelector, setShowArticleSelector] = useState(false);
+  const [titleScale, setTitleScale] = useState(100); // 100 = tamaño normal (%)
   const [selectedArticle, setSelectedArticle] = useState(
     initialArticle || null,
   );
@@ -346,40 +347,6 @@ export default function InstagramGenerator({ initialArticle }) {
   // === COMPONENTE SLIDE PORTADA ===
   const CoverSlide = React.forwardRef(
     ({ slide, scale: s, format: fmt = "portrait" }, ref) => {
-      // <-- Añadir format
-      // Valores según formato
-      const getValuesByFormat = () => {
-        switch (fmt) {
-          case "story": // 9:16 (historias)
-            return {
-              imageHeight: "65%", // Más imagen
-              gradientHeight: "45%", // Menos gradiente
-              titleSize: 36, // Tamaño diferente
-              paddingBottom: "8", // Menos padding
-              showNumber: false, // No mostrar número en stories
-            };
-          case "square": // 1:1 (cuadrado)
-            return {
-              imageHeight: "50%", // ← MENOS imagen (de 60% a 50%)
-              gradientHeight: "60%", // ← MÁS gradiente (de 50% a 60%)
-              titleSize: 36, // ← Título MÁS GRANDE (de 32 a 36)
-              paddingBottom: "20", // ← MÁS padding (de 12 a 20)
-              showNumber: true,
-            };
-          case "portrait": // 4:5 (vertical)
-          default:
-            return {
-              imageHeight: "55%",
-              gradientHeight: "60%",
-              titleSize: 42, // El más grande para portrait
-              paddingBottom: "16",
-              showNumber: true,
-            };
-        }
-      };
-
-      const values = getValuesByFormat();
-
       return (
         <div
           ref={ref}
@@ -389,61 +356,58 @@ export default function InstagramGenerator({ initialArticle }) {
             height: FORMATS[fmt].height * s,
           }}
         >
-          {/* Imagen - RESPONSIVE */}
-          <img
-            src={slide.imageUrl}
-            crossOrigin="anonymous"
-            alt=""
-            className="absolute inset-0 object-cover w-full"
-            style={{ height: values.imageHeight }}
-          />
+          {/* Fondo rojo primero */}
+          <div className="absolute inset-0 bg-[#BD0E0D]" />
 
-          {/* Gradient ROJO - RESPONSIVE */}
+          {/* Imagen con margen interno (como paspartú) */}
           <div
-            className="absolute left-0 right-0 bottom-0"
+            className="absolute inset-0"
             style={{
-              height: values.gradientHeight,
-              background:
-                "linear-gradient(to top, #8B0000 20%, rgba(185,28,28,0.9) 40%, transparent 100%)",
+              margin: "8px",
+            }}
+          >
+            <img
+              src={slide.imageUrl}
+              crossOrigin="anonymous"
+              alt=""
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Gradiente rojo */}
+          <div
+            className="absolute bottom-0 left-0 right-0"
+            style={{
+              height: "50%",
+              background: `
+              linear-gradient(
+                to top,
+                rgba(189, 14, 13, 1) 0%,
+                rgba(189, 14, 13, 0.95) 30%,
+                rgba(189, 14, 13, 0.7) 60%,
+                transparent 100%
+              )
+            `,
             }}
           />
 
-          {/* Logo - POSICIÓN RESPONSIVE */}
-          <div
-            className={`absolute ${fmt === "story" ? "top-6" : "top-4"} left-4`}
-          >
+          {/* Logo en recuadro rojo */}
+          <div className="absolute top-0 left-0 bg-[#BD0E0D] p-2">
             <IlaLogo50
               key={`cover-logo-${logoSize}-${fmt}`}
-              size={fmt === "story" ? "default" : logoSize}
+              size={logoSize}
               isLink={false}
               animated={false}
               show50={true}
             />
           </div>
 
-          {/* Número 50 (solo para algunos formatos) */}
-          {values.showNumber && (
-            <div
-              className={`absolute ${fmt === "story" ? "top-20" : "top-10"} left-1/2 -translate-x-1/2`}
-            >
-              <span
-                className="text-white font-bold"
-                style={{
-                  fontSize: `${fmt === "story" ? 60 : 80} * s * 2.5}px`,
-                  opacity: 0.9,
-                }}
-              >
-                50
-              </span>
-            </div>
-          )}
-
-          {/* Crédito de imagen - POSICIÓN RESPONSIVE */}
+          {/* Crédito de imagen */}
           {slide.imageCredit && (
             <div
               className="absolute right-4 text-white/80 text-right"
               style={{
-                top: `calc(${values.imageHeight} - 10%)`,
+                bottom: "52%",
                 fontSize: `${8 * s * 2.5}px`,
               }}
             >
@@ -451,15 +415,14 @@ export default function InstagramGenerator({ initialArticle }) {
             </div>
           )}
 
-          {/* Contenido - TAMAÑO Y POSICIÓN RESPONSIVE */}
-          <div
-            className={`absolute ${fmt === "story" ? "bottom-12" : "bottom-16"} left-0 right-0 p-6 text-white ${fmt === "story" ? "text-center" : ""}`}
-          >
+          {/* Contenido */}
+          <div className="absolute bottom-0 left-0 right-0 p-8 pb-10 z-10">
             <h2
-              className="font-bold leading-tight preview-title mb-3"
+              className="font-bold leading-tight preview-title"
               style={{
-                fontSize: `${values.titleSize * s * 2.5}px`,
+                fontSize: `${28 * s * 2.5}px`,
                 lineHeight: 1.05,
+                textShadow: "0 2px 10px rgba(0,0,0,0.7)",
               }}
             >
               {slide.title}
@@ -467,9 +430,9 @@ export default function InstagramGenerator({ initialArticle }) {
 
             {slide.subtitle && (
               <p
-                className={`mt-3 opacity-90 italic ${fmt === "story" ? "text-center" : ""}`}
+                className="mt-2 text-white/90 italic"
                 style={{
-                  fontSize: `${values.titleSize * 0.6 * s * 2.5}px`,
+                  fontSize: `${14 * s * 2.5}px`,
                   lineHeight: 1.15,
                 }}
               >
@@ -478,17 +441,14 @@ export default function InstagramGenerator({ initialArticle }) {
             )}
 
             <p
-              className={`mt-6 opacity-80 ${fmt === "story" ? "text-center" : ""}`}
+              className="mt-2 text-white/80"
               style={{
-                fontSize: `${values.titleSize * 0.45 * s * 2.5}px`,
+                fontSize: `${12 * s * 2.5}px`,
               }}
             >
               von {slide.author}
             </p>
           </div>
-
-          {/* Barra inferior */}
-          <div className="absolute bottom-0 left-0 right-0 h-2 bg-[#8B0000]" />
         </div>
       );
     },
@@ -931,6 +891,25 @@ export default function InstagramGenerator({ initialArticle }) {
                     ))}
                   </div>
                 </div>
+                {/* Tamaño del texto */}
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Tamaño del texto: {titleScale}%
+                  </label>
+                  <input
+                    type="range"
+                    min="50"
+                    max="150"
+                    value={titleScale}
+                    onChange={(e) => setTitleScale(Number(e.target.value))}
+                    className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-red-600"
+                  />
+                  <div className="flex justify-between text-xs text-zinc-500 mt-1">
+                    <span>50%</span>
+                    <span>100%</span>
+                    <span>150%</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1059,7 +1038,12 @@ export default function InstagramGenerator({ initialArticle }) {
                         <div
                           className="absolute inset-0"
                           style={{
-                            margin: format === "story" ? "12px" : "8px", // Grosor del marco
+                            margin:
+                              template === "bold"
+                                ? "0px"
+                                : format === "story"
+                                  ? "12px"
+                                  : "8px",
                           }}
                         >
                           <img
@@ -1069,6 +1053,10 @@ export default function InstagramGenerator({ initialArticle }) {
                             className="w-full h-full object-cover"
                           />
                         </div>
+                        {/* Overlay oscuro para bold */}
+                        {template === "bold" && (
+                          <div className="absolute inset-0 bg-black/50" />
+                        )}
 
                         {/* GRADIENTE (más transparente ya que hay marco rojo) */}
                         {(template === "classic" ||
@@ -1080,9 +1068,9 @@ export default function InstagramGenerator({ initialArticle }) {
                               background: `
   linear-gradient(
     to top,
-    rgba(110, 0, 0, 1) 0%,
-    rgba(130, 0, 0, 0.95) 30%,
-    rgba(150, 10, 10, 0.7) 60%,
+    rgba(189, 14, 13, 1) 0%,
+    rgba(189, 14, 13, 0.95) 30%,
+    rgba(189, 14, 13, 0.7) 60%,
     transparent 100%
   )
 `,
@@ -1092,7 +1080,7 @@ export default function InstagramGenerator({ initialArticle }) {
                       </>
                     )}
 
-                    <div className={getLogoPosition()}>
+                    <div className="absolute top-0 left-0 bg-[#BD0E0D] p-2">
                       <IlaLogo50
                         key={`logo-${logoSize}-${format}`}
                         size={logoSize}
@@ -1126,6 +1114,8 @@ export default function InstagramGenerator({ initialArticle }) {
                           style={{
                             maxWidth: "95%",
                             textShadow: "0 2px 10px rgba(0,0,0,0.7)",
+                            transform: `scale(${titleScale / 100})`,
+                            transformOrigin: "bottom left",
                           }}
                         >
                           {title}
