@@ -140,8 +140,34 @@ model Edition {
   tocManualMatches   TocManualMatch[]
   regions            Region[]         @relation("EditionRegions")
   topics             Topic[]          @relation("EditionTopics")
+  pdf               EditionPdf?
 
   @@index([translatorId])
+}
+
+model EditionPdf {
+  id          String    @id @default(cuid())
+  editionId   Int       @unique
+  pdfUrl      String
+  fileSize    Int?
+  pageCount   Int?
+  uploadedAt  DateTime  @default(now())
+  
+  edition     Edition   @relation(fields: [editionId], references: [id])
+}
+
+
+model PdfAboInvitation {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  isRedeemed  Boolean   @default(false)
+  redeemedAt  DateTime?
+  redeemedBy  String?   @unique  // ← Añade @unique aquí
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  
+  user        User?     @relation(fields: [redeemedBy], references: [id])
 }
 model Banner {
   id            String   @id @default(cuid())
@@ -330,6 +356,7 @@ model User {
   role                 Role             @default(user)
   language             String           @default("de")
   accounts             Account?
+  pdfAboInvitation  PdfAboInvitation?
   activityLogs         ActivityLog[]
   aktuelles            Aktuelles[]
   reviewsAssigned      Article[]        @relation("ArticleReviewer")
