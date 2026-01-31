@@ -281,7 +281,7 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
   const itemsList = fullOrder.items
     .map(
       (item) =>
-        `<li>${item.qty} × <strong>ila ${item.edition.number}</strong> – ${item.edition.title}</li>`
+        `<li>${item.qty} × <strong>ila ${item.edition.number}</strong> – ${item.edition.title}</li>`,
     )
     .join("");
 
@@ -370,5 +370,57 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
     return response;
   } catch (error) {
     console.error("❌ Error al enviar correo de pedido:", error);
+  }
+}
+
+/**
+ * 📩 Enviar email de invitación PDF ABO
+ */
+export async function sendPdfAboInvitationEmail(email) {
+  const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?pdfAbo=true`;
+
+  try {
+    const response = await resend.emails.send({
+      from: "no-reply@ila-web.de",
+      to: email,
+      subject: "Dein PDF-Abo bei ila ist bereit!",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto;">
+          <h2 style="color: #c21f2e;">Willkommen bei ila!</h2>
+          
+          <p>Hallo,</p>
+          
+          <p>Dein <strong>PDF-Abo</strong> der Zeitschrift <strong>ila</strong> ist jetzt verfügbar!</p>
+          
+          <p>Um Zugang zu deinen PDF-Ausgaben zu erhalten, registriere dich bitte mit dieser E-Mail-Adresse:</p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${registerUrl}" 
+               target="_blank" 
+               style="display: inline-block; padding: 15px 30px; background-color: #c21f2e; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              Jetzt registrieren
+            </a>
+          </div>
+          
+          <p>Nach der Registrierung findest du alle verfügbaren Ausgaben in deinem persönlichen Dashboard unter <strong>"Meine Dossiers"</strong>.</p>
+          
+          <p style="margin-top: 30px; padding: 15px; background: #f5f5f5; border-radius: 5px; font-size: 14px;">
+            <strong>Wichtig:</strong> Bitte registriere dich mit genau dieser E-Mail-Adresse (${email}), damit dein Abo automatisch aktiviert wird.
+          </p>
+          
+          <p style="margin-top: 30px;">
+            Herzliche Grüße,<br>
+            das ila-Team<br>
+            <a href="https://ila-web.de" style="color: #c21f2e; text-decoration: none;">ila-web.de</a>
+          </p>
+        </div>
+      `,
+    });
+
+    console.log("✅ Correo de invitación PDF ABO enviado:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ Error al enviar invitación PDF ABO:", error);
+    throw new Error("No se pudo enviar la invitación PDF ABO.");
   }
 }

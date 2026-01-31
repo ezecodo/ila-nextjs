@@ -33,7 +33,12 @@
     "src/app/[locale]/components/Editions/EditionsCarouselFlip/EditionsCarouselFlip.js",
     "src/lib/slugify.js",
     "src/app/[locale]/order/abo/components/AboForm/AgbModal.js",
-    "src/app/[locale]/contents/current-issue/page.js"
+    "src/app/[locale]/contents/current-issue/page.js",
+    ".next/types/app/[locale]/dashboard/admin/pdf-abo/page.jsx",
+    "src/app/[locale]/logo/page.jsx",
+    "src/app/[locale]/links/page.js",
+    "src/app/[locale]/about/network/page.jsx",
+    "src/app/[locale]/dashboard/network/page.js"
   ],
   "exclude": ["node_modules"]
 }
