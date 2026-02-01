@@ -87,6 +87,11 @@ export default function Header() {
   };
 
   const handleLogoHover = () => {
+    // Si es admin, NO mostrar popup ni confeti
+    if (session?.user?.role === "admin") {
+      return; // Salir sin hacer nada
+    }
+
     if (!showPopup50) {
       launchConfetti();
       setShowPopup50(true);
@@ -423,8 +428,12 @@ export default function Header() {
             {/* LOGO */}
             <div
               className="relative"
-              onMouseEnter={handleLogoHover}
-              onMouseLeave={() => setShowPopup50(false)}
+              onMouseEnter={
+                session?.user?.role !== "admin" ? handleLogoHover : undefined
+              }
+              onMouseLeave={() =>
+                session?.user?.role !== "admin" && setShowPopup50(false)
+              }
               ref={logoRef}
             >
               <IlaLogo50
