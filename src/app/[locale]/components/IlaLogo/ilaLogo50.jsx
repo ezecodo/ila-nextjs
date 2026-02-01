@@ -12,6 +12,8 @@ export default function IlaLogo50({
   animated = true,
   animationType = "hover-scale",
   show50 = true,
+  on50Hover,
+  on50Leave,
 }) {
   const [clicked, setClicked] = useState(false);
 
@@ -510,11 +512,13 @@ export default function IlaLogo50({
       {/* 50 */}
       {show50 && (
         <div
-          className={`absolute z-10 ${getFiftyClasses()}`}
+          className={`absolute z-10 ${getFiftyClasses()} ${on50Hover ? "cursor-pointer" : ""}`}
           style={{
             top: config.fifty.top,
             right: config.fifty.right,
           }}
+          onMouseEnter={on50Hover}
+          onMouseLeave={on50Leave}
         >
           {animationType === "lgbt-gradient" ? (
             <svg

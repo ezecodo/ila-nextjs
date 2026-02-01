@@ -426,16 +426,7 @@ export default function Header() {
           >
             {/* LOGO */}
             {/* LOGO */}
-            <div
-              className="relative"
-              onMouseEnter={
-                session?.user?.role !== "admin" ? handleLogoHover : undefined
-              }
-              onMouseLeave={() =>
-                session?.user?.role !== "admin" && setShowPopup50(false)
-              }
-              ref={logoRef}
-            >
+            <div className="relative" ref={logoRef}>
               <IlaLogo50
                 size={isCompact ? "mini" : "default"}
                 show50={true}
@@ -444,6 +435,14 @@ export default function Header() {
                 animationType={isCompact ? "hover-scale" : "fifty-pulse-green"}
                 variant="white-solid"
                 className={isCompact ? "-translate-y-1 -my-3" : ""}
+                on50Hover={
+                  session?.user?.role !== "admin" ? handleLogoHover : undefined
+                }
+                on50Leave={
+                  session?.user?.role !== "admin"
+                    ? () => setShowPopup50(false)
+                    : undefined
+                }
               />
 
               {/* Popup 50 años */}
