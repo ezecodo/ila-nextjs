@@ -30,7 +30,7 @@ export default function Banner50Compact() {
       {/* HEADER: Logo y Título con presencia */}
       <div className="flex items-center w-full justify-center gap-2">
         {/* Título muy grande y visible */}
-        <div className="text-left flex-1 min-w-0">
+        <div className="text-center flex-1 min-w-0">
           <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-none text-white break-words">
             {t.title}
           </h3>
@@ -38,7 +38,7 @@ export default function Banner50Compact() {
       </div>
 
       {/* TEXTO PRINCIPAL */}
-      <div className="w-full text-left">
+      <div className="w-full text-center">
         <p className="text-lg md:text-xl leading-tight md:leading-snug font-medium text-white/95">
           {t.fullText}
         </p>

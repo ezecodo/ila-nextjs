@@ -1041,5 +1041,65 @@
       "markProcessed": "✅ Als bearbeitet markieren",
       "processedLabel": "Bearbeitet am"
     }
+  },
+  "pdf_abo": {
+    "header": {
+      "title": "Verwaltung von PDF ABO",
+      "subtitle": "Verwalten und steuern Sie den Zugang der Abonnenten"
+    },
+    "stats": {
+      "total": "Gesamt",
+      "total_desc": "Registrierte Einladungen",
+      "pending": "Ausstehend",
+      "pending_desc": "Warten auf Aktivierung",
+      "redeemed": "Aktiviert",
+      "redeemed_desc": "Zugriff gewährt"
+    },
+    "filters": {
+      "search_placeholder": "Nach E-Mail suchen...",
+      "all": "Alle",
+      "pending": "Ausstehend",
+      "redeemed": "Aktiviert"
+    },
+    "actions": {
+      "add_email": "Neue E-Mail hinzufügen",
+      "select_csv": "CSV auswählen",
+      "upload_csv": "CSV hochladen",
+      "uploading": "Hochladen...",
+      "resend": "Einladung erneut senden",
+      "delete": "Löschen"
+    },
+    "table": {
+      "th_email": "E-Mail",
+      "th_status": "Status",
+      "th_date_inv": "Einladungsdatum",
+      "th_date_act": "Aktivierungsdatum",
+      "th_actions": "Aktionen",
+      "status_active": "Aktiviert",
+      "status_pending": "Ausstehend",
+      "empty_title": "Keine Einladungen gefunden",
+      "empty_desc": "Versuchen Sie, die Filter anzupassen oder eine neue E-Mail hinzuzufügen."
+    },
+    "modal": {
+      "title": "E-Mail hinzufügen",
+      "label": "E-Mail des Abonnenten",
+      "placeholder": "beispiel@email.com",
+      "cancel": "Abbrechen",
+      "submit": "Einladung hinzufügen"
+    },
+    "toasts": {
+      "added": "E-Mail erfolgreich hinzugefügt",
+      "add_error": "Fehler beim Hinzufügen der E-Mail",
+      "load_error": "Fehler beim Laden der Daten",
+      "csv_success": "Verarbeitet: {{added}} neue E-Mails. {{duplicates}} Duplikate.",
+      "csv_error": "Fehler beim Verarbeiten der CSV",
+      "deleted": "Einladung gelöscht",
+      "delete_error": "Fehler beim Löschen",
+      "resend_success": "E-Mail erneut gesendet an {{email}}",
+      "resend_error": "Fehler beim Senden",
+      "connection_error": "Verbindungsfehler",
+      "confirm_delete": "Sind Sie sicher, dass Sie diese Einladung löschen möchten?"
+    },
+    "loading": "Daten werden geladen..."
   }
 }

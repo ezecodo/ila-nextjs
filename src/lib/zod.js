@@ -25,6 +25,7 @@ export const signUpSchema = z
     confirmPassword: z
       .string()
       .min(8, "La contraseña debe tener al menos 8 caracteres"),
+    pdfAbo: z.boolean().optional(), // ← Añade esta línea
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Las contraseñas no coinciden",

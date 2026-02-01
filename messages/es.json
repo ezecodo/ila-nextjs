@@ -1037,5 +1037,65 @@
       "markProcessed": "✅ Marcar como procesada",
       "processedLabel": "Procesada el"
     }
+  },
+  "pdf_abo": {
+    "header": {
+      "title": "Gestión de PDF ABO",
+      "subtitle": "Administra y controla el acceso de suscriptores"
+    },
+    "stats": {
+      "total": "Total",
+      "total_desc": "Invitaciones registradas",
+      "pending": "Pendientes",
+      "pending_desc": "Esperando activación",
+      "redeemed": "Activados",
+      "redeemed_desc": "Acceso concedido"
+    },
+    "filters": {
+      "search_placeholder": "Buscar por email...",
+      "all": "Todos",
+      "pending": "Pendientes",
+      "redeemed": "Activados"
+    },
+    "actions": {
+      "add_email": "Añadir Nuevo Email",
+      "select_csv": "Seleccionar CSV",
+      "upload_csv": "Subir CSV",
+      "uploading": "Subiendo...",
+      "resend": "Reenviar invitación",
+      "delete": "Eliminar"
+    },
+    "table": {
+      "th_email": "Email",
+      "th_status": "Estado",
+      "th_date_inv": "Fecha Invitación",
+      "th_date_act": "Fecha Activación",
+      "th_actions": "Acciones",
+      "status_active": "Activado",
+      "status_pending": "Pendiente",
+      "empty_title": "No se encontraron invitaciones",
+      "empty_desc": "Intenta ajustar los filtros o añadir un nuevo email."
+    },
+    "modal": {
+      "title": "Añadir Email",
+      "label": "Email del suscriptor",
+      "placeholder": "ejemplo@email.com",
+      "cancel": "Cancelar",
+      "submit": "Añadir Invitación"
+    },
+    "toasts": {
+      "added": "Email añadido correctamente",
+      "add_error": "Error al añadir email",
+      "load_error": "Error al cargar los datos",
+      "csv_success": "Procesado: {{added}} nuevos emails. {{duplicates}} duplicados.",
+      "csv_error": "Error al procesar el CSV",
+      "deleted": "Invitación eliminada",
+      "delete_error": "Error al eliminar",
+      "resend_success": "Email reenviado a {{email}}",
+      "resend_error": "Error al reenviar",
+      "connection_error": "Error de conexión",
+      "confirm_delete": "¿Estás seguro de eliminar esta invitación?"
+    },
+    "loading": "Cargando datos..."
   }
 }

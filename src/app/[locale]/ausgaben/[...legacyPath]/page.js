@@ -565,11 +565,6 @@ export default function LegacyArticlePage() {
           />
           {((isES && article.additionalInfoES) || article.additionalInfo) && (
             <div className="mt-8 mb-6 p-5 bg-gray-50 dark:bg-gray-800 border-l-4 border-red-600 rounded-r-lg shadow-sm">
-              <h4 className="text-sm uppercase tracking-wide text-gray-600 dark:text-gray-400 font-semibold mb-3">
-                {locale === "es"
-                  ? "Información adicional"
-                  : "Zusätzliche Informationen"}
-              </h4>
               <div
                 className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 [&_p]:mb-2 [&_a]:text-blue-600 [&_a]:hover:underline"
                 dangerouslySetInnerHTML={{

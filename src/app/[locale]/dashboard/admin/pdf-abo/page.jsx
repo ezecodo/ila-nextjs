@@ -13,9 +13,24 @@ import {
   FaTimes,
   FaUserCheck,
   FaUsers,
+  FaInbox,
 } from "react-icons/fa";
+// IMPORTA TU SISTEMA DE TRADUCCIÓN AQUÍ.
+// Ejemplo para next-intl:
+import { useTranslations, useLocale } from "next-intl";
+
+// Definición de colores personalizados
+const BRAND_RED = "#BD0E0D";
+const BRAND_RED_HOVER = "#A30C0B";
+const BRAND_GREEN = "#89B881";
+const BRAND_GREEN_HOVER = "#76A36F";
 
 export default function PdfAboAdmin() {
+  // Hook de traducción apuntando al namespace 'pdf_abo'
+  const t = useTranslations("pdf_abo");
+  // Hook para obtener el idioma actual ('es' o 'de') para las fechas
+  const locale = useLocale();
+
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newEmail, setNewEmail] = useState("");
@@ -23,9 +38,19 @@ export default function PdfAboAdmin() {
   const [csvFile, setCsvFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [filter, setFilter] = useState("all"); // "all" | "pending" | "redeemed"
+  const [filter, setFilter] = useState("all");
+  const [toasts, setToasts] = useState([]);
 
-  // Cargar invitaciones
+  const showToast = (key, type = "success", values = {}) => {
+    const id = Date.now();
+    // Usamos la función de traducción para los mensajes dinámicos
+    const message = t(key, values);
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 4000);
+  };
+
   useEffect(() => {
     fetchInvitations();
   }, []);
@@ -37,12 +62,12 @@ export default function PdfAboAdmin() {
       setInvitations(data);
     } catch (error) {
       console.error("Error al cargar invitaciones:", error);
+      showToast("toasts.load_error", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // Añadir email individual
   const handleAddEmail = async (e) => {
     e.preventDefault();
     if (!newEmail.trim()) return;
@@ -58,17 +83,16 @@ export default function PdfAboAdmin() {
         setNewEmail("");
         fetchInvitations();
         setShowAddModal(false);
+        showToast("toasts.added");
       } else {
-        const error = await res.json();
-        alert(error.message || "Error al añadir email");
+        showToast("toasts.add_error", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error al añadir email");
+      showToast("toasts.connection_error", "error");
     }
   };
 
-  // Subir CSV
   const handleCsvUpload = async () => {
     if (!csvFile) return;
 
@@ -84,58 +108,57 @@ export default function PdfAboAdmin() {
 
       if (res.ok) {
         const result = await res.json();
-        alert(
-          `Se añadieron ${result.added} emails. ${result.duplicates} ya existían.`,
-        );
+        showToast("toasts.csv_success", "success", {
+          added: result.added,
+          duplicates: result.duplicates,
+        });
         setCsvFile(null);
         fetchInvitations();
       } else {
-        alert("Error al procesar el archivo CSV");
+        showToast("toasts.csv_error", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error al subir el archivo");
+      showToast("toasts.csv_error", "error");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Eliminar invitación
   const handleDelete = async (id) => {
-    if (!confirm("¿Estás seguro de eliminar esta invitación?")) return;
-
+    if (!confirm(t("toasts.confirm_delete"))) return;
     try {
       const res = await fetch(`/api/admin/pdf-abo-invitations/${id}`, {
         method: "DELETE",
       });
-
       if (res.ok) {
         fetchInvitations();
+        showToast("toasts.deleted");
+      } else {
+        showToast("toasts.delete_error", "error");
       }
     } catch (error) {
       console.error("Error:", error);
+      showToast("toasts.connection_error", "error");
     }
   };
 
-  // Reenviar invitación
   const handleResend = async (id, email) => {
     try {
       const res = await fetch(`/api/admin/pdf-abo-invitations/${id}/resend`, {
         method: "POST",
       });
-
       if (res.ok) {
-        alert(`Email de invitación reenviado a ${email}`);
+        showToast("toasts.resend_success", "success", { email });
       } else {
-        alert("Error al reenviar email");
+        showToast("toasts.resend_error", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Error al reenviar email");
+      showToast("toasts.connection_error", "error");
     }
   };
 
-  // Filtrar invitaciones
   const filteredInvitations = invitations.filter((inv) => {
     const matchesSearch = inv.email
       .toLowerCase()
@@ -147,275 +170,375 @@ export default function PdfAboAdmin() {
     return matchesSearch && matchesFilter;
   });
 
-  // Estadísticas
   const stats = {
     total: invitations.length,
     pending: invitations.filter((i) => !i.isRedeemed).length,
     redeemed: invitations.filter((i) => i.isRedeemed).length,
   };
 
+  // Configuración de fechas dinámica según el idioma
+  const dateOptions = { day: "2-digit", month: "2-digit", year: "numeric" };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+      <div className="flex flex-col items-center justify-center min-h-[500px] gap-4 bg-gray-50">
+        <div
+          className="animate-spin rounded-full h-14 w-14 border-t-4 border-b-4"
+          style={{ borderColor: BRAND_RED, borderTopColor: "transparent" }}
+        ></div>
+        <p className="text-gray-500 font-medium animate-pulse">
+          {t("loading")}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-100 mb-2">
-          Gestión de PDF ABO
-        </h1>
-        <p className="text-zinc-400">
-          Administra las invitaciones para suscriptores de PDF
-        </p>
-      </div>
-
-      {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-500/20 rounded-lg">
-              <FaUsers className="text-blue-500 text-xl" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{stats.total}</p>
-              <p className="text-sm text-zinc-400">Total invitaciones</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-yellow-500/20 rounded-lg">
-              <FaClock className="text-yellow-500 text-xl" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{stats.pending}</p>
-              <p className="text-sm text-zinc-400">Pendientes</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-500/20 rounded-lg">
-              <FaUserCheck className="text-green-500 text-xl" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-white">{stats.redeemed}</p>
-              <p className="text-sm text-zinc-400">Activados</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Acciones */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center justify-center gap-2 px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors"
-        >
-          <FaEnvelope />
-          Añadir Email
-        </button>
-
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 px-5 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl font-medium transition-colors cursor-pointer border border-zinc-700">
-            <FaFileUpload />
-            {csvFile ? csvFile.name : "Seleccionar CSV"}
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) => setCsvFile(e.target.files[0])}
-              className="hidden"
-            />
-          </label>
-          {csvFile && (
-            <button
-              onClick={handleCsvUpload}
-              disabled={isUploading}
-              className="flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
-            >
-              {isUploading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-              ) : (
-                <FaUpload />
-              )}
-              Subir
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Filtros y búsqueda */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Buscar por email..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
-          />
-        </div>
-
-        <div className="flex gap-2">
-          {["all", "pending", "redeemed"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-3 rounded-xl font-medium transition-colors ${
-                filter === f
-                  ? "bg-red-600 text-white"
-                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 text-gray-800 font-sans selection:bg-red-100">
+      {/* Toasts */}
+      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto transform transition-all duration-300 flex items-center gap-3 px-5 py-4 rounded-xl shadow-xl border-l-4 min-w-[320px] bg-white
+              ${
+                toast.type === "error"
+                  ? "border-red-500 text-gray-800"
+                  : "border-[#89B881] text-gray-800"
               }`}
+          >
+            <div
+              className={`p-1.5 rounded-full ${toast.type === "error" ? "bg-red-100 text-red-600" : "bg-[#89B881]/20 text-[#89B881]"}`}
             >
-              {f === "all" && "Todos"}
-              {f === "pending" && "Pendientes"}
-              {f === "redeemed" && "Activados"}
-            </button>
-          ))}
-        </div>
+              {toast.type === "error" ? <FaTimes /> : <FaCheck />}
+            </div>
+            <p className="text-sm font-medium text-gray-700">{toast.message}</p>
+          </div>
+        ))}
       </div>
 
-      {/* Tabla de invitaciones */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-zinc-800">
-                <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-400">
-                  Email
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-400">
-                  Estado
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-400">
-                  Fecha inicio
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-400">
-                  Activado
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold text-zinc-400">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInvitations.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-12 text-center text-zinc-500"
-                  >
-                    No se encontraron invitaciones
-                  </td>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-10 pb-6 border-b border-gray-200">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900 tracking-tight">
+            {t("header.title")}{" "}
+            <span style={{ color: BRAND_RED }}>
+              {t("header.title").split(" ").pop()}
+            </span>
+          </h1>
+          <p className="text-gray-500 text-lg">{t("header.subtitle")}</p>
+        </div>
+
+        {/* Estadísticas - Versión Compacta */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Total */}
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gray-50 rounded-lg text-gray-500">
+                <FaUsers className="text-lg" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  {t("stats.total")}
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Pendientes */}
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-yellow-50 rounded-lg text-yellow-600">
+                <FaClock className="text-lg" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-yellow-600/80 uppercase tracking-wider">
+                  {t("stats.pending")}
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.pending}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Activados */}
+          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div
+                className="p-2 rounded-lg text-[#89B881]"
+                style={{ backgroundColor: "#89B88115" }}
+              >
+                <FaUserCheck className="text-lg" />
+              </div>
+              <div>
+                <p
+                  className="text-sm font-medium uppercase tracking-wider opacity-80"
+                  style={{ color: "#89B881" }}
+                >
+                  {t("stats.redeemed")}
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.redeemed}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filtros y Búsqueda */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-6 flex flex-col lg:flex-row gap-4 items-center justify-between sticky top-4 z-30 shadow-sm">
+          <div className="relative w-full lg:w-1/2">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t("filters.search_placeholder")}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#BD0E0D] focus:ring-1 focus:ring-[#BD0E0D] transition-all"
+            />
+          </div>
+
+          <div className="flex bg-gray-100 p-1 rounded-xl w-full lg:w-auto overflow-x-auto">
+            {["all", "pending", "redeemed"].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`flex-1 px-6 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                  filter === f
+                    ? "text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-white"
+                }`}
+                style={{
+                  backgroundColor: filter === f ? BRAND_RED : "transparent",
+                }}
+              >
+                {t(`filters.${f}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Botones de Acción */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="group flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold text-white shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+            style={{ backgroundColor: BRAND_RED }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = BRAND_RED_HOVER)
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = BRAND_RED)
+            }
+          >
+            <FaEnvelope className="group-hover:scale-110 transition-transform" />
+            {t("actions.add_email")}
+          </button>
+
+          <div className="flex bg-white border border-gray-200 rounded-xl p-1.5 items-center overflow-hidden shadow-sm">
+            <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors text-sm font-medium overflow-hidden whitespace-nowrap">
+              <FaFileUpload />
+              {csvFile
+                ? csvFile.name.substring(0, 25) +
+                  (csvFile.name.length > 25 ? "..." : "")
+                : t("actions.select_csv")}
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) => setCsvFile(e.target.files[0])}
+                className="hidden"
+              />
+            </label>
+            {csvFile && (
+              <button
+                onClick={handleCsvUpload}
+                disabled={isUploading}
+                className="h-full px-6 py-3 rounded-lg text-white font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                style={{ backgroundColor: BRAND_GREEN }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = BRAND_GREEN_HOVER)
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor = BRAND_GREEN)
+                }
+              >
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    {t("actions.uploading")}
+                  </>
+                ) : (
+                  <>
+                    <FaUpload /> {t("actions.upload_csv")}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tabla */}
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                  <th className="px-6 py-4">{t("table.th_email")}</th>
+                  <th className="px-6 py-4">{t("table.th_status")}</th>
+                  <th className="px-6 py-4">{t("table.th_date_inv")}</th>
+                  <th className="px-6 py-4">{t("table.th_date_act")}</th>
+                  <th className="px-6 py-4 text-right">
+                    {t("table.th_actions")}
+                  </th>
                 </tr>
-              ) : (
-                filteredInvitations.map((inv) => (
-                  <tr
-                    key={inv.id}
-                    className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <span className="text-white">{inv.email}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {inv.isRedeemed ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-sm">
-                          <FaCheck className="text-xs" />
-                          Activado
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-sm">
-                          <FaClock className="text-xs" />
-                          Pendiente
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-zinc-400 text-sm">
-                      {new Date(inv.startDate).toLocaleDateString("de-DE")}
-                    </td>
-                    <td className="px-6 py-4 text-zinc-400 text-sm">
-                      {inv.redeemedAt
-                        ? new Date(inv.redeemedAt).toLocaleDateString("de-DE")
-                        : "-"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        {!inv.isRedeemed && (
-                          <button
-                            onClick={() => handleResend(inv.id, inv.email)}
-                            className="p-2 text-zinc-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
-                            title="Reenviar invitación"
-                          >
-                            <FaPaperPlane />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(inv.id)}
-                          className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                          title="Eliminar"
-                        >
-                          <FaTrash />
-                        </button>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredInvitations.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center justify-center gap-4 text-gray-400">
+                        <div className="p-4 bg-gray-50 rounded-full">
+                          <FaInbox className="text-3xl opacity-50" />
+                        </div>
+                        <p className="font-medium text-gray-500">
+                          {t("table.empty_title")}
+                        </p>
+                        <p className="text-sm">{t("table.empty_desc")}</p>
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  filteredInvitations.map((inv) => (
+                    <tr
+                      key={inv.id}
+                      className="group hover:bg-gray-50 transition-colors duration-200"
+                    >
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-gray-900">
+                          {inv.email}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {inv.isRedeemed ? (
+                          <span
+                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm"
+                            style={{
+                              backgroundColor: `${BRAND_GREEN}15`,
+                              color: BRAND_GREEN,
+                            }}
+                          >
+                            <FaCheck className="text-[10px]" />
+                            {t("table.status_active")}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-yellow-50 text-yellow-700 border border-yellow-100">
+                            <FaClock className="text-[10px]" />
+                            {t("table.status_pending")}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500 text-sm">
+                        {new Date(inv.startDate).toLocaleDateString(
+                          locale === "es" ? "es-ES" : "de-DE",
+                          dateOptions,
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500 text-sm">
+                        {inv.redeemedAt
+                          ? new Date(inv.redeemedAt).toLocaleDateString(
+                              locale === "es" ? "es-ES" : "de-DE",
+                              dateOptions,
+                            )
+                          : "-"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          {!inv.isRedeemed && (
+                            <button
+                              onClick={() => handleResend(inv.id, inv.email)}
+                              className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                              title={t("actions.resend")}
+                            >
+                              <FaPaperPlane />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete(inv.id)}
+                            className="p-2.5 text-gray-400 hover:text-white rounded-lg transition-all duration-200 hover:bg-red-600"
+                            title={t("actions.delete")}
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* Modal para añadir email */}
+      {/* Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Añadir Email</h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity opacity-100 animate-in fade-in duration-200">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">
+                {t("modal.title")}
+              </h2>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <FaTimes />
               </button>
             </div>
 
-            <form onSubmit={handleAddEmail}>
+            <form onSubmit={handleAddEmail} className="p-6">
               <div className="mb-6">
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  Email del suscriptor
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("modal.label")}
                 </label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="ejemplo@email.com"
-                  className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
-                  required
-                />
+                <div className="relative">
+                  <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder={t("modal.placeholder")}
+                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#BD0E0D] focus:ring-1 focus:ring-[#BD0E0D] transition-all"
+                    required
+                    autoFocus
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl font-medium transition-colors"
+                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
                 >
-                  Cancelar
+                  {t("modal.cancel")}
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors"
+                  className="flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg active:scale-95"
+                  style={{ backgroundColor: BRAND_RED }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.backgroundColor = BRAND_RED_HOVER)
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.backgroundColor = BRAND_RED)
+                  }
                 >
-                  Añadir
+                  {t("modal.submit")}
                 </button>
               </div>
             </form>
