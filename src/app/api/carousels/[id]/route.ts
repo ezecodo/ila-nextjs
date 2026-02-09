@@ -69,7 +69,7 @@ export async function GET(nextRequest: NextRequest) {
     if (!carousel) {
       return NextResponse.json(
         { error: "Carrusel no encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -80,6 +80,7 @@ export async function GET(nextRequest: NextRequest) {
   }
 }
 
+// 🔹 PUT: actualizar un carrusel
 // 🔹 PUT: actualizar un carrusel
 export async function PUT(nextRequest: NextRequest) {
   const url = new URL(nextRequest.url);
@@ -157,25 +158,30 @@ export async function PUT(nextRequest: NextRequest) {
       });
     }
 
+    // 🔧 SOLUCIÓN: Solo actualizar campos que existen en el body
+    const updateData: any = {};
+
+    if (titleES !== undefined) updateData.titleES = titleES;
+    if (titleDE !== undefined) updateData.titleDE = titleDE;
+    if (beitragstypId !== undefined)
+      updateData.beitragstypId = beitragstypId || null;
+    if (limit !== undefined) updateData.limit = limit;
+    if (orderBy !== undefined) updateData.orderBy = orderBy;
+    if (regionId !== undefined) updateData.regionId = regionId || null;
+    if (position !== undefined) updateData.position = position;
+    if (placement !== undefined) updateData.placement = placement;
+    if (carouselType !== undefined) updateData.carouselType = carouselType;
+    if (isManual !== undefined) updateData.isManual = isManual;
+
+    if (categoryIds !== undefined) {
+      updateData.categories = {
+        set: categoryIds.map((cid: string) => ({ id: cid })),
+      };
+    }
+
     const updated = await prisma.carousel.update({
       where: { id },
-      data: {
-        titleES,
-        titleDE,
-        beitragstypId: beitragstypId || null,
-        limit,
-        orderBy,
-        regionId: regionId || null,
-        position,
-        placement: placement || "after",
-        carouselType: carouselType || "horizontal",
-        isManual: isManual ?? false,
-        categories: categoryIds
-          ? {
-              set: categoryIds.map((cid: string) => ({ id: cid })),
-            }
-          : undefined,
-      },
+      data: updateData,
       include: {
         categories: { select: { id: true, name: true, nameES: true } },
         beitragstyp: { select: { id: true, name: true, nameES: true } },
@@ -204,7 +210,7 @@ export async function DELETE(nextRequest: NextRequest) {
 
     return NextResponse.json(
       { message: "Carrusel eliminado" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("❌ Error eliminando carrusel:", error);

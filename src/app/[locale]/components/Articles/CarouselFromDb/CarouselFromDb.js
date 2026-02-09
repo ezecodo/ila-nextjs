@@ -21,7 +21,7 @@ export default function CarouselFromDb({ placement = "after" }) {
         console.error("Error cargando carruseles:", error);
         setLoading(false);
       });
-  }, []);
+  }, [placement]); // ← ✅ Agregar `placement` a las dependencias
 
   if (loading) {
     return (
@@ -38,6 +38,7 @@ export default function CarouselFromDb({ placement = "after" }) {
     console.log(`   Tipo: ${c.carouselType}`);
     console.log(`   Es manual: ${c.isManual}`);
     console.log(`   Artículos:`, c.articles);
+    console.log(`   Cantidad de artículos:`, c.articles?.length || 0);
   });
 
   return (
