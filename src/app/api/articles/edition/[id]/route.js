@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req, context) {
-  const { id } = context.params;
+  // ⚠️ Fix para Next.js - await params
+  const params = await context.params;
+  const { id } = params;
 
   const editionNumber = parseInt(id);
 
@@ -10,7 +12,7 @@ export async function GET(req, context) {
       JSON.stringify({ error: "Número de edición inválido" }),
       {
         status: 400,
-      }
+      },
     );
   }
 
@@ -26,10 +28,14 @@ export async function GET(req, context) {
       });
     }
 
-    // Buscar artículos con editionId correspondiente
+    // 🔥 SOLUCIÓN: Solo mostrar artículos publicados con fecha <= ahora
+    const now = new Date();
+
     const articles = await prisma.article.findMany({
       where: {
         editionId: edition.id,
+        isPublished: true,
+        OR: [{ publicationDate: null }, { publicationDate: { lte: now } }],
       },
       select: {
         id: true,
@@ -51,7 +57,7 @@ export async function GET(req, context) {
     console.error("Error en /api/articles/edition/[id]:", error);
     return new Response(
       JSON.stringify({ error: "Error interno", details: error.message }),
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

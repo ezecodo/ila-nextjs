@@ -76,7 +76,7 @@ export default function EditionDetails() {
             sessionStorage.removeItem("dossierScrollPath");
           }
         },
-        articleIndex >= 6 ? 300 : 100
+        articleIndex >= 6 ? 300 : 100,
       );
     }
   }, [searchParams, articles]);
@@ -94,10 +94,16 @@ export default function EditionDetails() {
         const articlesRes = await fetch(`/api/articles/edition/${data.number}`);
         const articlesData = await articlesRes.json();
         setArticles(articlesData);
-        console.log(
-          "🔍 Artículos cargados:",
-          articlesData.map((a) => a.title)
-        );
+
+        // 🔍 LOGS DETALLADOS
+        console.log("🔍 === ARTÍCULOS CARGADOS ===");
+        console.log("   Total artículos:", articlesData.length);
+        articlesData.forEach((a) => {
+          console.log(`   📰 ${a.title}`);
+          console.log(`      isPublished: ${a.isPublished}`);
+          console.log(`      publicationDate: ${a.publicationDate}`);
+          console.log("   ---");
+        });
 
         // Cargar matches manuales
         const matchesRes = await fetch(`/api/toc-match?editionId=${data.id}`);
@@ -211,7 +217,7 @@ export default function EditionDetails() {
       // 🔥 NUEVO: Verificar PRIMERO si después del número viene una palabra de tiempo/cantidad
       if (
         /^(jahre|monate|tage|wochen|stunden|minuten|sekunden|prozent|prozente|mal|personen|leute|meter|kilometer|euro|dollar|grad)b/i.test(
-          restOfLine
+          restOfLine,
         )
       ) {
         return false;
@@ -238,7 +244,7 @@ export default function EditionDetails() {
 
     function isFooterLine(line) {
       return /^(titel|titelbild|titelfoto|foto|fotoserie|mit\s+bildern|bild|abbildung|das titelbild|aus\s*-?sprache|dossier)\s*[:]?/i.test(
-        line
+        line,
       );
     }
 
@@ -253,7 +259,7 @@ export default function EditionDetails() {
 
       const isKnownSection =
         /^(aktuelles|schwerpunkt|dossier|berichte|weitere berichte|beilage|kultur|solidarität|rezensionen|eine welt|wirtschaft|aus-sprache|ländernachrichten|poonal|leserinnenbriefe|buchbesprechungen|redaktion hört|redaktion hoert)/i.test(
-          line
+          line,
         );
 
       if (isKnownSection) return true;

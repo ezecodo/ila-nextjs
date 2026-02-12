@@ -12,10 +12,26 @@ export async function GET(request) {
   }
 
   try {
+    const now = new Date();
+
     const matches = await prisma.tocManualMatch.findMany({
-      where: { editionId: parseInt(editionId) },
+      where: {
+        editionId: parseInt(editionId),
+        article: {
+          isPublished: true,
+          OR: [{ publicationDate: null }, { publicationDate: { lte: now } }],
+        },
+      },
       include: {
-        article: { select: { id: true, title: true, legacyPath: true } },
+        article: {
+          select: {
+            id: true,
+            title: true,
+            legacyPath: true,
+            isPublished: true,
+            publicationDate: true,
+          },
+        },
       },
     });
 
