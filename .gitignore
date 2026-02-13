@@ -68,6 +68,7 @@ ALI_topics.json
 /backup/
 /csv/
 /scripts/
+/public/uploads/extracted_images/
 
 # Incluir específicamente la carpeta editions-pics
 !public/up/edi/

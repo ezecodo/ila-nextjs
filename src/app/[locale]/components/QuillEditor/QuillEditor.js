@@ -75,7 +75,6 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
             [{ list: "ordered" }, { list: "bullet" }],
             ["bold", "italic"],
             ["link"],
-            ["image"],
             ["poem"],
             ["dossier"],
           ],
@@ -89,7 +88,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         if (range && range.length > 0) {
           const selectedText = quillRef.current.getText(
             range.index,
-            range.length
+            range.length,
           );
           const lines = selectedText.split("\n");
 
@@ -129,7 +128,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         const range = quillRef.current.getSelection();
         if (!range || range.length === 0) {
           alert(
-            "Selecciona primero el texto que quieres enlazar a un dossier."
+            "Selecciona primero el texto que quieres enlazar a un dossier.",
           );
           return;
         }
@@ -185,7 +184,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
               return `href="https://${url}"`;
             }
             return `href="https://${url}"`;
-          }
+          },
         );
 
         if (onChange) onChange(htmlContent);
@@ -272,7 +271,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
                     const { index, length } = showEditionModal.range;
                     const selectedText = quillRef.current.getText(
                       index,
-                      length
+                      length,
                     );
 
                     // 👇 Elimina el texto seleccionado y vuelve a insertarlo con formato "link"
