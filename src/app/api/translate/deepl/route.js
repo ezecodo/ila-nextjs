@@ -8,7 +8,7 @@ export async function POST(req) {
     if (!articleId) {
       return NextResponse.json(
         { error: "articleId requerido" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -29,7 +29,7 @@ export async function POST(req) {
     if (!article) {
       return NextResponse.json(
         { error: "Artículo no encontrado" },
-        { status: 404 }
+        { status: 404 },
       );
     }
     // 🖼️ Obtener imágenes del artículo
@@ -48,28 +48,105 @@ export async function POST(req) {
     const DEEPL_API_BASE =
       process.env.DEEPL_API_BASE || "https://api.deepl.com/v2";
     const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
+    // 🔥 NUEVA FUNCIÓN: Dividir texto largo en chunks
+    function splitIntoChunks(text, maxChars = 50000) {
+      // ← 50k es más seguro
+      if (!text || text.length <= maxChars) {
+        return [text];
+      }
+
+      const chunks = [];
+      let remainingText = text;
+
+      while (remainingText.length > 0) {
+        if (remainingText.length <= maxChars) {
+          chunks.push(remainingText);
+          break;
+        }
+
+        let cutPoint = remainingText.lastIndexOf("\n", maxChars);
+
+        if (cutPoint === -1 || cutPoint < maxChars * 0.5) {
+          cutPoint = remainingText.lastIndexOf(" ", maxChars);
+        }
+
+        if (cutPoint === -1 || cutPoint < maxChars * 0.5) {
+          cutPoint = maxChars;
+        }
+
+        chunks.push(remainingText.substring(0, cutPoint));
+        remainingText = remainingText.substring(cutPoint).trim();
+      }
+
+      console.log("📊 Chunks creados:");
+      chunks.forEach((chunk, i) => {
+        console.log(`   Chunk ${i + 1}: ${chunk.length} caracteres`);
+      });
+
+      return chunks;
+    }
 
     async function translateText(text) {
       if (!text) return "";
-      const res = await fetch(`${DEEPL_API_BASE}/translate`, {
-        method: "POST",
-        headers: {
-          Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          text,
-          target_lang: "ES",
-          source_lang: "DE",
-        }),
-      });
 
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`DeepL error: ${errText}`);
+      const chunks = splitIntoChunks(text, 50000);
+
+      if (chunks.length === 1) {
+        // Texto corto, traducir directamente
+        const res = await fetch(`${DEEPL_API_BASE}/translate`, {
+          method: "POST",
+          headers: {
+            Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            text,
+            target_lang: "ES",
+            source_lang: "DE",
+          }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`DeepL error: ${errText}`);
+        }
+        const data = await res.json();
+        return data.translations?.[0]?.text || "";
       }
-      const data = await res.json();
-      return data.translations?.[0]?.text || "";
+
+      // Texto largo, traducir por chunks
+      console.log(
+        `📏 Texto largo: ${text.length} chars. Dividiendo en ${chunks.length} chunks...`,
+      );
+
+      const translatedChunks = [];
+      for (let i = 0; i < chunks.length; i++) {
+        console.log(`🔄 Traduciendo chunk ${i + 1}/${chunks.length}...`);
+
+        const res = await fetch(`${DEEPL_API_BASE}/translate`, {
+          method: "POST",
+          headers: {
+            Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            text: chunks[i],
+            target_lang: "ES",
+            source_lang: "DE",
+          }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`DeepL error en chunk ${i + 1}: ${errText}`);
+        }
+
+        const data = await res.json();
+        translatedChunks.push(data.translations?.[0]?.text || "");
+      }
+
+      console.log(`✅ Traducción completada`);
+      return translatedChunks.join("\n");
     }
 
     const translations = {

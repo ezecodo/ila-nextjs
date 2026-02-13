@@ -143,7 +143,7 @@ const TranslateArticlePage = () => {
   const fillFieldFromDeepl = async (
     stateKey,
     deeplKey,
-    { force = false } = {}
+    { force = false } = {},
   ) => {
     const tr = await fetchDeepl();
     if (!tr) return;
@@ -629,7 +629,7 @@ const TranslateArticlePage = () => {
               type="button"
               onClick={async () => {
                 const confirm = window.confirm(
-                  "¿Estás seguro de aprobar esta traducción?"
+                  "¿Estás seguro de aprobar esta traducción?",
                 );
                 if (!confirm) return;
 
