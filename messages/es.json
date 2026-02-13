@@ -48,10 +48,10 @@
   "navMenu": {
     "index": "Inicio",
     "greeting": "Hola, {name}",
-    "contents": "Contenidos",
+    "contents": "Archivo",
     "currentIssue": "Número Actual",
     "onlineOnly": "Solo Online",
-    "archive": "Archivo",
+    "archive": "Ediciones",
     "orderSubscribe": "Suscríbete",
     "subscription": "Suscripción",
     "singleIssue": "Compra de Ejemplar",

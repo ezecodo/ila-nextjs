@@ -48,11 +48,11 @@
   },
   "navMenu": {
     "index": "Home",
-    "contents": "Inhalte",
+    "contents": "Archiv",
     "greeting": "Hallo, {name}",
     "currentIssue": "Aktuelles Heft",
     "onlineOnly": "Nur online",
-    "archive": "Archiv",
+    "archive": "Jahrgänge",
     "orderSubscribe": "Bestellen",
     "subscription": "Abonnement",
     "singleIssue": "Einzelheftbestellung",
