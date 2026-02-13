@@ -2,9 +2,13 @@
 
 import { useLocale } from "next-intl";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import confetti from "canvas-confetti";
 
 export default function Banner50Compact() {
   const locale = useLocale();
+  const bannerRef = useRef(null);
+  const [hasLaunchedConfetti, setHasLaunchedConfetti] = useState(false);
 
   const content = {
     de: {
@@ -25,11 +29,69 @@ export default function Banner50Compact() {
 
   const t = content[locale] || content.de;
 
+  // 🎊 Solo en MOBILE: lanzar confetti cuando el banner es visible
+  useEffect(() => {
+    // Detectar si es mobile
+    const isMobile = window.innerWidth < 768; // md breakpoint de Tailwind
+
+    if (!isMobile || !bannerRef.current || hasLaunchedConfetti) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasLaunchedConfetti) {
+            launchConfetti();
+            setHasLaunchedConfetti(true);
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        threshold: 0.3, // Cuando el 30% del banner es visible
+      },
+    );
+
+    observer.observe(bannerRef.current);
+
+    return () => observer.disconnect();
+  }, [hasLaunchedConfetti]);
+
+  const launchConfetti = () => {
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { x: 0.5, y: 0.6 },
+      colors: ["#89B881", "#BD0E0D", "#ffffff", "#FFD700", "#00A86B"],
+      scalar: 1.5,
+    });
+
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { x: 0.3, y: 0.7 },
+        colors: ["#89B881", "#BD0E0D", "#ffffff", "#FFD700", "#00A86B"],
+        scalar: 1.5,
+      });
+    }, 150);
+
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 60,
+        origin: { x: 0.7, y: 0.7 },
+        colors: ["#89B881", "#BD0E0D", "#ffffff", "#FFD700", "#00A86B"],
+        scalar: 1.5,
+      });
+    }, 300);
+  };
+
   return (
-    <div className="bg-[#89B881] text-white p-4 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0">
-      {/* HEADER: Logo y Título con presencia */}
+    <div
+      ref={bannerRef}
+      className="bg-[#89B881] text-white p-4 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0"
+    >
       <div className="flex items-center w-full justify-center gap-2">
-        {/* Título muy grande y visible */}
         <div className="text-center flex-1 min-w-0">
           <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-none text-white break-words">
             {t.title}
@@ -37,14 +99,12 @@ export default function Banner50Compact() {
         </div>
       </div>
 
-      {/* TEXTO PRINCIPAL */}
       <div className="w-full text-center">
         <p className="text-lg md:text-xl leading-tight md:leading-snug font-medium text-white/95">
           {t.fullText}
         </p>
       </div>
 
-      {/* BOTONES DE ACCIÓN - Los 3 en línea */}
       <div className="w-full mt-0">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Link
