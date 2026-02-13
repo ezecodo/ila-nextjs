@@ -356,6 +356,14 @@ export default function EditionDetails() {
 
         const normalizedTocTitle = cleanTitle(titleWithoutParentheses);
 
+        // 🔍 DEBUG LOG
+        console.log(
+          "🔍 Buscando match para:",
+          titleWithoutPage,
+          "→",
+          normalizedTocTitle,
+        );
+
         // 🔸 Caso especial: "Die Redaktion liest/hoert/hört …" + siguiente línea = TÍTULO real
         let matchedArticle = null;
         let subtitleToUse = null;
@@ -370,7 +378,7 @@ export default function EditionDetails() {
           nextLooksLikeSubtitle
         ) {
           const normalizedNext = cleanTitle(nextRaw);
-          // buscar artículo cuyo SUBTÍTULO empiece por “die redaktion …”
+          // buscar artículo cuyo SUBTÍTULO empiece por "die redaktion …"
           // y cuyo TÍTULO coincida con la siguiente línea
           matchedArticle = articles.find((a) => {
             const dbTitle = cleanTitle(a.title);
@@ -384,12 +392,11 @@ export default function EditionDetails() {
           });
 
           if (matchedArticle) {
-            subtitleToUse = nextRaw; // guardamos el “Wofür es keinen Namen gibt”
+            subtitleToUse = nextRaw; // guardamos el "Wofür es keinen Namen gibt"
             i++; // consumimos la siguiente línea
           }
         }
 
-        // Si no hicimos match especial, probamos match normal contra el título
         // Si no hicimos match especial, probamos match normal contra el título
         if (!matchedArticle) {
           matchedArticle = articles.find((a) => {
@@ -400,6 +407,21 @@ export default function EditionDetails() {
               normalizedTocTitle.includes(dbTitle)
             );
           });
+
+          // 🔍 DEBUG LOG
+          if (matchedArticle) {
+            console.log("✅ Match:", matchedArticle.title);
+          } else {
+            console.log("❌ No match para:", normalizedTocTitle);
+            console.log(
+              "   Artículos disponibles:",
+              articles.map((a) => ({
+                id: a.id,
+                title: a.title,
+                normalized: cleanTitle(a.title),
+              })),
+            );
+          }
         }
 
         // 🔥 Fallback: Si no hay match por título, intentar con autor + palabras clave

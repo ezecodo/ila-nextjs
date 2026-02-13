@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req, context) {
-  // ⚠️ Fix para Next.js - await params
   const params = await context.params;
   const { id } = params;
 
@@ -10,14 +9,11 @@ export async function GET(req, context) {
   if (!editionNumber || isNaN(editionNumber)) {
     return new Response(
       JSON.stringify({ error: "Número de edición inválido" }),
-      {
-        status: 400,
-      },
+      { status: 400 },
     );
   }
 
   try {
-    // Buscar la edición que tenga ese número
     const edition = await prisma.edition.findUnique({
       where: { number: editionNumber },
     });
@@ -28,14 +24,18 @@ export async function GET(req, context) {
       });
     }
 
-    // 🔥 SOLUCIÓN: Solo mostrar artículos publicados con fecha <= ahora
-    const now = new Date();
+    // 🔥 CAMBIO: Usar final del día en vez de hora actual
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
 
     const articles = await prisma.article.findMany({
       where: {
         editionId: edition.id,
         isPublished: true,
-        OR: [{ publicationDate: null }, { publicationDate: { lte: now } }],
+        OR: [
+          { publicationDate: null },
+          { publicationDate: { lte: today } }, // ← Cambiado de 'now' a 'today'
+        ],
       },
       select: {
         id: true,
