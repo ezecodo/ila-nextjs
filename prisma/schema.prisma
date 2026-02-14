@@ -155,7 +155,19 @@ model EditionPdf {
   
   edition     Edition   @relation(fields: [editionId], references: [id])
 }
-
+model AnnualIndex {
+  id         String   @id @default(cuid())
+  year       Int      @unique
+  title      String?  // Optional: "Annual Index 2026"
+  titleES    String?  // Spanish title
+  fileUrl    String   // /uploads/annual-index/Register-2026.pdf
+  fileName   String   // Register-2026.pdf
+  fileSize   Int?     // In bytes
+  uploadedAt DateTime @default(now())
+  uploadedBy String?  // Admin user ID
+  
+  @@map("annual_index")
+}
 
 model PdfAboInvitation {
   id          String    @id @default(cuid())

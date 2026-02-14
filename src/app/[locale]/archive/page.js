@@ -13,8 +13,7 @@ export default function ArchivePage() {
 
   const [editionsByYear, setEditionsByYear] = useState({});
   const [loading, setLoading] = useState(true);
-  const [hoveredEdition, setHoveredEdition] = useState(null);
-  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
+
   const [expandedYears, setExpandedYears] = useState({});
 
   useEffect(() => {
@@ -176,14 +175,6 @@ export default function ArchivePage() {
                           <Link
                             href={`/${locale}/editions/${edition.id}`}
                             className="block group"
-                            onMouseEnter={(e) => {
-                              setHoveredEdition(edition.coverImage);
-                              setHoverPosition({ x: e.clientX, y: e.clientY });
-                            }}
-                            onMouseMove={(e) => {
-                              setHoverPosition({ x: e.clientX, y: e.clientY });
-                            }}
-                            onMouseLeave={() => setHoveredEdition(null)}
                           >
                             {/* --- CARD --- */}
                             <div className="bg-white rounded-xl shadow-sm hover:shadow-xl hover:shadow-red-200/30 border border-gray-100 hover:border-[#BD0E0D]/20 transition-all duration-300 p-4 md:p-5 relative overflow-hidden group-hover:-translate-x-1">
