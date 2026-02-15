@@ -99,7 +99,7 @@ export default function ArchivePage() {
         <header className="flex items-center gap-3 mb-0 pb-4 pl-4 md:border-l-4 border-[#BD0E0D] relative ml-8 md:ml-28">
           <IlaLogo size="mini" variant="black-solid" isLink={false} />
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            Jahrgänge
+            {isES ? "Ediciones / Registro Anual" : "Jahrgänge / Jahresregister"}
           </h1>
         </header>
 
