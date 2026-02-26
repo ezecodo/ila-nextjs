@@ -6,16 +6,13 @@ import Link from "next/link";
 
 import {
   FaFileAlt,
-  FaBook,
   FaRegNewspaper,
   FaShoppingCart,
   FaLanguage,
   FaSlidersH,
   FaCog,
   FaQuestionCircle,
-  FaNetworkWired,
   FaUsers,
-  FaLink,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -59,6 +56,7 @@ const DashboardStats = () => {
     }
     fetchOrdersCount();
   }, []);
+
   const [newSubscriptions, setNewSubscriptions] = useState(0);
 
   useEffect(() => {
@@ -78,10 +76,8 @@ const DashboardStats = () => {
   if (error) return <p className="text-center text-red-500">{t("error")}</p>;
 
   return (
-    // --- CAMBIO CRÍTICO: Quitamos overflow-x-auto ---
-    // Usamos flex-nowrap para forzar una línea, y dejamos que el scroll
-    // lo maneje el contenedor padre o la ventana si es necesario.
-    <div className="sticky top-0 z-[60] bg-white shadow-sm py-2 flex flex-nowrap gap-2 items-center">
+    <div className="sticky top-0 z-[60] bg-white shadow-sm py-2 flex flex-nowrap gap-2 items-center justify-center">
+      {/* Logo ila */}
       <StatCard
         icon={
           <span
@@ -96,51 +92,42 @@ const DashboardStats = () => {
         href="/dashboard/activity"
         pathname={pathname}
       />
-      <StatCard
+
+      {/* Inhalte: Artículos + Dossiers */}
+      <StatCardDropdown
         icon={<FaFileAlt size={18} />}
-        label={t("articles")}
-        value={stats.totalArticles}
-        href="/dashboard/articles"
+        label={t("contentLabel")}
+        items={[
+          {
+            label: `${t("articles")} (${stats.totalArticles})`,
+            href: "/dashboard/articles",
+          },
+          {
+            label: `${t("editions")} (${stats.totalEditions})`,
+            href: "/dashboard/editions",
+          },
+        ]}
         pathname={pathname}
       />
-      <StatCard
-        icon={<FaBook size={18} />}
-        label={t("editions")}
-        value={stats.totalEditions}
-        href="/dashboard/editions"
-        pathname={pathname}
-      />
-      <StatCard
+
+      {/* Aktuelles: Aktuelles + Events */}
+      <StatCardDropdown
         icon={<FaRegNewspaper size={18} />}
-        label="Aktuelles"
-        value={stats.totalAktuelles}
-        href="/dashboard/aktuelles"
+        label={t("aktuellesLabel")}
+        items={[
+          {
+            label: `${t("aktuellesItem")} (${stats.totalAktuelles})`,
+            href: "/dashboard/aktuelles",
+          },
+          {
+            label: `${t("events")} (${stats.totalEvents})`,
+            href: "/dashboard/events",
+          },
+        ]}
         pathname={pathname}
       />
-      <StatCard
-        label={t("events")}
-        value={stats.totalEvents}
-        href="/dashboard/events"
-        pathname={pathname}
-      />
-      <StatCard
-        icon={<FaSlidersH size={18} />}
-        label="Carruseles"
-        href="/dashboard/carousels"
-        pathname={pathname}
-      />
-      <StatCard
-        icon={<FaNetworkWired size={18} />}
-        label="Netzwerk"
-        href="/dashboard/network"
-        pathname={pathname}
-      />
-      <StatCard
-        icon={<FaLink size={18} />}
-        label="Links"
-        href="/dashboard/links"
-        pathname={pathname}
-      />
+
+      {/* Übersetzungen */}
       <StatCardDropdown
         icon={<FaLanguage size={18} />}
         label={t("translations")}
@@ -156,6 +143,8 @@ const DashboardStats = () => {
         ]}
         pathname={pathname}
       />
+
+      {/* Bestellungen: Orders + Abos + Gifts */}
       <StatCardDropdown
         icon={
           <div className="relative">
@@ -182,16 +171,33 @@ const DashboardStats = () => {
         newSubscriptions={newSubscriptions}
         t={t}
       />
+
+      {/* Gestaltung: Carruseles + Links */}
       <StatCardDropdown
-        icon={<FaUsers size={18} />}
-        label="Auditoría"
+        icon={<FaSlidersH size={18} />}
+        label={t("gestaltungLabel")}
         items={[
-          { label: "Autores", href: "/dashboard/authors" },
-          { label: "Topics", href: "/dashboard/topics" },
-          { label: "Regiones", href: "/dashboard/regions" },
+          { label: t("carousels"), href: "/dashboard/carousels" },
+          { label: t("links"), href: "/dashboard/links" },
         ]}
         pathname={pathname}
       />
+
+      {/* Verwaltung: Annual Index + Autores + Network + Regiones + Topics */}
+      <StatCardDropdown
+        icon={<FaUsers size={18} />}
+        label={t("auditLabel")}
+        items={[
+          { label: t("annualIndex"), href: "/dashboard/annual-index" },
+          { label: t("authors"), href: "/dashboard/authors" },
+          { label: t("network"), href: "/dashboard/network" },
+          { label: t("regions"), href: "/dashboard/regions" },
+          { label: t("topics"), href: "/dashboard/topics" },
+        ]}
+        pathname={pathname}
+      />
+
+      {/* Cuenta */}
       <StatCard
         icon={<FaCog size={18} />}
         label=""
@@ -199,6 +205,8 @@ const DashboardStats = () => {
         href="/dashboard/account"
         pathname={pathname}
       />
+
+      {/* FAQ */}
       <StatCard
         icon={<FaQuestionCircle size={18} />}
         label=""
@@ -324,4 +332,5 @@ export function StatCardDropdown({
     </div>
   );
 }
+
 export default DashboardStats;

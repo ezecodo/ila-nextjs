@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function AnnualIndexDashboard() {
   const { status } = useSession();
   const router = useRouter();
+  const t = useTranslations("dashboard.annualIndex");
 
   const [registros, setRegistros] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +40,7 @@ export default function AnnualIndexDashboard() {
       const data = await res.json();
       setRegistros(data);
     } catch (err) {
-      console.error("Error cargando registros:", err);
+      console.error(t("errorLoading"), err);
     } finally {
       setLoading(false);
     }
@@ -50,12 +52,12 @@ export default function AnnualIndexDashboard() {
     setSuccess("");
 
     if (!file) {
-      setError("Selecciona un archivo PDF");
+      setError(t("pdfRequired"));
       return;
     }
 
     if (!year || year < 1980 || year > 2100) {
-      setError("Año inválido");
+      setError(t("yearInvalid"));
       return;
     }
 
@@ -76,10 +78,10 @@ export default function AnnualIndexDashboard() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Error subiendo archivo");
+        throw new Error(data.error || t("errorLoading"));
       }
 
-      setSuccess(`Registro ${year} subido correctamente`);
+      setSuccess(t("uploadSuccess", { year }));
 
       // Limpiar formulario
       setYear("");
@@ -98,7 +100,7 @@ export default function AnnualIndexDashboard() {
   }
 
   async function handleDelete(id, year) {
-    if (!confirm(`¿Eliminar el registro del año ${year}?`)) {
+    if (!confirm(t("confirmDelete", { year }))) {
       return;
     }
 
@@ -108,10 +110,10 @@ export default function AnnualIndexDashboard() {
       });
 
       if (!res.ok) {
-        throw new Error("Error eliminando registro");
+        throw new Error(t("errorDeleting"));
       }
 
-      setSuccess(`Registro ${year} eliminado`);
+      setSuccess(t("deleteSuccess", { year }));
       fetchRegistros();
     } catch (err) {
       setError(err.message);
@@ -121,7 +123,7 @@ export default function AnnualIndexDashboard() {
   if (status === "loading" || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600">Cargando...</div>
+        <div className="text-gray-600">{t("loading")}</div>
       </div>
     );
   }
@@ -132,17 +134,15 @@ export default function AnnualIndexDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Gestión de Annual Index
+            {t("title")}
           </h1>
-          <p className="text-gray-600">
-            Sube y gestiona los registros anuales en PDF
-          </p>
+          <p className="text-gray-600">{t("subtitle")}</p>
         </div>
 
         {/* Formulario de Upload */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Subir nuevo registro
+            {t("uploadSection")}
           </h2>
 
           {error && (
@@ -162,7 +162,7 @@ export default function AnnualIndexDashboard() {
               {/* Año */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Año <span className="text-red-500">*</span>
+                  {t("year")} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -172,21 +172,22 @@ export default function AnnualIndexDashboard() {
                   max="2100"
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="2026"
+                  placeholder={t("yearPlaceholder")}
                 />
               </div>
 
               {/* Título (Alemán) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Título (DE) <span className="text-gray-400">(opcional)</span>
+                  {t("titleDE")}{" "}
+                  <span className="text-gray-400">{t("titleOptional")}</span>
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Jahresregister 2026"
+                  placeholder={t("titleDEPlaceholder")}
                 />
               </div>
             </div>
@@ -194,21 +195,22 @@ export default function AnnualIndexDashboard() {
             {/* Título español */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Título (ES) <span className="text-gray-400">(opcional)</span>
+                {t("titleES")}{" "}
+                <span className="text-gray-400">{t("titleOptional")}</span>
               </label>
               <input
                 type="text"
                 value={titleES}
                 onChange={(e) => setTitleES(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="Registro Anual 2026"
+                placeholder={t("titleESPlaceholder")}
               />
             </div>
 
             {/* Archivo PDF */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Archivo PDF <span className="text-red-500">*</span>
+                {t("pdfFile")} <span className="text-red-500">*</span>
               </label>
               <input
                 id="fileInput"
@@ -231,7 +233,7 @@ export default function AnnualIndexDashboard() {
               disabled={uploading}
               className="w-full md:w-auto px-6 py-3 bg-[#BD0E0D] text-white font-bold rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {uploading ? "Subiendo..." : "Subir Registro"}
+              {uploading ? t("uploading") : t("uploadButton")}
             </button>
           </form>
         </div>
@@ -239,13 +241,11 @@ export default function AnnualIndexDashboard() {
         {/* Lista de Registros */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Registros existentes ({registros.length})
+            {t("existingRecords")} ({registros.length})
           </h2>
 
           {registros.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
-              No hay registros todavía
-            </p>
+            <p className="text-gray-500 text-center py-8">{t("noRecords")}</p>
           ) : (
             <div className="space-y-3">
               {registros.map((registro) => (
@@ -272,30 +272,25 @@ export default function AnnualIndexDashboard() {
                         </span>
                       )}
                       <span>
-                        {new Date(registro.uploadedAt).toLocaleDateString(
-                          "es-ES",
-                        )}
+                        {new Date(registro.uploadedAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {/* Botón Ver/Descargar - ✅ CORREGIDO */}
                     <a
                       href={registro.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                      Ver
+                      {t("view")}
                     </a>
-
-                    {/* Botón Eliminar */}
                     <button
                       onClick={() => handleDelete(registro.id, registro.year)}
                       className="px-4 py-2 bg-red-50 text-red-600 font-medium rounded-lg hover:bg-red-100 transition-colors"
                     >
-                      Eliminar
+                      {t("delete")}
                     </button>
                   </div>
                 </div>
