@@ -74,7 +74,6 @@ const DashboardStats = () => {
 
   if (loading) return null;
   if (error) return <p className="text-center text-red-500">{t("error")}</p>;
-
   return (
     <div className="sticky top-0 z-[60] bg-white shadow-sm py-2 flex flex-nowrap gap-2 items-center justify-center">
       {/* Logo ila */}
