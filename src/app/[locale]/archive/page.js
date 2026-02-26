@@ -132,12 +132,17 @@ export default function ArchivePage() {
 
                       {/* --- AQUÍ ESTÁ EL CAMBIO --- */}
                       <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                        {editions.length} {isES ? "Ediciones" : "Dossiers"}
-                        {/* Solo mostramos el registro si la longitud es mayor a 0 */}
+                        {editions.length > 0 && (
+                          <>
+                            {editions.length === 1
+                              ? `ila ${editions[0].number}`
+                              : `ila ${editions[editions.length - 1].number} – ${editions[0].number}`}
+                          </>
+                        )}
                         {registros.length > 0 && (
                           <>
                             <span className="mx-1">•</span>
-                            {registros.length} {isES ? "Registro" : "Register"}
+                            {isES ? "Registro anual" : "Jahresregister"} PDF
                           </>
                         )}
                       </span>
