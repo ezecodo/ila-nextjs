@@ -94,12 +94,12 @@ export default function AktuellesPreview() {
                   {formatDate(item.date)}
                 </p>
 
-                {/* Título con fuente Serif para dar el toque "Editorial" */}
+                {/* Título con fuente Serif - CAMBIO: text-base -> text-xl */}
                 <Link
                   href={`/aktuell/aktuelles?scrollTo=${item.id}`}
                   className="block"
                 >
-                  <h4 className="font-serif text-base font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors">
+                  <h4 className="font-serif text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors">
                     {getTitle(item)}
                   </h4>
                 </Link>
