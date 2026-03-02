@@ -19,13 +19,18 @@ export default function DesktopNavMenu({
   const [openSections, setOpenSections] = useState(new Set());
 
   const toggleSection = (sectionKey) => {
-    const newOpenSections = new Set(openSections);
-    if (newOpenSections.has(sectionKey)) {
-      newOpenSections.delete(sectionKey);
+    if (isMobile) {
+      // Acordeón exclusivo en mobile: solo una sección abierta a la vez
+      setOpenSections(openSections.has(sectionKey) ? new Set() : new Set([sectionKey]));
     } else {
-      newOpenSections.add(sectionKey);
+      const newOpenSections = new Set(openSections);
+      if (newOpenSections.has(sectionKey)) {
+        newOpenSections.delete(sectionKey);
+      } else {
+        newOpenSections.add(sectionKey);
+      }
+      setOpenSections(newOpenSections);
     }
-    setOpenSections(newOpenSections);
   };
   const handleSearch = () => {
     setOpenSections(new Set()); // 1. Cierra todas las secciones del acordeón

@@ -16,12 +16,15 @@ import DesktopNavMenu from "./DesktopNavMenu/DesktopNavMenu";
 import LatinAmericaBackground from "../components/LatinAmericaBackground/LatinAmericaBackground";
 import {
   FaBars,
+  FaTimes,
   FaUser,
   FaSignOutAlt,
   FaSignInAlt,
   FaTachometerAlt,
   FaSun,
   FaMoon,
+  FaFacebook,
+  FaInstagram,
 } from "react-icons/fa";
 
 export default function Header() {
@@ -356,13 +359,14 @@ export default function Header() {
               </button>
             </div>
             <button
-              className="text-white flex items-center justify-center"
+              className="text-white flex items-center justify-center transition-transform duration-200"
               onClick={(e) => {
                 e.preventDefault();
                 toggleMenu();
               }}
+              aria-label={menuOpen ? "Menü schließen" : "Menü öffnen"}
             >
-              <FaBars size={18} />
+              {menuOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
             </button>
           </div>
         </div>
@@ -370,43 +374,83 @@ export default function Header() {
       {/* Mobile menu */}
       {/* 🔴 CAMBIO AQUÍ: Added z-[60] to ensure it sits above the fixed header if needed, though typically fixed elements stack based on DOM order or explicit z-index */}
       {menuOpen && (
-        <div className="fixed left-0 right-0 md:hidden px-4 pb-6 pt-2 bg-white dark:bg-gray-900 shadow-lg flex flex-col gap-4 border-t border-gray-100 dark:border-gray-800 max-h-[calc(100vh-80px)] overflow-y-auto z-[60]">
-          <DesktopNavMenu
-            isMobile={true}
-            onLinkClick={() => setMenuOpen(false)}
-            onSearch={() => setMenuOpen(false)}
-          />
-
-          <div className="flex items-center justify-center gap-6 mt-4">
-            {session ? (
-              <>
-                <Link href={dashboardRoute} onClick={() => setMenuOpen(false)}>
-                  <button className="p-3 rounded-full bg-[#BD0E0D] text-white hover:bg-[#A30C0B]transition-colors">
-                    <FaTachometerAlt />
-                  </button>
-                </Link>
-                <button
-                  className="p-3 rounded-full bg-[#BD0E0D] text-white hover:bg-[#A30C0B] transition-colors"
-                  onClick={() => {
-                    handleSignOut();
-                    setMenuOpen(false);
-                  }}
-                >
-                  <FaSignOutAlt />
-                </button>
-              </>
-            ) : (
-              <button
-                className="p-3 rounded-full bg-[#BD0E0D] text-white hover:bg-[#A30C0B] transition-colors"
-                onClick={() => {
-                  signIn();
-                  setMenuOpen(false);
-                }}
-              >
-                <FaUser />
-              </button>
-            )}
+        <div
+          className="fixed left-0 right-0 bottom-0 z-[60] md:hidden bg-white dark:bg-gray-950 shadow-2xl overflow-y-auto animate-in slide-in-from-top-1 duration-200"
+          style={{ top: "3.5rem" }}
+        >
+          {/* ── Navegación ── */}
+          <div className="px-5 pt-3 pb-2">
+            <DesktopNavMenu
+              isMobile={true}
+              onLinkClick={() => setMenuOpen(false)}
+              onSearch={() => setMenuOpen(false)}
+            />
           </div>
+
+          {/* ── Sección inferior: social + controles + auth ── */}
+          <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+
+            {/* Social */}
+            <div className="flex gap-2">
+              <a
+                href="https://www.facebook.com/ila.web"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full bg-[#BD0E0D]/10 flex items-center justify-center text-[#BD0E0D] hover:bg-[#BD0E0D] hover:text-white transition-colors"
+                aria-label="Facebook"
+              >
+                <FaFacebook size={15} />
+              </a>
+              <a
+                href="https://www.instagram.com/ila_bonn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full bg-[#BD0E0D]/10 flex items-center justify-center text-[#BD0E0D] hover:bg-[#BD0E0D] hover:text-white transition-colors"
+                aria-label="Instagram"
+              >
+                <FaInstagram size={15} />
+              </a>
+            </div>
+
+            {/* Controles: idioma + dark mode + auth */}
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleLocaleSwitch(locale === "es" ? "de" : "es")}
+                className="text-gray-500 dark:text-gray-400 text-[11px] font-black futura hover:text-[#BD0E0D] transition-colors px-2 py-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                {locale === "es" ? "DE" : "ES"}
+              </button>
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-gray-400 hover:text-[#BD0E0D] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {darkMode ? <FaSun size={14} className="text-yellow-500" /> : <FaMoon size={13} />}
+              </button>
+              {session ? (
+                <>
+                  <Link href={dashboardRoute} onClick={() => setMenuOpen(false)}>
+                    <div className="w-8 h-8 rounded-full bg-[#BD0E0D]/10 flex items-center justify-center text-[#BD0E0D] hover:bg-[#BD0E0D] hover:text-white transition-colors">
+                      <FaTachometerAlt size={13} />
+                    </div>
+                  </Link>
+                  <button
+                    onClick={() => { handleSignOut(); setMenuOpen(false); }}
+                    className="w-8 h-8 rounded-full bg-[#BD0E0D]/10 flex items-center justify-center text-[#BD0E0D] hover:bg-[#BD0E0D] hover:text-white transition-colors"
+                  >
+                    <FaSignOutAlt size={13} />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => { signIn(); setMenuOpen(false); }}
+                  className="w-8 h-8 rounded-full bg-[#BD0E0D]/10 flex items-center justify-center text-[#BD0E0D] hover:bg-[#BD0E0D] hover:text-white transition-colors"
+                >
+                  <FaUser size={13} />
+                </button>
+              )}
+            </div>
+          </div>
+
         </div>
       )}
 
