@@ -202,7 +202,6 @@
     "confirmDeactivate": "¿Marcar este premio como agotado?",
     "confirmActivate": "¿Volver a activar este premio?"
   },
-
   "editionTranslate": {
     "pageTitle": "Traducir edición",
     "translationMode": "Modo traducción",
@@ -229,12 +228,10 @@
     "submitError": "Error al enviar la traducción",
     "publishedOn": "Publicado el"
   },
-
   "main": {
     "prev": "Anterior",
     "next": "Siguiente"
   },
-
   "events": {
     "events": "Eventos",
     "title": "Eventos",
@@ -272,7 +269,6 @@
       "loading": "Cargando..."
     }
   },
-
   "auth": {
     "title": "Iniciar sesión",
     "email": "Correo Electrónico",
@@ -314,7 +310,6 @@
       "generic": "❌ Ocurrió un error."
     }
   },
-
   "dashboard": {
     "title": "Dashboard Admin",
     "menu": {
@@ -424,49 +419,36 @@
     "Carousels": {
       "title": "Crear nuevo carrusel",
       "editTitle": "Editar carrusel",
-
       "nameLabel": "Nombre interno",
       "namePlaceholder": "Nombre interno",
-
       "titleESLabel": "Título en español",
       "titleESPlaceholder": "Ej. Noticias",
-
       "titleDELabel": "Título en alemán",
       "titleDEPlaceholder": "Ej. Aktuell",
-
       "typeLabel": "Tipo de contenido",
       "noTypeOption": "Sin tipo (opcional)",
       "typePlaceholder": "Seleccionar tipo de contenido",
       "typeLabelOption": "Tipo de contenido (opcional)",
       "regionLabelOption": "Región (opcional)",
-
       "regionLabel": "Región",
       "regionNone": "Sin región (opcional)",
       "noRegion": "Sin región (opcional)",
-
       "categoriesLabel": "Categorías (opcional)",
       "categoriesHint": "Mantén pulsado Ctrl/Cmd para seleccionar varias.",
-
       "limitLabel": "Cantidad de artículos",
       "limitPlaceholder": "Cantidad de artículos",
-
       "createButton": "Crear carrusel",
       "saveChanges": "Guardar cambios",
-
       "previewTitle": "Vista previa de artículos",
       "noSummary": "Sin resumen disponible",
-
       "createError": "Error al crear carrusel",
       "errorDeleting": "Error al eliminar",
-
       "loading": "Cargando...",
       "loadingCarousels": "Cargando carruseles...",
       "activeCarousels": "Carruseles activos",
-
       "createNew": "Crear nuevo carrusel",
       "type": "Tipo",
       "articles": "artículos",
-
       "edit": "Editar",
       "delete": "Eliminar",
       "confirmDelete": "¿Eliminar este carrusel?",
@@ -542,7 +524,6 @@
       "author": "Autor/a/e"
     }
   },
-
   "stats": {
     "title": "📊 Dashboard",
     "loading": "Cargando estadísticas...",
@@ -585,44 +566,35 @@
       "edit": "Editar",
       "loading": "Cargando...",
       "deleteConfirm": "¿Seguro que quieres eliminar este banner?",
-
       "tabContent": "Contenido",
       "tabDesign": "Diseño",
       "tabSettings": "Configuración",
-
       "titleTop": "Título Superior (DE)",
       "titleTopES": "Título Superior (ES)",
       "titleTopPlaceholder": "AKTION",
       "titleTopPlaceholderES": "PROMOCIÓN",
-
       "subtitle": "Subtítulo Principal (DE)",
       "subtitleES": "Subtítulo Principal (ES)",
       "subtitlePlaceholder": "Haupttitel hier...",
       "subtitlePlaceholderES": "Título principal aquí...",
-
       "description": "Descripción (DE)",
       "descriptionES": "Descripción (ES)",
       "descriptionPlaceholder": "Beschreibung hier...",
       "descriptionPlaceholderES": "Descripción aquí...",
-
       "buttonText": "Texto del Botón (DE)",
       "buttonTextES": "Texto del Botón (ES)",
       "buttonTextPlaceholder": "Button Text",
       "buttonTextPlaceholderES": "Texto del Botón",
-
       "buttonUrl": "URL del Botón",
       "buttonUrlPlaceholder": "https://example.com/promo",
       "decorativeImage": "Imagen Decorativa",
-
       "bgGradient": "Gradiente de Fondo",
       "colorStart": "Color Inicio",
       "colorEnd": "Color Fin",
-
       "titleSizeLabel": "Tamaño Título Superior",
       "subtitleSizeLabel": "Tamaño Subtítulo Principal",
       "descriptionSizeLabel": "Tamaño Descripción",
       "buttonColorLabel": "Color del Botón",
-
       "sizeXS": "Extra Pequeño (xs)",
       "sizeSM": "Pequeño (sm)",
       "sizeMD": "Mediano (md)",
@@ -632,7 +604,6 @@
       "size3XL": "3X Grande (3xl)",
       "size4XL": "4X Grande (4xl)",
       "sizeBase": "Normal (base)",
-
       "startDate": "Fecha Inicio",
       "endDate": "Fecha Fin",
       "position": "Posición en la Página",
@@ -640,13 +611,10 @@
       "positionMiddle": "Medio (Middle)",
       "positionBottom": "Abajo (Bottom)",
       "active": "Banner Activo",
-
       "previewTitle": "Vista Previa en Vivo",
       "previewTip": "Tip: Los cambios se reflejan en tiempo real. Ajusta colores y tamaños hasta que quede perfecto.",
-
       "statusActive": "Activo",
       "statusInactive": "Inactivo",
-
       "required": "*"
     }
   },
@@ -690,7 +658,6 @@
       "schedulePublishToggle": "Programar publicación (futuro)",
       "useCustomDateToggle": "Editar fecha del artículo (pasado o futuro)",
       "bookImageNote": "Nota: La imagen del libro solo se usa para reseñas de libros.",
-
       "scheduleDate": "Fecha de Publicación",
       "nachrufTitle": "Detalles de la necrología",
       "firstName": "Primer Nombre",
@@ -700,42 +667,29 @@
       "editionPlaceholder": "Seleccione una edición",
       "startPagePlaceholder": "Página de inicio",
       "endPagePlaceholder": "Página de fin",
-
       "regionPlaceholder": "Escriba para buscar regiones",
       "topicPlaceholder": "Escriba para buscar o agregar temas",
-
       "imageTitleLabel": "Título de la foto",
       "imageTitlePlaceholder": "Ej.: Manifestación frente al hospital Bonaparte",
       "imageAltLabel": "Créditos de la foto / Alt",
       "imageAltPlaceholder": "Ej.: Foto: Alix Arnold",
-
       "useCustomDate": "Editar fecha del artículo (pasado o futuro)",
       "articleDate": "Fecha del artículo",
-
       "createTopicPrefix": "Crear tema",
       "createRegionPrefix": "Crear región",
       "photoTitle": "Título de la foto",
       "photoTitlePlaceholder": "Ej.: Manifestación frente al hospital Bonaparte",
       "photoCredits": "Créditos de la foto / Alt",
       "photoCreditsPlaceholder": "Ej.: Foto: Alix Arnold",
-
       "bookDetailsTitle": "Detalles del libro",
-
       "bookTitlePlaceholder": "Ingrese el título completo del libro",
-
       "firstNamePlaceholder": "Ingrese el primer nombre",
-
       "lastNamePlaceholder": "Ingrese el apellido",
-
       "birthYearPlaceholder": "Ingrese el año (ej.: 1990)",
-
       "deathYearPlaceholder": "Ingrese el año (ej.: 2020)",
-
       "subtypeLabel": "Subtipo de artículo",
       "subtypePlaceholder": "Seleccione un subtipo",
-
       "authorPlaceholder": "Seleccione un autor",
-
       "intervieweePlaceholder": "Seleccione un entrevistado",
       "authorModal": {
         "title": "Agregar Nueva Autor/a",
@@ -768,7 +722,6 @@
       "unknownAuthorError": "Error inesperado: no se recibió un ID de autor."
     }
   },
-
   "galleryManager": {
     "sectionTitle": "Galería de imágenes",
     "coverLabel": "Imagen de portada",
@@ -854,14 +807,15 @@
     "copyLink": "Copiar enlace",
     "copied": "¡Copiado!",
     "copyError": "No se pudo copiar el enlace.",
-
     "print": "Imprimir",
     "printTooltip": "Ver versión optimizada para impresión",
     "printAria": "Imprimir este artículo",
     "editLink": "Editar artículo"
   },
   "Footer": {
-    "tagline": "La revista de Latinoamérica"
+    "tagline": "La revista de Latinoamérica",
+    "description": "Revista sobre América Latina, publicada por la Informationsstelle Lateinamerika e.V. en Bonn.",
+    "magazineSection": "Revista"
   },
   "insertDossier": {
     "formTitle": "Crear una nueva edición",
@@ -1019,7 +973,6 @@
       "durationNote": "El Abo de prueba dura 3 meses y finaliza automáticamente.",
       "promoGiftRecipient": "Destinatario del Abo de prueba (Promo)"
     },
-
     "details": {
       "normal_pdf": {
         "text": "La ila 10 veces al año en formato PDF, completa, a color e interactiva. Para ver un ejemplo: <a href=\"/pdfs/ila-414.pdf\" target=\"_blank\" class=\"text-red-700 underline\">ila 414</a>."

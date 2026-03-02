@@ -13,7 +13,6 @@
     "user_profile": "Dein Profil",
     "signup": "Registrieren",
     "dashboard": "Panel",
-
     "nav": {
       "home": "Home",
       "about": "Über Uns",
@@ -62,7 +61,6 @@
     "referents": "Referent*innenservice",
     "translations": "Dolmetsch- und Übersetzungsservice",
     "testament": "Testament",
-
     "getInvolved": "Mitmachen",
     "advertise": "Anzeigen",
     "newsEvents": "Aktuell",
@@ -113,7 +111,6 @@
   },
   "article": {
     "noArticles": "Es gibt keine Artikel.",
-
     "articles": "Artikel",
     "loadingArticles": "Fehler beim Laden der Artikel",
     "loadingArticlesError": "Fehler beim Laden der Artikel",
@@ -158,22 +155,18 @@
     "actions": "Aktionen",
     "review": "Überprüfen",
     "inProgress": "In Bearbeitung",
-
     "loadingEditions": "Lade Dossiers...",
     "noResults": "Keine Ergebnisse",
     "edit": "Bearbeiten",
     "translate": "Übersetzen",
-
     "delete": "Löschen",
     "prevPage": "Zurück",
-
     "of": "von",
     "nextPage": "Weiter",
     "confirmDelete": "Löschen bestätigen",
     "confirmDeleteDetail": "Dies kann nicht rückgängig gemacht werden. Bist du sicher, dass du dieses Dossier löschen möchtest?",
     "cancel": "Abbrechen",
     "date": "Datum",
-
     "isCurrent": "Aktuell?",
     "isAvailable": "Bestellbar?",
     "dossierItemName": "Dossier",
@@ -317,7 +310,6 @@
       "generic": "❌ Ein Fehler ist aufgetreten."
     }
   },
-
   "dashboard": {
     "title": "Admin-Dashboard",
     "menu": {
@@ -327,13 +319,11 @@
       "articles": "Artikel eingeben",
       "orders": "Bestellungen",
       "editions": "Ausgabe eingeben",
-
       "account": "Kontoeinstellungen",
       "events": "Veranstaltung eingeben",
       "carousels": "Karussells erstellen",
       "editArticles": "Artikel bearbeiten"
     },
-
     "openMenu": "Menü öffnen ☰",
     "closeMenu": "Menü schließen ☰",
     "errorStats": "Fehler beim Laden der Statistiken",
@@ -484,47 +474,34 @@
     "Carousels": {
       "title": "Neues Karussell erstellen",
       "editTitle": "Karussell bearbeiten",
-
       "nameLabel": "Interner Name",
       "namePlaceholder": "Interner Name",
-
       "titleESLabel": "Titel auf Spanisch",
       "titleESPlaceholder": "Z. B. Nachrichten",
-
       "titleDELabel": "Titel auf Deutsch",
       "titleDEPlaceholder": "Z. B. Aktuell",
-
       "typeLabelOption": "Inhaltstyp (optional)",
       "noTypeOption": "Ohne Typ (optional)",
       "typePlaceholder": "Inhaltstyp auswählen",
-
       "regionLabelOption": "Region (optional)",
       "regionNone": "Ohne Region (optional)",
       "noRegion": "Ohne Region (optional)",
-
       "categoriesLabel": "Kategorien (optional)",
       "categoriesHint": "Strg/Cmd gedrückt halten, um mehrere auszuwählen.",
-
       "limitLabel": "Anzahl der Artikel",
       "limitPlaceholder": "Anzahl der Artikel",
-
       "createButton": "Karussell erstellen",
       "saveChanges": "Änderungen speichern",
-
       "previewTitle": "Artikel‑Vorschau",
       "noSummary": "Keine Zusammenfassung verfügbar",
-
       "createError": "Fehler beim Erstellen des Karussells",
       "errorDeleting": "Fehler beim Löschen",
-
       "loading": "Wird geladen...",
       "loadingCarousels": "Karussells werden geladen...",
       "activeCarousels": "Aktive Karussells",
-
       "createNew": "Neues Karussell erstellen",
       "type": "Typ",
       "articles": "Artikel",
-
       "edit": "Bearbeiten",
       "delete": "Löschen",
       "confirmDelete": "Dieses Karussell löschen?",
@@ -589,44 +566,35 @@
       "edit": "Bearbeiten",
       "loading": "Wird geladen...",
       "deleteConfirm": "Möchten Sie diesen Banner wirklich löschen?",
-
       "tabContent": "Inhalt",
       "tabDesign": "Design",
       "tabSettings": "Einstellungen",
-
       "titleTop": "Oberer Titel (DE)",
       "titleTopES": "Oberer Titel (ES)",
       "titleTopPlaceholder": "AKTION",
       "titleTopPlaceholderES": "PROMOCIÓN",
-
       "subtitle": "Hauptuntertitel (DE)",
       "subtitleES": "Hauptuntertitel (ES)",
       "subtitlePlaceholder": "Haupttitel hier...",
       "subtitlePlaceholderES": "Título principal aquí...",
-
       "description": "Beschreibung (DE)",
       "descriptionES": "Beschreibung (ES)",
       "descriptionPlaceholder": "Beschreibung hier...",
       "descriptionPlaceholderES": "Descripción aquí...",
-
       "buttonText": "Button-Text (DE)",
       "buttonTextES": "Button-Text (ES)",
       "buttonTextPlaceholder": "Button Text",
       "buttonTextPlaceholderES": "Texto del Botón",
-
       "buttonUrl": "Button-URL",
       "buttonUrlPlaceholder": "https://example.com/promo",
       "decorativeImage": "Dekoratives Bild",
-
       "bgGradient": "Hintergrund-Farbverlauf",
       "colorStart": "Startfarbe",
       "colorEnd": "Endfarbe",
-
       "titleSizeLabel": "Größe Oberer Titel",
       "subtitleSizeLabel": "Größe Hauptuntertitel",
       "descriptionSizeLabel": "Größe Beschreibung",
       "buttonColorLabel": "Button-Farbe",
-
       "sizeXS": "Extra Klein (xs)",
       "sizeSM": "Klein (sm)",
       "sizeMD": "Mittel (md)",
@@ -636,7 +604,6 @@
       "size3XL": "3X Groß (3xl)",
       "size4XL": "4X Groß (4xl)",
       "sizeBase": "Normal (base)",
-
       "startDate": "Startdatum",
       "endDate": "Enddatum",
       "position": "Position auf der Seite",
@@ -644,13 +611,10 @@
       "positionMiddle": "Mitte (Middle)",
       "positionBottom": "Unten (Bottom)",
       "active": "Banner Aktiv",
-
       "previewTitle": "Live-Vorschau",
       "previewTip": "Tipp: Die Änderungen werden in Echtzeit angezeigt. Passe Farben und Größen an, bis es perfekt ist.",
-
       "statusActive": "Aktiv",
       "statusInactive": "Inaktiv",
-
       "required": "*"
     }
   },
@@ -694,7 +658,6 @@
       "schedulePublishToggle": "Veröffentlichung planen (zukünftig)",
       "useCustomDateToggle": "Artikeldatum bearbeiten (Vergangenheit oder Zukunft)",
       "bookImageNote": "Hinweis: Das Buchbild wird nur für Buchbesprechungen verwendet.",
-
       "scheduleDate": "Veröffentlichungsdatum",
       "nachrufTitle": "Details zum Nachruf",
       "firstName": "Vorname",
@@ -704,7 +667,6 @@
       "editionPlaceholder": "Ausgabe auswählen",
       "startPagePlaceholder": "Startseite",
       "endPagePlaceholder": "Endseite",
-
       "regionPlaceholder": "Regionen suchen…",
       "topicPlaceholder": "Themen suchen oder hinzufügen…",
       "selectFileFirst": "Bitte zuerst eine Bilddatei auswählen",
@@ -712,34 +674,23 @@
       "imageTitlePlaceholder": "z. B.: Kundgebung vor dem Bonaparte‑Krankenhaus",
       "imageAltLabel": "Fotocredits / Alt‑Text",
       "imageAltPlaceholder": "z. B.: Foto: Alix Arnold",
-
       "useCustomDate": "Artikeldatum bearbeiten (Vergangenheit/Zukunft)",
       "articleDate": "Artikeldatum",
-
       "createTopicPrefix": "Thema erstellen",
       "createRegionPrefix": "Region erstellen",
       "photoTitle": "Fototitel",
       "photoTitlePlaceholder": "Z. B.: Demonstration vor dem Bonaparte-Krankenhaus",
       "photoCredits": "Fotocredits / Alt",
       "photoCreditsPlaceholder": "Z. B.: Foto: Alix Arnold",
-
       "bookDetailsTitle": "Buchdetails",
-
       "bookTitlePlaceholder": "Geben Sie den vollständigen Buchtitel ein",
-
       "firstNamePlaceholder": "Vornamen eingeben",
-
       "lastNamePlaceholder": "Nachnamen eingeben",
-
       "birthYearPlaceholder": "Jahr eingeben (z. B. 1990)",
-
       "deathYearPlaceholder": "Jahr eingeben (z. B. 2020)",
-
       "subtypeLabel": "Artikeluntertyp",
       "subtypePlaceholder": "Untertyp wählen",
-
       "authorPlaceholder": "Autor/in wählen",
-
       "intervieweePlaceholder": "Interviewpartner/in wählen",
       "authorModal": {
         "title": "Neue Autor*in hinzufügen",
@@ -830,7 +781,6 @@
     "SUBMIT_TRANSLATION_SUFFIX": "zur Überprüfung eingereicht",
     "REVIEW_TRANSLATION_PREFIX": "hat die Übersetzung des Dossiers",
     "REVIEW_TRANSLATION_SUFFIX": "überprüft",
-
     "withType": "vom Typ",
     "inRegion": "in der Region",
     "translatedArticle": "hat den Artikel übersetzt",
@@ -864,9 +814,10 @@
     "printAria": "Diesen Artikel drucken"
   },
   "Footer": {
-    "tagline": "Das Lateinamerika-Magazin"
+    "tagline": "Das Lateinamerika-Magazin",
+    "description": "Zeitschrift zu Lateinamerika, herausgegeben von der Informationsstelle Lateinamerika e.V. in Bonn.",
+    "magazineSection": "Magazin"
   },
-
   "insertDossier": {
     "formTitle": "Erstelle eine neue Ausgabe",
     "editFormTitle": "Ausgabe bearbeiten",
@@ -1023,7 +974,6 @@
       "durationNote": "Das Probe-Abo läuft 3 Monate und endet automatisch.",
       "promoGiftRecipient": "Empfänger des Probe-Abos (Promo)"
     },
-
     "details": {
       "normal_pdf": {
         "text": "Die ila 10 mal im Jahr als PDF, komplett, in Farbe, interaktiv. Zur Ansicht ein Beispiel: <a href=\"/pdfs/ila-414.pdf\" target=\"_blank\" class=\"text-red-700 underline\">ila 414</a>"
