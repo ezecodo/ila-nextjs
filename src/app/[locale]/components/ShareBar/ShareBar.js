@@ -55,9 +55,21 @@ export default function ShareBar({
   const [computedTop, setComputedTop] = useState(stickyTop);
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") setUrl(window.location.href);
+  }, []);
+
+  useEffect(() => {
+    const footer = document.querySelector("footer");
+    if (!footer) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setFooterVisible(entry.isIntersecting),
+      { threshold: 0.05 },
+    );
+    observer.observe(footer);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -114,7 +126,7 @@ export default function ShareBar({
     <>
       {/* Desktop */}
       <div
-        className={`hidden md:flex fixed z-40 flex-col items-center gap-3 print:hidden ${className}`}
+        className={`hidden md:flex fixed z-40 flex-col items-center gap-3 print:hidden transition-opacity duration-300 ${footerVisible ? "opacity-0 pointer-events-none" : "opacity-100"} ${className}`}
         style={{ top: computedTop, left }}
         aria-label={t("ariaShare")}
       >
@@ -203,12 +215,10 @@ export default function ShareBar({
       </div>
 
       {/* Mobile */}
-      {/* 🎨 CAMBIO: Barra inferior entera con el gradiente rojo del Header */}
-      <div className="fixed bottom-0 left-0 w-full bg-[#e60000] text-white z-50 md:hidden print:hidden">
-        <div className="flex justify-around items-center px-2 py-3">
-          {/* Botones móviles: Fondo transparente, icono blanco, hover sutil */}
+      <div className="fixed bottom-0 left-0 right-0 w-screen overflow-x-hidden bg-[#BD0E0D] text-white z-50 md:hidden print:hidden">
+        <div className="flex justify-around items-center py-2">
           {articleId != null && (
-            <div className="hover:bg-white/10 p-2 rounded-full transition-colors cursor-pointer">
+            <div className="hover:bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer">
               <FavoriteButton articleId={articleId} variant="icon" />
             </div>
           )}
@@ -217,40 +227,40 @@ export default function ShareBar({
             href={`https://wa.me/?text=${encodedTitle}%20${encodedURL}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:bg-white/10 p-2 rounded-full transition-colors"
+            className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
             title={t("whatsapp")}
             aria-label={t("whatsapp")}
           >
-            <FaWhatsapp size={22} />
+            <FaWhatsapp size={18} />
           </a>
 
           <a
             href={`https://t.me/share/url?url=${encodedURL}&text=${encodedTitle}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:bg-white/10 p-2 rounded-full transition-colors"
+            className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
             title={t("telegram")}
             aria-label={t("telegram")}
           >
-            <FaTelegramPlane size={22} />
+            <FaTelegramPlane size={18} />
           </a>
 
           <a
             href={`mailto:?subject=${encodedTitle}&body=${encodedURL}`}
-            className="hover:bg-white/10 p-2 rounded-full transition-colors"
+            className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
             title={t("email")}
             aria-label={t("email")}
           >
-            <FaEnvelope size={22} />
+            <FaEnvelope size={18} />
           </a>
 
           <button
             onClick={handleCopy}
-            className="hover:bg-white/10 p-2 rounded-full transition-colors relative"
+            className="hover:bg-white/10 p-1.5 rounded-full transition-colors relative"
             title={t("copyLink")}
             aria-label={t("copyLink")}
           >
-            <FaLink size={22} />
+            <FaLink size={18} />
             {copied && (
               <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold bg-white text-red-600 px-2 py-0.5 rounded shadow">
                 OK
@@ -258,24 +268,23 @@ export default function ShareBar({
             )}
           </button>
 
-          {/* Imprimir (mobile) */}
           <button
             onClick={handlePrint}
-            className="hover:bg-white/10 p-2 rounded-full transition-colors"
+            className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
             title={t("printTooltip")}
             aria-label={t("printAria")}
           >
-            <FaPrint size={22} />
+            <FaPrint size={18} />
           </button>
 
           {isAdmin && articleId != null && (
             <Link
               href={`/dashboard/articles/edit/${articleId}`}
-              className="hover:bg-white/10 p-2 rounded-full transition-colors"
+              className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
               title="Editar artículo"
               aria-label="Editar artículo"
             >
-              <FaEdit size={22} />
+              <FaEdit size={18} />
             </Link>
           )}
         </div>

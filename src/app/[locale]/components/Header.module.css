@@ -3,12 +3,12 @@
 /* 🔥 Estilos generales del header */
 .header {
   width: 100%;
-  position: sticky;
+  /* position handled by Tailwind: fixed on mobile, sticky on md+ */
   top: 0;
   left: 0;
   right: 0;
   z-index: 50;
-  display: block; /* Cambiado de flex a block para evitar colapsos */
+  display: block;
 }
 
 /* 🔥 Contenedor superior con logo y botones */

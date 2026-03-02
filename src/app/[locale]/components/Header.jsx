@@ -115,6 +115,8 @@ export default function Header() {
 
       if (currentScrollY > 100 && currentScrollY > lastScrollY) {
         setIsCompact(true);
+      } else if (currentScrollY < lastScrollY) {
+        setIsCompact(false);
       }
 
       if (currentScrollY <= 0) {
