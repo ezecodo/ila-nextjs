@@ -39,6 +39,7 @@ export default function SingleDossierOrderPage() {
   // estados independientes para los filtros
   const [yearNormal, setYearNormal] = useState<string>("all");
   const [yearOffer, setYearOffer] = useState<string>("all");
+  const [dossierType, setDossierType] = useState<"normal" | "offer">("normal");
 
   const addToOrder = (edition: Edition, type: "normal" | "offer") => {
     if (type === "normal") {
@@ -63,10 +64,24 @@ export default function SingleDossierOrderPage() {
       });
     }
 
-    // 👉 Hacer scroll automático al formulario
-    document
-      .getElementById("cartTitle")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const updateQty = (
+    type: "normal" | "offer",
+    id: number,
+    delta: number
+  ) => {
+    const setter = type === "normal" ? setSelectedNormal : setSelectedOffers;
+    setter((prev) =>
+      prev
+        .map((item) => item.id === id ? { ...item, qty: item.qty + delta } : item)
+        .filter((item) => item.qty > 0)
+    );
+  };
+
+  const removeItem = (type: "normal" | "offer", id: number) => {
+    if (type === "normal") setSelectedNormal((prev) => prev.filter((item) => item.id !== id));
+    else setSelectedOffers((prev) => prev.filter((item) => item.id !== id));
   };
 
   useEffect(() => {
@@ -153,6 +168,24 @@ export default function SingleDossierOrderPage() {
             new Date(e.datePublished).getFullYear().toString() === yearOffer
         );
 
+  const totalItems =
+    selectedNormal.reduce((sum, item) => sum + item.qty, 0) +
+    selectedOffers.reduce((sum, item) => sum + item.qty, 0);
+
+  const activeYears = dossierType === "normal" ? yearsNormal : yearsOffer;
+  const activeYear = dossierType === "normal" ? yearNormal : yearOffer;
+  const setActiveYear = dossierType === "normal" ? setYearNormal : setYearOffer;
+  const activeEditions = dossierType === "normal" ? filteredNormal : filteredOffer;
+
+  const handleTypeChange = (type: "normal" | "offer") => {
+    setDossierType(type);
+    if (type === "normal") {
+      setYearNormal(yearsNormal.length > 0 ? String(yearsNormal[0]) : "all");
+    } else {
+      setYearOffer(yearsOffer.length > 0 ? String(yearsOffer[0]) : "all");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* ── Hero — negative margins to break out of LayoutShell padding ── */}
@@ -203,265 +236,382 @@ export default function SingleDossierOrderPage() {
       </div>
 
       {/* ── Content ── */}
-      <div className="max-w-6xl mx-auto px-4 pb-14 dark:text-gray-200">
-      {/* 🔹 Dossiers Normales (isSpecialOffer = false) */}
-      <section className="mb-20 pt-8">
-        <h2 className="text-2xl font-bold mb-5 text-center dark:text-gray-100">
-          {t("normalSectionTitle")}
-        </h2>
+      <div className={`max-w-6xl mx-auto px-4 dark:text-gray-200 ${totalItems > 0 ? "pb-28" : "pb-14"}`}>
 
-        {/* Pricing info callout */}
-        <div className="flex items-start gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-8 max-w-2xl mx-auto text-sm text-gray-600 dark:text-gray-300">
-          <span className="text-[#BD0E0D] font-black text-base mt-0.5 shrink-0">ℹ</span>
-          <div className="leading-relaxed">
-            {locale === "de" ? (
-              <>
-                <strong>Preise:</strong> ab 2025 <strong>7 €</strong> · ab 2017{" "}
-                <strong>6 €</strong> · Nachdrucke <strong>5 €</strong>
-                <br />
-                Versand: +0,50 € (innerhalb Deutschlands) · ab 2 Heften kostenlos · inkl. MwSt.
-              </>
-            ) : (
-              <>
-                <strong>Precios:</strong> desde 2025 <strong>7 €</strong> · desde 2017{" "}
-                <strong>6 €</strong> · Reimpresiones <strong>5 €</strong>
-                <br />
-                Envío: +0,50 € (Alemania) · gratuito desde 2 ejemplares · IVA incluido
-              </>
+      {/* ── Selector de tipo + grid unificado ── */}
+      <section className="pt-8 mb-20">
+
+        {/* Type selector cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          {/* Normal */}
+          <button
+            onClick={() => handleTypeChange("normal")}
+            className={`relative text-left rounded-2xl border-2 p-5 transition-all duration-200 ${
+              dossierType === "normal"
+                ? "border-[#BD0E0D] bg-red-50 dark:bg-red-950/20"
+                : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600"
+            }`}
+          >
+            {dossierType === "normal" && (
+              <span className="absolute top-3 right-3 w-6 h-6 bg-[#BD0E0D] text-white rounded-full flex items-center justify-center text-xs font-black">✓</span>
             )}
-          </div>
+            <div className="text-3xl mb-3">📰</div>
+            <h3 className="font-bold text-lg mb-1 dark:text-gray-100">{t("normalSectionTitle")}</h3>
+            <p className="text-[#BD0E0D] font-bold text-sm mb-2">
+              {locale === "de" ? "ab 6 € / 7 € pro Heft" : "desde 6 € / 7 € por ejemplar"}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+              {locale === "de"
+                ? "Versand ab 2 Heften kostenlos · inkl. MwSt."
+                : "Envío gratuito desde 2 ejemplares · IVA incluido"}
+            </p>
+          </button>
+
+          {/* Sonderangebot */}
+          <button
+            onClick={() => handleTypeChange("offer")}
+            className={`relative text-left rounded-2xl border-2 p-5 transition-all duration-200 ${
+              dossierType === "offer"
+                ? "border-[#BD0E0D] bg-red-50 dark:bg-red-950/20"
+                : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600"
+            }`}
+          >
+            {dossierType === "offer" ? (
+              <span className="absolute top-3 right-3 w-6 h-6 bg-[#BD0E0D] text-white rounded-full flex items-center justify-center text-xs font-black">✓</span>
+            ) : (
+              <span className="absolute top-3 right-3 px-2 py-0.5 bg-amber-400 text-amber-900 text-xs font-black rounded-full uppercase tracking-wide">DEAL</span>
+            )}
+            <div className="text-3xl mb-3">🏷️</div>
+            <h3 className="font-bold text-lg mb-1 dark:text-gray-100">{t("offerSectionTitle")}</h3>
+            <p className="text-[#BD0E0D] font-bold text-sm mb-2">
+              {locale === "de" ? "ab 2,40 € pro Heft" : "desde 2,40 € por ejemplar"}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+              {locale === "de"
+                ? "3 Hefte 7,50 € · 5 Hefte 12,00 € · Versand kostenlos"
+                : "3 ejemplares 7,50 € · 5 ejemplares 12,00 € · Envío gratuito"}
+            </p>
+          </button>
         </div>
 
-        {/* Year filter bar */}
-        {yearsNormal.length > 0 && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 overflow-x-auto pb-2">
-              <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap pr-3 border-r border-gray-200 dark:border-gray-700">
-                {locale === "de" ? "Jahr" : "Año"}
-              </span>
-              <button
-                onClick={() => setYearNormal("all")}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                  yearNormal === "all"
-                    ? "bg-[#BD0E0D] text-white shadow-sm"
-                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
-                }`}
-              >
-                {locale === "de" ? "Alle" : "Todos"}
-              </button>
-              {yearsNormal.map((y) => (
-                <button
-                  key={y}
-                  onClick={() => setYearNormal(String(y))}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                    yearNormal === String(y)
-                      ? "bg-[#BD0E0D] text-white shadow-sm"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
-                  }`}
-                >
-                  {y}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Result count */}
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-          {filteredNormal.length}{" "}
-          {locale === "de" ? "Hefte verfügbar" : "ejemplares disponibles"}
-        </p>
-
-        {/* Edition grid */}
-        {filteredNormal.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredNormal.map((edition) => (
-              <div
-                key={edition.id}
-                className="bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col"
-              >
-                <MiniEditionCard edition={edition} />
-                <div className="px-3 pb-3 mt-auto">
-                  <button
-                    onClick={() => addToOrder(edition, "normal")}
-                    className="w-full py-1.5 bg-[#BD0E0D] hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    {t("add")}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-10">
-            {locale === "de"
-              ? `Keine Hefte für ${yearNormal === "all" ? "diese Auswahl" : yearNormal} verfügbar.`
-              : `No hay ejemplares para ${yearNormal === "all" ? "esta selección" : yearNormal}.`}
-          </p>
-        )}
-      </section>
-
-      {/* 🔹 Sonderangebote (isSpecialOffer = true) */}
-      <section className="mb-20">
-        <h2 className="text-2xl font-bold mb-5 text-center dark:text-gray-100">
-          {t("offerSectionTitle")}
-        </h2>
-
-        {/* Pricing info callout */}
-        <div className="flex items-start gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-8 max-w-2xl mx-auto text-sm text-gray-600 dark:text-gray-300">
-          <span className="text-[#BD0E0D] font-black text-base mt-0.5 shrink-0">ℹ</span>
-          <div className="leading-relaxed">
-            {locale === "de" ? (
-              <>
-                3 Hefte für <strong>7,50 €</strong> · 5 Hefte für{" "}
-                <strong>12,00 €</strong> · <strong>ab 2,40 € pro Heft</strong>
-                <br />
-                Mindestbestellung: 3 Hefte · Versandkosten übernimmt die ila
-              </>
-            ) : (
-              <>
-                3 ejemplares por <strong>7,50 €</strong> · 5 ejemplares por{" "}
-                <strong>12,00 €</strong> · <strong>desde 2,40 € por ejemplar</strong>
-                <br />
-                Pedido mínimo: 3 ejemplares · Envío a cargo de ila
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Year filter bar */}
-        {yearsOffer.length > 0 && (
-          <div className="mb-5">
-            <div className="flex items-center gap-2 overflow-x-auto pb-2">
-              <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap pr-3 border-r border-gray-200 dark:border-gray-700">
-                {locale === "de" ? "Jahr" : "Año"}
-              </span>
-              <button
-                onClick={() => setYearOffer("all")}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                  yearOffer === "all"
-                    ? "bg-[#BD0E0D] text-white shadow-sm"
-                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
-                }`}
-              >
-                {locale === "de" ? "Alle" : "Todos"}
-              </button>
-              {yearsOffer.map((y) => (
-                <button
-                  key={y}
-                  onClick={() => setYearOffer(String(y))}
-                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
-                    yearOffer === String(y)
-                      ? "bg-[#BD0E0D] text-white shadow-sm"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
-                  }`}
-                >
-                  {y}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Result count */}
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
-          {filteredOffer.length}{" "}
-          {locale === "de" ? "Hefte verfügbar" : "ejemplares disponibles"}
-        </p>
-
-        {/* Edition grid */}
-        {filteredOffer.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredOffer.map((edition) => (
-              <div
-                key={edition.id}
-                className="bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col"
-              >
-                <MiniEditionCard edition={edition} />
-                <div className="px-3 pb-3 mt-auto">
-                  <button
-                    onClick={() => addToOrder(edition, "offer")}
-                    className="w-full py-1.5 bg-[#BD0E0D] hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    {t("add")}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-10">
-            {locale === "de"
-              ? `Keine Angebote für ${yearOffer === "all" ? "diese Auswahl" : yearOffer} verfügbar.`
-              : `No hay ofertas para ${yearOffer === "all" ? "esta selección" : yearOffer}.`}
-          </p>
-        )}
-      </section>
-      {/* 🔹 Formulario de pedido */}
-      <section className="mt-16">
-        <section className="mb-10" id="cartSection">
-          {selectedNormal.length > 0 && (
-            <div className="mb-6">
-              <h3 id="cartTitle" className="text-lg font-bold mb-2">
-                Ihre Auswahl (Normale Dossiers)
-              </h3>
-              {selectedNormal.map((item, i) => (
-                <div key={i} className="flex justify-between items-center mb-2">
-                  <span>
-                    {item.qty} × ila {item.number}: {item.title}
-                  </span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={item.qty}
-                    onChange={(e) => {
-                      const qty = parseInt(e.target.value, 10) || 1;
-                      setSelectedNormal((prev) =>
-                        prev.map((p, idx) => (idx === i ? { ...p, qty } : p))
-                      );
-                    }}
-                    className="w-16 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 dark:bg-gray-800 dark:text-gray-200"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {selectedOffers.length > 0 && (
-            <div>
-              <h3 className="text-lg font-bold mb-2">Sonderangebote</h3>
-              {selectedOffers.length < 3 && (
-                <p className="text-red-600 text-sm mb-2">
-                  ⚠️ Mindestbestellwert für Sonderangebote: 3 Hefte
+        {/* Pricing stat cards — cambia según el tipo */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
+          {dossierType === "normal" ? (
+            <>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-[#BD0E0D]">7 €</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de" ? "ab 2025" : "desde 2025"}
                 </p>
-              )}
-              {selectedOffers.map((item, i) => (
-                <div key={i} className="flex justify-between items-center mb-2">
-                  <span>
-                    {item.qty} × ila {item.number}: {item.title}
-                  </span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={item.qty}
-                    onChange={(e) => {
-                      const qty = parseInt(e.target.value, 10) || 1;
-                      setSelectedOffers((prev) =>
-                        prev.map((p, idx) => (idx === i ? { ...p, qty } : p))
-                      );
-                    }}
-                    className="w-16 border border-gray-300 rounded px-2 py-1"
-                  />
-                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-[#BD0E0D]">6 €</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de" ? "ab 2017" : "desde 2017"}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-[#BD0E0D]">5 €</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de" ? "Nachdrucke" : "Reimpresiones"}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl">🚚</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de"
+                    ? "+0,50 € (1 Heft) · ab 2 Heften kostenlos"
+                    : "+0,50 € (1 ejemplar) · gratuito desde 2"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-[#BD0E0D]">7,50 €</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de" ? "3 Hefte" : "3 ejemplares"}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-[#BD0E0D]">12 €</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de" ? "5 Hefte" : "5 ejemplares"}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl font-black text-[#BD0E0D]">2,40 €</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de" ? "ab / pro Heft" : "mín. / por ejemplar"}
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 text-center">
+                <p className="text-2xl">🚚</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {locale === "de"
+                    ? "Versand kostenlos · mind. 3 Hefte"
+                    : "Envío gratuito · mín. 3 ejemplares"}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+        {/* Fine print */}
+        <p className="text-xs text-gray-400 dark:text-gray-500 text-center mb-6">
+          {dossierType === "normal"
+            ? locale === "de"
+              ? "Versand: +0,50 € innerhalb Deutschlands · inkl. MwSt."
+              : "Envío: +0,50 € (Alemania) · IVA incluido"
+            : locale === "de"
+              ? "Mindestbestellung: 3 Hefte"
+              : "Pedido mínimo: 3 ejemplares"}
+        </p>
+
+        {/* Year filter bar */}
+        {activeYears.length > 0 && (
+          <div className="mb-5">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+              <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap pr-3 border-r border-gray-200 dark:border-gray-700">
+                {locale === "de" ? "Jahr" : "Año"}
+              </span>
+              <button
+                onClick={() => setActiveYear("all")}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
+                  activeYear === "all"
+                    ? "bg-[#BD0E0D] text-white shadow-sm"
+                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
+                }`}
+              >
+                {locale === "de" ? "Alle" : "Todos"}
+              </button>
+              {activeYears.map((y) => (
+                <button
+                  key={y}
+                  onClick={() => setActiveYear(String(y))}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
+                    activeYear === String(y)
+                      ? "bg-[#BD0E0D] text-white shadow-sm"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
+                  }`}
+                >
+                  {y}
+                </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Result count */}
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+          {activeEditions.length}{" "}
+          {locale === "de" ? "Hefte verfügbar" : "ejemplares disponibles"}
+        </p>
+
+        {/* Edition grid */}
+        {activeEditions.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {activeEditions.map((edition) => (
+              <div
+                key={edition.id}
+                className="bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col"
+              >
+                <MiniEditionCard edition={edition} />
+                <div className="px-3 pb-3 mt-auto">
+                  <button
+                    onClick={() => addToOrder(edition, dossierType)}
+                    className="w-full py-1.5 bg-[#BD0E0D] hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    {t("add")}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 dark:text-gray-400 py-10">
+            {locale === "de" ? "Keine Hefte verfügbar." : "No hay ejemplares disponibles."}
+          </p>
+        )}
+      </section>
+      {/* 🔹 Carrito + Formulario */}
+      <section className="mt-16">
+        <div id="cartSection" className="mb-10">
+          {(selectedNormal.length > 0 || selectedOffers.length > 0) && (
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden mb-8">
+              {/* Cart header */}
+              <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+                <span className="text-lg">🛒</span>
+                <h3 className="font-bold text-base dark:text-gray-100">
+                  {locale === "de" ? "Ihre Auswahl" : "Su selección"}
+                </h3>
+                <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
+                  {totalItems}{" "}
+                  {locale === "de"
+                    ? totalItems === 1 ? "Heft" : "Hefte"
+                    : totalItems === 1 ? "ejemplar" : "ejemplares"}
+                </span>
+              </div>
+
+              {/* Normal items */}
+              {selectedNormal.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold dark:text-gray-100 truncate">
+                      ila {item.number}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {item.title}
+                    </p>
+                  </div>
+                  {/* +/- controls */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => updateQty("normal", item.id, -1)}
+                      className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                    >
+                      −
+                    </button>
+                    <span className="w-6 text-center text-sm font-semibold dark:text-gray-200">
+                      {item.qty}
+                    </span>
+                    <button
+                      onClick={() => updateQty("normal", item.id, 1)}
+                      className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {/* Remove */}
+                  <button
+                    onClick={() => removeItem("normal", item.id)}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                    aria-label="Entfernen"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
+              {/* Offer items */}
+              {selectedOffers.length > 0 && (
+                <>
+                  {selectedOffers.length < 3 && (
+                    <div className="px-5 py-2 bg-amber-50 dark:bg-amber-950/20 border-b border-amber-100 dark:border-amber-900/30">
+                      <p className="text-amber-700 dark:text-amber-400 text-xs font-medium">
+                        ⚠️{" "}
+                        {locale === "de"
+                          ? "Mindestbestellung Sonderangebote: 3 Hefte"
+                          : "Pedido mínimo ofertas especiales: 3 ejemplares"}
+                      </p>
+                    </div>
+                  )}
+                  {selectedOffers.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold dark:text-gray-100 truncate">
+                            ila {item.number}
+                          </p>
+                          <span className="px-1.5 py-0.5 bg-amber-400 text-amber-900 text-[10px] font-black rounded-full uppercase">
+                            DEAL
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {item.title}
+                        </p>
+                      </div>
+                      {/* +/- controls */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => updateQty("offer", item.id, -1)}
+                          className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                        >
+                          −
+                        </button>
+                        <span className="w-6 text-center text-sm font-semibold dark:text-gray-200">
+                          {item.qty}
+                        </span>
+                        <button
+                          onClick={() => updateQty("offer", item.id, 1)}
+                          className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                        >
+                          +
+                        </button>
+                      </div>
+                      {/* Remove */}
+                      <button
+                        onClick={() => removeItem("offer", item.id)}
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                        aria-label="Entfernen"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
           )}
-        </section>
+        </div>
         <TypedOrderForm
           selectedNormal={selectedNormal}
           selectedOffers={selectedOffers}
         />
       </section>
+      </div>
+
+      {/* ── Floating cart bar ── */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
+          totalItems > 0 ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
+        <div className="bg-[#BD0E0D] text-white shadow-2xl px-4 py-3">
+          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="relative">
+                <span className="text-2xl">🛒</span>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-[#BD0E0D] text-[10px] font-black rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+              </span>
+              <div>
+                <p className="font-bold text-sm leading-tight">
+                  {totalItems}{" "}
+                  {locale === "de"
+                    ? totalItems === 1 ? "Heft ausgewählt" : "Hefte ausgewählt"
+                    : totalItems === 1 ? "ejemplar seleccionado" : "ejemplares seleccionados"}
+                </p>
+                {selectedOffers.length > 0 && selectedOffers.reduce((s, i) => s + i.qty, 0) < 3 && (
+                  <p className="text-white/70 text-xs">
+                    ⚠️{" "}
+                    {locale === "de"
+                      ? "Mind. 3 Sonderangebote erforderlich"
+                      : "Mín. 3 ofertas especiales requeridas"}
+                  </p>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() =>
+                document
+                  .getElementById("cartSection")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }
+              className="flex items-center gap-2 bg-white text-[#BD0E0D] font-bold text-sm px-5 py-2 rounded-full hover:bg-gray-100 transition-colors whitespace-nowrap shrink-0"
+            >
+              {locale === "de" ? "Zum Formular" : "Al formulario"} →
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
