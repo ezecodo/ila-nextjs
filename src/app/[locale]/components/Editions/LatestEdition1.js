@@ -666,6 +666,39 @@ export default function LatestEditionWithArticles() {
             </div>
 
             <div className="w-full lg:flex-1 flex flex-col gap-6 mt-8 lg:mt-0">
+
+              {/* Articles section header */}
+              {!loading && filteredArticles.length > 0 && (
+                <div className="flex items-baseline justify-between">
+                  <div>
+                    <h2 className="font-bold text-lg dark:text-gray-100 leading-tight">
+                      {locale === "de"
+                        ? "Beiträge in dieser Ausgabe"
+                        : "Artículos en este número"}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                      {filteredArticles.length}{" "}
+                      {locale === "de"
+                        ? filteredArticles.length === 1
+                          ? "Beitrag"
+                          : "Beiträge"
+                        : filteredArticles.length === 1
+                          ? "artículo"
+                          : "artículos"}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/editions/${currentEdition.id}`}
+                    className="flex items-center gap-1 text-[#BD0E0D] font-semibold text-sm hover:underline shrink-0 ml-4"
+                  >
+                    {locale === "de" ? "Alle ansehen" : "Ver todos"}
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              )}
+
               {/* Desktop */}
               {/* Desktop */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
