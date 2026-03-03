@@ -138,17 +138,60 @@ export default function SingleDossierOrderPage() {
         );
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-10 dark:text-gray-200">
-      <h1 className="text-3xl font-bold text-center mb-12 dark:text-gray-100">
-        {t("orderTitle")}
-      </h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* ── Hero — negative margins to break out of LayoutShell padding ── */}
+      <div className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 relative bg-[#BD0E0D] text-white overflow-hidden">
+        {/* Decorative diagonal stripe */}
+        <div
+          className="absolute inset-0 opacity-[0.07] pointer-events-none"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(-55deg, #fff 0px, #fff 1px, transparent 1px, transparent 28px)",
+          }}
+        />
 
+        <div className="relative max-w-4xl mx-auto px-4 py-10 md:py-14 text-center">
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight mb-2">
+            {t("orderTitle")}
+          </h1>
+          <p className="text-white/70 text-sm md:text-base font-semibold uppercase tracking-widest mb-6">
+            {t("heroSubtitle")}
+          </p>
+
+          {/* Pills */}
+          <div className="flex flex-wrap justify-center gap-3 md:gap-6">
+            {[t("heroPill1"), t("heroPill2"), t("heroPill3")].map((b, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 text-sm font-medium"
+              >
+                <span className="text-white/70">✓</span>
+                <span>{b}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom wave */}
+        <svg
+          className="w-full block"
+          viewBox="0 0 1440 40"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,20 C360,40 1080,0 1440,20 L1440,40 L0,40 Z"
+            className="fill-gray-50 dark:fill-gray-950"
+          />
+        </svg>
+      </div>
+
+      {/* ── Content ── */}
+      <div className="max-w-6xl mx-auto px-4 pb-14 dark:text-gray-200">
       {/* 🔹 Dossiers Normales (isSpecialOffer = false) */}
-      <section className="mb-20">
+      <section className="mb-20 pt-8">
         <h2 className="text-2xl font-semibold mb-4 text-center dark:text-gray-100">
-          {locale === "de"
-            ? "Einzelheftverkauf"
-            : "Venta de ejemplares sueltos"}
+          {t("normalSectionTitle")}
         </h2>
         <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
           {locale === "de" ? (
@@ -229,7 +272,7 @@ export default function SingleDossierOrderPage() {
       <section>
         <section>
           <h2 className="text-2xl font-semibold mb-4 text-center">
-            {locale === "de" ? "Sonderangebote" : "Ofertas especiales"}
+            {t("offerSectionTitle")}
           </h2>
 
           {locale === "de" ? (
@@ -366,6 +409,7 @@ export default function SingleDossierOrderPage() {
           selectedOffers={selectedOffers}
         />
       </section>
-    </main>
+      </div>
+    </div>
   );
 }
