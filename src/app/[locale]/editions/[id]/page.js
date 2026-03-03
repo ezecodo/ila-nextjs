@@ -407,7 +407,7 @@ export default function EditionDetails() {
             );
           });
 
-          // 🔍 DEBUG LOG
+          // 🔍 DEBUG LOGs
           if (matchedArticle) {
             console.log("✅ Match:", matchedArticle.title);
           } else {
@@ -755,24 +755,31 @@ export default function EditionDetails() {
           >
             {article.isLinked ? (
               <a
-                href={article.matchedArticle?.legacyPath ? `/${locale}${article.matchedArticle.legacyPath}` : "#"}
+                href={
+                  article.matchedArticle?.legacyPath
+                    ? `/${locale}${article.matchedArticle.legacyPath}`
+                    : "#"
+                }
                 onClick={(e) => handleArticleClick(article, e)}
                 className="block"
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-red-700 dark:group-hover:text-red-300 leading-snug mb-1">
-                      {isES && article.matchedArticle?.isTranslatedES && article.matchedArticle?.titleES
+                      {isES &&
+                      article.matchedArticle?.isTranslatedES &&
+                      article.matchedArticle?.titleES
                         ? article.matchedArticle.titleES
                         : article.title}
                     </h3>
 
                     {(isES && article.matchedArticle?.isTranslatedES
-                        ? article.matchedArticle?.subtitleES || article.subtitle
-                        : article.subtitle) && (
+                      ? article.matchedArticle?.subtitleES || article.subtitle
+                      : article.subtitle) && (
                       <p className="text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed mb-1">
                         {isES && article.matchedArticle?.isTranslatedES
-                          ? article.matchedArticle?.subtitleES || article.subtitle
+                          ? article.matchedArticle?.subtitleES ||
+                            article.subtitle
                           : article.subtitle}
                       </p>
                     )}
@@ -780,7 +787,9 @@ export default function EditionDetails() {
                     <div className="flex items-center gap-2 text-xs">
                       {article.author && (
                         <span className="text-gray-700 dark:text-gray-300 font-medium">
-                          {isES ? article.author.replace(/^von\s+/i, "") : article.author}
+                          {isES
+                            ? article.author.replace(/^von\s+/i, "")
+                            : article.author}
                         </span>
                       )}
                       {article.pageNumber && (
@@ -855,15 +864,19 @@ export default function EditionDetails() {
                             : "text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1"
                     }`}
                   >
-                    {(isES && article.matchedArticle?.isTranslatedES && article.matchedArticle?.titleES
+                    {(isES &&
+                    article.matchedArticle?.isTranslatedES &&
+                    article.matchedArticle?.titleES
                       ? article.matchedArticle.titleES
                       : article.title
-                    ).split("\n").map((line, i, arr) => (
-                      <span key={i}>
-                        {line}
-                        {i < arr.length - 1 && <br />}
-                      </span>
-                    ))}
+                    )
+                      .split("\n")
+                      .map((line, i, arr) => (
+                        <span key={i}>
+                          {line}
+                          {i < arr.length - 1 && <br />}
+                        </span>
+                      ))}
                   </h3>
 
                   {article.subtitle && (
