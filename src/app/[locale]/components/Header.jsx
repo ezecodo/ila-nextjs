@@ -35,7 +35,9 @@ export default function Header() {
 
   const [isCompact, setIsCompact] = useState(isDashboard);
   const rafRef = useRef(null);
-  const peakScrollYRef = useRef(0);
+  const prevScrollYRef = useRef(0);
+  const directionStartRef = useRef(0);
+  const directionRef = useRef("none");
   const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
@@ -123,35 +125,30 @@ export default function Header() {
 
       rafRef.current = requestAnimationFrame(() => {
         const scrollY = window.scrollY;
+        const delta = scrollY - prevScrollYRef.current;
+
+        // Detectar cambio de dirección
+        if (delta > 2 && directionRef.current !== "down") {
+          directionRef.current = "down";
+          directionStartRef.current = prevScrollYRef.current;
+        } else if (delta < -2 && directionRef.current !== "up") {
+          directionRef.current = "up";
+          directionStartRef.current = prevScrollYRef.current;
+        }
 
         setIsCompact((prev) => {
-          // 1. Puntos de activación con margen (Histéresis)
-          const thresholdCompact = 200; // Punto donde se hace pequeño
-          const thresholdExpand = 100; // Punto donde vuelve a ser grande (debe ser mucho menor)
-
-          if (!prev && scrollY > thresholdCompact) {
-            peakScrollYRef.current = scrollY;
+          // Colapsar: solo si llevamos 100px scrolleando hacia abajo desde la última dirección
+          if (!prev && scrollY > 300 && directionRef.current === "down" && scrollY > directionStartRef.current + 100) {
             return true;
           }
-
-          if (prev) {
-            // Mantenemos tu lógica de "peak scroll" para que no se expanda
-            // solo por subir un poquito, pero añadimos el límite inferior fijo.
-            peakScrollYRef.current = Math.max(peakScrollYRef.current, scrollY);
-
-            // Solo expandir si:
-            // - Estamos casi arriba de todo ( < 100px)
-            // - O si el usuario ha subido una cantidad significativa (ej: 70px) desde el punto más bajo
-            if (
-              scrollY < thresholdExpand ||
-              scrollY < peakScrollYRef.current - 70
-            ) {
-              return false;
-            }
+          // Expandir: si volvemos al top o llevamos 80px scrolleando hacia arriba
+          if (prev && (scrollY < 80 || (directionRef.current === "up" && scrollY < directionStartRef.current - 80))) {
+            return false;
           }
           return prev;
         });
 
+        prevScrollYRef.current = scrollY;
         rafRef.current = null;
       });
     };
