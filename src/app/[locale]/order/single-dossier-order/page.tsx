@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import EditionsCarousel from "../../components/Editions/EditionsCarousel/EditionsCarousel";
+import MiniEditionCard from "../../components/Editions/MiniEditionCard/MiniEditionCard";
 import OrderForm from "../../components/OrderForm/OrderForm";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import { useTranslations } from "next-intl";
@@ -77,8 +77,24 @@ export default function SingleDossierOrderPage() {
         const available = data.filter((e) => e.isAvailableToOrder);
 
         // Separar en normales (sin oferta especial) y ofertas especiales
-        setNormalEditions(available.filter((e) => !e.isSpecialOffer));
-        setOfferEditions(available.filter((e) => e.isSpecialOffer));
+        const normal = available.filter((e) => !e.isSpecialOffer);
+        const offers = available.filter((e) => e.isSpecialOffer);
+        setNormalEditions(normal);
+        setOfferEditions(offers);
+
+        // Auto-seleccionar el año más reciente al cargar
+        const mostRecentNormal = normal
+          .map((e) => (e.datePublished ? new Date(e.datePublished).getFullYear() : null))
+          .filter((y): y is number => y !== null)
+          .sort((a, b) => b - a)[0];
+        if (mostRecentNormal) setYearNormal(String(mostRecentNormal));
+
+        const mostRecentOffer = offers
+          .map((e) => (e.datePublished ? new Date(e.datePublished).getFullYear() : null))
+          .filter((y): y is number => y !== null)
+          .sort((a, b) => b - a)[0];
+        if (mostRecentOffer) setYearOffer(String(mostRecentOffer));
+
         setLoading(false);
       })
       .catch((err) => {
@@ -190,61 +206,57 @@ export default function SingleDossierOrderPage() {
       <div className="max-w-6xl mx-auto px-4 pb-14 dark:text-gray-200">
       {/* 🔹 Dossiers Normales (isSpecialOffer = false) */}
       <section className="mb-20 pt-8">
-        <h2 className="text-2xl font-semibold mb-4 text-center dark:text-gray-100">
+        <h2 className="text-2xl font-bold mb-5 text-center dark:text-gray-100">
           {t("normalSectionTitle")}
         </h2>
-        <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
-          {locale === "de" ? (
-            <>
-              Normalpreis eines ila-Heftes: ab 2025 <strong>7 €</strong>, ab
-              2017: <strong>6 €</strong>
-              <br />
-              Nachdrucke bestimmter vergriffener Hefte: <strong>5 €</strong>
-              <br />
-              zzgl. 0,50 € für Verpackung und Versand (innerhalb Deutschlands)
-              <br />
-              Ab zwei Heften übernehmen wir die Versandkosten.
-              <br />
-              Alle Preise enthalten die gesetzliche Umsatzsteuer.
-            </>
-          ) : (
-            <>
-              Precio normal de un ejemplar de ila: desde 2025,{" "}
-              <strong>7 €</strong>; desde 2017, <strong>6 €</strong>
-              <br />
-              Reimpresión de ciertos ejemplares agotados: <strong>5 €</strong>
-              <br />
-              Más 0,50 € por embalaje y envío (dentro de Alemania)
-              <br />
-              A partir de dos ejemplares asumimos los gastos de envío.
-              <br />
-              Todos los precios incluyen el IVA legal.
-            </>
-          )}
-        </p>
 
-        {/* Selector de años normales */}
+        {/* Pricing info callout */}
+        <div className="flex items-start gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-8 max-w-2xl mx-auto text-sm text-gray-600 dark:text-gray-300">
+          <span className="text-[#BD0E0D] font-black text-base mt-0.5 shrink-0">ℹ</span>
+          <div className="leading-relaxed">
+            {locale === "de" ? (
+              <>
+                <strong>Preise:</strong> ab 2025 <strong>7 €</strong> · ab 2017{" "}
+                <strong>6 €</strong> · Nachdrucke <strong>5 €</strong>
+                <br />
+                Versand: +0,50 € (innerhalb Deutschlands) · ab 2 Heften kostenlos · inkl. MwSt.
+              </>
+            ) : (
+              <>
+                <strong>Precios:</strong> desde 2025 <strong>7 €</strong> · desde 2017{" "}
+                <strong>6 €</strong> · Reimpresiones <strong>5 €</strong>
+                <br />
+                Envío: +0,50 € (Alemania) · gratuito desde 2 ejemplares · IVA incluido
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Year filter bar */}
         {yearsNormal.length > 0 && (
-          <div className="flex justify-center mb-6">
-            <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="mb-5">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+              <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap pr-3 border-r border-gray-200 dark:border-gray-700">
+                {locale === "de" ? "Jahr" : "Año"}
+              </span>
               <button
                 onClick={() => setYearNormal("all")}
-                className={`px-3 py-1 rounded-full text-sm transition whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
                   yearNormal === "all"
-                    ? "bg-red-700 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    ? "bg-[#BD0E0D] text-white shadow-sm"
+                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
                 }`}
               >
-                All
+                {locale === "de" ? "Alle" : "Todos"}
               </button>
               {yearsNormal.map((y) => (
                 <button
                   key={y}
                   onClick={() => setYearNormal(String(y))}
-                  className={`px-3 py-1 rounded-full text-sm transition whitespace-nowrap ${
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
                     yearNormal === String(y)
-                      ? "bg-red-700 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      ? "bg-[#BD0E0D] text-white shadow-sm"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
                   }`}
                 >
                   {y}
@@ -254,74 +266,94 @@ export default function SingleDossierOrderPage() {
           </div>
         )}
 
+        {/* Result count */}
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+          {filteredNormal.length}{" "}
+          {locale === "de" ? "Hefte verfügbar" : "ejemplares disponibles"}
+        </p>
+
+        {/* Edition grid */}
         {filteredNormal.length > 0 ? (
-          <EditionsCarousel
-            editions={filteredNormal}
-            onAdd={addToOrder}
-            type="normal"
-          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {filteredNormal.map((edition) => (
+              <div
+                key={edition.id}
+                className="bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col"
+              >
+                <MiniEditionCard edition={edition} />
+                <div className="px-3 pb-3 mt-auto">
+                  <button
+                    onClick={() => addToOrder(edition, "normal")}
+                    className="w-full py-1.5 bg-[#BD0E0D] hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    {t("add")}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
-          <p className="text-center text-gray-600">
-            No dossiers available for{" "}
-            {yearNormal === "all" ? "order" : `year ${yearNormal}`}.
+          <p className="text-center text-gray-500 dark:text-gray-400 py-10">
+            {locale === "de"
+              ? `Keine Hefte für ${yearNormal === "all" ? "diese Auswahl" : yearNormal} verfügbar.`
+              : `No hay ejemplares para ${yearNormal === "all" ? "esta selección" : yearNormal}.`}
           </p>
         )}
       </section>
 
       {/* 🔹 Sonderangebote (isSpecialOffer = true) */}
-      <section>
-        <section>
-          <h2 className="text-2xl font-semibold mb-4 text-center">
-            {t("offerSectionTitle")}
-          </h2>
+      <section className="mb-20">
+        <h2 className="text-2xl font-bold mb-5 text-center dark:text-gray-100">
+          {t("offerSectionTitle")}
+        </h2>
 
-          {locale === "de" ? (
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
-              Sonderangebote aus Lagerbeständen: <br />3 ila-Ausgaben für{" "}
-              <strong>7,50 Euro</strong> | 5 Hefte für{" "}
-              <strong>12,00 Euro</strong>. <br />
-              Alle weiteren Packmaße als Kombinationen aus drei und fünf Heften.{" "}
-              <br />
-              Mindestbestellwert: <strong>3 Hefte</strong>. <br />
-              Kosten für Porto und Versand übernimmt die ila. <br />
-              <strong>ab 2,40 € pro Heft!</strong>
-            </p>
-          ) : (
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-6 text-center leading-relaxed max-w-2xl mx-auto">
-              Ofertas especiales de existencias en almacén: <br />3 ejemplares
-              de ila por <strong>7,50 €</strong> | 5 ejemplares por{" "}
-              <strong>12,00 €</strong>. <br />
-              Todas las demás combinaciones posibles en múltiplos de tres y
-              cinco ejemplares. <br />
-              Pedido mínimo: <strong>3 ejemplares</strong>. <br />
-              La ila asume los gastos de envío. <br />
-              <strong>¡desde 2,40 € por ejemplar!</strong>
-            </p>
-          )}
-        </section>
+        {/* Pricing info callout */}
+        <div className="flex items-start gap-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-8 max-w-2xl mx-auto text-sm text-gray-600 dark:text-gray-300">
+          <span className="text-[#BD0E0D] font-black text-base mt-0.5 shrink-0">ℹ</span>
+          <div className="leading-relaxed">
+            {locale === "de" ? (
+              <>
+                3 Hefte für <strong>7,50 €</strong> · 5 Hefte für{" "}
+                <strong>12,00 €</strong> · <strong>ab 2,40 € pro Heft</strong>
+                <br />
+                Mindestbestellung: 3 Hefte · Versandkosten übernimmt die ila
+              </>
+            ) : (
+              <>
+                3 ejemplares por <strong>7,50 €</strong> · 5 ejemplares por{" "}
+                <strong>12,00 €</strong> · <strong>desde 2,40 € por ejemplar</strong>
+                <br />
+                Pedido mínimo: 3 ejemplares · Envío a cargo de ila
+              </>
+            )}
+          </div>
+        </div>
 
-        {/* Selector de años ofertas */}
+        {/* Year filter bar */}
         {yearsOffer.length > 0 && (
-          <div className="flex justify-center mb-6">
-            <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="mb-5">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+              <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap pr-3 border-r border-gray-200 dark:border-gray-700">
+                {locale === "de" ? "Jahr" : "Año"}
+              </span>
               <button
                 onClick={() => setYearOffer("all")}
-                className={`px-3 py-1 rounded-full text-sm transition whitespace-nowrap ${
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
                   yearOffer === "all"
-                    ? "bg-red-700 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                    ? "bg-[#BD0E0D] text-white shadow-sm"
+                    : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
                 }`}
               >
-                All
+                {locale === "de" ? "Alle" : "Todos"}
               </button>
               {yearsOffer.map((y) => (
                 <button
                   key={y}
                   onClick={() => setYearOffer(String(y))}
-                  className={`px-3 py-1 rounded-full text-sm transition whitespace-nowrap ${
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
                     yearOffer === String(y)
-                      ? "bg-red-700 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      ? "bg-[#BD0E0D] text-white shadow-sm"
+                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400"
                   }`}
                 >
                   {y}
@@ -331,16 +363,37 @@ export default function SingleDossierOrderPage() {
           </div>
         )}
 
+        {/* Result count */}
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+          {filteredOffer.length}{" "}
+          {locale === "de" ? "Hefte verfügbar" : "ejemplares disponibles"}
+        </p>
+
+        {/* Edition grid */}
         {filteredOffer.length > 0 ? (
-          <EditionsCarousel
-            editions={filteredOffer}
-            onAdd={addToOrder}
-            type="offer"
-          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {filteredOffer.map((edition) => (
+              <div
+                key={edition.id}
+                className="bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col"
+              >
+                <MiniEditionCard edition={edition} />
+                <div className="px-3 pb-3 mt-auto">
+                  <button
+                    onClick={() => addToOrder(edition, "offer")}
+                    className="w-full py-1.5 bg-[#BD0E0D] hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    {t("add")}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
-          <p className="text-center text-gray-600 dark:text-gray-400">
-            No special offer dossiers available for{" "}
-            {yearOffer === "all" ? "order" : `year ${yearOffer}`}.
+          <p className="text-center text-gray-500 dark:text-gray-400 py-10">
+            {locale === "de"
+              ? `Keine Angebote für ${yearOffer === "all" ? "diese Auswahl" : yearOffer} verfügbar.`
+              : `No hay ofertas para ${yearOffer === "all" ? "esta selección" : yearOffer}.`}
           </p>
         )}
       </section>
