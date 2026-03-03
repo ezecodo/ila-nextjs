@@ -557,7 +557,7 @@ export default function LatestEditionWithArticles() {
                     }`}
                   >
                     <Link
-                      href={`/editions/${currentEdition.id}`}
+                      href={`/${locale}/editions/${currentEdition.id}`}
                       className="relative w-full cursor-pointer block group"
                     >
                       <Image
@@ -651,7 +651,7 @@ export default function LatestEditionWithArticles() {
                 />
 
                 <Link
-                  href={`/editions/${currentEdition.id}`}
+                  href={`/${locale}/editions/${currentEdition.id}`}
                   className="bg-white text-[#BD0E0D] font-semibold px-4 py-2 rounded hover:bg-gray-100 transition border border-[#BD0E0D]"
                 >
                   {t("editorialButton")}
@@ -688,7 +688,7 @@ export default function LatestEditionWithArticles() {
                     </p>
                   </div>
                   <Link
-                    href={`/editions/${currentEdition.id}`}
+                    href={`/${locale}/editions/${currentEdition.id}`}
                     className="flex items-center gap-1 text-[#BD0E0D] font-semibold text-sm hover:underline shrink-0 ml-4"
                   >
                     {locale === "de" ? "Alle ansehen" : "Ver todos"}

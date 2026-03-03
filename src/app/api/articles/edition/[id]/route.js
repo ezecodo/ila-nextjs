@@ -40,7 +40,10 @@ export async function GET(req, context) {
       select: {
         id: true,
         title: true,
+        titleES: true,
         subtitle: true,
+        subtitleES: true,
+        isTranslatedES: true,
         legacyPath: true,
         isPublished: true,
         publicationDate: true,

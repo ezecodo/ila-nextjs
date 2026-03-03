@@ -36,10 +36,7 @@ export default function EditionDetails() {
   const summaryToShow =
     isES && edition?.isTranslatedES ? edition.summaryES : edition?.summary;
 
-  const tableOfContentsToShow =
-    isES && edition?.isTranslatedES
-      ? edition.tableOfContentsES
-      : edition?.tableOfContents;
+  const tableOfContentsToShow = edition?.tableOfContents;
 
   // Restaurar scroll position cuando volvemos de un artículo
   useEffect(() => {
@@ -173,8 +170,10 @@ export default function EditionDetails() {
     }
   }
   function parseTableOfContents() {
-    if (!tableOfContentsToShow) return [];
-    let normalized = tableOfContentsToShow;
+    // Siempre usar el TOC alemán para el matching (alemán → alemán funciona siempre)
+    const tocForParsing = edition?.tableOfContents;
+    if (!tocForParsing) return [];
+    let normalized = tocForParsing;
 
     // 🔹 Limpiar espacios especiales
     normalized = normalized
@@ -716,8 +715,8 @@ export default function EditionDetails() {
       sessionStorage.setItem("dossierScrollArticle", `article-${article.id}`);
       sessionStorage.setItem("dossierScrollPath", window.location.pathname);
 
-      // Navegar al artículo normalmente
-      router.push(article.matchedArticle.legacyPath);
+      // Navegar al artículo con el locale correcto
+      router.push(`/${locale}${article.matchedArticle.legacyPath}`);
     }
   }
 
@@ -756,26 +755,32 @@ export default function EditionDetails() {
           >
             {article.isLinked ? (
               <a
-                href={article.matchedArticle?.legacyPath || "#"}
+                href={article.matchedArticle?.legacyPath ? `/${locale}${article.matchedArticle.legacyPath}` : "#"}
                 onClick={(e) => handleArticleClick(article, e)}
                 className="block"
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-red-700 dark:group-hover:text-red-300 leading-snug mb-1">
-                      {article.title}
+                      {isES && article.matchedArticle?.isTranslatedES && article.matchedArticle?.titleES
+                        ? article.matchedArticle.titleES
+                        : article.title}
                     </h3>
 
-                    {article.subtitle && (
+                    {(isES && article.matchedArticle?.isTranslatedES
+                        ? article.matchedArticle?.subtitleES || article.subtitle
+                        : article.subtitle) && (
                       <p className="text-xs text-gray-600 dark:text-gray-400 italic leading-relaxed mb-1">
-                        {article.subtitle}
+                        {isES && article.matchedArticle?.isTranslatedES
+                          ? article.matchedArticle?.subtitleES || article.subtitle
+                          : article.subtitle}
                       </p>
                     )}
 
                     <div className="flex items-center gap-2 text-xs">
                       {article.author && (
                         <span className="text-gray-700 dark:text-gray-300 font-medium">
-                          {article.author}
+                          {isES ? article.author.replace(/^von\s+/i, "") : article.author}
                         </span>
                       )}
                       {article.pageNumber && (
@@ -850,10 +855,13 @@ export default function EditionDetails() {
                             : "text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1"
                     }`}
                   >
-                    {article.title.split("\n").map((line, i) => (
+                    {(isES && article.matchedArticle?.isTranslatedES && article.matchedArticle?.titleES
+                      ? article.matchedArticle.titleES
+                      : article.title
+                    ).split("\n").map((line, i, arr) => (
                       <span key={i}>
                         {line}
-                        {i < article.title.split("\n").length - 1 && <br />}
+                        {i < arr.length - 1 && <br />}
                       </span>
                     ))}
                   </h3>

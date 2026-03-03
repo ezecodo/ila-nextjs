@@ -27,6 +27,10 @@ export async function GET(request) {
           select: {
             id: true,
             title: true,
+            titleES: true,
+            subtitle: true,
+            subtitleES: true,
+            isTranslatedES: true,
             legacyPath: true,
             isPublished: true,
             publicationDate: true,
@@ -75,7 +79,17 @@ export async function POST(request) {
         createdBy: session.user.id,
       },
       include: {
-        article: { select: { id: true, title: true, legacyPath: true } },
+        article: {
+          select: {
+            id: true,
+            title: true,
+            titleES: true,
+            subtitle: true,
+            subtitleES: true,
+            isTranslatedES: true,
+            legacyPath: true,
+          },
+        },
       },
     });
 
