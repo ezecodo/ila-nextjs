@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
-
 import SectionHeader from "../SectionsHeader/SetionHeader";
 import IlaLoader from "../IlaLoader/IlaLoader";
 import Image from "next/image";
@@ -25,6 +24,32 @@ interface Aktuelles {
   }[];
 }
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function groupByYear(items: Aktuelles[]): [string, Aktuelles[]][] {
+  const groups: Record<string, Aktuelles[]> = {};
+  items.forEach((item) => {
+    const year = new Date(item.date).getFullYear().toString();
+    if (!groups[year]) groups[year] = [];
+    groups[year].push(item);
+  });
+  return Object.entries(groups).sort(([a], [b]) => parseInt(b) - parseInt(a));
+}
+
+const ExternalLinkIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+  </svg>
+);
+
+
 export default function AktuellesList() {
   const locale = useLocale();
   const searchParams = useSearchParams();
@@ -40,70 +65,41 @@ export default function AktuellesList() {
         setItems(data.items || []);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error("Error loading Aktuelles:", err);
-        setLoading(false);
-      });
+      .catch(() => setLoading(false));
   }, []);
 
-  // Leer query parameter y hacer scroll al Aktuelles correspondiente
+  // Restaurar scroll position (lógica original intacta)
   useEffect(() => {
     if (loading || items.length === 0) return;
-
     const scrollToId = searchParams.get("scrollTo");
     if (!scrollToId) return;
-
     const numId = parseInt(scrollToId, 10);
-
-    // Expandir el item
     setExpandedIds((prev) => new Set(prev).add(numId));
 
-    // Función MEJORADA para hacer scroll directo a la FECHA
     const scrollToElement = () => {
-      // 1. PRIMERO intentar ir al elemento de FECHA (que tiene ID específico)
       const dateElement = document.getElementById(`aktuelles-date-${numId}`);
-
       if (dateElement) {
-        // Calcular posición considerando el header
         const header = document.querySelector("header");
         const headerHeight = header ? header.offsetHeight + 20 : 120;
-
-        const elementTop = dateElement.getBoundingClientRect().top;
         const scrollPosition = Math.max(
           0,
-          elementTop + window.pageYOffset - headerHeight
+          dateElement.getBoundingClientRect().top + window.pageYOffset - headerHeight
         );
-
-        window.scrollTo({
-          top: scrollPosition,
-          behavior: "smooth",
-        });
+        window.scrollTo({ top: scrollPosition, behavior: "smooth" });
         return;
       }
-
-      // 2. Si no encuentra la fecha, ir al artículo completo (fallback)
       const articleElement = document.getElementById(`aktuelles-${numId}`);
       if (articleElement) {
-        const offset = 100;
-        const elementTop = articleElement.getBoundingClientRect().top;
         const scrollPosition = Math.max(
           0,
-          elementTop + window.pageYOffset - offset
+          articleElement.getBoundingClientRect().top + window.pageYOffset - 100
         );
-
-        window.scrollTo({
-          top: scrollPosition,
-          behavior: "smooth",
-        });
+        window.scrollTo({ top: scrollPosition, behavior: "smooth" });
       }
     };
 
-    // Esperar a que la página termine de cargar
-    // Más tiempo en producción
     const isProduction = process.env.NODE_ENV === "production";
     setTimeout(scrollToElement, isProduction ? 800 : 500);
-
-    // Limpiar la URL después
     setTimeout(() => {
       router.replace("/aktuell/aktuelles", { scroll: false });
     }, 1500);
@@ -112,36 +108,24 @@ export default function AktuellesList() {
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
       return newSet;
     });
   };
 
-  const getTitle = (item: Aktuelles) => {
-    return locale === "es" && item.titleES ? item.titleES : item.title;
-  };
+  const getTitle = (item: Aktuelles) =>
+    locale === "es" && item.titleES ? item.titleES : item.title;
 
-  const getContent = (item: Aktuelles) => {
-    return locale === "es" && item.contentES ? item.contentES : item.content;
-  };
+  const getContent = (item: Aktuelles) =>
+    locale === "es" && item.contentES ? item.contentES : item.content;
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(locale === "es" ? "es-ES" : "de-DE", {
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(locale === "es" ? "es-ES" : "de-DE", {
       day: "2-digit",
       month: "long",
       year: "numeric",
     });
-  };
-
-  const truncateText = (text: string, maxLength: number = 300) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength).trim() + "...";
-  };
 
   if (loading) {
     return (
@@ -153,180 +137,124 @@ export default function AktuellesList() {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        <div className="text-center">
-          <div className="text-6xl mb-4">📰</div>
-          <p className="text-gray-500 dark:text-gray-400 text-lg">
-            {locale === "es"
-              ? "No hay noticias disponibles en este momento"
-              : "Derzeit sind keine Nachrichten verfügbar"}
-          </p>
-        </div>
+      <div className="max-w-4xl mx-auto py-16 px-4 text-center">
+        <p className="text-gray-500 dark:text-gray-400 text-lg">
+          {locale === "es"
+            ? "No hay noticias disponibles en este momento"
+            : "Derzeit sind keine Nachrichten verfügbar"}
+        </p>
       </div>
     );
   }
 
+  const yearGroups = groupByYear(items);
+
   return (
     <div className="max-w-4xl mx-auto pt-2 pb-16 px-4">
-      {/* Cabecera */}
       <SectionHeader
         title={locale === "es" ? "Actualidad" : "Aktuelles"}
         className="mb-8"
       />
 
-      {/* Lista de Aktuelles */}
-      <div className="space-y-12">
-        {items.map((item) => {
-          const isExpanded = expandedIds.has(item.id);
-          const content = getContent(item);
-          const showReadMore = content.length > 300;
-          const coverImage = item.images?.[0];
+      {/* ── GRUPOS POR AÑO + TIMELINE ────────────────────────────────── */}
+      {yearGroups.map(([year, yearItems]) => (
+        <div key={year} className="mb-14">
+          {/* Separador de año */}
+          <div className="flex items-center gap-4 mb-8">
+            <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              {year}
+            </span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          </div>
 
-          return (
-            <article
-              key={item.id}
-              id={`aktuelles-${item.id}`}
-              className="relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 dark:border-gray-700 overflow-hidden"
-            >
-              {/* Fecha encima de la imagen */}
-              <div className="px-6 pt-6 pb-2" id={`aktuelles-date-${item.id}`}>
-                <span className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider rounded-full border border-red-100 dark:border-red-900/50">
-                  {formatDate(item.date)}
-                </span>
-              </div>
+          {/* Timeline */}
+          <div className="relative border-l-2 border-red-200 dark:border-red-900/50 pl-8 space-y-8">
+            {yearItems.map((item) => {
+              const isExpanded = expandedIds.has(item.id);
+              const content = getContent(item);
+              const plain = stripHtml(content);
+              const hasMore = plain.length > 300;
+              const coverImage = item.images?.[0];
 
-              {/* --- IMAGEN --- */}
-              {coverImage && (
-                <div className="relative w-full bg-stone-50 dark:bg-stone-900/30 p-4 flex justify-center items-center">
-                  <div className="relative shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 max-w-3xl mx-auto">
-                    <Image
-                      src={coverImage.url}
-                      alt={coverImage.alt || getTitle(item)}
-                      width={700}
-                      height={400}
-                      className="max-h-[350px] md:max-h-[300px] w-full h-auto object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 700px"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="p-8 md:p-10">
-                {/* Meta - link externo si existe */}
-                <div
-                  style={{ scrollMarginTop: "100px" }}
-                  className="flex items-center gap-3 mb-6"
+              return (
+                <article
+                  key={item.id}
+                  id={`aktuelles-${item.id}`}
+                  className="relative"
                 >
-                  {item.link && (
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-gray-400 hover:text-red-600 transition-colors flex items-center gap-1"
-                    >
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                        />
-                      </svg>
-                      {locale === "es" ? "Fuente externa" : "Externe Quelle"}
-                    </a>
-                  )}
-                </div>
+                  {/* Dot en la línea */}
+                  <div className="absolute -left-[2.65rem] top-1.5 w-3.5 h-3.5 rounded-full bg-red-600 border-2 border-white dark:border-gray-900 shadow-sm" />
 
-                {/* Título */}
-                <h2 className="font-serif text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-6 leading-tight">
-                  {getTitle(item)}
-                </h2>
-
-                {/* Línea decorativa */}
-                <div className="w-16 h-0.5 bg-gradient-to-r from-red-600 to-transparent mb-8"></div>
-
-                {/* Contenido */}
-                <div
-                  className="prose prose-lg max-w-none 
-                             prose-headings:font-serif 
-                             prose-p:text-gray-600 dark:prose-p:text-gray-300 
-                         
-                             prose-a:no-underline 
-                            
-                             prose-a:hover:underline 
-                            
-                             prose-a:hover:underline-offset-4 
-                           
-                             prose-a:hover:decoration-red-600/50
-                             
-                            
-                             prose-u:decoration-transparent
-                             
-                           
-                             prose-strong:text-gray-900 dark:prose-strong:text-white
-                             mb-8 leading-relaxed"
-                  dangerouslySetInnerHTML={{
-                    __html: isExpanded ? content : truncateText(content),
-                  }}
-                />
-
-                {/* Botón Leer más */}
-                {showReadMore && (
-                  <div className="pt-6 border-t border-gray-100 dark:border-gray-700">
-                    <button
-                      onClick={() => toggleExpand(item.id)}
-                      className="group inline-flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white hover:text-red-600 dark:hover:text-red-500 transition-colors"
-                    >
-                      {isExpanded ? (
-                        <>
-                          {locale === "es" ? "Contraer" : "Einklappen"}
-                          <svg
-                            className="w-4 h-4 transform rotate-180 transition-transform group-hover:rotate-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 15l7-7 7 7"
-                            />
-                          </svg>
-                        </>
-                      ) : (
-                        <>
-                          {locale === "es"
-                            ? "Leer artículo completo"
-                            : "Artikel vollständig lesen"}
-                          <svg
-                            className="w-4 h-4 transform transition-transform group-hover:translate-y-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </>
-                      )}
-                    </button>
+                  {/* Fecha */}
+                  <div id={`aktuelles-date-${item.id}`} className="mb-2">
+                    <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">
+                      {formatDate(item.date)}
+                    </span>
                   </div>
-                )}
-              </div>
-            </article>
-          );
-        })}
-      </div>
+
+                  {/* Card */}
+                  <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+                    <div className="flex flex-col">
+                      {/* Imagen encima del contenido, sin recorte */}
+                      {coverImage && (
+                        <div className="w-full bg-stone-100 dark:bg-stone-900 flex justify-center items-center px-4 pt-4">
+                          <Image
+                            src={coverImage.url}
+                            alt={coverImage.alt || getTitle(item)}
+                            width={700}
+                            height={400}
+                            className="w-full h-auto max-h-[280px] object-contain rounded-md"
+                            sizes="(max-width: 768px) 100vw, 700px"
+                          />
+                        </div>
+                      )}
+
+                      <div className="p-6 flex-1 min-w-0">
+                        {/* Título + link externo */}
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                            {getTitle(item)}
+                          </h3>
+                          {item.link && (
+                            <a
+                              href={item.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-shrink-0 text-gray-400 hover:text-red-600 transition-colors mt-0.5"
+                              title={locale === "es" ? "Fuente externa" : "Externe Quelle"}
+                            >
+                              <ExternalLinkIcon />
+                            </a>
+                          )}
+                        </div>
+
+                        {/* Contenido */}
+                        <div
+                          className="prose prose-sm max-w-none prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-white prose-a:text-red-600 prose-a:no-underline hover:prose-a:underline"
+                          dangerouslySetInnerHTML={{
+                            __html: isExpanded || !hasMore ? content : plain.slice(0, 300) + "...",
+                          }}
+                        />
+
+                        {hasMore && (
+                          <button
+                            onClick={() => toggleExpand(item.id)}
+                            className="mt-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors flex items-center gap-1"
+                          >
+                            {isExpanded
+                              ? (locale === "es" ? "↑ Contraer" : "↑ Einklappen")
+                              : (locale === "es" ? "Leer más →" : "Mehr lesen →")}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
