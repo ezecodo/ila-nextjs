@@ -1029,7 +1029,27 @@
       "rewardForRecipient": "Premio enviado al destinatario del regalo",
       "markProcessed": "✅ Marcar como procesada",
       "processedLabel": "Procesada el"
-    }
+    },
+    "popularLabel": "Popular",
+    "heroSubtitle": "Independiente. Crítico. Solidario.",
+    "benefit1": "10 ediciones/año – directo a tu buzón",
+    "benefit2": "Periodismo independiente sobre América Latina",
+    "benefit3": "Premio de bienvenida para nuevos suscriptores",
+    "normalName": "Suscripción normal",
+    "normalPrice": "59 €/año",
+    "normalDesc": "Impreso + PDF, las 10 ediciones al año",
+    "normalPdfName": "Suscripción PDF",
+    "normalPdfPrice": "52 €/año",
+    "normalPdfDesc": "Todas las ediciones en formato PDF digital",
+    "supporterName": "Suscripción de apoyo",
+    "supporterPrice": "desde 69 €/año",
+    "supporterDesc": "Para quienes quieren apoyar activamente a ila",
+    "reducedName": "Suscripción reducida",
+    "reducedPrice": "52 €/año",
+    "reducedDesc": "Para estudiantes y personas con bajos ingresos",
+    "trialName": "Suscripción de prueba",
+    "trialPrice": "desde 9,50 €",
+    "trialDesc": "3 números para conocer ila – termina automáticamente"
   },
   "pdf_abo": {
     "header": {

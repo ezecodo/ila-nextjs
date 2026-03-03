@@ -268,30 +268,68 @@ export default function AboForm({ gifts }) {
     }
   }
 
+  const plans = [
+    { type: "NORMAL",      nameKey: "normalName",     priceKey: "normalPrice",     descKey: "normalDesc",     popular: true  },
+    { type: "NORMAL_PDF",  nameKey: "normalPdfName",  priceKey: "normalPdfPrice",  descKey: "normalPdfDesc"                  },
+    { type: "SUPPORTER",   nameKey: "supporterName",  priceKey: "supporterPrice",  descKey: "supporterDesc"                  },
+    { type: "REDUCED",     nameKey: "reducedName",    priceKey: "reducedPrice",    descKey: "reducedDesc"                    },
+    { type: "TRIAL",       nameKey: "trialName",      priceKey: "trialPrice",      descKey: "trialDesc"                      },
+  ];
+
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
-      {/* Tipo de Suscripción */}
-      <Card>
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            {t("type")}
-          </label>
-          <select
-            value={form.type}
-            onChange={(e) => handleChange("type", e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-          >
-            <option value="NORMAL">{t("normal")}</option>
-            <option value="NORMAL_PDF">{t("normal_pdf")}</option>
-            <option value="SUPPORTER">{t("supporter")}</option>
-            <option value="REDUCED">{t("reduced")}</option>
-            <option value="TRIAL">{t("trial")}</option>
-          </select>
+    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6 pt-6">
+      {/* ── Tipo de Suscripción — Pricing cards ── */}
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">
+          {t("type")}
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          {plans.map((plan) => {
+            const active = form.type === plan.type;
+            return (
+              <button
+                key={plan.type}
+                type="button"
+                onClick={() => handleChange("type", plan.type)}
+                className={`relative flex flex-col p-3 rounded-xl border-2 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#BD0E0D] ${
+                  active
+                    ? "border-[#BD0E0D] bg-red-50 dark:bg-red-900/20 shadow-md"
+                    : "border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-gray-800"
+                }`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-2.5 left-3 bg-[#BD0E0D] text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
+                    {t("popularLabel")}
+                  </span>
+                )}
+                <span className={`text-[11px] font-black uppercase tracking-wide leading-tight mb-1 ${active ? "text-[#BD0E0D]" : "text-gray-500 dark:text-gray-400"}`}>
+                  {t(plan.nameKey)}
+                </span>
+                <span className={`text-base font-black leading-none mb-1.5 ${active ? "text-[#BD0E0D]" : "text-gray-900 dark:text-gray-100"}`}>
+                  {t(plan.priceKey)}
+                </span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">
+                  {t(plan.descKey)}
+                </span>
+                {active && (
+                  <span className="absolute bottom-2 right-2 w-4 h-4 rounded-full bg-[#BD0E0D] flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                    </svg>
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
+      </div>
+
+      {/* ── Card que contiene el ¿regalo? ── */}
+      <Card>
 
         {/* Regalo */}
         {form.type !== "TRIAL" && (
-          <div className="mt-6">
+          <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               {t("giftQuestion")}
             </label>

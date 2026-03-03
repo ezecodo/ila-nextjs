@@ -34,7 +34,8 @@ export default function Header() {
   const isDashboard = pathname?.includes("/dashboard");
 
   const [isCompact, setIsCompact] = useState(isDashboard);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const rafRef = useRef(null);
+  const peakScrollYRef = useRef(0);
   const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
@@ -118,24 +119,49 @@ export default function Header() {
     if (isDashboard) return;
 
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      if (rafRef.current) return;
 
-      if (currentScrollY > 100 && currentScrollY > lastScrollY) {
-        setIsCompact(true);
-      } else if (currentScrollY < lastScrollY) {
-        setIsCompact(false);
-      }
+      rafRef.current = requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
 
-      if (currentScrollY <= 0) {
-        setIsCompact(false);
-      }
+        setIsCompact((prev) => {
+          // 1. Puntos de activación con margen (Histéresis)
+          const thresholdCompact = 200; // Punto donde se hace pequeño
+          const thresholdExpand = 100; // Punto donde vuelve a ser grande (debe ser mucho menor)
 
-      setLastScrollY(currentScrollY);
+          if (!prev && scrollY > thresholdCompact) {
+            peakScrollYRef.current = scrollY;
+            return true;
+          }
+
+          if (prev) {
+            // Mantenemos tu lógica de "peak scroll" para que no se expanda
+            // solo por subir un poquito, pero añadimos el límite inferior fijo.
+            peakScrollYRef.current = Math.max(peakScrollYRef.current, scrollY);
+
+            // Solo expandir si:
+            // - Estamos casi arriba de todo ( < 100px)
+            // - O si el usuario ha subido una cantidad significativa (ej: 70px) desde el punto más bajo
+            if (
+              scrollY < thresholdExpand ||
+              scrollY < peakScrollYRef.current - 70
+            ) {
+              return false;
+            }
+          }
+          return prev;
+        });
+
+        rafRef.current = null;
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY, isDashboard]);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [isDashboard]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -294,7 +320,7 @@ export default function Header() {
       </div>
 
       {/* Mobile top */}
-      <div className="w-screen flex md:hidden items-center bg-[#BD0E0D] text-white relative overflow-hidden -mx-4 h-14">
+      <div className="w-full flex md:hidden items-center bg-[#BD0E0D] text-white relative overflow-hidden h-14">
         <LatinAmericaBackground variant="mobile" />
 
         {/* Contenedor relativo para que el tagline absoluto se base en este ancho */}
@@ -392,7 +418,10 @@ export default function Header() {
                   <Link
                     key={section.labelKey}
                     href={section.href}
-                    onClick={() => { setMenuOpen(false); setActiveMobileSection(null); }}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setActiveMobileSection(null);
+                    }}
                     className="flex items-center px-6 py-4 text-white font-bold text-base tracking-wide border-b border-white/10 hover:bg-white/8 active:bg-white/15 transition-colors"
                   >
                     {tNav(section.labelKey)}
@@ -403,11 +432,15 @@ export default function Header() {
               return (
                 <div key={section.labelKey}>
                   <button
-                    onClick={() => setActiveMobileSection(isOpen ? null : section.labelKey)}
+                    onClick={() =>
+                      setActiveMobileSection(isOpen ? null : section.labelKey)
+                    }
                     className="w-full flex items-center justify-between px-6 py-4 text-white font-bold text-base tracking-wide border-b border-white/10 hover:bg-white/8 active:bg-white/15 transition-colors"
                   >
                     <span>{tNav(section.labelKey)}</span>
-                    <span className={`text-white/50 text-xs transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}>
+                    <span
+                      className={`text-white/50 text-xs transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                    >
                       ▾
                     </span>
                   </button>
@@ -425,7 +458,10 @@ export default function Header() {
                                 <Link
                                   key={sub.href}
                                   href={sub.href}
-                                  onClick={() => { setMenuOpen(false); setActiveMobileSection(null); }}
+                                  onClick={() => {
+                                    setMenuOpen(false);
+                                    setActiveMobileSection(null);
+                                  }}
                                   className="flex items-center gap-2 pl-10 pr-6 py-2.5 text-white/70 text-sm border-b border-white/5 hover:text-white hover:bg-white/5 transition-colors"
                                 >
                                   <span className="w-1 h-1 rounded-full bg-white/40 flex-shrink-0" />
@@ -439,7 +475,10 @@ export default function Header() {
                           <Link
                             key={item.href}
                             href={item.href}
-                            onClick={() => { setMenuOpen(false); setActiveMobileSection(null); }}
+                            onClick={() => {
+                              setMenuOpen(false);
+                              setActiveMobileSection(null);
+                            }}
                             className="flex items-center gap-2 pl-8 pr-6 py-3 text-white/80 text-sm border-b border-white/5 hover:text-white hover:bg-white/5 transition-colors"
                           >
                             <span className="w-1 h-1 rounded-full bg-white/40 flex-shrink-0" />
@@ -456,7 +495,12 @@ export default function Header() {
 
           {/* ── Buscador ── */}
           <div className="flex-shrink-0 px-5 py-3 border-t border-white/15">
-            <SearchBar onSearch={() => { setMenuOpen(false); setActiveMobileSection(null); }} />
+            <SearchBar
+              onSearch={() => {
+                setMenuOpen(false);
+                setActiveMobileSection(null);
+              }}
+            />
           </div>
 
           {/* ── Barra inferior ── */}
@@ -486,7 +530,9 @@ export default function Header() {
             {/* Controles */}
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => handleLocaleSwitch(locale === "es" ? "de" : "es")}
+                onClick={() =>
+                  handleLocaleSwitch(locale === "es" ? "de" : "es")
+                }
                 className="text-white/70 text-[11px] font-black futura hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
               >
                 {locale === "es" ? "DE" : "ES"}
@@ -495,17 +541,27 @@ export default function Header() {
                 onClick={() => setDarkMode(!darkMode)}
                 className="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               >
-                {darkMode ? <FaSun size={13} className="text-yellow-300" /> : <FaMoon size={12} />}
+                {darkMode ? (
+                  <FaSun size={13} className="text-yellow-300" />
+                ) : (
+                  <FaMoon size={12} />
+                )}
               </button>
               {session ? (
                 <>
-                  <Link href={dashboardRoute} onClick={() => setMenuOpen(false)}>
+                  <Link
+                    href={dashboardRoute}
+                    onClick={() => setMenuOpen(false)}
+                  >
                     <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors">
                       <FaTachometerAlt size={12} />
                     </div>
                   </Link>
                   <button
-                    onClick={() => { handleSignOut(); setMenuOpen(false); }}
+                    onClick={() => {
+                      handleSignOut();
+                      setMenuOpen(false);
+                    }}
                     className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
                   >
                     <FaSignOutAlt size={12} />
@@ -513,7 +569,10 @@ export default function Header() {
                 </>
               ) : (
                 <button
-                  onClick={() => { signIn(); setMenuOpen(false); }}
+                  onClick={() => {
+                    signIn();
+                    setMenuOpen(false);
+                  }}
                   className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
                 >
                   <FaUser size={12} />
@@ -521,7 +580,6 @@ export default function Header() {
               )}
             </div>
           </div>
-
         </div>
       )}
 
@@ -531,8 +589,12 @@ export default function Header() {
       <div
         className={`hidden md:block w-full bg-[#BD0E0D] text-white transition-all duration-300 relative ${isCompact ? "py-0" : "pt-1 pb-2"}`}
       >
-        {/* 🌎 Fondo tipográfico con nombres de países (solo en modo expandido) */}
-        {!isCompact && <LatinAmericaBackground />}
+        {/* 🌎 Fondo tipográfico — siempre montado para evitar el flash del estado interno */}
+        <div
+          className={`transition-opacity duration-300 ${isCompact ? "opacity-0" : "opacity-100"}`}
+        >
+          <LatinAmericaBackground />
+        </div>
 
         <div
           className={`mx-auto px-6 relative z-10 ${isCompact ? "w-full py-1" : "max-w-[1400px]"}`}
@@ -698,7 +760,6 @@ export default function Header() {
           {!isCompact && (
             <div className="-mt-5 flex justify-center">
               {" "}
-              {/* mt-8 → mt-2 (más cerca) */}
               <div className="bg-white dark:bg-gray-900 px-8 py-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center h-8">
                 <DesktopNavMenu />
               </div>

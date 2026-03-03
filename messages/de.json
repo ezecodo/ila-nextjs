@@ -1030,7 +1030,27 @@
       "rewardForRecipient": "Prämie für den Geschenkempfänger",
       "markProcessed": "✅ Als bearbeitet markieren",
       "processedLabel": "Bearbeitet am"
-    }
+    },
+    "popularLabel": "Beliebt",
+    "heroSubtitle": "Unabhängig. Kritisch. Solidarisch.",
+    "benefit1": "10 Ausgaben/Jahr – direkt ins Haus",
+    "benefit2": "Unabhängiger Journalismus über Lateinamerika",
+    "benefit3": "Prämie für alle Neuabonnent*innen",
+    "normalName": "Normalabo",
+    "normalPrice": "59 €/Jahr",
+    "normalDesc": "Print + PDF, alle 10 Ausgaben im Jahr",
+    "normalPdfName": "Normalabo PDF",
+    "normalPdfPrice": "52 €/Jahr",
+    "normalPdfDesc": "Alle Ausgaben bequem als digitales PDF",
+    "supporterName": "Förderabo",
+    "supporterPrice": "ab 69 €/Jahr",
+    "supporterDesc": "Für alle, die die ila aktiv fördern möchten",
+    "reducedName": "Ermäßigtes Abo",
+    "reducedPrice": "52 €/Jahr",
+    "reducedDesc": "Für Studierende, Azubis & geringes Einkommen",
+    "trialName": "Probeabo",
+    "trialPrice": "ab 9,50 €",
+    "trialDesc": "3 Ausgaben kennenlernen – endet automatisch"
   },
   "pdf_abo": {
     "header": {
