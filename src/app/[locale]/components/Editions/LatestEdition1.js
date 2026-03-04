@@ -45,6 +45,8 @@ export default function LatestEditionWithArticles() {
   const currentEdition = editions[currentEditionIndex];
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoverBlocked, setHoverBlocked] = useState(false);
+  const [mobileSlideIndex, setMobileSlideIndex] = useState(0);
+  const [showSwipeHint, setShowSwipeHint] = useState(false);
   // ✅ Función helper para actualizar la URL
   const updateEditionInURL = (index) => {
     if (editions[index]) {
@@ -65,6 +67,12 @@ export default function LatestEditionWithArticles() {
 
     setTimeout(() => setIsTransitioning(false), 800);
   };
+  useEffect(() => {
+    if (!localStorage.getItem("ila_mobile_swiped")) {
+      setShowSwipeHint(true);
+    }
+  }, []);
+
   useEffect(() => {
     async function fetchAllEditions() {
       try {
@@ -110,6 +118,7 @@ export default function LatestEditionWithArticles() {
     if (!ed) return;
 
     fetchArticles(ed.id);
+    setMobileSlideIndex(0);
 
     const id = setTimeout(() => fetchEditionsCount(ed), 0);
     return () => clearTimeout(id);
@@ -206,12 +215,15 @@ export default function LatestEditionWithArticles() {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: orderedArticles.length > 1,
+    arrows: false,
     dots: false,
     swipe: true,
     swipeToSlide: true,
-    prevArrow: <PrevArrow />,
-    nextArrow: <NextArrow />,
+    afterChange: (idx) => {
+      setMobileSlideIndex(idx);
+      setShowSwipeHint(false);
+      localStorage.setItem("ila_mobile_swiped", "1");
+    },
   };
 
   const focusInputSoon = () => setTimeout(() => inputRef.current?.focus(), 0);
@@ -288,7 +300,7 @@ export default function LatestEditionWithArticles() {
           <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 items-start justify-between">
             <div className="relative w-full lg:w-auto flex items-start justify-end">
               <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
-                <div className="relative w-full">
+                <div className="relative w-full order-2 lg:order-1">
                   <div className="text-center flex flex-col items-center space-y-1">
                     <div className="flex items-baseline justify-center gap-3 leading-none relative">
                       <button
@@ -502,8 +514,8 @@ export default function LatestEditionWithArticles() {
 
                 <div
                   {...swipeHandlers}
-                  className="relative w-full h-auto flex items-start justify-center pt-0"
-                  style={{ minHeight: "300px" }}
+                  className="relative w-full h-auto flex items-start justify-center pt-0 order-1 lg:order-2"
+                  style={{ minHeight: "320px" }}
                   onMouseLeave={() => setHoverBlocked(false)}
                 >
                   {/* Portada anterior (izquierda) */}
@@ -560,14 +572,19 @@ export default function LatestEditionWithArticles() {
                       href={`/${locale}/editions/${currentEdition.id}`}
                       className="relative w-full cursor-pointer block group"
                     >
-                      <Image
-                        src={currentEdition.coverImage}
-                        alt={`Portada de ${currentEdition.title}`}
-                        width={360}
-                        height={480}
-                        className="shadow-md dark:shadow-gray-800 object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
-                        priority
-                      />
+                      <div
+                        className="p-[5px] bg-white"
+                        style={{ boxShadow: "0 25px 55px -5px rgba(0,0,0,0.45), 4px 8px 0px rgba(0,0,0,0.07)" }}
+                      >
+                        <Image
+                          src={currentEdition.coverImage}
+                          alt={`Portada de ${currentEdition.title}`}
+                          width={360}
+                          height={480}
+                          className="object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
+                          priority
+                        />
+                      </div>
                     </Link>
                   </div>
 
@@ -636,28 +653,33 @@ export default function LatestEditionWithArticles() {
                   </div>
                 </div>
 
-                <EntityBadges
-                  regions={currentEdition.regions.map((region) => ({
-                    ...region,
-                    count: editionsCount.regions?.[region.id] || 0,
-                  }))}
-                  topics={currentEdition.topics.map((topic) => ({
-                    ...topic,
-                    count: editionsCount.topics?.[topic.id] || 0,
-                  }))}
-                  entityType="editions"
-                  context="editions"
-                  locale={locale}
-                />
+                <div className="order-3 w-full">
+                  <EntityBadges
+                    regions={currentEdition.regions.map((region) => ({
+                      ...region,
+                      count: editionsCount.regions?.[region.id] || 0,
+                    }))}
+                    topics={currentEdition.topics.map((topic) => ({
+                      ...topic,
+                      count: editionsCount.topics?.[topic.id] || 0,
+                    }))}
+                    entityType="editions"
+                    context="editions"
+                    locale={locale}
+                  />
+                </div>
 
                 <Link
                   href={`/${locale}/editions/${currentEdition.id}`}
-                  className="bg-white text-[#BD0E0D] font-semibold px-4 py-2 rounded hover:bg-gray-100 transition border border-[#BD0E0D]"
+                  className="order-4 w-full flex items-center justify-center gap-2 bg-[#BD0E0D] text-white font-bold px-6 py-3 hover:bg-[#a50c0b] transition-colors"
                 >
                   {t("editorialButton")}
+                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
 
-                <div className="hidden lg:flex flex-col gap-4 w-full">
+                <div className="hidden lg:flex flex-col gap-4 w-full order-5">
                   <AktuellesPreview />
                   <Events />
                   <SideBanner50 />
@@ -669,7 +691,7 @@ export default function LatestEditionWithArticles() {
 
               {/* Articles section header */}
               {!loading && filteredArticles.length > 0 && (
-                <div className="flex items-baseline justify-between">
+                <div className="hidden lg:flex items-baseline justify-between">
                   <div>
                     <h2 className="font-bold text-lg dark:text-gray-100 leading-tight">
                       {locale === "de"
@@ -728,16 +750,40 @@ export default function LatestEditionWithArticles() {
               {/* Mobile */}
               <div className="block lg:hidden w-full mt-0">
                 {mobileArticles.length > 0 ? (
-                  <Slider {...mobileCarouselSettings}>
-                    {mobileArticles.map((article) => (
-                      <div key={article.id} className="w-full min-h-[500px]">
-                        <MiniArticleCardGrid
-                          article={article}
-                          isTransitioning={isTransitioning}
-                        />
-                      </div>
-                    ))}
-                  </Slider>
+                  <>
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                        {locale === "de" ? "Beiträge" : "Artículos"}
+                      </span>
+                      <span className="text-xs font-bold text-[#BD0E0D] tabular-nums">
+                        {mobileSlideIndex + 1} / {mobileArticles.length}
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <Slider {...mobileCarouselSettings}>
+                        {mobileArticles.map((article) => (
+                          <div key={article.id} className="w-full">
+                            <MiniArticleCardGrid
+                              article={article}
+                              isTransitioning={isTransitioning}
+                            />
+                          </div>
+                        ))}
+                      </Slider>
+
+                      {showSwipeHint && (
+                        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 pointer-events-none flex flex-col items-center gap-1 animate-pulse">
+                          <div style={{
+                            width: 0,
+                            height: 0,
+                            borderTop: "36px solid transparent",
+                            borderBottom: "36px solid transparent",
+                            borderLeft: "14px solid rgba(189,14,13,0.55)",
+                          }} />
+                        </div>
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <div className="bg-gray-50 dark:bg-gray-800 border-l-4 border-[#BD0E0D] rounded-r-lg shadow-md my-6 overflow-hidden">
                     <div className="p-6">
