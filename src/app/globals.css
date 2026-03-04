@@ -410,13 +410,13 @@ body {
   margin-bottom: 0.5rem;
 }
 
-/* MODO OSCRO */
+/* MODO OSCURO */
 .dark .article-content h2,
 .dark .article-content h3,
 .dark .article-content .subtitle,
 .dark .article-content strong {
   color: #f3f4f6 !important;
-  background-color: #374151 !important;
+  background-color: transparent !important;
 }
 
 .dark .article-content h2 span,
@@ -426,14 +426,24 @@ body {
 }
 /* ESTILO PARA LÍNEAS QUE PARECEN TÍTULOS */
 .article-content p {
-  margin-bottom: 2rem; /* antes estaba 1rem */
-  line-height: 1.7; /* un poco más suelto */
+  margin-bottom: 1.2rem;
+  line-height: 1.7;
 }
 
-/* Cuando un párrafo está en negrita y parece título */
+@media (min-width: 768px) {
+  .article-content p {
+    margin-bottom: 1.8rem;
+  }
+}
 
 .article-content p + p {
-  margin-top: 2rem; /* salto más grande entre párrafos consecutivos */
+  margin-top: 0;
+}
+
+@media (min-width: 768px) {
+  .article-content p + p {
+    margin-top: 1rem;
+  }
 }
 /* Modo oscuro */
 .dark .article-content p strong {

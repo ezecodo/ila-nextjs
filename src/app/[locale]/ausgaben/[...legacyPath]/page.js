@@ -244,7 +244,7 @@ export default function LegacyArticlePage() {
         }}
       />
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl mx-auto px-4 py-6 md:px-6">
         {!isAdmin && <DonationPopUp articleId={article.id} />}
 
         <article itemScope itemType="https://schema.org/Article">
