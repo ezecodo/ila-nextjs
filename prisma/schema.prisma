@@ -94,14 +94,16 @@ model Interviewee {
 model Aktuelles {
   id          Int      @id @default(autoincrement())
   title       String
+  titleES     String?
+  subtitle    String?
+  subtitleES  String?
   content     String   @db.Text
+  contentES   String?  @db.Text
   date        DateTime @default(now())
   link        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdById String
-  contentES   String?  @db.Text
-  titleES     String?
   createdBy   User     @relation(fields: [createdById], references: [id])
 
   @@index([createdById], map: "Aktuelles_createdById_fkey")

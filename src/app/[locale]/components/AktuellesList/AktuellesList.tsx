@@ -11,6 +11,8 @@ interface Aktuelles {
   id: number;
   title: string;
   titleES: string | null;
+  subtitle: string | null;
+  subtitleES: string | null;
   content: string;
   contentES: string | null;
   date: string;
@@ -117,6 +119,9 @@ export default function AktuellesList() {
   const getTitle = (item: Aktuelles) =>
     locale === "es" && item.titleES ? item.titleES : item.title;
 
+  const getSubtitle = (item: Aktuelles) =>
+    locale === "es" && item.subtitleES ? item.subtitleES : item.subtitle;
+
   const getContent = (item: Aktuelles) =>
     locale === "es" && item.contentES ? item.contentES : item.content;
 
@@ -174,7 +179,8 @@ export default function AktuellesList() {
               const content = getContent(item);
               const plain = stripHtml(content);
               const hasMore = plain.length > 300;
-              const coverImage = item.images?.[0];
+              const subtitle = getSubtitle(item);
+              const images = item.images ?? [];
 
               return (
                 <article
@@ -195,23 +201,41 @@ export default function AktuellesList() {
                   {/* Card */}
                   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
                     <div className="flex flex-col">
-                      {/* Imagen encima del contenido, sin recorte */}
-                      {coverImage && (
-                        <div className="w-full bg-stone-100 dark:bg-stone-900 flex justify-center items-center px-4 pt-4">
-                          <Image
-                            src={coverImage.url}
-                            alt={coverImage.alt || getTitle(item)}
-                            width={700}
-                            height={400}
-                            className="w-full h-auto max-h-[280px] object-contain rounded-md"
-                            sizes="(max-width: 768px) 100vw, 700px"
-                          />
+                      {/* Imágenes encima del contenido */}
+                      {images.length > 0 && (
+                        <div className={`w-full bg-stone-100 dark:bg-stone-900 px-4 pt-4 ${images.length > 1 ? "grid grid-cols-2 gap-3" : "flex flex-col"}`}>
+                          {images.map((img) => (
+                            <div key={img.id} className="flex flex-col">
+                              <Image
+                                src={img.url}
+                                alt={img.alt || getTitle(item)}
+                                width={images.length > 1 ? 350 : 700}
+                                height={300}
+                                className="w-full h-auto max-h-[280px] object-contain rounded-md"
+                                sizes={images.length > 1 ? "(max-width: 768px) 50vw, 350px" : "(max-width: 768px) 100vw, 700px"}
+                              />
+                              {(img.alt || img.title) && (
+                                <div className="mt-1 mb-2 text-center space-y-0.5">
+                                  {img.alt && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                      {img.alt}
+                                    </p>
+                                  )}
+                                  {img.title && (
+                                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                                      © {img.title}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       )}
 
                       <div className="p-6 flex-1 min-w-0">
                         {/* Título + link externo */}
-                        <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="flex items-start justify-between gap-2 mb-1">
                           <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug">
                             {getTitle(item)}
                           </h3>
@@ -227,6 +251,12 @@ export default function AktuellesList() {
                             </a>
                           )}
                         </div>
+
+                        {subtitle && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 italic mb-3">
+                            {subtitle}
+                          </p>
+                        )}
 
                         {/* Contenido */}
                         <div

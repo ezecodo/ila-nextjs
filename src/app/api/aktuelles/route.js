@@ -66,6 +66,8 @@ export async function POST(req) {
     const {
       title,
       titleES,
+      subtitle,
+      subtitleES,
       content,
       contentES,
       date,
@@ -77,6 +79,8 @@ export async function POST(req) {
       data: {
         title,
         titleES,
+        subtitle: subtitle || null,
+        subtitleES: subtitleES || null,
         content,
         contentES,
         date: date ? new Date(date) : undefined,

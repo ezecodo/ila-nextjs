@@ -20,6 +20,8 @@ export default function AktuellesForm({
 }) {
   const [title, setTitle] = useState(initialData.title || "");
   const [titleES, setTitleES] = useState(initialData.titleES || "");
+  const [subtitle, setSubtitle] = useState(initialData.subtitle || "");
+  const [subtitleES, setSubtitleES] = useState(initialData.subtitleES || "");
   const [content, setContent] = useState(initialData.content || "");
   const [contentES, setContentES] = useState(initialData.contentES || "");
   const [gallery, setGallery] = useState(initialData.images || []);
@@ -39,6 +41,15 @@ export default function AktuellesForm({
         } else {
           const tr = await translateWithDeepl(titleES, "ES", "DE");
           setTitle(tr);
+        }
+      }
+      if (field === "subtitle") {
+        if (from === "DE") {
+          const tr = await translateWithDeepl(subtitle, "DE", "ES");
+          setSubtitleES(tr);
+        } else {
+          const tr = await translateWithDeepl(subtitleES, "ES", "DE");
+          setSubtitle(tr);
         }
       }
       if (field === "content") {
@@ -83,7 +94,7 @@ export default function AktuellesForm({
       })
     );
 
-    onSubmit({ title, titleES, content, contentES, images: processedGallery });
+    onSubmit({ title, titleES, subtitle, subtitleES, content, contentES, images: processedGallery });
   };
   async function fileToDataUrl(file) {
     return new Promise((resolve, reject) => {
@@ -140,6 +151,48 @@ export default function AktuellesForm({
             className="px-3 py-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 disabled:opacity-50"
           >
             {getButtonText("title", "DE")}
+          </button>
+        </div>
+      </div>
+
+      {/* Subtítulo DE */}
+      <div>
+        <label className="block font-semibold mb-1">{t("subtitleDE")}</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+          <button
+            type="button"
+            onClick={() => handleTranslate("DE", "ES", "subtitle")}
+            disabled={loading || !subtitle}
+            className="px-3 py-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 disabled:opacity-50"
+          >
+            {getButtonText("subtitle", "ES")}
+          </button>
+        </div>
+      </div>
+
+      {/* Subtítulo ES */}
+      <div>
+        <label className="block font-semibold mb-1">{t("subtitleES")}</label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={subtitleES}
+            onChange={(e) => setSubtitleES(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+          <button
+            type="button"
+            onClick={() => handleTranslate("ES", "DE", "subtitle")}
+            disabled={loading || !subtitleES}
+            className="px-3 py-1 bg-purple-100 text-purple-800 rounded hover:bg-purple-200 disabled:opacity-50"
+          >
+            {getButtonText("subtitle", "DE")}
           </button>
         </div>
       </div>

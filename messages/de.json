@@ -374,6 +374,8 @@
       "date": "Datum",
       "titleDE": "Titel (DE)",
       "titleES": "Titel (ES)",
+      "subtitleDE": "Untertitel (DE)",
+      "subtitleES": "Untertitel (ES)",
       "contentDE": "Inhalt (DE)",
       "contentES": "Inhalt (ES)",
       "saveButtonCreate": "➕ Erstellen",

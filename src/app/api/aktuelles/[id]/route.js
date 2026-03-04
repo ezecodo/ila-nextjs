@@ -70,6 +70,8 @@ export async function PUT(req, context) {
     const {
       title,
       titleES,
+      subtitle,
+      subtitleES,
       content,
       contentES,
       link,
@@ -80,6 +82,8 @@ export async function PUT(req, context) {
     const data = {};
     if (typeof title === "string") data.title = title.trim();
     if (typeof titleES === "string") data.titleES = titleES.trim();
+    if (typeof subtitle === "string") data.subtitle = subtitle.trim() || null;
+    if (typeof subtitleES === "string") data.subtitleES = subtitleES.trim() || null;
     if (typeof content === "string") data.content = content.trim();
     if (typeof contentES === "string") data.contentES = contentES.trim();
     if (typeof link === "string") data.link = link.trim() || null;

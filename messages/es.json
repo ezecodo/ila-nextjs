@@ -510,6 +510,8 @@
       "date": "Fecha",
       "titleDE": "Título (DE)",
       "titleES": "Título (ES)",
+      "subtitleDE": "Subtítulo (DE)",
+      "subtitleES": "Subtítulo (ES)",
       "contentDE": "Contenido (DE)",
       "contentES": "Contenido (ES)",
       "saveButtonCreate": "➕ Crear",
