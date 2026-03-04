@@ -981,6 +981,9 @@
       "promoGiftRecipient": "Empfänger des Probe-Abos (Promo)"
     },
     "details": {
+      "normal": {
+        "info": "10 Dossiers pro Jahr – als gedrucktes Heft."
+      },
       "normal_pdf": {
         "text": "Die ila 10 mal im Jahr als PDF, komplett, in Farbe, interaktiv. Zur Ansicht ein Beispiel: <a href=\"/pdfs/ila-414.pdf\" target=\"_blank\" class=\"text-red-700 underline\">ila 414</a>"
       },
@@ -1044,7 +1047,7 @@
     "benefit3": "Prämie für alle Neuabonnent*innen",
     "normalName": "Normalabo",
     "normalPrice": "59 €/Jahr",
-    "normalDesc": "Print + PDF, alle 10 Ausgaben im Jahr",
+    "normalDesc": "Print, alle 10 Ausgaben im Jahr",
     "normalPdfName": "Normalabo PDF",
     "normalPdfPrice": "52 €/Jahr",
     "normalPdfDesc": "Alle Ausgaben bequem als digitales PDF",

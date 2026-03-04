@@ -324,33 +324,123 @@ export default function AboForm({ gifts }) {
         </div>
       </div>
 
+      {/* Info dinámica — justo debajo de las pricing cards */}
+      {form.type === "NORMAL" && (
+        <InfoBox>{t("details.normal.info")}</InfoBox>
+      )}
+
+      {form.type === "NORMAL_PDF" && (
+        <InfoBox>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: t.raw("details.normal_pdf.text"),
+            }}
+          />
+        </InfoBox>
+      )}
+
+      {form.type === "SUPPORTER" && (
+        <Card>
+          <InfoBox>{t("details.supporter.intro")}</InfoBox>
+
+          <button
+            type="button"
+            onClick={() => setSupporterOpen((v) => !v)}
+            className="mt-4 text-sm font-medium underline text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+          >
+            {t("details.supporter.adjustToggle")}
+          </button>
+
+          {supporterOpen && (
+            <div className="mt-4 space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                {t("details.supporter.adjustText")}
+              </p>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t("details.supporter.amountLabel")}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={form.donationExtra}
+                    onChange={(e) => onDonationChange(e.target.value)}
+                    placeholder="10"
+                    className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-32 text-right bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                  <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                    €
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  {t("details.supporter.amountHint")}
+                </p>
+                {donationError && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">
+                    {donationError}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {form.type === "REDUCED" && (
+        <InfoBox>{t("details.reduced.info")}</InfoBox>
+      )}
+
+      {form.type === "TRIAL" && (
+        <Card>
+          <InfoBox>{t("details.trial.info")}</InfoBox>
+
+          <div className="mt-4 space-y-3">
+            <RadioButton
+              label={t("details.trial.variantNormal")}
+              name="trialVariant"
+              value="NORMAL"
+              checked={form.trialVariant === "NORMAL"}
+              onChange={(e) => handleChange("trialVariant", e.target.value)}
+            />
+            <RadioButton
+              label={t("details.trial.variantReduced")}
+              name="trialVariant"
+              value="REDUCED"
+              checked={form.trialVariant === "REDUCED"}
+              onChange={(e) => handleChange("trialVariant", e.target.value)}
+            />
+          </div>
+        </Card>
+      )}
+
       {/* ── Card que contiene el ¿regalo? ── */}
+      {form.type !== "TRIAL" && (
       <Card>
 
         {/* Regalo */}
-        {form.type !== "TRIAL" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              {t("giftQuestion")}
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <RadioButton
-                label={t("giftYes")}
-                name="isGift"
-                value="true"
-                checked={form.isGift === true}
-                onChange={() => handleChange("isGift", true)}
-              />
-              <RadioButton
-                label={t("giftNo")}
-                name="isGift"
-                value="false"
-                checked={form.isGift === false}
-                onChange={() => handleChange("isGift", false)}
-              />
-            </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            {t("giftQuestion")}
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <RadioButton
+              label={t("giftYes")}
+              name="isGift"
+              value="true"
+              checked={form.isGift === true}
+              onChange={() => handleChange("isGift", true)}
+            />
+            <RadioButton
+              label={t("giftNo")}
+              name="isGift"
+              value="false"
+              checked={form.isGift === false}
+              onChange={() => handleChange("isGift", false)}
+            />
           </div>
-        )}
+        </div>
         {form.isGift && (
           <div className="mt-6 p-5 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900/30 transition-all duration-300 ease-in-out">
             <h4 className="text-md font-semibold mb-4 text-gray-800 dark:text-gray-200">
@@ -443,6 +533,7 @@ export default function AboForm({ gifts }) {
           </div>
         )}
       </Card>
+      )}
 
       {/* 🎁 Banner y Formulario de Promo - Solo si hay banner activo con promo Y es Normal/Supporter */}
       {activeBanner?.hasPromoForm &&
@@ -452,93 +543,6 @@ export default function AboForm({ gifts }) {
             <PromoGiftForm form={form} handleChange={handleChange} />
           </>
         )}
-      {/* Info dinámica */}
-      {form.type === "NORMAL_PDF" && (
-        <InfoBox>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: t.raw("details.normal_pdf.text"),
-            }}
-          />
-        </InfoBox>
-      )}
-
-      {form.type === "SUPPORTER" && (
-        <Card>
-          <InfoBox>{t("details.supporter.intro")}</InfoBox>
-
-          <button
-            type="button"
-            onClick={() => setSupporterOpen((v) => !v)}
-            className="mt-4 text-sm font-medium underline text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-          >
-            {t("details.supporter.adjustToggle")}
-          </button>
-
-          {supporterOpen && (
-            <div className="mt-4 space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                {t("details.supporter.adjustText")}
-              </p>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t("details.supporter.amountLabel")}
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={form.donationExtra}
-                    onChange={(e) => onDonationChange(e.target.value)}
-                    placeholder="10"
-                    className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-32 text-right bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                  <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                    €
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {t("details.supporter.amountHint")}
-                </p>
-                {donationError && (
-                  <p className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">
-                    {donationError}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-        </Card>
-      )}
-
-      {form.type === "REDUCED" && (
-        <InfoBox>{t("details.reduced.info")}</InfoBox>
-      )}
-
-      {form.type === "TRIAL" && (
-        <Card>
-          <InfoBox>{t("details.trial.info")}</InfoBox>
-
-          <div className="mt-4 space-y-3">
-            <RadioButton
-              label={t("details.trial.variantNormal")}
-              name="trialVariant"
-              value="NORMAL"
-              checked={form.trialVariant === "NORMAL"}
-              onChange={(e) => handleChange("trialVariant", e.target.value)}
-            />
-            <RadioButton
-              label={t("details.trial.variantReduced")}
-              name="trialVariant"
-              value="REDUCED"
-              checked={form.trialVariant === "REDUCED"}
-              onChange={(e) => handleChange("trialVariant", e.target.value)}
-            />
-          </div>
-        </Card>
-      )}
-
       {/* Datos Personales */}
       <Card>
         <SectionTitle>
