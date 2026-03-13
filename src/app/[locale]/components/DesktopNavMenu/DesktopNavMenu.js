@@ -12,6 +12,8 @@ export default function DesktopNavMenu({
   invert = false,
   onLinkClick,
   onSearch,
+  locale,
+  onLocaleSwitch,
 }) {
   const t = useTranslations("navMenu");
   const { data: session } = useSession();
@@ -232,6 +234,23 @@ export default function DesktopNavMenu({
         <div className={`pl-6 border-l ${borderColor} h-5 flex items-center`}>
           <SearchBar onSearch={handleSearch} invert={invert} />
         </div>
+
+        {/* Selector de idioma */}
+        {onLocaleSwitch && locale && (
+          <div className={`pl-4 border-l ${borderColor} h-5 flex items-center`}>
+            <button
+              onClick={() => onLocaleSwitch(locale === "de" ? "es" : "de")}
+              title={locale === "de" ? "Cambiar a Español" : "Auf Deutsch umstellen"}
+              className={`text-[11px] font-black futura leading-none transition-colors cursor-pointer ${
+                invert
+                  ? "text-white/60 hover:text-white"
+                  : "text-gray-400 hover:text-[#BD0E0D] dark:text-gray-500 dark:hover:text-red-400"
+              }`}
+            >
+              {locale === "de" ? "ES" : "DE"}
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );

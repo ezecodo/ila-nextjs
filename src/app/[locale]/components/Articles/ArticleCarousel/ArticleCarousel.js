@@ -127,7 +127,7 @@ export default function FilteredArticlesCarousel(props) {
   };
 
   return (
-    <section className="relative w-full px-2 md:px-8 py-1 md:py-0">
+    <section className="relative w-full md:px-8 py-1 md:py-0">
       {title && <SectionHeader title={title} className="mb-4" />}
       <div className="pb-1 md:pb-2">
         <Slider {...settings}>

@@ -219,103 +219,6 @@ export default function Header() {
     <header
       className={`${styles.header} fixed top-0 left-0 w-full z-50 md:sticky md:top-0 shadow-md ${isCompact ? styles.compact : ""}`}
     >
-      {/* --- BARRA NEGRA SUPERIOR (Ancho total de pantalla) --- */}
-      {/* --- BARRA NEGRA SUPERIOR (Minimalismo Total) --- */}
-      {/* --- BARRA BLANCA SUPERIOR (Minimalismo con Dropdown) --- */}
-      <div className="hidden md:flex w-full bg-white text-gray-900 h-6 items-center justify-center border-b border-gray-100 shadow-sm overflow-visible font-sans">
-        <div className="w-full max-w-[1400px] flex justify-end items-center gap-5 px-4 h-full">
-          {/* IDIOMA */}
-          <div className="text-[10px] font-black text-gray-900 h-full flex items-center">
-            <button
-              onClick={() => handleLocaleSwitch(locale === "es" ? "de" : "es")}
-              className="futura hover:text-[#BD0E0D]transition-colors leading-none"
-              title={
-                locale === "es" ? "Auf Deutsch umstellen" : "Cambiar a Español"
-              }
-            >
-              {locale === "es" ? "DE" : "ES"}
-            </button>
-          </div>
-
-          {/* DARK MODE */}
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="text-gray-900 hover:text-[#BD0E0D]transition-all flex items-center justify-center"
-            title={darkMode ? t("switch_light") : t("switch_dark")}
-          >
-            {darkMode ? (
-              <FaSun size={12} className="text-yellow-500" />
-            ) : (
-              <FaMoon size={11} />
-            )}
-          </button>
-
-          {/* USUARIO + DROPDOWN (Solo si hay sesión) */}
-          {session ? (
-            <div
-              className="relative h-full flex items-center"
-              onMouseEnter={() => setShowUserMenu(true)}
-              onMouseLeave={() => setShowUserMenu(false)}
-            >
-              {/* Botón que activa el menú (Tu Saludo) */}
-              <div className="text-[10px] text-gray-900 font-bold border-l border-gray-100 pl-4 h-4 flex items-center cursor-pointer hover:text-[#BD0E0D] transition-colors gap-1.5">
-                <span className="futura tracking-tight">
-                  <span className="capitalize">
-                    {locale === "es" ? "hola" : "hallo"}
-                  </span>
-                  <span className="ml-1 font-medium italic">
-                    {session.user?.name || "User"}
-                  </span>
-                </span>
-                {/* Flechita sutil */}
-                <svg
-                  className={`w-2 h-2 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-
-              {/* EL DROPDOWN: Dashboard y Logout ocultos aquí */}
-              {showUserMenu && (
-                <div className="absolute top-full right-0 w-40 bg-white border border-gray-100 shadow-xl z-[100] py-1 animate-in fade-in slide-in-from-top-1 duration-150">
-                  <Link
-                    href={dashboardRoute}
-                    className="flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-gray-700 hover:bg-gray-50 hover:text-[#BD0E0D] transition-colors"
-                  >
-                    <FaTachometerAlt size={12} />
-                    {t("dashboard_access")}
-                  </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-red-600 hover:bg-red-50 transition-colors border-t border-gray-50"
-                  >
-                    <FaSignOutAlt size={12} />
-                    {t("logout")}
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* Login simple si no hay sesión */
-            <button
-              onClick={() => signIn()}
-              className="text-[10px] font-bold futura hover:text-[#BD0E0D]transition-colors border-l border-gray-100 pl-4 h-4 flex items-center"
-            >
-              <FaSignInAlt size={11} className="mr-2" />
-              {t("login")}
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Mobile top */}
       <div className="w-full flex md:hidden items-center bg-[#BD0E0D] text-white relative overflow-hidden h-14">
         <LatinAmericaBackground variant="mobile" />
@@ -747,8 +650,64 @@ export default function Header() {
 
             {/* MENÚ EN MODO COMPACTO */}
             {isCompact && (
-              <div className="flex items-center">
-                <DesktopNavMenu invert={true} />
+              <div className="flex items-center gap-4">
+                <DesktopNavMenu invert={true} locale={locale} onLocaleSwitch={handleLocaleSwitch} />
+
+                {/* Controles compactos sobre el rojo */}
+                <div className="border-l border-white/20 pl-4 flex items-center gap-3">
+                  <button
+                    onClick={() => setDarkMode(!darkMode)}
+                    title={darkMode ? t("switch_light") : t("switch_dark")}
+                    className="flex items-center justify-center text-white/70 hover:text-white transition-colors"
+                  >
+                    {darkMode ? <FaSun size={12} className="text-yellow-300" /> : <FaMoon size={11} />}
+                  </button>
+
+                  {session ? (
+                    <div
+                      className="relative flex items-center"
+                      onMouseEnter={() => setShowUserMenu(true)}
+                      onMouseLeave={() => setShowUserMenu(false)}
+                    >
+                      <div className="text-[10px] text-white/80 font-bold futura flex items-center cursor-pointer hover:text-white transition-colors gap-1.5">
+                        <span className="capitalize">{locale === "es" ? "hola" : "hallo"}</span>
+                        <span className="font-medium italic">{session.user?.name || "User"}</span>
+                        <svg
+                          className={`w-2 h-2 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`}
+                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                      {showUserMenu && (
+                        <div className="absolute top-full right-0 w-40 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl z-[100] py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <Link
+                            href={dashboardRoute}
+                            className="flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-[#BD0E0D] transition-colors"
+                          >
+                            <FaTachometerAlt size={12} />
+                            {t("dashboard_access")}
+                          </Link>
+                          <button
+                            onClick={handleSignOut}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-gray-50 dark:border-gray-700"
+                          >
+                            <FaSignOutAlt size={12} />
+                            {t("logout")}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => signIn()}
+                      className="text-[10px] font-bold futura text-white/70 hover:text-white transition-colors flex items-center gap-1.5"
+                    >
+                      <FaSignInAlt size={11} />
+                      {t("login")}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -756,9 +715,68 @@ export default function Header() {
           {/* SECCIÓN DEL MENÚ (Isla Blanca) */}
           {!isCompact && (
             <div className="-mt-5 flex justify-center">
-              {" "}
-              <div className="bg-white dark:bg-gray-900 px-8 py-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center h-8">
-                <DesktopNavMenu />
+              <div className="bg-white dark:bg-gray-900 px-8 py-0 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] border border-white/20 flex items-center h-8 overflow-visible">
+                <DesktopNavMenu locale={locale} onLocaleSwitch={handleLocaleSwitch} />
+
+                {/* Controles: dark mode + usuario */}
+                <div className="border-l border-gray-200 dark:border-gray-700 ml-4 pl-4 h-5 flex items-center gap-3">
+                  {/* Dark mode */}
+                  <button
+                    onClick={() => setDarkMode(!darkMode)}
+                    title={darkMode ? t("switch_light") : t("switch_dark")}
+                    className="flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#BD0E0D] dark:hover:text-red-400 transition-colors"
+                  >
+                    {darkMode ? <FaSun size={12} className="text-yellow-500" /> : <FaMoon size={11} />}
+                  </button>
+
+                  {/* Usuario */}
+                  {session ? (
+                    <div
+                      className="relative h-full flex items-center"
+                      onMouseEnter={() => setShowUserMenu(true)}
+                      onMouseLeave={() => setShowUserMenu(false)}
+                    >
+                      <div className="text-[10px] text-gray-700 dark:text-gray-200 font-bold flex items-center cursor-pointer hover:text-[#BD0E0D] transition-colors gap-1.5">
+                        <span className="futura tracking-tight">
+                          <span className="capitalize">{locale === "es" ? "hola" : "hallo"}</span>
+                          <span className="ml-1 font-medium italic">{session.user?.name || "User"}</span>
+                        </span>
+                        <svg
+                          className={`w-2 h-2 transition-transform duration-200 ${showUserMenu ? "rotate-180" : ""}`}
+                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                      {showUserMenu && (
+                        <div className="absolute top-full right-0 w-40 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl z-[100] py-1 animate-in fade-in slide-in-from-top-1 duration-150">
+                          <Link
+                            href={dashboardRoute}
+                            className="flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-[#BD0E0D] transition-colors"
+                          >
+                            <FaTachometerAlt size={12} />
+                            {t("dashboard_access")}
+                          </Link>
+                          <button
+                            onClick={handleSignOut}
+                            className="w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-gray-50 dark:border-gray-700"
+                          >
+                            <FaSignOutAlt size={12} />
+                            {t("logout")}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => signIn()}
+                      className="text-[10px] font-bold futura text-gray-500 dark:text-gray-400 hover:text-[#BD0E0D] dark:hover:text-red-400 transition-colors flex items-center gap-1.5"
+                    >
+                      <FaSignInAlt size={11} />
+                      {t("login")}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}

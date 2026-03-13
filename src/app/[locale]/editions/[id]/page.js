@@ -1016,28 +1016,24 @@ export default function EditionDetails() {
             height={550}
             className="rounded shadow-md w-full max-w-xs"
           />
-          <div className="badgesContainer mt-2">
-            {edition.regions.length > 0 ? (
-              edition.regions.map((region) => (
+          {edition.regions.length > 0 && (
+            <div className="badgesContainer mt-2">
+              {edition.regions.map((region) => (
                 <span key={region.id} className="regionBadge">
                   {region.name}
                 </span>
-              ))
-            ) : (
-              <span className="regionBadge">Sin regiones asociadas</span>
-            )}
-          </div>
-          <div className="badgesContainer mt-2">
-            {edition.topics.length > 0 ? (
-              edition.topics.map((topic) => (
+              ))}
+            </div>
+          )}
+          {edition.topics.length > 0 && (
+            <div className="badgesContainer mt-2">
+              {edition.topics.map((topic) => (
                 <span key={topic.id} className="topicBadge">
                   {topic.name}
                 </span>
-              ))
-            ) : (
-              <span className="topicBadge">{t("noTopics")}</span>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
           {edition.isAvailableToOrder && (
             <CartButton
               onClick={() => console.log("Añadido al carrito")}
