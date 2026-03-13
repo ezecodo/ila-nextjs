@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useLocale } from "next-intl";
-import IlaLogo50 from "../../IlaLogo/ilaLogo50";
 import Link from "next/link";
 
 export default function Banner50({ variant = "gold" }) {
@@ -67,17 +66,6 @@ export default function Banner50({ variant = "gold" }) {
         {/* --- Sección Superior --- */}
         {/* --- Sección Superior --- */}
         <div className="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-8">
-          {/* Logo */}
-          <div className="flex-shrink-0">
-            <IlaLogo50
-              size="default"
-              show50={true}
-              isLink={false}
-              animated={true}
-              animationType="entrance"
-            />
-          </div>
-
           {/* Título y Subtítulo */}
           <div className="text-center lg:text-left">
             <h2

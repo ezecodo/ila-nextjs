@@ -540,17 +540,6 @@ export default function Header() {
                     className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[95vw] max-w-2xl bg-[#89B881] text-white p-8 md:p-10 rounded-none shadow-2xl border-t-4 border-green-700 animate-in fade-in zoom-in-95 duration-300"
                     onMouseLeave={() => setShowPopup50(false)}
                   >
-                    {/* Logo */}
-                    <div className="flex justify-center mb-6">
-                      <IlaLogo50
-                        size="default"
-                        show50={true}
-                        isLink={false}
-                        animated={true}
-                        animationType="fifty-pulse-green"
-                      />
-                    </div>
-
                     <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-none mb-6 text-center futura">
                       {locale === "es" ? "¡Cumplimos 50!" : "Wir werden 50!"}
                     </h3>

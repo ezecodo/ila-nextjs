@@ -13,14 +13,14 @@ export default function Banner50Compact() {
   const content = {
     de: {
       title: "Wir werden 50!",
-      fullText: `Es wäre Zeit, die ila an den Nagel zu hängen und sich zurückzulehnen. In einer Welt in der der US-Präsident "Amerika den (US-)Amerikanern" wieder zur Leitlinie seiner Politik macht und der deutsche Kanzler das Ganze nur als "komplex" sehen kann? In einer Gegenwart wo rechte Kräfte im Vormarsch sind und dennoch überall Menschen tagtäglich widerstehen, für ein gutes Leben und solidarische Gesellschaften kämpfen? Wir feiern und machen weiter. Und ihr?`,
+      fullText: `Es wäre Zeit, die ila an den Nagel zu hängen und sich zurückzulehnen.  In einer Gegenwart wo rechte Kräfte im Vormarsch sind und dennoch überall Menschen tagtäglich widerstehen, für ein gutes Leben und solidarische Gesellschaften kämpfen? Wir feiern und machen weiter. Und ihr?`,
       cta1: "Abonnieren",
       cta2: "Mitmachen",
       cta3: "Spenden",
     },
     es: {
       title: "¡Cumplimos 50!",
-      fullText: `Sería tiempo de colgar los guantes y relajarse. ¿En un mundo donde el presidente de EE. UU. vuelve a hacer de "América para los estadounidenses" la guía de su política y el canciller alemán solo ve todo esto como "complejo"? ¿En un presente donde las fuerzas de derecha están en auge y, sin embargo, en todas partes la gente resiste día a día, luchando por una buena vida y sociedades solidarias? Celebramos y seguimos. ¿Y tú?`,
+      fullText: `Sería tiempo de colgar los guantes y relajarse. ¿En un presente donde las fuerzas de derecha están en auge y, sin embargo, en todas partes la gente resiste día a día, luchando por una buena vida y sociedades solidarias? Celebramos y seguimos. ¿Y tú?`,
       cta1: "Suscríbete",
       cta2: "Únete",
       cta3: "Dona",
@@ -89,7 +89,7 @@ export default function Banner50Compact() {
   return (
     <div
       ref={bannerRef}
-      className="bg-[#89B881] text-white p-4 md:p-8 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0"
+      className="bg-[#89B881] text-white p-3 md:p-5 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0"
     >
       <div className="flex items-center w-full justify-center gap-2">
         <div className="text-center flex-1 min-w-0">
