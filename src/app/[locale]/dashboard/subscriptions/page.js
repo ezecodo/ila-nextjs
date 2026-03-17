@@ -83,10 +83,10 @@ export default function SubscriptionsPage() {
     <>
       <div ref={headerRef} className="absolute top-0 left-0 w-full -z-10" />
 
-      <div className="max-w-7xl mx-auto py-10 px-6">
+      <div className="max-w-7xl mx-auto py-6 px-4 md:py-10 md:px-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
             {t("title")}
           </h1>
           <div className="relative w-full sm:w-72">
@@ -101,8 +101,76 @@ export default function SubscriptionsPage() {
           </div>
         </div>
 
-        {/* Tabla */}
-        <div className="overflow-x-auto rounded-lg shadow-lg">
+        {/* ── Mobile: cards ───────────────────────────────────── */}
+        <div className="md:hidden space-y-3">
+          {filteredSubs.map((sub) => (
+            <div
+              key={sub.id}
+              className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-900 p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  {/* Nombre + estado */}
+                  <div className="flex items-center gap-2 mb-1">
+                    {sub.isNew ? (
+                      <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+                      </span>
+                    ) : (
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 opacity-80 flex-shrink-0" />
+                    )}
+                    <span className="font-semibold text-gray-800 dark:text-gray-100 truncate">
+                      {sub.firstName} {sub.lastName}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {sub.email}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(sub.createdAt).toLocaleDateString()}
+                  </p>
+                  {/* Badges info */}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold capitalize">
+                      {sub.type.toLowerCase()}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">
+                      {sub.format}
+                    </span>
+                    {sub.gift && (
+                      <span className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">
+                        🏅 {sub.gift.name || t("yes")}
+                      </span>
+                    )}
+                    {sub.isGift && (
+                      <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                        🎁 {t("yes")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={() => openSubDetails(sub.id)}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 transition"
+                  >
+                    {t("viewDetails")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {filteredSubs.length === 0 && (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+              {t("noResults")}
+            </p>
+          )}
+        </div>
+
+        {/* ── Desktop: tabla ──────────────────────────────────── */}
+        <div className="hidden md:block overflow-x-auto rounded-lg shadow-lg">
           <table className="w-full border-collapse bg-white dark:bg-gray-900 text-sm">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">
@@ -125,18 +193,15 @@ export default function SubscriptionsPage() {
                 >
                   <td className="px-5 py-3 flex items-center gap-2">
                     {sub.isNew ? (
-                      // 🟢 Nueva suscripción (pulsante)
                       <span className="relative flex h-3 w-3 mr-1">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
                       </span>
                     ) : (
-                      // 🔴 Procesada (fijo)
                       <span className="relative flex h-3 w-3 mr-1">
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 opacity-80"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 opacity-80" />
                       </span>
                     )}
-
                     {new Date(sub.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-5 py-3 font-medium text-gray-800 dark:text-gray-100">
@@ -255,7 +320,7 @@ export default function SubscriptionsPage() {
                       </p>
                     )}
 
-                    {/* Premio para el pagador: Si NO es regalo O si es regalo y giftDelivery === "to_payer" */}
+                    {/* Premio para el pagador */}
                     {selectedSub.gift &&
                       (!selectedSub.isGift ||
                         selectedSub.giftDelivery === "to_payer") && (

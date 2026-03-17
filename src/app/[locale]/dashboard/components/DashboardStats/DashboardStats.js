@@ -13,12 +13,15 @@ import {
   FaCog,
   FaQuestionCircle,
   FaUsers,
+  FaBars,
+  FaTimes,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations("stats");
   const fullPathname = usePathname();
 
@@ -74,145 +77,366 @@ const DashboardStats = () => {
 
   if (loading) return null;
   if (error) return <p className="text-center text-red-500">{t("error")}</p>;
+
+  const mobileLinkClass = (href) =>
+    `block px-4 py-2.5 text-sm ${
+      pathname?.startsWith(href)
+        ? "bg-red-50 text-red-700 font-semibold"
+        : "text-gray-700 hover:bg-gray-50"
+    }`;
+
+  const closeMobile = () => setMobileMenuOpen(false);
+
   return (
-    <div className="sticky top-0 z-[60] bg-white shadow-sm py-2 flex flex-nowrap gap-2 items-center justify-center">
-      {/* Logo ila */}
-      <StatCard
-        icon={
-          <span
-            className="font-serif text-lg font-bold"
-            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
-          >
-            ila
-          </span>
-        }
-        label=""
-        value=""
-        href="/dashboard/activity"
-        pathname={pathname}
-      />
+    <div className="sticky top-0 z-[60] bg-white shadow-sm">
+      {/* ── Desktop nav ─────────────────────────────────────── */}
+      <div className="hidden md:flex flex-nowrap gap-2 items-center justify-center py-2 px-2">
+        {/* Logo ila */}
+        <StatCard
+          icon={
+            <span
+              className="font-serif text-lg font-bold"
+              style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+            >
+              ila
+            </span>
+          }
+          label=""
+          value=""
+          href="/dashboard/activity"
+          pathname={pathname}
+        />
 
-      {/* Inhalte: Artículos + Dossiers */}
-      <StatCardDropdown
-        icon={<FaFileAlt size={18} />}
-        label={t("contentLabel")}
-        items={[
-          {
-            label: `${t("articles")} (${stats.totalArticles})`,
-            href: "/dashboard/articles",
-          },
-          {
-            label: `${t("editions")} (${stats.totalEditions})`,
-            href: "/dashboard/editions",
-          },
-        ]}
-        pathname={pathname}
-      />
+        {/* Inhalte */}
+        <StatCardDropdown
+          icon={<FaFileAlt size={18} />}
+          label={t("contentLabel")}
+          items={[
+            {
+              label: `${t("articles")} (${stats.totalArticles})`,
+              href: "/dashboard/articles",
+            },
+            {
+              label: `${t("editions")} (${stats.totalEditions})`,
+              href: "/dashboard/editions",
+            },
+          ]}
+          pathname={pathname}
+        />
 
-      {/* Aktuelles: Aktuelles + Events */}
-      <StatCardDropdown
-        icon={<FaRegNewspaper size={18} />}
-        label={t("aktuellesLabel")}
-        items={[
-          {
-            label: `${t("aktuellesItem")} (${stats.totalAktuelles})`,
-            href: "/dashboard/aktuelles",
-          },
-          {
-            label: `${t("events")} (${stats.totalEvents})`,
-            href: "/dashboard/events",
-          },
-        ]}
-        pathname={pathname}
-      />
+        {/* Aktuelles */}
+        <StatCardDropdown
+          icon={<FaRegNewspaper size={18} />}
+          label={t("aktuellesLabel")}
+          items={[
+            {
+              label: `${t("aktuellesItem")} (${stats.totalAktuelles})`,
+              href: "/dashboard/aktuelles",
+            },
+            {
+              label: `${t("events")} (${stats.totalEvents})`,
+              href: "/dashboard/events",
+            },
+          ]}
+          pathname={pathname}
+        />
 
-      {/* Übersetzungen */}
-      <StatCardDropdown
-        icon={<FaLanguage size={18} />}
-        label={t("translations")}
-        items={[
-          {
-            label: t("assignTranslations"),
-            href: "/dashboard/reviewer/assign",
-          },
-          {
-            label: t("reviewTranslations"),
-            href: "/dashboard/reviewer/review",
-          },
-        ]}
-        pathname={pathname}
-      />
+        {/* Übersetzungen */}
+        <StatCardDropdown
+          icon={<FaLanguage size={18} />}
+          label={t("translations")}
+          items={[
+            {
+              label: t("assignTranslations"),
+              href: "/dashboard/reviewer/assign",
+            },
+            {
+              label: t("reviewTranslations"),
+              href: "/dashboard/reviewer/review",
+            },
+          ]}
+          pathname={pathname}
+        />
 
-      {/* Bestellungen: Orders + Abos + Gifts */}
-      <StatCardDropdown
-        icon={
-          <div className="relative">
-            <FaShoppingCart
-              size={18}
-              className={newOrders > 0 ? "text-red-600" : ""}
-            />
-          </div>
-        }
-        label={t("orders")}
-        items={[
-          {
-            label: `${t("viewOrders")}${newOrders > 0 ? ` (${newOrders})` : ""}`,
-            href: "/dashboard/orders",
-          },
-          {
-            label: `Abos${newSubscriptions > 0 ? ` (${newSubscriptions})` : ""}`,
-            href: "/dashboard/subscriptions",
-          },
-          { label: t("gifts"), href: "/dashboard/gifts" },
-        ]}
-        pathname={pathname}
-        newOrders={newOrders}
-        newSubscriptions={newSubscriptions}
-        t={t}
-      />
+        {/* Bestellungen */}
+        <StatCardDropdown
+          icon={
+            <div className="relative">
+              <FaShoppingCart
+                size={18}
+                className={newOrders > 0 ? "text-red-600" : ""}
+              />
+            </div>
+          }
+          label={t("orders")}
+          items={[
+            {
+              label: `${t("viewOrders")}${newOrders > 0 ? ` (${newOrders})` : ""}`,
+              href: "/dashboard/orders",
+            },
+            {
+              label: `Abos${newSubscriptions > 0 ? ` (${newSubscriptions})` : ""}`,
+              href: "/dashboard/subscriptions",
+            },
+            { label: t("gifts"), href: "/dashboard/gifts" },
+          ]}
+          pathname={pathname}
+          newOrders={newOrders}
+          newSubscriptions={newSubscriptions}
+          t={t}
+        />
 
-      {/* Gestaltung: Carruseles + Links */}
-      <StatCardDropdown
-        icon={<FaSlidersH size={18} />}
-        label={t("gestaltungLabel")}
-        items={[
-          { label: t("carousels"), href: "/dashboard/carousels" },
-          { label: t("links"), href: "/dashboard/links" },
-        ]}
-        pathname={pathname}
-      />
+        {/* Gestaltung */}
+        <StatCardDropdown
+          icon={<FaSlidersH size={18} />}
+          label={t("gestaltungLabel")}
+          items={[
+            { label: t("carousels"), href: "/dashboard/carousels" },
+            { label: t("links"), href: "/dashboard/links" },
+          ]}
+          pathname={pathname}
+        />
 
-      {/* Verwaltung: Annual Index + Autores + Network + Regiones + Topics */}
-      <StatCardDropdown
-        icon={<FaUsers size={18} />}
-        label={t("auditLabel")}
-        items={[
-          { label: t("annualIndex"), href: "/dashboard/annual-index" },
-          { label: t("authors"), href: "/dashboard/authors" },
-          { label: t("network"), href: "/dashboard/network" },
-          { label: t("regions"), href: "/dashboard/regions" },
-          { label: t("topics"), href: "/dashboard/topics" },
-        ]}
-        pathname={pathname}
-      />
+        {/* Verwaltung */}
+        <StatCardDropdown
+          icon={<FaUsers size={18} />}
+          label={t("auditLabel")}
+          items={[
+            { label: t("annualIndex"), href: "/dashboard/annual-index" },
+            { label: t("authors"), href: "/dashboard/authors" },
+            { label: t("network"), href: "/dashboard/network" },
+            { label: t("regions"), href: "/dashboard/regions" },
+            { label: t("topics"), href: "/dashboard/topics" },
+          ]}
+          pathname={pathname}
+        />
 
-      {/* Cuenta */}
-      <StatCard
-        icon={<FaCog size={18} />}
-        label=""
-        value=""
-        href="/dashboard/account"
-        pathname={pathname}
-      />
+        {/* Cuenta */}
+        <StatCard
+          icon={<FaCog size={18} />}
+          label=""
+          value=""
+          href="/dashboard/account"
+          pathname={pathname}
+        />
 
-      {/* FAQ */}
-      <StatCard
-        icon={<FaQuestionCircle size={18} />}
-        label=""
-        value=""
-        href="/dashboard/faq"
-        pathname={pathname}
-      />
+        {/* FAQ */}
+        <StatCard
+          icon={<FaQuestionCircle size={18} />}
+          label=""
+          value=""
+          href="/dashboard/faq"
+          pathname={pathname}
+        />
+      </div>
+
+      {/* ── Mobile header ─────────────────────────────────────── */}
+      <div className="flex md:hidden items-center justify-between px-4 py-2">
+        <Link
+          href="/dashboard/activity"
+          className="font-bold text-xl"
+          style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+        >
+          ila
+        </Link>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 rounded-md text-gray-600 hover:bg-gray-100"
+          aria-label="Toggle menu"
+        >
+          {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+        </button>
+      </div>
+
+      {/* ── Mobile dropdown menu ──────────────────────────────── */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 shadow-lg max-h-[80vh] overflow-y-auto">
+          <nav className="pb-4">
+            {/* Inicio */}
+            <Link
+              href="/dashboard/activity"
+              className={mobileLinkClass("/dashboard/activity")}
+              onClick={closeMobile}
+            >
+              Inicio
+            </Link>
+
+            {/* Inhalte */}
+            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {t("contentLabel")}
+            </div>
+            <Link
+              href="/dashboard/articles"
+              className={mobileLinkClass("/dashboard/articles")}
+              onClick={closeMobile}
+            >
+              {t("articles")} ({stats.totalArticles})
+            </Link>
+            <Link
+              href="/dashboard/editions"
+              className={mobileLinkClass("/dashboard/editions")}
+              onClick={closeMobile}
+            >
+              {t("editions")} ({stats.totalEditions})
+            </Link>
+
+            {/* Aktuelles */}
+            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {t("aktuellesLabel")}
+            </div>
+            <Link
+              href="/dashboard/aktuelles"
+              className={mobileLinkClass("/dashboard/aktuelles")}
+              onClick={closeMobile}
+            >
+              {t("aktuellesItem")} ({stats.totalAktuelles})
+            </Link>
+            <Link
+              href="/dashboard/events"
+              className={mobileLinkClass("/dashboard/events")}
+              onClick={closeMobile}
+            >
+              {t("events")} ({stats.totalEvents})
+            </Link>
+
+            {/* Übersetzungen */}
+            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {t("translations")}
+            </div>
+            <Link
+              href="/dashboard/reviewer/assign"
+              className={mobileLinkClass("/dashboard/reviewer/assign")}
+              onClick={closeMobile}
+            >
+              {t("assignTranslations")}
+            </Link>
+            <Link
+              href="/dashboard/reviewer/review"
+              className={mobileLinkClass("/dashboard/reviewer/review")}
+              onClick={closeMobile}
+            >
+              {t("reviewTranslations")}
+            </Link>
+
+            {/* Bestellungen */}
+            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {t("orders")}
+            </div>
+            <Link
+              href="/dashboard/orders"
+              className={mobileLinkClass("/dashboard/orders")}
+              onClick={closeMobile}
+            >
+              {t("viewOrders")}
+              {newOrders > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-red-600 text-white rounded-full">
+                  {newOrders}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/dashboard/subscriptions"
+              className={mobileLinkClass("/dashboard/subscriptions")}
+              onClick={closeMobile}
+            >
+              Abos
+              {newSubscriptions > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-green-600 text-white rounded-full">
+                  {newSubscriptions}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/dashboard/gifts"
+              className={mobileLinkClass("/dashboard/gifts")}
+              onClick={closeMobile}
+            >
+              {t("gifts")}
+            </Link>
+
+            {/* Gestaltung */}
+            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {t("gestaltungLabel")}
+            </div>
+            <Link
+              href="/dashboard/carousels"
+              className={mobileLinkClass("/dashboard/carousels")}
+              onClick={closeMobile}
+            >
+              {t("carousels")}
+            </Link>
+            <Link
+              href="/dashboard/links"
+              className={mobileLinkClass("/dashboard/links")}
+              onClick={closeMobile}
+            >
+              {t("links")}
+            </Link>
+
+            {/* Verwaltung */}
+            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {t("auditLabel")}
+            </div>
+            <Link
+              href="/dashboard/annual-index"
+              className={mobileLinkClass("/dashboard/annual-index")}
+              onClick={closeMobile}
+            >
+              {t("annualIndex")}
+            </Link>
+            <Link
+              href="/dashboard/authors"
+              className={mobileLinkClass("/dashboard/authors")}
+              onClick={closeMobile}
+            >
+              {t("authors")}
+            </Link>
+            <Link
+              href="/dashboard/network"
+              className={mobileLinkClass("/dashboard/network")}
+              onClick={closeMobile}
+            >
+              {t("network")}
+            </Link>
+            <Link
+              href="/dashboard/regions"
+              className={mobileLinkClass("/dashboard/regions")}
+              onClick={closeMobile}
+            >
+              {t("regions")}
+            </Link>
+            <Link
+              href="/dashboard/topics"
+              className={mobileLinkClass("/dashboard/topics")}
+              onClick={closeMobile}
+            >
+              {t("topics")}
+            </Link>
+
+            {/* Cuenta / FAQ */}
+            <div className="border-t border-gray-100 mt-2 pt-2">
+              <Link
+                href="/dashboard/account"
+                className={mobileLinkClass("/dashboard/account")}
+                onClick={closeMobile}
+              >
+                <span className="flex items-center gap-2">
+                  <FaCog size={14} /> Account
+                </span>
+              </Link>
+              <Link
+                href="/dashboard/faq"
+                className={mobileLinkClass("/dashboard/faq")}
+                onClick={closeMobile}
+              >
+                <span className="flex items-center gap-2">
+                  <FaQuestionCircle size={14} /> FAQ
+                </span>
+              </Link>
+            </div>
+          </nav>
+        </div>
+      )}
     </div>
   );
 };
@@ -275,6 +499,7 @@ export function StatCardDropdown({
       className="relative flex-shrink-0"
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
+      onClick={() => setOpen(!open)}
     >
       {/* Botón */}
       <div

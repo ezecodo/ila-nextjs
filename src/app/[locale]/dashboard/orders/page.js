@@ -18,18 +18,15 @@ export default function OrdersPage() {
   const [replyMessage, setReplyMessage] = useState("");
 
   useEffect(() => {
-    // Función para medir la altura del header
     const measureHeaderHeight = () => {
       if (headerRef.current) {
         setHeaderHeight(headerRef.current.offsetHeight);
       }
     };
 
-    // Medir inicialmente y cuando cambie el tamaño de la ventana
     measureHeaderHeight();
     window.addEventListener("resize", measureHeaderHeight);
 
-    // También usar MutationObserver para detectar cambios en el DOM del header
     const observer = new MutationObserver(measureHeaderHeight);
     if (headerRef.current) {
       observer.observe(headerRef.current, {
@@ -52,7 +49,7 @@ export default function OrdersPage() {
         const res = await fetch("/api/orders");
         if (!res.ok) throw new Error("Error cargando pedidos");
         const data = await res.json();
-        setOrders(data.orders || []); // ✅ solo el array de pedidos
+        setOrders(data.orders || []);
       } catch (err) {
         console.error("❌ Error:", err);
       } finally {
@@ -88,13 +85,12 @@ export default function OrdersPage() {
 
   return (
     <>
-      {/* Referencia invisible para medir el header */}
       <div ref={headerRef} className="absolute top-0 left-0 w-full -z-10" />
 
-      <div className="max-w-7xl mx-auto py-10 px-6">
+      <div className="max-w-7xl mx-auto py-6 px-4 md:py-10 md:px-6">
         {/* Header con búsqueda */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
             {t("title")}
           </h1>
           <div className="relative w-full sm:w-72">
@@ -109,8 +105,60 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* Tabla */}
-        <div className="overflow-x-auto rounded-lg shadow-lg">
+        {/* ── Mobile: cards ───────────────────────────────────── */}
+        <div className="md:hidden space-y-3">
+          {filteredOrders.map((order) => (
+            <div
+              key={order.id}
+              className="bg-white rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 dark:bg-gray-900 p-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    {order.isNew ? (
+                      <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+                      </span>
+                    ) : (
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 opacity-80 flex-shrink-0" />
+                    )}
+                    <span className="font-semibold text-gray-800 dark:text-gray-100 truncate">
+                      {order.firstName} {order.lastName}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                    {order.email}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                  <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                    {order.items.length}{" "}
+                    {order.items.length === 1 ? "Item" : "Items"}
+                  </span>
+                  <button
+                    onClick={() => openOrderDetails(order.id)}
+                    className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 transition"
+                  >
+                    {t("viewDetails")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {filteredOrders.length === 0 && (
+            <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+              {t("noResults")}
+            </p>
+          )}
+        </div>
+
+        {/* ── Desktop: tabla ──────────────────────────────────── */}
+        <div className="hidden md:block overflow-x-auto rounded-lg shadow-lg">
           <table className="w-full border-collapse bg-white dark:bg-gray-900 text-sm">
             <thead>
               <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">
@@ -129,18 +177,15 @@ export default function OrdersPage() {
                 >
                   <td className="px-5 py-3 flex items-center gap-2">
                     {order.isNew ? (
-                      // 🟢 Nuevo pedido (pulsante)
                       <span className="relative flex h-3 w-3 mr-1">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
                       </span>
                     ) : (
-                      // 🔴 Procesado (fijo)
                       <span className="relative flex h-3 w-3 mr-1">
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 opacity-80"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 opacity-80" />
                       </span>
                     )}
-
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-5 py-3 font-medium text-gray-800 dark:text-gray-100">
@@ -179,14 +224,13 @@ export default function OrdersPage() {
           </table>
         </div>
 
-        {/* Modal con altura dinámica */}
+        {/* Modal */}
         {showModal && selectedOrder && (
           <div
             className="fixed inset-0 bg-black/60 flex items-center justify-center z-[999] p-4"
             style={{ marginTop: `${headerHeight}px` }}
           >
             <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-y-auto mx-4 relative">
-              {/* Botón de cerrar - MEJORADO */}
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-4 right-4 z-50 text-gray-500 hover:text-red-600 transition-all duration-200 text-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105"
@@ -197,8 +241,6 @@ export default function OrdersPage() {
               </button>
 
               <div className="p-6 md:p-8 pt-12">
-                {" "}
-                {/* Añadí pt-12 para espacio extra arriba */}
                 <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">
                   {t("orderFrom")} {selectedOrder.firstName}{" "}
                   {selectedOrder.lastName}
@@ -227,7 +269,7 @@ export default function OrdersPage() {
                     )}
                     {selectedOrder.message && (
                       <p className="italic text-gray-600 dark:text-gray-400">
-                        “{selectedOrder.message}”
+                        "{selectedOrder.message}"
                       </p>
                     )}
                     {/* Botón + textarea de respuesta */}
@@ -334,7 +376,6 @@ export default function OrdersPage() {
                     </ul>
                   </div>
                 </div>
-                {/* Botón para marcar como procesado */}
                 {/* Estado de procesamiento */}
                 <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-4 text-right">
                   {selectedOrder.isNew ? (
@@ -356,10 +397,8 @@ export default function OrdersPage() {
 
                           alert("✅ Pedido marcado como procesado");
 
-                          // Cerrar el modal
                           setShowModal(false);
 
-                          // Refrescar lista
                           const updatedRes = await fetch("/api/orders");
                           const updatedData = await updatedRes.json();
                           setOrders(updatedData.orders || []);

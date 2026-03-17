@@ -114,8 +114,8 @@ export default function DashboardLayout({
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden min-w-0 bg-gray-50">
-        {/* Menú móvil */}
+      {/* Menú móvil → solo si NO es admin */}
+      {role !== "admin" && (
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="md:hidden bg-blue-500 text-white p-3 text-center w-full"
@@ -123,7 +123,9 @@ export default function DashboardLayout({
         >
           {menuOpen ? t("closeMenu") : t("openMenu")}
         </button>
+      )}
 
+      <div className="flex flex-1 overflow-hidden min-w-0 bg-gray-50">
         {/* Sidebar → solo si NO es admin */}
         {role !== "admin" && (
           <aside
