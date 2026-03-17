@@ -14,6 +14,7 @@ import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
 import { useRouter, useSearchParams } from "next/navigation";
 import SideBanner50 from "../Banners/Side50Banner/Side50Banner";
+import PartyBanner from "../Banners/PartyBanner/PartyBanner";
 
 import NoArticlesAvailable from "../../components/NoArticlesAvailable/NoArticlesAvailable";
 import IlaLoader from "../IlaLoader/IlaLoader";
@@ -683,6 +684,7 @@ export default function LatestEditionWithArticles() {
                   <AktuellesPreview />
                   <Events />
                   <SideBanner50 />
+                  <PartyBanner />
                 </div>
               </div>
             </div>
@@ -860,6 +862,7 @@ export default function LatestEditionWithArticles() {
                 <AktuellesPreview />
                 <Events />
                 <SideBanner50 />
+                <PartyBanner />
               </div>
             </div>
           </div>
