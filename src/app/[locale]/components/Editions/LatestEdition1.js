@@ -861,8 +861,10 @@ export default function LatestEditionWithArticles() {
               <div className="block lg:hidden w-full mt-6 space-y-4">
                 <AktuellesPreview />
                 <Events />
-                <SideBanner50 />
-                <PartyBanner />
+                <div className="flex flex-col">
+                  <SideBanner50 />
+                  <PartyBanner />
+                </div>
               </div>
             </div>
           </div>

@@ -89,9 +89,18 @@ export default function Banner50Compact() {
   return (
     <div
       ref={bannerRef}
-      className="bg-[#89B881] text-white p-3 md:p-5 shadow-xl flex flex-col items-center text-center gap-5 border-t-4 border-green-700 -mx-4 sm:mx-0"
+      className="relative overflow-hidden text-white p-3 md:p-5 shadow-xl flex flex-col items-center text-center gap-5 -mx-4 sm:mx-0"
+      style={{
+        background: "radial-gradient(ellipse at top left, #9dc994 0%, #89B881 45%, #5a8a54 100%)",
+      }}
     >
-      <div className="flex items-center w-full justify-center gap-2">
+      {/* Círculos decorativos de fondo */}
+      <div className="absolute -top-8 -left-8 w-36 h-36 rounded-full bg-white/5" />
+      <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
+      <div className="absolute top-1/2 -right-6 w-20 h-20 rounded-full bg-black/10" />
+      <div className="absolute -top-4 right-1/3 w-12 h-12 rounded-full bg-white/5" />
+
+      <div className="relative z-10 flex items-center w-full justify-center gap-2">
         <div className="text-center flex-1 min-w-0">
           <h3 className="text-3xl md:text-4xl font-black tracking-tight leading-none text-white break-words">
             {t.title}
@@ -99,13 +108,13 @@ export default function Banner50Compact() {
         </div>
       </div>
 
-      <div className="w-full text-center">
+      <div className="relative z-10 w-full text-center">
         <p className="text-lg md:text-xl leading-tight md:leading-snug font-medium text-white/95">
           {t.fullText}
         </p>
       </div>
 
-      <div className="w-full mt-0">
+      <div className="relative z-10 w-full mt-0">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <Link
             href="/order/abo"
