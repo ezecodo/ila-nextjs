@@ -42,7 +42,7 @@ export default function EventPage() {
     return <p className="text-center mt-10 text-red-500">❌ {error}</p>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6 overflow-x-hidden">
       <Link href="/events" className="text-blue-500 mb-4 inline-block">
         ← {t("backToEvents")}
       </Link>
@@ -75,7 +75,7 @@ export default function EventPage() {
         )}
       </p>
       <div
-        className="mt-2 text-gray-800 prose prose-lg max-w-none"
+        className="mt-2 text-gray-800 prose prose-lg max-w-none break-words overflow-x-hidden"
         dangerouslySetInnerHTML={{
           __html:
             locale === "es"
