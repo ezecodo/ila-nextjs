@@ -86,73 +86,78 @@ export async function POST(req) {
       return chunks;
     }
 
+    // Extrae <a>...</a> y los reemplaza con placeholders atómicos que DeepL no toca
+    function extractLinks(html) {
+      const links = [];
+      const processed = html.replace(/<a[\s\S]*?<\/a>/gi, (match) => {
+        const idx = links.length;
+        links.push(match);
+        return `<x id="lnk${idx}"/>`;
+      });
+      return { processed, links };
+    }
+
+    function restoreLinks(html, links) {
+      if (!links.length) return html;
+      return html.replace(/<x id="lnk(\d+)"\s*\/?>/gi, (_, i) => links[parseInt(i)] || "");
+    }
+
+    async function callDeepl(text, isHtml) {
+      const params = {
+        text,
+        target_lang: "ES",
+        source_lang: "DE",
+      };
+      if (isHtml) {
+        params.tag_handling = "html";
+        params.ignore_tags = "img,x";
+      }
+      const res = await fetch(`${DEEPL_API_BASE}/translate`, {
+        method: "POST",
+        headers: {
+          Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams(params),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`DeepL error: ${errText}`);
+      }
+      const data = await res.json();
+      return data.translations?.[0]?.text || "";
+    }
+
     async function translateText(text, isHtml = false) {
       if (!text) return "";
 
-      const chunks = splitIntoChunks(text, 50000);
-
-      if (chunks.length === 1) {
-        // Texto corto, traducir directamente
-        const params = {
-          text,
-          target_lang: "ES",
-          source_lang: "DE",
-        };
-        if (isHtml) {
-          params.tag_handling = "html";
-          params.ignore_tags = "img";
-        }
-        const res = await fetch(`${DEEPL_API_BASE}/translate`, {
-          method: "POST",
-          headers: {
-            Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams(params),
-        });
-
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`DeepL error: ${errText}`);
-        }
-        const data = await res.json();
-        return data.translations?.[0]?.text || "";
+      // Para HTML: proteger links antes de enviar a DeepL
+      let links = [];
+      let textToTranslate = text;
+      if (isHtml) {
+        const extracted = extractLinks(text);
+        textToTranslate = extracted.processed;
+        links = extracted.links;
       }
 
-      // Texto largo, traducir por chunks
-      console.log(
-        `📏 Texto largo: ${text.length} chars. Dividiendo en ${chunks.length} chunks...`,
-      );
+      const chunks = splitIntoChunks(textToTranslate, 50000);
 
+      if (chunks.length === 1) {
+        const translated = await callDeepl(textToTranslate, isHtml);
+        return restoreLinks(translated, links);
+      }
+
+      // Texto largo: traducir por chunks y restaurar links al final
+      console.log(`📏 Texto largo: ${textToTranslate.length} chars. Dividiendo en ${chunks.length} chunks...`);
       const translatedChunks = [];
       for (let i = 0; i < chunks.length; i++) {
         console.log(`🔄 Traduciendo chunk ${i + 1}/${chunks.length}...`);
-
-        const res = await fetch(`${DEEPL_API_BASE}/translate`, {
-          method: "POST",
-          headers: {
-            Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            text: chunks[i],
-            target_lang: "ES",
-            source_lang: "DE",
-            ...(isHtml ? { tag_handling: "html", ignore_tags: "img" } : {}),
-          }),
-        });
-
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`DeepL error en chunk ${i + 1}: ${errText}`);
-        }
-
-        const data = await res.json();
-        translatedChunks.push(data.translations?.[0]?.text || "");
+        const translated = await callDeepl(chunks[i], isHtml);
+        translatedChunks.push(translated);
       }
 
       console.log(`✅ Traducción completada`);
-      return translatedChunks.join("\n");
+      return restoreLinks(translatedChunks.join("\n"), links);
     }
 
     const translations = {
