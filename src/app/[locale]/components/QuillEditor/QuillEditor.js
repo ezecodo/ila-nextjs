@@ -34,7 +34,7 @@ const icons = Quill.import("ui/icons");
 icons["poem"] = "📜"; // 👈 puede ser emoji o un SVG
 icons["dossier"] = "📕"; //
 
-const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
+const QuillEditor = ({ value = "", onChange, resetTrigger, onQuillReady }) => {
   const t = useTranslations("quilleditor");
 
   const editorRef = useRef(null);
@@ -171,6 +171,9 @@ const QuillEditor = ({ value = "", onChange, resetTrigger }) => {
         // Para otros elementos, solo tomar el texto
         return new Delta().insert(node.innerText || node.textContent || "");
       });
+
+      // Exponer instancia al padre
+      if (onQuillReady) onQuillReady(quillRef.current);
 
       // 👇 ENVIAR HTML
       quillRef.current.on("text-change", () => {

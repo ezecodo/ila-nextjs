@@ -317,6 +317,21 @@ export async function POST(request) {
       console.error("❌ Error procesando la galería:", galErr);
     }
 
+    // 🖼️ Registrar imágenes inline (subidas desde el editor de contenido)
+    try {
+      const inlineRaw = formData.get("inlineImageUrls");
+      if (inlineRaw) {
+        const inlineUrls = JSON.parse(inlineRaw);
+        for (const url of inlineUrls) {
+          await prisma.image.create({
+            data: { contentType: "ARTICLE_INLINE", contentId: article.id, url },
+          });
+        }
+      }
+    } catch (inlineErr) {
+      console.error("❌ Error registrando imágenes inline:", inlineErr);
+    }
+
     // **4️⃣ Retornar el artículo con sus imágenes**
     const images = await prisma.image.findMany({
       where: { contentType: "ARTICLE", contentId: article.id },

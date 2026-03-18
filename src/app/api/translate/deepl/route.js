@@ -86,24 +86,29 @@ export async function POST(req) {
       return chunks;
     }
 
-    async function translateText(text) {
+    async function translateText(text, isHtml = false) {
       if (!text) return "";
 
       const chunks = splitIntoChunks(text, 50000);
 
       if (chunks.length === 1) {
         // Texto corto, traducir directamente
+        const params = {
+          text,
+          target_lang: "ES",
+          source_lang: "DE",
+        };
+        if (isHtml) {
+          params.tag_handling = "html";
+          params.ignore_tags = "img";
+        }
         const res = await fetch(`${DEEPL_API_BASE}/translate`, {
           method: "POST",
           headers: {
             Authorization: `DeepL-Auth-Key ${DEEPL_API_KEY}`,
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: new URLSearchParams({
-            text,
-            target_lang: "ES",
-            source_lang: "DE",
-          }),
+          body: new URLSearchParams(params),
         });
 
         if (!res.ok) {
@@ -133,6 +138,7 @@ export async function POST(req) {
             text: chunks[i],
             target_lang: "ES",
             source_lang: "DE",
+            ...(isHtml ? { tag_handling: "html", ignore_tags: "img" } : {}),
           }),
         });
 
@@ -151,10 +157,10 @@ export async function POST(req) {
 
     const translations = {
       titleES: await translateText(article.title),
-      subtitleES: await translateText(article.subtitle),
-      previewTextES: await translateText(article.previewText),
-      contentES: await translateText(article.content),
-      additionalInfoES: await translateText(article.additionalInfo),
+      subtitleES: await translateText(article.subtitle, true),
+      previewTextES: await translateText(article.previewText, true),
+      contentES: await translateText(article.content, true),
+      additionalInfoES: await translateText(article.additionalInfo, true),
     };
     // 🖼️ Traducir imágenes
     const imageTranslations = {};

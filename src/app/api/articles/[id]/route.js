@@ -89,10 +89,37 @@ export async function GET(req, context) {
       },
     });
 
+    // Obtener imágenes inline y enriquecer con alt/title del HTML del contenido
+    const inlineImagesRaw = await prisma.image.findMany({
+      where: {
+        contentType: "ARTICLE_INLINE",
+        contentId: contentIdToUse,
+      },
+    });
+
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const inlineImages = inlineImagesRaw.map((img) => {
+      const escaped = escapeRegex(img.url);
+      const tagMatch = (article.content || "").match(
+        new RegExp(`<img[^>]*src="${escaped}"[^>]*>`)
+      );
+      let alt = img.alt || "";
+      let title = img.title || "";
+      let style = "";
+      if (tagMatch) {
+        const tag = tagMatch[0];
+        if (!alt) { const m = tag.match(/alt="([^"]*)"/); alt = m?.[1] || ""; }
+        if (!title) { const m = tag.match(/title="([^"]*)"/); title = m?.[1] || ""; }
+        const sm = tag.match(/style="([^"]*)"/); style = sm?.[1] || "";
+      }
+      return { ...img, alt, title, style };
+    });
+
     return new Response(
       JSON.stringify({
         ...article,
         images,
+        inlineImages,
         interviewees: article.interviewees || [],
       }),
       {
@@ -244,6 +271,48 @@ export async function PUT(req, context) {
               titleES: translations.titleES || null,
               altES: translations.altES || null,
             },
+          });
+        }
+
+        // Patch contentES: apply translated alt/title to inline image <img> tags
+        if (dataToUpdate.contentES) {
+          const articleMeta = await prisma.article.findUnique({
+            where: { id: parseInt(id, 10) },
+            select: { beitragsId: true },
+          });
+          const cid = articleMeta?.beitragsId || parseInt(id, 10);
+          const inlineImgs = await prisma.image.findMany({
+            where: { contentType: "ARTICLE_INLINE", contentId: cid },
+          });
+
+          let patchedES = dataToUpdate.contentES;
+          for (const img of inlineImgs) {
+            const trans = body.imageTranslations[String(img.id)];
+            if (!trans || (!trans.altES && !trans.titleES)) continue;
+            const escaped = img.url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            patchedES = patchedES.replace(
+              new RegExp(`<img([^>]*src="${escaped}"[^>]*)>`, "g"),
+              (_, attrs) => {
+                let a = attrs;
+                if (trans.altES) {
+                  a = a.includes('alt="')
+                    ? a.replace(/alt="[^"]*"/, `alt="${trans.altES}"`)
+                    : a + ` alt="${trans.altES}"`;
+                }
+                if (trans.titleES) {
+                  a = a.includes('title="')
+                    ? a.replace(/title="[^"]*"/, `title="${trans.titleES}"`)
+                    : a + ` title="${trans.titleES}"`;
+                }
+                return `<img${a}>`;
+              }
+            );
+          }
+          dataToUpdate.contentES = patchedES;
+          // Re-apply the patched contentES to the article
+          await prisma.article.update({
+            where: { id: parseInt(id, 10) },
+            data: { contentES: patchedES },
           });
         }
       }
@@ -482,6 +551,97 @@ export async function PUT(req, context) {
             },
           });
         }
+      }
+
+      // 🖼️ Registrar imágenes inline nuevas
+      try {
+        const inlineRaw = formData.get("inlineImageUrls");
+        if (inlineRaw) {
+          const inlineUrls = JSON.parse(inlineRaw);
+          for (const url of inlineUrls) {
+            // Evitar duplicados si ya existe ese URL para este artículo
+            const exists = await prisma.image.findFirst({
+              where: { contentType: "ARTICLE_INLINE", contentId: contentIdToUse, url },
+            });
+            if (!exists) {
+              await prisma.image.create({
+                data: { contentType: "ARTICLE_INLINE", contentId: contentIdToUse, url },
+              });
+            }
+          }
+        }
+      } catch (inlineErr) {
+        console.error("❌ Error registrando imágenes inline:", inlineErr);
+      }
+
+      // 🗑️ Reconciliar imágenes inline: borrar las que ya no están en el contenido
+      try {
+        const savedInlineImages = await prisma.image.findMany({
+          where: { contentType: "ARTICLE_INLINE", contentId: contentIdToUse },
+        });
+
+        if (savedInlineImages.length > 0) {
+          // New URLs uploaded during this save session
+          let newInlineUrls = [];
+          try {
+            const inlineRaw = formData.get("inlineImageUrls");
+            if (inlineRaw) newInlineUrls = JSON.parse(inlineRaw);
+          } catch (_) {}
+
+          // Extraer URLs presentes en el HTML del content actual
+          const activeUrls = new Set();
+          const imgMatches = (content || "").matchAll(/<img[^>]+src="([^"]+)"/g);
+          for (const match of imgMatches) activeUrls.add(match[1]);
+
+          const orphanedImages = savedInlineImages.filter((img) => !activeUrls.has(img.url));
+
+          if (orphanedImages.length > 0) {
+            // Patch contentES: replace old URL with new one, or remove the <img> entirely
+            const articleForES = await prisma.article.findUnique({
+              where: { id: parseInt(id, 10) },
+              select: { contentES: true },
+            });
+            let contentES = articleForES?.contentES || "";
+
+            orphanedImages.forEach((orphan, i) => {
+              if (!contentES.includes(orphan.url)) return;
+              const newUrl = newInlineUrls[i] || null;
+              if (newUrl) {
+                // Replace the src in-place so the image still appears in the Spanish version
+                contentES = contentES.replaceAll(`src="${orphan.url}"`, `src="${newUrl}"`);
+              } else {
+                // No replacement: remove the whole <p><img></p> block
+                const escaped = orphan.url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                contentES = contentES.replace(
+                  new RegExp(`<p>\\s*<img[^>]+src="${escaped}"[^>]*>\\s*<\\/p>`, "g"),
+                  ""
+                );
+              }
+            });
+
+            if (contentES !== (articleForES?.contentES || "")) {
+              await prisma.article.update({
+                where: { id: parseInt(id, 10) },
+                data: { contentES },
+              });
+            }
+
+            // Las que ya no aparecen en el contenido → borrar de BD y Cloudinary
+            for (const img of orphanedImages) {
+              const match = img.url.match(/\/ila\/articles\/([^.]+)/);
+              if (match) {
+                try {
+                  await cloudinary.v2.uploader.destroy(`ila/articles/${match[1]}`);
+                } catch (cdnErr) {
+                  console.error("⚠️ Error borrando de Cloudinary:", cdnErr);
+                }
+              }
+              await prisma.image.delete({ where: { id: img.id } });
+            }
+          }
+        }
+      } catch (reconcileErr) {
+        console.error("❌ Error en reconciliación de imágenes inline:", reconcileErr);
       }
 
       // 🧩 Construir el objeto de actualización sin tocar publicationDate por defecto

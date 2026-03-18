@@ -18,9 +18,11 @@ import dynamic from "next/dynamic";
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 const QuillEditor = dynamic(
   () => import("../../../components/QuillEditor/QuillEditor"),
-  {
-    ssr: false,
-  }
+  { ssr: false }
+);
+const InlineImageInserter = dynamic(
+  () => import("../../../components/QuillEditor/InlineImageInserter"),
+  { ssr: false }
 );
 
 export default function NewArticlePage() {
@@ -74,7 +76,10 @@ export default function NewArticlePage() {
   // Galería de imágenes adicionales (opcional)
   const [gallery, setGallery] = useState([]); // cada item: { file, title, alt, isCover, order }
 
-  const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
+  const fileInputRef = useRef(null);
+  const contentQuillRef = useRef(null);
+  const [contentQuillReady, setContentQuillReady] = useState(false);
+  const [inlineImageUrls, setInlineImageUrls] = useState([]);
 
   // Maneja los Temas del articulo
   const flattenTopics = (topics, parentName = "") => {
@@ -603,6 +608,9 @@ export default function NewArticlePage() {
 
     // Agregar categorías seleccionadas
     formData.append("categories", JSON.stringify(selectedCategories));
+    if (inlineImageUrls.length > 0) {
+      formData.append("inlineImageUrls", JSON.stringify(inlineImageUrls));
+    }
 
     try {
       const res = await fetch("/api/articles", {
@@ -660,7 +668,8 @@ export default function NewArticlePage() {
     setMediaTitle("");
     setBookImage(null);
 
-    setGallery([]); // 🔽 limpia la galería de imágenes
+    setGallery([]);
+    setInlineImageUrls([]);
   };
 
   const handleAddAuthor = async () => {
@@ -776,6 +785,9 @@ export default function NewArticlePage() {
           placeholder={t("subtitlePlaceholder")}
         />
 
+        {/* 🔽 Galería de imágenes principales */}
+        <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+
         <ToggleSwitch
           id="enablePreviewText"
           label={t("previewToggle")} //Agregar Texto de vista previa
@@ -866,9 +878,6 @@ export default function NewArticlePage() {
             key={locale} // 👈 (opcional) re-monta al cambiar idioma
           />
         </div>
-        {/* 🔽 Galería de imágenes adicionales */}
-        <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
-
         <div className={styles.formGroup}>
           <label htmlFor="topic-select" className={styles.formLabel}>
             {t("topicLabel")}
@@ -887,8 +896,15 @@ export default function NewArticlePage() {
           />
         </div>
         <QuillEditor
-          onChange={(value) => setContent(value)} // Actualiza el contenido
+          onChange={(value) => setContent(value)}
           resetTrigger={resetTrigger}
+          onQuillReady={(q) => { contentQuillRef.current = q; setContentQuillReady(true); }}
+        />
+        <InlineImageInserter
+          quillInstanceRef={contentQuillRef}
+          quillReady={contentQuillReady}
+          onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
+          onContentChange={(html) => setContent(html)}
         />
 
         <ToggleSwitch

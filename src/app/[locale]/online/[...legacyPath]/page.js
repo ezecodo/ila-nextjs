@@ -151,6 +151,17 @@ export default function LegacyArticlePage() {
       }
     );
   }
+  function wrapInlineImagesWithCaption(html) {
+    if (!html) return "";
+    // Quill wraps images in <p> tags → <p><img ...></p>
+    return html.replace(/<p>\s*(<img[^>]+>)\s*<\/p>/gi, (match, imgTag) => {
+      const altMatch = imgTag.match(/alt="([^"]*)"/);
+      const titleMatch = imgTag.match(/title="([^"]*)"/);
+      const caption = (titleMatch?.[1] || "").trim() || (altMatch?.[1] || "").trim();
+      if (!caption) return match;
+      return `<figure class="inline-image-figure">${imgTag}<figcaption>${caption}</figcaption></figure>`;
+    });
+  }
   function rewriteEditionLinksWithLocale(html, locale) {
     if (!html) return "";
 
@@ -514,17 +525,19 @@ export default function LegacyArticlePage() {
             className="article-content text-gray-700 dark:text-gray-200 mt-6"
             itemProp="articleBody"
             dangerouslySetInnerHTML={{
-              __html: rewriteEditionLinksWithLocale(
-                autoDetectHeadings(
-                  autoFormatHeadings(
-                    normalizeContentForRender(
-                      isES && article.contentES
-                        ? article.contentES
-                        : article.content
+              __html: wrapInlineImagesWithCaption(
+                rewriteEditionLinksWithLocale(
+                  autoDetectHeadings(
+                    autoFormatHeadings(
+                      normalizeContentForRender(
+                        isES && article.contentES
+                          ? article.contentES
+                          : article.content
+                      )
                     )
-                  )
+                  ),
+                  locale
                 ),
-                locale
               ),
             }}
           />

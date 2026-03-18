@@ -471,6 +471,33 @@ body {
   word-break: break-all; /* URLs sin espacios -> que sí se corten */
 }
 
+/* Inline images with captions */
+.article-content figure.inline-image-figure {
+  margin: 1.5rem auto;
+  text-align: center;
+  max-width: 100%;
+}
+
+.article-content figure.inline-image-figure img {
+  max-width: 100%;
+  height: auto !important;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+
+.article-content figure.inline-image-figure figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  color: #6b7280;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.dark .article-content figure.inline-image-figure figcaption {
+  color: #9ca3af;
+}
+
 .poem {
   font-family: inherit;
   line-height: 1.6;

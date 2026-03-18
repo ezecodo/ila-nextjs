@@ -21,9 +21,11 @@ const norm = (s) => (s ?? "").trim().toLowerCase();
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 const QuillEditor = dynamic(
   () => import("../../../../components/QuillEditor/QuillEditor"),
-  {
-    ssr: false,
-  }
+  { ssr: false }
+);
+const InlineImageInserter = dynamic(
+  () => import("../../../../components/QuillEditor/InlineImageInserter"),
+  { ssr: false }
 );
 
 export default function EditArticlePage() {
@@ -78,7 +80,10 @@ export default function EditArticlePage() {
 
   const [gallery, setGallery] = useState([]);
 
-  const fileInputRef = useRef(null); // Crea una referencia para el input de archivo
+  const fileInputRef = useRef(null);
+  const contentQuillRef = useRef(null);
+  const [contentQuillReady, setContentQuillReady] = useState(false);
+  const [inlineImageUrls, setInlineImageUrls] = useState([]);
 
   // Maneja los Temas del articulo
   const flattenTopics = (topics, parentName = "") => {
@@ -591,6 +596,9 @@ export default function EditArticlePage() {
 
     // Agregar categorías seleccionadas
     formData.append("categories", JSON.stringify(selectedCategories));
+    if (inlineImageUrls.length > 0) {
+      formData.append("inlineImageUrls", JSON.stringify(inlineImageUrls));
+    }
     // 📸 Añadir imágenes de la galería
     gallery.forEach((img, idx) => {
       if (img.file) {
@@ -750,6 +758,9 @@ export default function EditArticlePage() {
           placeholder={t("subtitlePlaceholder")}
         />
 
+        {/* 🔽 Galería de imágenes principales */}
+        <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+
         <ToggleSwitch
           id="enablePreviewText"
           label={t("previewToggle")} //Agregar Texto de vista previa
@@ -857,8 +868,18 @@ export default function EditArticlePage() {
             key={locale}
           />
         </div>
-        <QuillEditor value={content} onChange={(value) => setContent(value)} />
-        <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+        <QuillEditor
+          value={content}
+          onChange={(value) => setContent(value)}
+          onQuillReady={(q) => { contentQuillRef.current = q; setContentQuillReady(true); }}
+        />
+        <InlineImageInserter
+          quillInstanceRef={contentQuillRef}
+          quillReady={contentQuillReady}
+          onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
+          onContentChange={(html) => setContent(html)}
+          articleId={id}
+        />
         <ToggleSwitch
           id="additionalInfoToggle"
           label={t("additionalInfoToggle")} // Información adicional toogle
