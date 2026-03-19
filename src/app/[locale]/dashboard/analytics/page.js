@@ -14,8 +14,7 @@ import dynamic from "next/dynamic";
 const WorldMap = dynamic(() => import("./WorldMap"), { ssr: false });
 import TopArticles from "./TopArticles";
 
-function StatCard({ icon, label, value, sub, diff }) {
-  const positive = diff > 0;
+function StatCard({ icon, label, value, yesterday }) {
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start gap-3">
       <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-[#BD0E0D] flex-shrink-0">
@@ -24,12 +23,11 @@ function StatCard({ icon, label, value, sub, diff }) {
       <div className="flex-1 min-w-0">
         <p className="text-xs text-gray-500 font-medium">{label}</p>
         <p className="text-2xl font-bold text-gray-900">{value ?? "—"}</p>
-        {diff != null && diff !== 0 && (
-          <p className={`text-xs font-semibold ${positive ? "text-green-600" : "text-red-500"}`}>
-            {positive ? "▲" : "▼"} {Math.abs(diff)} vs ayer
+        {yesterday != null && (
+          <p className="text-xs text-gray-400">
+            Ayer: <span className="font-semibold text-gray-600">{yesterday}</span>
           </p>
         )}
-        {sub && <p className="text-xs text-gray-400">{sub}</p>}
       </div>
     </div>
   );
@@ -133,25 +131,25 @@ export default function AnalyticsPage() {
               icon={<FaUsers size={16} />}
               label="Visitantes únicos hoy"
               value={fmt(t.nb_uniq_visitors)}
-              diff={(t.nb_uniq_visitors ?? 0) - (y.nb_uniq_visitors ?? 0)}
+              yesterday={fmt(y.nb_uniq_visitors)}
             />
             <StatCard
               icon={<FaEye size={16} />}
               label="Visitas hoy"
               value={fmt(t.nb_visits)}
-              diff={(t.nb_visits ?? 0) - (y.nb_visits ?? 0)}
+              yesterday={fmt(y.nb_visits)}
             />
             <StatCard
               icon={<FaEye size={16} />}
               label="Páginas vistas hoy"
               value={fmt(t.nb_actions)}
-              diff={(t.nb_actions ?? 0) - (y.nb_actions ?? 0)}
+              yesterday={fmt(y.nb_actions)}
             />
             <StatCard
               icon={<FaClock size={16} />}
               label="Tiempo promedio"
               value={fmtTime(t.avg_time_on_site)}
-              sub={`Ayer: ${fmtTime(y.avg_time_on_site)}`}
+              yesterday={fmtTime(y.avg_time_on_site)}
             />
           </div>
 
