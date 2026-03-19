@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
 import SectionHeader from "../SectionsHeader/SetionHeader";
@@ -59,6 +59,18 @@ export default function AktuellesList() {
   const [items, setItems] = useState<Aktuelles[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [headerHeight, setHeaderHeight] = useState(56);
+  const [lightbox, setLightbox] = useState<{ url: string; alt: string; title: string | null } | null>(null);
+
+  useEffect(() => {
+    const header = document.querySelector("header");
+    if (!header) return;
+    const update = () => setHeaderHeight(header.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     fetch("/api/aktuelles")
@@ -155,25 +167,31 @@ export default function AktuellesList() {
   const yearGroups = groupByYear(items);
 
   return (
-    <div className="max-w-4xl mx-auto pt-2 pb-16 px-4">
-      <SectionHeader
-        title={locale === "es" ? "Actualidad" : "Aktuelles"}
-        className="mb-8"
-      />
+    <>
+      <div
+        className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 z-40"
+        style={{ position: "sticky", top: headerHeight - 1 }}
+      >
+        <SectionHeader
+          title={locale === "es" ? "Actualidad" : "Aktuelles"}
+          className="mb-0"
+        />
+      </div>
+    <div className="max-w-6xl mx-auto pt-4 pb-16 px-1 sm:px-6">
 
       {/* ── GRUPOS POR AÑO + TIMELINE ────────────────────────────────── */}
       {yearGroups.map(([year, yearItems]) => (
         <div key={year} className="mb-14">
           {/* Separador de año */}
           <div className="flex items-center gap-4 mb-8">
-            <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {year}
             </span>
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
           </div>
 
           {/* Timeline */}
-          <div className="relative border-l-2 border-red-200 dark:border-red-900/50 pl-8 space-y-8">
+          <div className="relative border-l-2 border-red-200 dark:border-red-900/50 pl-3 sm:pl-8 space-y-8">
             {yearItems.map((item) => {
               const isExpanded = expandedIds.has(item.id);
               const content = getContent(item);
@@ -189,7 +207,7 @@ export default function AktuellesList() {
                   className="relative"
                 >
                   {/* Dot en la línea */}
-                  <div className="absolute -left-[2.65rem] top-1.5 w-3.5 h-3.5 rounded-full bg-red-600 border-2 border-white dark:border-gray-900 shadow-sm" />
+                  <div className="absolute -left-[19px] sm:-left-[2.5rem] top-1.5 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-red-600 border-2 border-white dark:border-gray-900 shadow-sm" />
 
                   {/* Fecha */}
                   <div id={`aktuelles-date-${item.id}`} className="mb-2">
@@ -206,14 +224,20 @@ export default function AktuellesList() {
                         <div className={`w-full bg-stone-100 dark:bg-stone-900 px-4 pt-4 ${images.length > 1 ? "grid grid-cols-2 gap-3" : "flex flex-col"}`}>
                           {images.map((img) => (
                             <div key={img.id} className="flex flex-col">
+                              <button
+                                type="button"
+                                onClick={() => setLightbox({ url: img.url, alt: img.alt || getTitle(item), title: img.title })}
+                                className="cursor-zoom-in focus:outline-none"
+                              >
                               <Image
                                 src={img.url}
                                 alt={img.alt || getTitle(item)}
                                 width={images.length > 1 ? 350 : 700}
                                 height={300}
-                                className="w-full h-auto max-h-[280px] object-contain rounded-md"
+                                className="w-full h-auto max-h-[280px] object-contain rounded-md hover:opacity-90 transition-opacity"
                                 sizes={images.length > 1 ? "(max-width: 768px) 50vw, 350px" : "(max-width: 768px) 100vw, 700px"}
                               />
+                              </button>
                               {(img.alt || img.title) && (
                                 <div className="mt-1 mb-2 text-center space-y-0.5">
                                   {img.alt && (
@@ -233,10 +257,10 @@ export default function AktuellesList() {
                         </div>
                       )}
 
-                      <div className="p-6 flex-1 min-w-0">
+                      <div className="p-3 sm:p-6 flex-1 min-w-0">
                         {/* Título + link externo */}
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <h3 className="font-serif text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                          <h3 className="font-serif text-2xl font-bold text-gray-900 dark:text-gray-100 leading-snug">
                             {getTitle(item)}
                           </h3>
                           {item.link && (
@@ -260,7 +284,7 @@ export default function AktuellesList() {
 
                         {/* Contenido */}
                         <div
-                          className="prose prose-sm max-w-none prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-white prose-a:text-red-600 prose-a:no-underline hover:prose-a:underline"
+                          className="prose prose-base max-w-none prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-strong:text-gray-900 dark:prose-strong:text-white prose-a:text-red-600 prose-a:no-underline hover:prose-a:underline"
                           dangerouslySetInnerHTML={{
                             __html: isExpanded || !hasMore ? content : plain.slice(0, 300) + "...",
                           }}
@@ -286,5 +310,45 @@ export default function AktuellesList() {
         </div>
       ))}
     </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <div
+            className="relative max-w-4xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightbox(null)}
+              className="absolute -top-10 right-0 text-white/80 hover:text-white text-3xl leading-none"
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <Image
+              src={lightbox.url}
+              alt={lightbox.alt}
+              width={1200}
+              height={800}
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+              sizes="(max-width: 768px) 100vw, 1200px"
+            />
+            {(lightbox.alt || lightbox.title) && (
+              <div className="mt-3 text-center space-y-0.5">
+                {lightbox.alt && (
+                  <p className="text-white/80 text-sm italic">{lightbox.alt}</p>
+                )}
+                {lightbox.title && (
+                  <p className="text-white/60 text-sm">© {lightbox.title}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

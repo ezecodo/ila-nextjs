@@ -309,7 +309,7 @@ export default function Header() {
           style={{ top: "3.5rem" }}
         >
           {/* ── Navegación ── */}
-          <nav className="flex-1 overflow-y-auto">
+          <nav className="overflow-y-auto">
             {navSections.map((section) => {
               const isOpen = activeMobileSection === section.labelKey;
 
@@ -322,7 +322,7 @@ export default function Header() {
                       setMenuOpen(false);
                       setActiveMobileSection(null);
                     }}
-                    className="flex items-center px-6 py-4 text-white font-bold text-base tracking-wide border-b border-white/10 hover:bg-white/8 active:bg-white/15 transition-colors"
+                    className="flex items-center px-6 py-3 text-white font-bold text-base tracking-wide border-b border-white/10 hover:bg-white/8 active:bg-white/15 transition-colors"
                   >
                     {tNav(section.labelKey)}
                   </Link>
@@ -335,7 +335,7 @@ export default function Header() {
                     onClick={() =>
                       setActiveMobileSection(isOpen ? null : section.labelKey)
                     }
-                    className="w-full flex items-center justify-between px-6 py-4 text-white font-bold text-base tracking-wide border-b border-white/10 hover:bg-white/8 active:bg-white/15 transition-colors"
+                    className="w-full flex items-center justify-between px-6 py-3 text-white font-bold text-base tracking-wide border-b border-white/10 hover:bg-white/8 active:bg-white/15 transition-colors"
                   >
                     <span>{tNav(section.labelKey)}</span>
                     <span
@@ -394,7 +394,7 @@ export default function Header() {
           </nav>
 
           {/* ── Buscador ── */}
-          <div className="flex-shrink-0 px-5 py-3 border-t border-white/15">
+          <div className="flex-shrink-0 px-5 py-4 border-t border-white/15">
             <SearchBar
               onSearch={() => {
                 setMenuOpen(false);
@@ -403,48 +403,51 @@ export default function Header() {
             />
           </div>
 
+          {/* Spacer */}
+          <div className="flex-1" />
+
           {/* ── Barra inferior ── */}
-          <div className="flex-shrink-0 border-t border-white/15 px-5 py-3 flex items-center justify-between">
+          <div className="flex-shrink-0 border-t border-white/20 px-5 py-4 flex items-center justify-between">
             {/* Social */}
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <a
                 href="https://www.facebook.com/ila.web"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
+                className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
                 aria-label="Facebook"
               >
-                <FaFacebook size={14} />
+                <FaFacebook size={17} />
               </a>
               <a
                 href="https://www.instagram.com/ila_bonn/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
+                className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
                 aria-label="Instagram"
               >
-                <FaInstagram size={14} />
+                <FaInstagram size={17} />
               </a>
             </div>
 
             {/* Controles */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() =>
                   handleLocaleSwitch(locale === "es" ? "de" : "es")
                 }
-                className="text-white/70 text-[11px] font-black futura hover:text-white transition-colors px-2 py-1 rounded hover:bg-white/10"
+                className="text-white font-black futura text-sm px-3 py-2 rounded-full bg-white/15 hover:bg-white/25 transition-colors"
               >
                 {locale === "es" ? "DE" : "ES"}
               </button>
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
               >
                 {darkMode ? (
-                  <FaSun size={13} className="text-yellow-300" />
+                  <FaSun size={16} className="text-yellow-300" />
                 ) : (
-                  <FaMoon size={12} />
+                  <FaMoon size={15} />
                 )}
               </button>
               {session ? (
@@ -453,8 +456,8 @@ export default function Header() {
                     href={dashboardRoute}
                     onClick={() => setMenuOpen(false)}
                   >
-                    <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors">
-                      <FaTachometerAlt size={12} />
+                    <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors">
+                      <FaTachometerAlt size={15} />
                     </div>
                   </Link>
                   <button
@@ -462,9 +465,9 @@ export default function Header() {
                       handleSignOut();
                       setMenuOpen(false);
                     }}
-                    className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
+                    className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
                   >
-                    <FaSignOutAlt size={12} />
+                    <FaSignOutAlt size={15} />
                   </button>
                 </>
               ) : (
@@ -473,9 +476,10 @@ export default function Header() {
                     signIn();
                     setMenuOpen(false);
                   }}
-                  className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-[#BD0E0D] font-bold text-sm hover:bg-white/90 transition-colors"
                 >
-                  <FaUser size={12} />
+                  <FaUser size={13} />
+                  {locale === "es" ? "Iniciar sesión" : "Anmelden"}
                 </button>
               )}
             </div>

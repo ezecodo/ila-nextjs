@@ -6,12 +6,24 @@ import Link from "next/link";
 import Image from "next/image";
 import IlaLoader from "../components/IlaLoader/IlaLoader";
 import IlaLogo from "../components/IlaLogo/IlaLogo";
+import SectionHeader from "../components/SectionsHeader/SetionHeader";
 
 export default function ArchivePage() {
   const locale = useLocale();
   const isES = locale === "es";
 
   const [editionsByYear, setEditionsByYear] = useState({});
+  const [headerHeight, setHeaderHeight] = useState(56);
+
+  useEffect(() => {
+    const header = document.querySelector("header");
+    if (!header) return;
+    const update = () => setHeaderHeight(header.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
   const [registrosByYear, setRegistrosByYear] = useState({});
 
   const [loading, setLoading] = useState(true);
@@ -92,17 +104,21 @@ export default function ArchivePage() {
   const years = Array.from(allYearsSet).sort((a, b) => b - a);
 
   return (
-    <div className="min-h-screen bg-white selection:bg-red-200 relative">
+    <>
+      <div
+        className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 z-40"
+        style={{ position: "sticky", top: headerHeight - 1 }}
+      >
+        <SectionHeader
+          title={isES ? "Ediciones / Registro Anual" : "Jahrgänge / Jahresregister"}
+          className="mb-0"
+        />
+      </div>
+
+      <div className="min-h-screen bg-white selection:bg-red-200 relative">
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:20px_20px]" />
 
-      <main className="relative z-10 max-w-6xl mx-auto pl-4 md:pl-12 pr-6 pt-2 md:pt-4 pb-8 md:pb-16">
-        <header className="flex items-center gap-3 mb-0 pb-4 pl-4 md:border-l-4 border-[#BD0E0D] relative ml-8 md:ml-28">
-          <IlaLogo size="mini" variant="black-solid" isLink={false} />
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            {isES ? "Ediciones / Registro Anual" : "Jahrgänge / Jahresregister"}
-          </h1>
-        </header>
-
+      <main className="relative z-10 max-w-6xl mx-auto pl-4 md:pl-12 pr-6 pt-4 pb-8 md:pb-16">
         <div className="relative ml-8 md:ml-16 pt-0">
           <div className="hidden md:block absolute left-[48px] top-0 bottom-0 w-1 bg-[#BD0E0D]" />
 
@@ -354,5 +370,6 @@ export default function ArchivePage() {
         </div>
       </main>
     </div>
+    </>
   );
 }
