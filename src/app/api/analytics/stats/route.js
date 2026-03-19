@@ -34,7 +34,10 @@ export async function GET(req) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const cacheKey = "analytics";
+    const { searchParams } = new URL(req.url);
+    const mapPeriod = searchParams.get("mapPeriod") || "week";
+
+    const cacheKey = `analytics-${mapPeriod}`;
     const cached = cache.get(cacheKey);
     if (cached && Date.now() - cached.ts < CACHE_TTL) {
       return NextResponse.json(cached.data);
@@ -48,6 +51,7 @@ export async function GET(req) {
       todayByHour,
       yesterdayByHour,
       topPages,
+      allPagesFlat,
       devices,
       countries,
     ] = await Promise.all([
@@ -57,8 +61,10 @@ export async function GET(req) {
       matomoPost("VisitTime.getVisitInformationPerLocalTime", { period: "day", date: "today" }),
       matomoPost("VisitTime.getVisitInformationPerLocalTime", { period: "day", date: "yesterday" }),
       matomoPost("Actions.getPageUrls", { period: "week", date: "today", filter_limit: "10" }),
+      matomoPost("Actions.getPageUrls", { period: "week", date: "today", filter_limit: "100", flat: "1" }),
       matomoPost("DevicesDetection.getType", { period: "week", date: "today" }),
-      matomoPost("UserCountry.getCountry", { period: "week", date: "today", filter_limit: "8" }),
+
+      matomoPost("UserCountry.getCountry", { period: mapPeriod, date: "today", filter_limit: "100" }),
     ]);
 
     // Construir serie horaria (0-23h) — raw es array con label "00"-"23"
@@ -87,6 +93,15 @@ export async function GET(req) {
       }));
     };
 
+    // Filtrar artículos de la lista plana de páginas
+    const articleKeywords = ["/ausgaben/", "/online/", "/es/ausgaben/", "/es/online/"];
+    const topArticles = Array.isArray(allPagesFlat)
+      ? allPagesFlat
+          .filter((p) => articleKeywords.some((kw) => (p.label || "").includes(kw)))
+          .sort((a, b) => (b.nb_visits || 0) - (a.nb_visits || 0))
+          .slice(0, 15)
+      : [];
+
     const data = {
       today,
       yesterday,
@@ -94,6 +109,7 @@ export async function GET(req) {
       yesterdayHourly: buildHourly(yesterdayByHour),
       weekly: buildWeekly(last7days),
       topPages: Array.isArray(topPages) ? topPages : [],
+      topArticles,
       devices: Array.isArray(devices) ? devices : [],
       countries: Array.isArray(countries) ? countries : [],
     };

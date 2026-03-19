@@ -10,6 +10,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { FaUsers, FaEye, FaClock, FaMobileAlt, FaDesktop, FaTabletAlt, FaGlobe, FaSync } from "react-icons/fa";
+import dynamic from "next/dynamic";
+const WorldMap = dynamic(() => import("./WorldMap"), { ssr: false });
+import TopArticles from "./TopArticles";
 
 function StatCard({ icon, label, value, sub, diff }) {
   const positive = diff > 0;
@@ -205,6 +208,12 @@ export default function AnalyticsPage() {
               )}
             </ResponsiveContainer>
           </div>
+
+          {/* Artículos más visitados */}
+          <TopArticles />
+
+          {/* Mapa mundial */}
+          <WorldMap countries={data.countries} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Top páginas */}
