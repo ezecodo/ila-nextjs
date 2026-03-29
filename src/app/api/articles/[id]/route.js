@@ -644,6 +644,60 @@ export async function PUT(req, context) {
         console.error("❌ Error en reconciliación de imágenes inline:", reconcileErr);
       }
 
+      // 📄 Manejo de PDF
+      let pdfUrlUpdate = undefined; // undefined = no tocar el campo
+      const pdfFile = formData.get("pdfFile");
+      const removePdf = formData.get("removePdf") === "true";
+      if (removePdf) {
+        // Obtener la URL actual para borrar de Cloudinary
+        const articleForPdf = await prisma.article.findUnique({
+          where: { id: parseInt(id, 10) },
+          select: { pdfUrl: true },
+        });
+        if (articleForPdf?.pdfUrl) {
+          const match = articleForPdf.pdfUrl.match(/\/ila\/articles\/pdfs\/([^?]+)/);
+          if (match) {
+            try {
+              await cloudinary.v2.uploader.destroy(`ila/articles/pdfs/${match[1]}`, {
+                resource_type: "raw",
+              });
+            } catch (cdnErr) {
+              console.error("⚠️ Error borrando PDF de Cloudinary:", cdnErr);
+            }
+          }
+        }
+        pdfUrlUpdate = null;
+      } else if (pdfFile && pdfFile.name) {
+        // Borrar el PDF anterior de Cloudinary si existe
+        const articleForPdf = await prisma.article.findUnique({
+          where: { id: parseInt(id, 10) },
+          select: { pdfUrl: true },
+        });
+        if (articleForPdf?.pdfUrl) {
+          const match = articleForPdf.pdfUrl.match(/\/ila\/articles\/pdfs\/([^?]+)/);
+          if (match) {
+            try {
+              await cloudinary.v2.uploader.destroy(`ila/articles/pdfs/${match[1]}`, {
+                resource_type: "raw",
+              });
+            } catch (cdnErr) {
+              console.error("⚠️ Error borrando PDF anterior de Cloudinary:", cdnErr);
+            }
+          }
+        }
+        const buffer = Buffer.from(await pdfFile.arrayBuffer());
+        const pdfUpload = await cloudinary.v2.uploader.upload(
+          `data:${pdfFile.type};base64,${buffer.toString("base64")}`,
+          {
+            folder: "ila/articles/pdfs",
+            public_id: `article_${id}_pdf_${Date.now()}.pdf`,
+            resource_type: "raw",
+            overwrite: false,
+          }
+        );
+        pdfUrlUpdate = pdfUpload.secure_url;
+      }
+
       // 🧩 Construir el objeto de actualización sin tocar publicationDate por defecto
       const dataToUpdate = {
         title,
@@ -651,6 +705,7 @@ export async function PUT(req, context) {
         previewText: previewText || null,
         content,
         additionalInfo: additionalInfo || null,
+        ...(pdfUrlUpdate !== undefined && { pdfUrl: pdfUrlUpdate }),
         authors: {
           set: authors.map((id) => ({ id: parseInt(id, 10) })),
         },

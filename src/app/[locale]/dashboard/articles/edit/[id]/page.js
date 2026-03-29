@@ -80,6 +80,11 @@ export default function EditArticlePage() {
 
   const [gallery, setGallery] = useState([]);
 
+  // PDF adjunto
+  const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [removePdf, setRemovePdf] = useState(false);
+
   const fileInputRef = useRef(null);
   const contentQuillRef = useRef(null);
   const [contentQuillReady, setContentQuillReady] = useState(false);
@@ -328,6 +333,7 @@ export default function EditArticlePage() {
           article.topics?.map((t) => ({ value: t.id, label: t.name })) || []
         );
         setMediaTitle(article.mediaTitle || "");
+        setCurrentPdfUrl(article.pdfUrl || null);
 
         if (article.interviewees && article.interviewees.length > 0) {
           setIsInterview(true);
@@ -510,6 +516,10 @@ export default function EditArticlePage() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
+
+    // PDF adjunto
+    if (pdfFile) formData.append("pdfFile", pdfFile);
+    if (removePdf) formData.append("removePdf", "true");
 
     // Manejo de Autores
     formData.append(
@@ -1054,6 +1064,55 @@ export default function EditArticlePage() {
             />
           </div>
         )}
+        {/* PDF ADJUNTO */}
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>{t("pdfLabel")}</label>
+          <p className="text-sm text-gray-500 mb-2">{t("pdfHint")}</p>
+          {currentPdfUrl && !removePdf && (
+            <div className="flex items-center gap-3 mb-2 p-2 bg-gray-50 rounded border">
+              <span className="text-sm text-gray-700">{t("pdfCurrent")}:</span>
+              <a
+                href={currentPdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 underline"
+              >
+                {t("pdfView")}
+              </a>
+              <button
+                type="button"
+                onClick={() => setRemovePdf(true)}
+                className="text-sm text-red-600 underline ml-auto"
+              >
+                {t("pdfRemove")}
+              </button>
+            </div>
+          )}
+          {removePdf && (
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm text-red-600">PDF marcado para eliminar.</span>
+              <button
+                type="button"
+                onClick={() => setRemovePdf(false)}
+                className="text-sm text-blue-600 underline"
+              >
+                Deshacer
+              </button>
+            </div>
+          )}
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => {
+              setPdfFile(e.target.files?.[0] || null);
+              setRemovePdf(false);
+            }}
+          />
+          {pdfFile && (
+            <p className="text-sm text-green-700 mt-1">✓ {pdfFile.name}</p>
+          )}
+        </div>
+
         <SubmitButton label="Actualizar artículo" />
       </form>
       {isModalOpen && (

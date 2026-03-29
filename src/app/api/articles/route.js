@@ -182,14 +182,32 @@ export async function POST(request) {
     }
     // --------------------------------------
 
-    // **1️⃣ Crear el artículo primero**
+    // **1️⃣ Subir PDF si viene adjunto**
+    let pdfUrl = null;
+    const pdfFile = formData.get("pdfFile");
+    if (pdfFile && pdfFile.name) {
+      const buffer = Buffer.from(await pdfFile.arrayBuffer());
+      const pdfUpload = await cloudinary.v2.uploader.upload(
+        `data:${pdfFile.type};base64,${buffer.toString("base64")}`,
+        {
+          folder: "ila/articles/pdfs",
+          public_id: `article_pdf_${Date.now()}.pdf`,
+          resource_type: "raw",
+          overwrite: false,
+        }
+      );
+      pdfUrl = pdfUpload.secure_url;
+    }
+
+    // **2️⃣ Crear el artículo**
     const article = await prisma.article.create({
       data: {
         title,
         subtitle,
         content,
-        previewText: previewText || null, // 👈 NUEVO
+        previewText: previewText || null,
         additionalInfo: additionalInfo || null,
+        pdfUrl,
         legacyPath: finalLegacyPath, // 👈 guardamos la URL SEO
         beitragstypId: parseInt(beitragstypId, 10),
         beitragssubtypId: formData.get("beitragssubtypId")

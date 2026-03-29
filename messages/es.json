@@ -115,7 +115,9 @@
     "loadingArticles": "Error al cargar los Artículos",
     "loadingArticlesError": "Error al cargar los artículos",
     "by": "",
-    "loading": "Cargando artículo..."
+    "loading": "Cargando artículo...",
+    "pdfDownload": "Descargar PDF",
+    "pdfBannerText": "Descargar este artículo en PDF"
   },
   "dossiers": {
     "editionListTitle": "Liste der Dossiers",
@@ -700,7 +702,12 @@
         "emailLabel": "Email de la Autor/a (opcional)",
         "emailPlaceholder": "Ingrese el email de la autor/a",
         "addButton": "Agregar Autor/a"
-      }
+      },
+      "pdfLabel": "PDF adjunto (opcional)",
+      "pdfHint": "Archivo PDF como material de apoyo del artículo",
+      "pdfRemove": "Eliminar PDF",
+      "pdfCurrent": "PDF actual",
+      "pdfView": "Ver"
     },
     "modals": {
       "addAuthorTitle": "Agregar Nuevo Autor",

@@ -76,6 +76,9 @@ export default function NewArticlePage() {
   // Galería de imágenes adicionales (opcional)
   const [gallery, setGallery] = useState([]); // cada item: { file, title, alt, isCover, order }
 
+  // PDF adjunto (opcional)
+  const [pdfFile, setPdfFile] = useState(null);
+
   const fileInputRef = useRef(null);
   const contentQuillRef = useRef(null);
   const [contentQuillReady, setContentQuillReady] = useState(false);
@@ -515,6 +518,7 @@ export default function NewArticlePage() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
+    if (pdfFile) formData.append("pdfFile", pdfFile);
     // 🔽 Agregar todas las imágenes de la galería
     gallery.forEach((img, idx) => {
       if (img.file) formData.append(`gallery[${idx}][file]`, img.file);
@@ -670,6 +674,7 @@ export default function NewArticlePage() {
 
     setGallery([]);
     setInlineImageUrls([]);
+    setPdfFile(null);
   };
 
   const handleAddAuthor = async () => {
@@ -1089,6 +1094,20 @@ export default function NewArticlePage() {
             />
           </div>
         )}
+        {/* PDF ADJUNTO */}
+        <div className={styles.formGroup}>
+          <label className={styles.formLabel}>{t("pdfLabel")}</label>
+          <p className="text-sm text-gray-500 mb-2">{t("pdfHint")}</p>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+          />
+          {pdfFile && (
+            <p className="text-sm text-green-700 mt-1">✓ {pdfFile.name}</p>
+          )}
+        </div>
+
         <SubmitButton label={t("submitButton")} />
       </form>
       {isModalOpen && (

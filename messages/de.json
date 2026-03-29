@@ -115,7 +115,9 @@
     "loadingArticles": "Fehler beim Laden der Artikel",
     "loadingArticlesError": "Fehler beim Laden der Artikel",
     "by": "von",
-    "loading": "Artikel wird geladen..."
+    "loading": "Artikel wird geladen...",
+    "pdfDownload": "PDF herunterladen",
+    "pdfBannerText": "Diesen Artikel als PDF herunterladen"
   },
   "dossiers": {
     "editionListTitle": "Dossier-Liste",
@@ -701,7 +703,12 @@
         "emailLabel": "E-Mail der Autor*in (optional)",
         "emailPlaceholder": "E-Mail der Autor*in eingeben",
         "addButton": "Autor*in hinzufügen"
-      }
+      },
+      "pdfLabel": "PDF-Anhang (optional)",
+      "pdfHint": "PDF-Datei als Begleitmaterial zum Artikel",
+      "pdfRemove": "PDF entfernen",
+      "pdfCurrent": "Aktuelles PDF",
+      "pdfView": "Ansehen"
     },
     "modals": {
       "addAuthorTitle": "Neue/r Autor/in hinzufügen",

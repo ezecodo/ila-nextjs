@@ -411,6 +411,21 @@ export default function LegacyArticlePage() {
             </div>
           )}
 
+          {/* 📄 PDF ADJUNTO */}
+          {article.pdfUrl && (
+            <a
+              href={article.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mb-5 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 16l-5-5 1.41-1.41L11 13.17V4h2v9.17l2.59-2.58L17 11l-5 5zm-7 3h14v2H5v-2z"/>
+              </svg>
+              {t("pdfDownload")}
+            </a>
+          )}
+
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:gap-6 text-sm text-gray-700 dark:text-gray-300">
             {/* EDICIÓN */}
             {article.edition && article.edition.id && (
