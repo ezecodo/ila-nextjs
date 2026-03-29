@@ -168,6 +168,17 @@ export default function MiPaginaDashboard() {
 - Las imágenes se almacenan en Cloudinary, no en `/public`
 - `/public` solo contiene assets estáticos (logos, fuentes, SVGs)
 
+## PDFs adjuntos en artículos
+
+- El modelo `Article` tiene el campo `pdfUrl String? @db.Text` para almacenar un PDF opcional de soporte
+- Los PDFs se suben a Cloudinary con `resource_type: "raw"`, carpeta `ila/articles/pdfs/`
+- **Importante**: el `public_id` debe incluir la extensión `.pdf` (ej: `article_pdf_TIMESTAMP.pdf`) para que la URL resultante tenga extensión y el browser pueda abrirlo correctamente
+- Al eliminar o reemplazar un PDF, siempre borrar el archivo anterior de Cloudinary con `uploader.destroy(public_id, { resource_type: "raw" })`
+- El `public_id` para el destroy se extrae de la URL con el patrón: `/\/ila\/articles\/pdfs\/([^?]+)/`
+- En la página pública (`[locale]/ausgaben/[...legacyPath]/page.js`) se muestra un botón de descarga rojo cuando `article.pdfUrl` existe
+- Keys de traducción en `newArticle.form`: `pdfLabel`, `pdfHint`, `pdfRemove`, `pdfCurrent`, `pdfView`
+- Keys de traducción en `article`: `pdfDownload`
+
 ## Comandos útiles
 
 ```bash
