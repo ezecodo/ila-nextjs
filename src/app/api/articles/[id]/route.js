@@ -115,11 +115,17 @@ export async function GET(req, context) {
       return { ...img, alt, title, style };
     });
 
+    const pdfs = await prisma.articlePdf.findMany({
+      where: { articleId: article.id },
+      orderBy: { createdAt: "asc" },
+    });
+
     return new Response(
       JSON.stringify({
         ...article,
         images,
         inlineImages,
+        pdfs,
         interviewees: article.interviewees || [],
       }),
       {
@@ -644,60 +650,6 @@ export async function PUT(req, context) {
         console.error("❌ Error en reconciliación de imágenes inline:", reconcileErr);
       }
 
-      // 📄 Manejo de PDF
-      let pdfUrlUpdate = undefined; // undefined = no tocar el campo
-      const pdfFile = formData.get("pdfFile");
-      const removePdf = formData.get("removePdf") === "true";
-      if (removePdf) {
-        // Obtener la URL actual para borrar de Cloudinary
-        const articleForPdf = await prisma.article.findUnique({
-          where: { id: parseInt(id, 10) },
-          select: { pdfUrl: true },
-        });
-        if (articleForPdf?.pdfUrl) {
-          const match = articleForPdf.pdfUrl.match(/\/ila\/articles\/pdfs\/([^?]+)/);
-          if (match) {
-            try {
-              await cloudinary.v2.uploader.destroy(`ila/articles/pdfs/${match[1]}`, {
-                resource_type: "raw",
-              });
-            } catch (cdnErr) {
-              console.error("⚠️ Error borrando PDF de Cloudinary:", cdnErr);
-            }
-          }
-        }
-        pdfUrlUpdate = null;
-      } else if (pdfFile && pdfFile.name) {
-        // Borrar el PDF anterior de Cloudinary si existe
-        const articleForPdf = await prisma.article.findUnique({
-          where: { id: parseInt(id, 10) },
-          select: { pdfUrl: true },
-        });
-        if (articleForPdf?.pdfUrl) {
-          const match = articleForPdf.pdfUrl.match(/\/ila\/articles\/pdfs\/([^?]+)/);
-          if (match) {
-            try {
-              await cloudinary.v2.uploader.destroy(`ila/articles/pdfs/${match[1]}`, {
-                resource_type: "raw",
-              });
-            } catch (cdnErr) {
-              console.error("⚠️ Error borrando PDF anterior de Cloudinary:", cdnErr);
-            }
-          }
-        }
-        const buffer = Buffer.from(await pdfFile.arrayBuffer());
-        const pdfUpload = await cloudinary.v2.uploader.upload(
-          `data:${pdfFile.type};base64,${buffer.toString("base64")}`,
-          {
-            folder: "ila/articles/pdfs",
-            public_id: `article_${id}_pdf_${Date.now()}.pdf`,
-            resource_type: "raw",
-            overwrite: false,
-          }
-        );
-        pdfUrlUpdate = pdfUpload.secure_url;
-      }
-
       // 🧩 Construir el objeto de actualización sin tocar publicationDate por defecto
       const dataToUpdate = {
         title,
@@ -705,7 +657,6 @@ export async function PUT(req, context) {
         previewText: previewText || null,
         content,
         additionalInfo: additionalInfo || null,
-        ...(pdfUrlUpdate !== undefined && { pdfUrl: pdfUrlUpdate }),
         authors: {
           set: authors.map((id) => ({ id: parseInt(id, 10) })),
         },
@@ -772,14 +723,69 @@ export async function PUT(req, context) {
           },
         });
       }
+      // 📄 Procesar PDFs: eliminar los marcados y subir los nuevos
+      const removePdfIds = (() => {
+        try {
+          return JSON.parse(formData.get("removePdfIds") || "[]");
+        } catch { return []; }
+      })();
+      if (removePdfIds.length > 0) {
+        const pdfsToDelete = await prisma.articlePdf.findMany({
+          where: { id: { in: removePdfIds.map((x) => parseInt(x, 10)) }, articleId: parseInt(id, 10) },
+        });
+        for (const pdf of pdfsToDelete) {
+          const match = pdf.url.match(/\/ila\/articles\/pdfs\/([^?]+)/);
+          if (match) {
+            try {
+              await cloudinary.v2.uploader.destroy(`ila/articles/pdfs/${match[1]}`, { resource_type: "raw" });
+            } catch (cdnErr) {
+              console.error("⚠️ Error borrando PDF de Cloudinary:", cdnErr);
+            }
+          }
+        }
+        await prisma.articlePdf.deleteMany({
+          where: { id: { in: removePdfIds.map((x) => parseInt(x, 10)) }, articleId: parseInt(id, 10) },
+        });
+      }
+
+      // Subir nuevos PDFs
+      const pdfIndices = new Set();
+      for (const key of formData.keys()) {
+        const m = key.match(/^pdfs\[(\d+)\]\[(file|title)\]$/);
+        if (m) pdfIndices.add(parseInt(m[1], 10));
+      }
+      for (const idx of Array.from(pdfIndices).sort((a, b) => a - b)) {
+        const file = formData.get(`pdfs[${idx}][file]`);
+        const title = formData.get(`pdfs[${idx}][title]`) || "";
+        if (!file || !file.name) continue;
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const pdfUpload = await cloudinary.v2.uploader.upload(
+          `data:${file.type};base64,${buffer.toString("base64")}`,
+          {
+            folder: "ila/articles/pdfs",
+            public_id: `article_${id}_pdf_${Date.now()}_${idx}.pdf`,
+            resource_type: "raw",
+            overwrite: false,
+          }
+        );
+        await prisma.articlePdf.create({
+          data: { articleId: parseInt(id, 10), url: pdfUpload.secure_url, title },
+        });
+      }
+
       const images = await prisma.image.findMany({
         where: { contentType: "ARTICLE", contentId: contentIdToUse },
+      });
+      const pdfs = await prisma.articlePdf.findMany({
+        where: { articleId: parseInt(id, 10) },
+        orderBy: { createdAt: "asc" },
       });
 
       return Response.json(
         {
           ...updatedArticle,
           images,
+          pdfs,
         },
         { status: 200 }
       );

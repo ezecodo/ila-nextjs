@@ -411,19 +411,29 @@ export default function LegacyArticlePage() {
             </div>
           )}
 
-          {/* 📄 PDF ADJUNTO */}
-          {article.pdfUrl && (
-            <a
-              href={article.pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 mb-5 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 16l-5-5 1.41-1.41L11 13.17V4h2v9.17l2.59-2.58L17 11l-5 5zm-7 3h14v2H5v-2z"/>
-              </svg>
-              {t("pdfDownload")}
-            </a>
+          {/* 📄 PDFs ADJUNTOS */}
+          {article.pdfs?.length > 0 && (
+            <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-xs uppercase tracking-wide text-gray-500 font-medium mb-3">
+                {t("pdfSectionTitle")}
+              </p>
+              <div className="flex flex-col gap-2">
+                {article.pdfs.map((pdf) => (
+                  <a
+                    key={pdf.id}
+                    href={pdf.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white text-sm font-medium rounded-lg transition-colors shadow-sm self-start"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 16l-5-5 1.41-1.41L11 13.17V4h2v9.17l2.59-2.58L17 11l-5 5zm-7 3h14v2H5v-2z"/>
+                    </svg>
+                    {pdf.title} — {t("pdfDownload")}
+                  </a>
+                ))}
+              </div>
+            </div>
           )}
 
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:gap-6 text-sm text-gray-700 dark:text-gray-300">

@@ -76,8 +76,8 @@ export default function NewArticlePage() {
   // Galería de imágenes adicionales (opcional)
   const [gallery, setGallery] = useState([]); // cada item: { file, title, alt, isCover, order }
 
-  // PDF adjunto (opcional)
-  const [pdfFile, setPdfFile] = useState(null);
+  // PDFs adjuntos (múltiples): cada item { file, title }
+  const [pdfs, setPdfs] = useState([]);
 
   const fileInputRef = useRef(null);
   const contentQuillRef = useRef(null);
@@ -518,7 +518,10 @@ export default function NewArticlePage() {
     formData.append("title", title);
     formData.append("subtitle", subtitle);
     formData.append("content", content);
-    if (pdfFile) formData.append("pdfFile", pdfFile);
+    pdfs.forEach((pdf, idx) => {
+      if (pdf.file) formData.append(`pdfs[${idx}][file]`, pdf.file);
+      formData.append(`pdfs[${idx}][title]`, pdf.title || "");
+    });
     // 🔽 Agregar todas las imágenes de la galería
     gallery.forEach((img, idx) => {
       if (img.file) formData.append(`gallery[${idx}][file]`, img.file);
@@ -674,7 +677,7 @@ export default function NewArticlePage() {
 
     setGallery([]);
     setInlineImageUrls([]);
-    setPdfFile(null);
+    setPdfs([]);
   };
 
   const handleAddAuthor = async () => {
@@ -1094,18 +1097,50 @@ export default function NewArticlePage() {
             />
           </div>
         )}
-        {/* PDF ADJUNTO */}
+        {/* PDFs ADJUNTOS */}
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{t("pdfLabel")}</label>
-          <p className="text-sm text-gray-500 mb-2">{t("pdfHint")}</p>
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
-          />
-          {pdfFile && (
-            <p className="text-sm text-green-700 mt-1">✓ {pdfFile.name}</p>
-          )}
+          <label className={styles.formLabel}>{t("pdfSectionTitle")}</label>
+          {pdfs.map((pdf, idx) => (
+            <div key={idx} className="flex flex-col gap-1 mb-3 p-3 border rounded bg-gray-50">
+              <input
+                type="text"
+                placeholder={t("pdfTitlePlaceholder")}
+                value={pdf.title}
+                onChange={(e) => {
+                  const updated = [...pdfs];
+                  updated[idx] = { ...updated[idx], title: e.target.value };
+                  setPdfs(updated);
+                }}
+                className={styles.formInput}
+              />
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => {
+                  const updated = [...pdfs];
+                  updated[idx] = { ...updated[idx], file: e.target.files?.[0] || null };
+                  setPdfs(updated);
+                }}
+              />
+              {pdf.file && (
+                <p className="text-sm text-green-700">✓ {pdf.file.name}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => setPdfs(pdfs.filter((_, i) => i !== idx))}
+                className="text-sm text-red-600 underline self-start"
+              >
+                {t("pdfRemove")}
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setPdfs([...pdfs, { file: null, title: "" }])}
+            className={styles.addAuthorButton}
+          >
+            + {t("pdfAddButton")}
+          </button>
         </div>
 
         <SubmitButton label={t("submitButton")} />

@@ -182,24 +182,7 @@ export async function POST(request) {
     }
     // --------------------------------------
 
-    // **1️⃣ Subir PDF si viene adjunto**
-    let pdfUrl = null;
-    const pdfFile = formData.get("pdfFile");
-    if (pdfFile && pdfFile.name) {
-      const buffer = Buffer.from(await pdfFile.arrayBuffer());
-      const pdfUpload = await cloudinary.v2.uploader.upload(
-        `data:${pdfFile.type};base64,${buffer.toString("base64")}`,
-        {
-          folder: "ila/articles/pdfs",
-          public_id: `article_pdf_${Date.now()}.pdf`,
-          resource_type: "raw",
-          overwrite: false,
-        }
-      );
-      pdfUrl = pdfUpload.secure_url;
-    }
-
-    // **2️⃣ Crear el artículo**
+    // **1️⃣ Crear el artículo**
     const article = await prisma.article.create({
       data: {
         title,
@@ -207,7 +190,6 @@ export async function POST(request) {
         content,
         previewText: previewText || null,
         additionalInfo: additionalInfo || null,
-        pdfUrl,
         legacyPath: finalLegacyPath, // 👈 guardamos la URL SEO
         beitragstypId: parseInt(beitragstypId, 10),
         beitragssubtypId: formData.get("beitragssubtypId")
@@ -350,7 +332,36 @@ export async function POST(request) {
       console.error("❌ Error registrando imágenes inline:", inlineErr);
     }
 
-    // **4️⃣ Retornar el artículo con sus imágenes**
+    // **4️⃣ Procesar PDFs adjuntos**
+    try {
+      const pdfIndices = new Set();
+      for (const key of formData.keys()) {
+        const m = key.match(/^pdfs\[(\d+)\]\[(file|title)\]$/);
+        if (m) pdfIndices.add(parseInt(m[1], 10));
+      }
+      for (const idx of Array.from(pdfIndices).sort((a, b) => a - b)) {
+        const file = formData.get(`pdfs[${idx}][file]`);
+        const title = formData.get(`pdfs[${idx}][title]`) || "";
+        if (!file || !file.name) continue;
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const pdfUpload = await cloudinary.v2.uploader.upload(
+          `data:${file.type};base64,${buffer.toString("base64")}`,
+          {
+            folder: "ila/articles/pdfs",
+            public_id: `article_${article.id}_pdf_${Date.now()}_${idx}.pdf`,
+            resource_type: "raw",
+            overwrite: false,
+          }
+        );
+        await prisma.articlePdf.create({
+          data: { articleId: article.id, url: pdfUpload.secure_url, title },
+        });
+      }
+    } catch (pdfErr) {
+      console.error("❌ Error procesando PDFs:", pdfErr);
+    }
+
+    // **5️⃣ Retornar el artículo con sus imágenes**
     const images = await prisma.image.findMany({
       where: { contentType: "ARTICLE", contentId: article.id },
     });

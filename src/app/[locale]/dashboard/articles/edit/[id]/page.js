@@ -80,10 +80,10 @@ export default function EditArticlePage() {
 
   const [gallery, setGallery] = useState([]);
 
-  // PDF adjunto
-  const [currentPdfUrl, setCurrentPdfUrl] = useState(null);
-  const [pdfFile, setPdfFile] = useState(null);
-  const [removePdf, setRemovePdf] = useState(false);
+  // PDFs adjuntos: los existentes en BD y los nuevos a subir
+  const [existingPdfs, setExistingPdfs] = useState([]); // { id, url, title }
+  const [removePdfIds, setRemovePdfIds] = useState([]); // ids a borrar
+  const [newPdfs, setNewPdfs] = useState([]); // { file, title }
 
   const fileInputRef = useRef(null);
   const contentQuillRef = useRef(null);
@@ -333,7 +333,7 @@ export default function EditArticlePage() {
           article.topics?.map((t) => ({ value: t.id, label: t.name })) || []
         );
         setMediaTitle(article.mediaTitle || "");
-        setCurrentPdfUrl(article.pdfUrl || null);
+        setExistingPdfs(article.pdfs || []);
 
         if (article.interviewees && article.interviewees.length > 0) {
           setIsInterview(true);
@@ -517,9 +517,14 @@ export default function EditArticlePage() {
     formData.append("subtitle", subtitle);
     formData.append("content", content);
 
-    // PDF adjunto
-    if (pdfFile) formData.append("pdfFile", pdfFile);
-    if (removePdf) formData.append("removePdf", "true");
+    // PDFs: ids a eliminar + nuevos a subir
+    if (removePdfIds.length > 0) {
+      formData.append("removePdfIds", JSON.stringify(removePdfIds));
+    }
+    newPdfs.forEach((pdf, idx) => {
+      if (pdf.file) formData.append(`pdfs[${idx}][file]`, pdf.file);
+      formData.append(`pdfs[${idx}][title]`, pdf.title || "");
+    });
 
     // Manejo de Autores
     formData.append(
@@ -1064,53 +1069,89 @@ export default function EditArticlePage() {
             />
           </div>
         )}
-        {/* PDF ADJUNTO */}
+        {/* PDFs ADJUNTOS */}
         <div className={styles.formGroup}>
-          <label className={styles.formLabel}>{t("pdfLabel")}</label>
-          <p className="text-sm text-gray-500 mb-2">{t("pdfHint")}</p>
-          {currentPdfUrl && !removePdf && (
-            <div className="flex items-center gap-3 mb-2 p-2 bg-gray-50 rounded border">
-              <span className="text-sm text-gray-700">{t("pdfCurrent")}:</span>
+          <label className={styles.formLabel}>{t("pdfSectionTitle")}</label>
+
+          {/* PDFs existentes en BD */}
+          {existingPdfs.filter((pdf) => !removePdfIds.includes(pdf.id)).map((pdf) => (
+            <div key={pdf.id} className="flex items-center gap-3 mb-2 p-2 bg-gray-50 rounded border">
+              <span className="text-sm font-medium text-gray-800 flex-1">{pdf.title}</span>
               <a
-                href={currentPdfUrl}
+                href={pdf.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-blue-600 underline"
               >
-                {t("pdfView")}
+                PDF
               </a>
               <button
                 type="button"
-                onClick={() => setRemovePdf(true)}
-                className="text-sm text-red-600 underline ml-auto"
+                onClick={() => setRemovePdfIds([...removePdfIds, pdf.id])}
+                className="text-sm text-red-600 underline"
               >
                 {t("pdfRemove")}
               </button>
             </div>
-          )}
-          {removePdf && (
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm text-red-600">PDF marcado para eliminar.</span>
+          ))}
+
+          {/* PDFs marcados para eliminar (con opción de deshacer) */}
+          {existingPdfs.filter((pdf) => removePdfIds.includes(pdf.id)).map((pdf) => (
+            <div key={pdf.id} className="flex items-center gap-2 mb-2 p-2 bg-red-50 rounded border border-red-200">
+              <span className="text-sm text-red-500 line-through flex-1">{pdf.title}</span>
               <button
                 type="button"
-                onClick={() => setRemovePdf(false)}
+                onClick={() => setRemovePdfIds(removePdfIds.filter((x) => x !== pdf.id))}
                 className="text-sm text-blue-600 underline"
               >
                 Deshacer
               </button>
             </div>
-          )}
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={(e) => {
-              setPdfFile(e.target.files?.[0] || null);
-              setRemovePdf(false);
-            }}
-          />
-          {pdfFile && (
-            <p className="text-sm text-green-700 mt-1">✓ {pdfFile.name}</p>
-          )}
+          ))}
+
+          {/* Nuevos PDFs a agregar */}
+          {newPdfs.map((pdf, idx) => (
+            <div key={idx} className="flex flex-col gap-1 mb-3 p-3 border rounded bg-gray-50">
+              <input
+                type="text"
+                placeholder={t("pdfTitlePlaceholder")}
+                value={pdf.title}
+                onChange={(e) => {
+                  const updated = [...newPdfs];
+                  updated[idx] = { ...updated[idx], title: e.target.value };
+                  setNewPdfs(updated);
+                }}
+                className={styles.formInput}
+              />
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => {
+                  const updated = [...newPdfs];
+                  updated[idx] = { ...updated[idx], file: e.target.files?.[0] || null };
+                  setNewPdfs(updated);
+                }}
+              />
+              {pdf.file && (
+                <p className="text-sm text-green-700">✓ {pdf.file.name}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => setNewPdfs(newPdfs.filter((_, i) => i !== idx))}
+                className="text-sm text-red-600 underline self-start"
+              >
+                {t("pdfRemove")}
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => setNewPdfs([...newPdfs, { file: null, title: "" }])}
+            className={styles.addAuthorButton}
+          >
+            + {t("pdfAddButton")}
+          </button>
         </div>
 
         <SubmitButton label="Actualizar artículo" />

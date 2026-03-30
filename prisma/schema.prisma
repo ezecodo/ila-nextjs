@@ -62,8 +62,8 @@ model Article {
   assignedAt        DateTime?
   translationStatus String            @default("not_assigned")
   reviewedAt        DateTime?
-  pdfUrl            String?           @db.Text
   activityLogs      ActivityLog[]
+  pdfs              ArticlePdf[]
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
   beitragstyp       Beitragstyp       @relation(fields: [beitragstypId], references: [id])
   edition           Edition?          @relation(fields: [editionId], references: [id])
@@ -84,6 +84,17 @@ model Article {
   @@index([editionId], map: "Article_editionId_fkey")
   @@index([reviewerId], map: "Article_reviewerId_fkey")
   @@index([translatorId], map: "Article_translatorId_fkey")
+}
+
+model ArticlePdf {
+  id        Int      @id @default(autoincrement())
+  articleId Int
+  url       String   @db.Text
+  title     String
+  createdAt DateTime @default(now())
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@index([articleId])
 }
 
 model Interviewee {

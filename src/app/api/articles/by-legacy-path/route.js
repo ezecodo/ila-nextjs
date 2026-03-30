@@ -69,10 +69,16 @@ export async function GET(req) {
       },
     });
 
+    const pdfs = await prisma.articlePdf.findMany({
+      where: { articleId: article.id },
+      orderBy: { createdAt: "asc" },
+    });
+
     return new Response(
       JSON.stringify({
         ...article,
         images,
+        pdfs,
         interviewees: article.interviewees || [],
       }),
       {
