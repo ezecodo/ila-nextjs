@@ -1,6 +1,6 @@
-import cloudinary from "cloudinary";
 import slugify from "@/lib/slugify";
 import * as Sentry from "@sentry/nextjs";
+import { uploadFile } from "@/lib/localUpload";
 
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
@@ -11,13 +11,6 @@ export const config = {
     },
   },
 };
-
-// Configurar Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 // ✅ GET: Listar artículos (incluye nuevos filtros)
 export async function GET(request) {
@@ -282,23 +275,15 @@ export async function POST(request) {
         if (!file || !file.name) continue;
 
         try {
-          // Subir a Cloudinary
-          const buffer = Buffer.from(await file.arrayBuffer());
-          const uploadResult = await cloudinary.v2.uploader.upload(
-            `data:${file.type};base64,${buffer.toString("base64")}`,
-            {
-              folder: "ila/articles",
-              public_id: `article_${article.id}_${Date.now()}_${idx}`,
-              overwrite: false,
-            }
-          );
+          // Subir al servidor local
+          const { url } = await uploadFile(file, "images");
 
           // Guardar en BD
           await prisma.image.create({
             data: {
               contentType: "ARTICLE",
               contentId: article.id,
-              url: uploadResult.secure_url,
+              url,
               title,
               alt,
             },
@@ -345,18 +330,9 @@ export async function POST(request) {
         const file = formData.get(`pdfs[${idx}][file]`);
         const title = formData.get(`pdfs[${idx}][title]`) || "";
         if (!file || !file.name) continue;
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const pdfUpload = await cloudinary.v2.uploader.upload(
-          `data:${file.type};base64,${buffer.toString("base64")}`,
-          {
-            folder: "ila/articles/pdfs",
-            public_id: `article_${article.id}_pdf_${Date.now()}_${idx}.pdf`,
-            resource_type: "raw",
-            overwrite: false,
-          }
-        );
+        const { url: pdfUrl } = await uploadFile(file, "pdfs-public");
         await prisma.articlePdf.create({
-          data: { articleId: article.id, url: pdfUpload.secure_url, title },
+          data: { articleId: article.id, url: pdfUrl, title },
         });
       }
     } catch (pdfErr) {

@@ -1,13 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import cloudinary from "cloudinary";
 import { auth } from "../../../auth";
 import * as Sentry from "@sentry/nextjs";
-
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { uploadFile, deleteFile } from "@/lib/localUpload";
 
 export async function GET(req, context) {
   const params = await context.params;
@@ -496,21 +490,13 @@ export async function PUT(req, context) {
 
         if (file && file.name) {
           // caso: imagen nueva → create
-          const buffer = Buffer.from(await file.arrayBuffer());
-          const uploadResult = await cloudinary.v2.uploader.upload(
-            `data:${file.type};base64,${buffer.toString("base64")}`,
-            {
-              folder: "ila/articles",
-              public_id: `article_${id}_${Date.now()}_${idx}`,
-              overwrite: false,
-            }
-          );
+          const { url } = await uploadFile(file, "images");
 
           await prisma.image.create({
             data: {
               contentType: "ARTICLE",
               contentId: contentIdToUse,
-              url: uploadResult.secure_url,
+              url,
               title,
               alt,
             },
@@ -527,17 +513,7 @@ export async function PUT(req, context) {
       const files = formData.getAll("articleImages"); // 👈 clave plural
       for (const file of files) {
         if (file && file.name) {
-          const buffer = Buffer.from(await file.arrayBuffer());
-
-          // Subir a Cloudinary
-          const uploadResult = await cloudinary.v2.uploader.upload(
-            `data:${file.type};base64,${buffer.toString("base64")}`,
-            {
-              folder: "ila/articles",
-              public_id: `article_${id}_${Date.now()}`, // nombre único
-              overwrite: false,
-            }
-          );
+          const { url } = await uploadFile(file, "images");
 
           // Buscar metadatos de esta imagen
           const metaRaw = formData.get(`imageMeta_${file.name}`);
@@ -553,7 +529,7 @@ export async function PUT(req, context) {
             data: {
               contentType: "ARTICLE",
               contentId: contentIdToUse,
-              url: uploadResult.secure_url,
+              url,
               title: meta.title || null,
               alt: meta.alt || null,
             },
@@ -634,16 +610,9 @@ export async function PUT(req, context) {
               });
             }
 
-            // Las que ya no aparecen en el contenido → borrar de BD y Cloudinary
+            // Las que ya no aparecen en el contenido → borrar del disco y BD
             for (const img of orphanedImages) {
-              const match = img.url.match(/\/ila\/articles\/([^.]+)/);
-              if (match) {
-                try {
-                  await cloudinary.v2.uploader.destroy(`ila/articles/${match[1]}`);
-                } catch (cdnErr) {
-                  console.error("⚠️ Error borrando de Cloudinary:", cdnErr);
-                }
-              }
+              await deleteFile(img.url);
               await prisma.image.delete({ where: { id: img.id } });
             }
           }
@@ -736,14 +705,7 @@ export async function PUT(req, context) {
           where: { id: { in: removePdfIds.map((x) => parseInt(x, 10)) }, articleId: parseInt(id, 10) },
         });
         for (const pdf of pdfsToDelete) {
-          const match = pdf.url.match(/\/ila\/articles\/pdfs\/([^?]+)/);
-          if (match) {
-            try {
-              await cloudinary.v2.uploader.destroy(`ila/articles/pdfs/${match[1]}`, { resource_type: "raw" });
-            } catch (cdnErr) {
-              console.error("⚠️ Error borrando PDF de Cloudinary:", cdnErr);
-            }
-          }
+          await deleteFile(pdf.url);
         }
         await prisma.articlePdf.deleteMany({
           where: { id: { in: removePdfIds.map((x) => parseInt(x, 10)) }, articleId: parseInt(id, 10) },
@@ -760,18 +722,9 @@ export async function PUT(req, context) {
         const file = formData.get(`pdfs[${idx}][file]`);
         const title = formData.get(`pdfs[${idx}][title]`) || "";
         if (!file || !file.name) continue;
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const pdfUpload = await cloudinary.v2.uploader.upload(
-          `data:${file.type};base64,${buffer.toString("base64")}`,
-          {
-            folder: "ila/articles/pdfs",
-            public_id: `article_${id}_pdf_${Date.now()}_${idx}.pdf`,
-            resource_type: "raw",
-            overwrite: false,
-          }
-        );
+        const { url: pdfUrl } = await uploadFile(file, "pdfs-public");
         await prisma.articlePdf.create({
-          data: { articleId: parseInt(id, 10), url: pdfUpload.secure_url, title },
+          data: { articleId: parseInt(id, 10), url: pdfUrl, title },
         });
       }
 
@@ -840,16 +793,9 @@ export async function DELETE(req, { params }) {
       },
     });
 
-    // 3️⃣ Eliminar imágenes en Cloudinary (ignorar errores si falla alguna)
+    // 3️⃣ Eliminar imágenes del disco
     for (const image of images) {
-      try {
-        const match = image.url.match(/\/upload\/(?:v\d+\/)?([^\.]+)/);
-        if (match) {
-          await cloudinary.v2.uploader.destroy(match[1]);
-        }
-      } catch (e) {
-        console.warn("⚠️ Error eliminando imagen en Cloudinary:", e);
-      }
+      await deleteFile(image.url);
     }
 
     // 4️⃣ Desvincular relaciones M:N
