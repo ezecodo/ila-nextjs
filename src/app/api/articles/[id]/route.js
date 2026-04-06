@@ -500,7 +500,7 @@ export async function PUT(req, context) {
 
         if (file && file.name) {
           // caso: imagen nueva → create
-          const { url } = await uploadFile(file, getImageSubfolder(editionNumber));
+          const { url } = await uploadFile(file, getImageSubfolder(editionNumber), `article_${id}`);
 
           await prisma.image.create({
             data: {
@@ -523,7 +523,7 @@ export async function PUT(req, context) {
       const files = formData.getAll("articleImages"); // 👈 clave plural
       for (const file of files) {
         if (file && file.name) {
-          const { url } = await uploadFile(file, getImageSubfolder(editionNumber));
+          const { url } = await uploadFile(file, getImageSubfolder(editionNumber), `article_${id}`);
 
           // Buscar metadatos de esta imagen
           const metaRaw = formData.get(`imageMeta_${file.name}`);

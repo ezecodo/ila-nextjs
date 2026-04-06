@@ -285,7 +285,7 @@ export async function POST(request) {
 
         try {
           // Subir al servidor local
-          const { url } = await uploadFile(file, getImageSubfolder(editionNumber));
+          const { url } = await uploadFile(file, getImageSubfolder(editionNumber), `article_${article.id}`);
 
           // Guardar en BD
           await prisma.image.create({
