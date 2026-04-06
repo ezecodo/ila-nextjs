@@ -2,6 +2,13 @@ import slugify from "@/lib/slugify";
 import * as Sentry from "@sentry/nextjs";
 import { uploadFile } from "@/lib/localUpload";
 
+// Devuelve el subfolder de imágenes según si el artículo tiene edición o es online
+function getImageSubfolder(editionNumber) {
+  return editionNumber
+    ? `images/editions/${editionNumber}/articulos`
+    : "images/online";
+}
+
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
 export const config = {
@@ -145,8 +152,9 @@ export async function POST(request) {
     const slug = slugify(title);
 
     let legacyPath;
+    let editionNumber = null;
     if (isPrinted && editionId) {
-      // obtener número de edición para la URL
+      // obtener número de edición para la URL y para la carpeta de imágenes
       const ed = await prisma.edition.findUnique({
         where: { id: parseInt(editionId, 10) },
         select: { number: true },
@@ -157,8 +165,9 @@ export async function POST(request) {
           { status: 400 }
         );
       }
+      editionNumber = ed.number;
       // ✅ SIN "de/" ni "es/"
-      legacyPath = `/ausgaben/${ed.number}/${slug}`;
+      legacyPath = `/ausgaben/${editionNumber}/${slug}`;
     } else {
       // Artículo online (sin edición)
       // ✅ SIN "de/" ni "es/"
@@ -276,7 +285,7 @@ export async function POST(request) {
 
         try {
           // Subir al servidor local
-          const { url } = await uploadFile(file, "images");
+          const { url } = await uploadFile(file, getImageSubfolder(editionNumber));
 
           // Guardar en BD
           await prisma.image.create({
@@ -330,7 +339,7 @@ export async function POST(request) {
         const file = formData.get(`pdfs[${idx}][file]`);
         const title = formData.get(`pdfs[${idx}][title]`) || "";
         if (!file || !file.name) continue;
-        const { url: pdfUrl } = await uploadFile(file, "pdfs-public");
+        const { url: pdfUrl } = await uploadFile(file, editionNumber ? `pdfs-public/editions/${editionNumber}` : "pdfs-public/online");
         await prisma.articlePdf.create({
           data: { articleId: article.id, url: pdfUrl, title },
         });

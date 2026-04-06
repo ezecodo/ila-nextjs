@@ -1,12 +1,6 @@
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
-import cloudinary from "cloudinary";
+import { uploadFile, deleteFile, toSlug } from "@/lib/localUpload";
 import { auth } from "../../../auth";
-
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 export async function GET(req, context) {
   try {
@@ -352,29 +346,15 @@ export async function PUT(req, context) {
       });
 
       if (existing?.coverImage) {
-        try {
-          const urlParts = existing.coverImage.split("/");
-          const fileName = urlParts[urlParts.length - 1];
-          const publicId = `ila/editions/${fileName.split(".")[0]}`;
-          await cloudinary.v2.uploader.destroy(publicId);
-        } catch (err) {
-          console.error("⚠️ Error eliminando portada en Cloudinary:", err);
-        }
+        await deleteFile(existing.coverImage);
       }
 
       coverImageUrl = null;
     } else if (coverImageFile && typeof coverImageFile !== "string") {
       // 🟦 Subir nueva portada
-      const buffer = Buffer.from(await coverImageFile.arrayBuffer());
-      const uploadResult = await cloudinary.v2.uploader.upload(
-        `data:image/jpeg;base64,${buffer.toString("base64")}`,
-        {
-          folder: "ila/editions",
-          public_id: `coverImage-${editionId}-${Date.now()}`,
-          overwrite: true,
-        }
-      );
-      coverImageUrl = uploadResult.secure_url;
+      const prefix = `edition_${editionId}${data.number ? `_${data.number}` : ""}${data.title ? `_${toSlug(data.title)}` : ""}`;
+      const { url } = await uploadFile(coverImageFile, "images", prefix);
+      coverImageUrl = url;
     } else {
       // 🟩 Mantener la portada actual
       const existing = await prisma.edition.findUnique({
@@ -595,21 +575,14 @@ export async function DELETE(req, context) {
       });
     }
 
-    // 🗑️ Opcional: Eliminar imagen de Cloudinary antes de borrar
+    // 🗑️ Eliminar imagen de portada del disco antes de borrar
     const existing = await prisma.edition.findUnique({
       where: { id: editionId },
       select: { coverImage: true },
     });
 
     if (existing?.coverImage) {
-      try {
-        const urlParts = existing.coverImage.split("/");
-        const fileName = urlParts[urlParts.length - 1];
-        const publicId = `ila/editions/${fileName.split(".")[0]}`;
-        await cloudinary.v2.uploader.destroy(publicId);
-      } catch (err) {
-        console.error("⚠️ Error eliminando imagen en Cloudinary:", err);
-      }
+      await deleteFile(existing.coverImage);
     }
 
     await prisma.edition.delete({

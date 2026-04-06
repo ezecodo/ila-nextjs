@@ -3,6 +3,12 @@ import { auth } from "../../../auth";
 import * as Sentry from "@sentry/nextjs";
 import { uploadFile, deleteFile } from "@/lib/localUpload";
 
+function getImageSubfolder(editionNumber) {
+  return editionNumber
+    ? `images/editions/${editionNumber}/articulos`
+    : "images/online";
+}
+
 export async function GET(req, context) {
   const params = await context.params;
   const id = params?.id;
@@ -428,13 +434,17 @@ export async function PUT(req, context) {
           return [];
         }
       })();
-      // 🔍 Obtener el artículo para saber si tiene beitragsId
+      // 🔍 Obtener el artículo para saber si tiene beitragsId y edición
       const article = await prisma.article.findUnique({
         where: { id: parseInt(id, 10) },
-        select: { beitragsId: true },
+        select: {
+          beitragsId: true,
+          edition: { select: { number: true } },
+        },
       });
 
       const contentIdToUse = article?.beitragsId || parseInt(id, 10);
+      const editionNumber = article?.edition?.number || null;
       console.log("🆔 Usando contentId:", contentIdToUse);
       // 🗑️ Eliminar imágenes no incluidas en keepImages
       if (Array.isArray(keepImages)) {
@@ -490,7 +500,7 @@ export async function PUT(req, context) {
 
         if (file && file.name) {
           // caso: imagen nueva → create
-          const { url } = await uploadFile(file, "images");
+          const { url } = await uploadFile(file, getImageSubfolder(editionNumber));
 
           await prisma.image.create({
             data: {
@@ -513,7 +523,7 @@ export async function PUT(req, context) {
       const files = formData.getAll("articleImages"); // 👈 clave plural
       for (const file of files) {
         if (file && file.name) {
-          const { url } = await uploadFile(file, "images");
+          const { url } = await uploadFile(file, getImageSubfolder(editionNumber));
 
           // Buscar metadatos de esta imagen
           const metaRaw = formData.get(`imageMeta_${file.name}`);
@@ -722,7 +732,7 @@ export async function PUT(req, context) {
         const file = formData.get(`pdfs[${idx}][file]`);
         const title = formData.get(`pdfs[${idx}][title]`) || "";
         if (!file || !file.name) continue;
-        const { url: pdfUrl } = await uploadFile(file, "pdfs-public");
+        const { url: pdfUrl } = await uploadFile(file, editionNumber ? `pdfs-public/editions/${editionNumber}` : "pdfs-public/online");
         await prisma.articlePdf.create({
           data: { articleId: parseInt(id, 10), url: pdfUrl, title },
         });

@@ -8,7 +8,7 @@
 - **Auth**: NextAuth v5 (`src/auth.config.js`)
 - **i18n**: next-intl — locales: `de` (default), `es`
 - **Styles**: Tailwind CSS + CSS Modules (`src/styles/global.module.css`)
-- **Storage**: Cloudinary (imágenes y PDFs)
+- **Storage**: Servidor Hetzner (imágenes y PDFs) — ver sección "Storage local"
 - **Translations**: DeepL (`src/lib/translateDeepl.js`)
 - **Email**: Resend (`src/lib/email.js`)
 
@@ -35,6 +35,7 @@ src/
     prisma.js          # Cliente Prisma singleton
     email.js           # Envío de emails con Resend
     translateDeepl.js  # Integración con DeepL
+    localUpload.js     # Helper para subir/borrar archivos en disco (reemplaza Cloudinary)
     slugify.js
     zod.js
     password.js
@@ -162,20 +163,68 @@ export default function MiPaginaDashboard() {
 - `src/app/components/` — componentes reutilizables
 - `messages/de.json` y `messages/es.json` — traducciones
 
+## Storage local (Hetzner)
+
+- Las imágenes y PDFs se almacenan en el servidor Hetzner, **no en Cloudinary**
+- Helper compartido: `src/lib/localUpload.js` — siempre usar este para subir/borrar archivos
+- **Nunca usar Cloudinary** para nuevos uploads
+
+### Estructura de directorios en el servidor
+```
+/usr/home/ilaweb/ila-uploads/
+  images/        ← imágenes (artículos, autores, etc.)
+  pdfs-public/   ← PDFs públicos
+  pdfs-private/  ← PDFs privados ABO (pendiente de implementar auth)
+```
+
+### URLs
+- Las imágenes se sirven vía API route: `https://www.ila-web.de/api/media/images/nombre.jpg`
+- Los PDFs públicos: `https://www.ila-web.de/api/media/pdfs-public/nombre.pdf`
+- El endpoint `/api/media/[...path]` lee los archivos del disco y los sirve con cache de 1 año
+
+### Helper `localUpload.js`
+```javascript
+import { uploadFile, deleteFile } from "@/lib/localUpload";
+
+// Subir archivo
+const { url, filename } = await uploadFile(file, "images"); // subfolder: images | pdfs-public | pdfs-private
+
+// Borrar archivo (ignora URLs de Cloudinary automáticamente)
+await deleteFile(url);
+```
+
+### Módulos ya migrados a storage local
+- `src/app/api/upload/route.js` ✅
+- `src/app/api/articles/route.js` ✅
+- `src/app/api/articles/[id]/route.js` ✅
+
+### Módulos pendientes de migrar (aún usan Cloudinary)
+- `src/app/api/aktuelles/route.js`
+- `src/app/api/aktuelles/[id]/route.js`
+- `src/app/api/annual-index/upload/route.js`
+- `src/app/api/editions/route.js`
+- `src/app/api/editions/[id]/route.js`
+- `src/app/api/gifts/route.js`
+- `src/app/api/events/route.js`
+- `src/app/api/events/[id]/route.js`
+
+### Imágenes existentes en Cloudinary
+- Las URLs antiguas de Cloudinary siguen funcionando mientras la cuenta esté activa
+- `deleteFile()` ignora automáticamente URLs de Cloudinary — no hay riesgo de errores
+- No hay urgencia de migrar las imágenes existentes
+
 ## Imágenes
 
 - Usar siempre el componente `<Image>` de Next.js para imágenes
-- Las imágenes se almacenan en Cloudinary, no en `/public`
 - `/public` solo contiene assets estáticos (logos, fuentes, SVGs)
+- Los nuevos uploads van al servidor Hetzner via `localUpload.js`
 
 ## PDFs adjuntos en artículos
 
 - Los PDFs se gestionan mediante el modelo `ArticlePdf` (`id`, `articleId`, `url`, `title`, `createdAt`) — relación 1:N con `Article`
 - Un artículo puede tener **múltiples PDFs**, cada uno con su propio título
-- Los PDFs se suben a Cloudinary con `resource_type: "raw"`, carpeta `ila/articles/pdfs/`
-- **Importante**: el `public_id` debe incluir la extensión `.pdf` (ej: `article_21_pdf_TIMESTAMP_0.pdf`) para que la URL resultante tenga extensión y el browser pueda abrirlo correctamente
-- Al eliminar un PDF, siempre borrar de Cloudinary con `uploader.destroy(public_id, { resource_type: "raw" })`
-- El `public_id` para el destroy se extrae de la URL con el patrón: `/\/ila\/articles\/pdfs\/([^?]+)/`
+- Los PDFs se suben al servidor con `uploadFile(file, "pdfs-public")`
+- Al eliminar un PDF, usar `deleteFile(pdf.url)` — funciona tanto con URLs locales como de Cloudinary
 - En el formulario se envían como `pdfs[0][file]`, `pdfs[0][title]`, `pdfs[1][file]`, etc.
 - Para eliminar PDFs existentes en el edit, se envía `removePdfIds` como JSON array de IDs
 - En la página pública (`[locale]/ausgaben/[...legacyPath]/page.js`) se muestra una sección con todos los PDFs cuando `article.pdfs?.length > 0`
@@ -199,6 +248,20 @@ export default function MiPaginaDashboard() {
   - `src/lib/email.js` — envío de emails con Resend
 - Envía errores tanto en local (`development`) como en producción — útil para detectar bugs antes del deploy
 - Dashboard: sentry.io
+
+## Deploy en Hetzner (zero-downtime)
+
+```bash
+git pull origin main
+npm install
+npm run build
+pm2 restart ilaweb
+pm2 restart ila-scheduler
+pm2 save
+```
+
+- El servidor sigue corriendo durante el build — sin downtime para los lectores
+- Solo hay ~1 segundo de interrupción en el `pm2 restart`
 
 ## Comandos útiles
 

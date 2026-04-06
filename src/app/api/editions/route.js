@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
-import cloudinary from "cloudinary";
+import { uploadFile, toSlug } from "@/lib/localUpload";
 
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
-
-// Configurar Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -178,33 +171,12 @@ export async function POST(req) {
       topics,
     });
 
-    // Función para subir imágenes a Cloudinary
-    const uploadImageToCloudinary = async (file, fieldName) => {
-      if (!file) return null;
+    // Subir imagen de portada al servidor local
+    const coverImagePath = coverImageFile
+      ? (await uploadFile(coverImageFile, "images", `edition_${number}_${toSlug(title)}`)).url
+      : null;
 
-      const buffer = Buffer.from(await file.arrayBuffer());
-
-      const uploadResult = await cloudinary.v2.uploader.upload(
-        `data:image/jpeg;base64,${buffer.toString("base64")}`,
-        {
-          folder: "ila/editions", // Carpeta en Cloudinary
-          public_id: `${fieldName}-${Date.now()}`,
-          overwrite: true,
-        }
-      );
-
-      return uploadResult.secure_url; // Retorna la URL de Cloudinary
-    };
-
-    // Subir imágenes a Cloudinary
-    const coverImagePath = await uploadImageToCloudinary(
-      coverImageFile,
-      "coverImage"
-    );
-
-    console.log("URLs de imágenes en Cloudinary:", {
-      coverImagePath,
-    });
+    console.log("URL de portada:", { coverImagePath });
 
     // Crear nueva edición en la base de datos
     const newEdition = await prisma.edition.create({

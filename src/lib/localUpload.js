@@ -1,19 +1,45 @@
-import { writeFile, unlink } from "fs/promises";
+import { writeFile, unlink, mkdir } from "fs/promises";
 import path from "path";
 
 const MEDIA_DIR = "/usr/home/ilaweb/ila-uploads";
 const BASE_URL = "https://www.ila-web.de/api/media";
 
 /**
+ * Convierte un string a slug (minúsculas, sin espacios ni caracteres especiales).
+ * @param {string} str
+ * @returns {string}
+ */
+export function toSlug(str) {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // quitar tildes
+    .replace(/[^a-z0-9]+/g, "-")     // reemplazar no-alfanuméricos por guión
+    .replace(/^-+|-+$/g, "")         // quitar guiones al inicio/fin
+    .slice(0, 60);                    // limitar longitud
+}
+
+/**
  * Sube un archivo al disco y devuelve la URL local.
+ * Crea las carpetas necesarias automáticamente.
+ *
  * @param {File} file - El archivo recibido del FormData
- * @param {string} subfolder - "images" | "pdfs-public" | "pdfs-private"
+ * @param {string} subfolder - Ruta relativa al MEDIA_DIR (puede ser anidada, ej: "images/editions/273/portada")
+ * @param {string} [prefix] - Prefijo descriptivo para el nombre del archivo (ej: "edition_273_dossier-abril")
  * @returns {{ url: string, filename: string }}
  */
-export async function uploadFile(file, subfolder = "images") {
-  const ext = path.extname(file.name) || "";
-  const filename = `upload_${Date.now()}_${Math.random().toString(36).slice(2, 7)}${ext}`;
-  const fullPath = path.join(MEDIA_DIR, subfolder, filename);
+export async function uploadFile(file, subfolder = "images", prefix = null) {
+  const ext = path.extname(file.name).toLowerCase() || "";
+  const base = prefix
+    ? `${prefix}_${Date.now()}`
+    : `upload_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+  const filename = `${base}${ext}`;
+
+  const dirPath = path.join(MEDIA_DIR, subfolder);
+  const fullPath = path.join(dirPath, filename);
+
+  // Crear carpetas si no existen
+  await mkdir(dirPath, { recursive: true });
 
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(fullPath, buffer);
@@ -31,7 +57,7 @@ export async function deleteFile(url) {
   if (!url || !url.includes("/api/media/")) return;
 
   try {
-    // Extrae el path relativo desde la URL: /api/media/images/foto.jpg → images/foto.jpg
+    // Extrae el path relativo desde la URL
     const relativePath = url.split("/api/media/")[1];
     if (!relativePath) return;
 
@@ -42,7 +68,6 @@ export async function deleteFile(url) {
 
     await unlink(fullPath);
   } catch (error) {
-    // Si el archivo no existe, no es un error crítico
     if (error.code !== "ENOENT") {
       console.error("❌ Error eliminando archivo local:", error);
     }
