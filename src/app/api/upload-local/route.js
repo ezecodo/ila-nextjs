@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 
-const UPLOAD_DIR = "/usr/home/ilaweb/public_html/ila-uploads/images";
-const BASE_URL = "https://www.ila-web.de/ila-uploads/images";
+const UPLOAD_DIR = "/usr/home/ilaweb/ila-uploads/images";
+const BASE_URL = "https://www.ila-web.de/uploads/images";
 
 export async function POST(request) {
   try {
