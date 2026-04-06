@@ -24,8 +24,7 @@ export default function CreateAktuellesPage() {
 
       const res = await fetch("/api/aktuelles", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: data, // FormData — no Content-Type header needed
       });
       if (!res.ok) throw new Error("Error al crear Aktuelles");
       router.push("/dashboard/aktuelles");

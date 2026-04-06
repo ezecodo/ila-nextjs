@@ -1,51 +1,27 @@
 import { auth } from "@/app/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import cloudinary from "cloudinary";
+import { uploadFile } from "@/lib/localUpload";
 
-// ⚙️ Config Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-// Helper para subir base64/dataURL a Cloudinary
-async function uploadDataUrlToCloudinary(dataUrl) {
-  const res = await cloudinary.v2.uploader.upload(dataUrl, {
-    folder: "ila/aktuelles",
-    resource_type: "image",
-  });
-  return res.secure_url;
-}
-
-// 📌 GET: listar todos los Aktuelles (con paginación)
+// 📌 GET: listar todos los Aktuelles
 export async function GET() {
   try {
-    // 1) Buscar Aktuelles
     const aktuelles = await prisma.aktuelles.findMany({
       orderBy: { date: "desc" },
       include: { createdBy: true },
     });
 
-    // 2) Buscar imágenes relacionadas
     const ids = aktuelles.map((a) => a.id);
     const images = await prisma.image.findMany({
-      where: {
-        contentType: "NEWS",
-        contentId: { in: ids },
-      },
+      where: { contentType: "NEWS", contentId: { in: ids } },
     });
 
-    // 3) Añadir imágenes a cada item
     const aktuellesWithImages = aktuelles.map((a) => ({
       ...a,
       images: images.filter((img) => img.contentId === a.id),
     }));
 
-    return NextResponse.json({
-      items: aktuellesWithImages,
-    });
+    return NextResponse.json({ items: aktuellesWithImages });
   } catch (error) {
     console.error("❌ Error al obtener Aktuelles:", error);
     return NextResponse.json(
@@ -63,76 +39,58 @@ export async function POST(req) {
       return NextResponse.json({ error: "Nicht erlaubt" }, { status: 403 });
     }
 
-    const {
-      title,
-      titleES,
-      subtitle,
-      subtitleES,
-      content,
-      contentES,
-      date,
-      link,
-      images = [],
-    } = await req.json();
+    const formData = await req.formData();
+
+    const title = formData.get("title");
+    const titleES = formData.get("titleES");
+    const subtitle = formData.get("subtitle") || null;
+    const subtitleES = formData.get("subtitleES") || null;
+    const content = formData.get("content");
+    const contentES = formData.get("contentES");
 
     const aktu = await prisma.aktuelles.create({
       data: {
         title,
         titleES,
-        subtitle: subtitle || null,
-        subtitleES: subtitleES || null,
+        subtitle,
+        subtitleES,
         content,
         contentES,
-        date: date ? new Date(date) : undefined,
-        link,
         createdById: session.user.id,
       },
     });
-    // 2) Procesar imágenes
-    const createdImages = [];
-    for (const img of images) {
-      let finalUrl = img.url || null;
 
-      if (!finalUrl && img.fileDataUrl) {
-        try {
-          finalUrl = await uploadDataUrlToCloudinary(img.fileDataUrl);
-        } catch (e) {
-          console.error("❌ Error subiendo a Cloudinary:", e);
-          continue;
-        }
-      }
-      if (!finalUrl) continue;
+    // Procesar imágenes: images[0][file], images[0][title], images[0][alt]
+    const imageIndices = new Set();
+    for (const key of formData.keys()) {
+      const m = key.match(/^images\[(\d+)\]\[(file|title|alt)\]$/);
+      if (m) imageIndices.add(parseInt(m[1], 10));
+    }
 
+    for (const idx of Array.from(imageIndices).sort((a, b) => a - b)) {
+      const file = formData.get(`images[${idx}][file]`);
+      if (!file || !file.name) continue;
       try {
-        const saved = await prisma.image.create({
+        const { url } = await uploadFile(file, "images/aktuelles", `aktuelles_${aktu.id}`);
+        await prisma.image.create({
           data: {
-            contentType: "NEWS", // 👈 importante
+            contentType: "NEWS",
             contentId: aktu.id,
-            url: finalUrl,
-            title: img.title || null, // alt-text
-            alt: img.alt || null, // créditos / desc
+            url,
+            title: formData.get(`images[${idx}][title]`) || null,
+            alt: formData.get(`images[${idx}][alt]`) || null,
           },
         });
-        createdImages.push(saved);
       } catch (e) {
-        console.error("❌ Error guardando imagen en DB:", e);
+        console.error(`❌ Error subiendo imagen idx=${idx}:`, e);
       }
     }
 
-    // 3) Devolver aktuelles + imágenes
-    const imagesForAktuelles = await prisma.image.findMany({
+    const imagesResult = await prisma.image.findMany({
       where: { contentType: "NEWS", contentId: aktu.id },
     });
 
-    return NextResponse.json(
-      {
-        ...aktu,
-        images: imagesForAktuelles,
-      },
-      { status: 201 }
-    );
-
-    return NextResponse.json(aktuWithImages, { status: 201 });
+    return NextResponse.json({ ...aktu, images: imagesResult }, { status: 201 });
   } catch (error) {
     console.error("❌ Error al crear Aktuelles:", error);
     return NextResponse.json(

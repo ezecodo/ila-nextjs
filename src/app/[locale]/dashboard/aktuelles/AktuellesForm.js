@@ -83,27 +83,32 @@ export default function AktuellesForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 🔥 convertir archivos locales en dataURL
-    const processedGallery = await Promise.all(
-      gallery.map(async (img) => {
-        if (img.file) {
-          const dataUrl = await fileToDataUrl(img.file);
-          return { ...img, fileDataUrl: dataUrl };
-        }
-        return img;
-      })
-    );
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("titleES", titleES);
+    formData.append("subtitle", subtitle || "");
+    formData.append("subtitleES", subtitleES || "");
+    formData.append("content", content);
+    formData.append("contentES", contentES);
 
-    onSubmit({ title, titleES, subtitle, subtitleES, content, contentES, images: processedGallery });
-  };
-  async function fileToDataUrl(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+    // Imágenes nuevas (con File) y existentes (con id)
+    const keepImageIds = [];
+    gallery.forEach((img, idx) => {
+      if (img.file) {
+        formData.append(`images[${idx}][file]`, img.file);
+        formData.append(`images[${idx}][title]`, img.title || "");
+        formData.append(`images[${idx}][alt]`, img.alt || "");
+      } else if (img.id) {
+        keepImageIds.push(img.id);
+        formData.append(`images[${idx}][id]`, img.id);
+        formData.append(`images[${idx}][title]`, img.title || "");
+        formData.append(`images[${idx}][alt]`, img.alt || "");
+      }
     });
-  }
+    formData.append("keepImageIds", JSON.stringify(keepImageIds));
+
+    onSubmit(formData);
+  };
 
   const getButtonText = (field, direction) => {
     if (translatingField === field) return "🔄";

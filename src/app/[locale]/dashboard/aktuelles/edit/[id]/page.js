@@ -32,8 +32,7 @@ export default function EditAktuellesPage() {
       setLoading(true);
       const res = await fetch(`/api/aktuelles/${aktuellesId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: data, // FormData — no Content-Type header needed
       });
 
       // 🔍 Ver el error real del servidor

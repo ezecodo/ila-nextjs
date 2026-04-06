@@ -208,6 +208,10 @@ await deleteFile(url);
 - `src/app/api/events/route.js`
 - `src/app/api/events/[id]/route.js`
 
+### Mejoras de infraestructura pendientes
+- **Dockerizar la app** — permitiría zero-downtime real con `docker-compose`, rollback instantáneo y entorno reproducible. Los uploads en `~/ila-uploads/` se montarían como volumen Docker.
+- **Migrar módulos restantes** de Cloudinary a storage local (ver lista de módulos pendientes arriba)
+
 ### Imágenes existentes en Cloudinary
 - Las URLs antiguas de Cloudinary siguen funcionando mientras la cuenta esté activa
 - `deleteFile()` ignora automáticamente URLs de Cloudinary — no hay riesgo de errores
