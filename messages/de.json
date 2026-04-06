@@ -280,7 +280,45 @@
     "forgot": "Passwort vergessen?",
     "noAccount": "Noch kein Konto?",
     "signupLink": "Hier registrieren",
-    "error": "Ungültige Anmeldedaten. Bitte versuche es erneut."
+    "error": "Ungültige Anmeldedaten. Bitte versuche es erneut.",
+    "loading": "Wird geladen...",
+    "signup": {
+      "title": "Registrieren",
+      "namePlaceholder": "Name",
+      "emailPlaceholder": "E-Mail-Adresse",
+      "passwordPlaceholder": "Passwort",
+      "confirmPasswordPlaceholder": "Passwort bestätigen",
+      "submitButton": "Registrieren",
+      "loadingButton": "Wird registriert...",
+      "pdfAboNotice": "Sie registrieren sich, um Ihr PDF ABO zu aktivieren. Verwenden Sie dieselbe E-Mail-Adresse, an die Sie die Einladung erhalten haben.",
+      "successPdfAbo": "Registrierung erfolgreich! Ihr PDF ABO wurde aktiviert. Überprüfen Sie Ihre E-Mail, um die Registrierung abzuschließen.",
+      "successDefault": "Registrierung erfolgreich. Überprüfen Sie Ihre E-Mail.",
+      "errorPasswordMismatch": "Die Passwörter stimmen nicht überein.",
+      "errorDefault": "Fehler bei der Registrierung."
+    },
+    "forgotPassword": {
+      "title": "Passwort zurücksetzen",
+      "submitButton": "Link zum Zurücksetzen senden",
+      "success": "Wenn die E-Mail registriert ist, erhalten Sie einen Link zum Zurücksetzen Ihres Passworts.",
+      "error": "Fehler beim Verarbeiten der Anfrage."
+    },
+    "resetPassword": {
+      "title": "Neues Passwort festlegen",
+      "newPasswordPlaceholder": "Neues Passwort",
+      "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
+      "submitButton": "Passwort zurücksetzen",
+      "success": "Passwort zurückgesetzt. Weiterleitung...",
+      "errorToken": "Ungültiger Token.",
+      "errorPasswordMismatch": "Die Passwörter stimmen nicht überein.",
+      "errorDefault": "Fehler beim Zurücksetzen des Passworts."
+    },
+    "verify": {
+      "title": "E-Mail-Verifizierung",
+      "verifying": "Wird überprüft...",
+      "success": "E-Mail erfolgreich verifiziert. Sie können sich jetzt anmelden.",
+      "errorToken": "Ungültiger oder fehlender Token.",
+      "errorDefault": "Fehler beim Verifizieren der E-Mail."
+    }
   },
   "account": {
     "title": "Kontoeinstellungen",

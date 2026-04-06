@@ -280,7 +280,45 @@
     "forgot": "¿Olvidaste tu contraseña?",
     "noAccount": "¿No tienes una cuenta?",
     "signupLink": "Regístrate aquí",
-    "error": "Credenciales incorrectas. Inténtalo de nuevo."
+    "error": "Credenciales incorrectas. Inténtalo de nuevo.",
+    "loading": "Cargando...",
+    "signup": {
+      "title": "Registro",
+      "namePlaceholder": "Nombre",
+      "emailPlaceholder": "Correo electrónico",
+      "passwordPlaceholder": "Contraseña",
+      "confirmPasswordPlaceholder": "Confirmar contraseña",
+      "submitButton": "Registrarse",
+      "loadingButton": "Registrando...",
+      "pdfAboNotice": "Estás registrándote para activar tu PDF ABO. Usa el mismo email donde recibiste la invitación.",
+      "successPdfAbo": "¡Registro exitoso! Tu PDF ABO ha sido activado. Verifica tu correo para completar el registro.",
+      "successDefault": "Registro exitoso. Verifica tu correo.",
+      "errorPasswordMismatch": "Las contraseñas no coinciden.",
+      "errorDefault": "Error en el registro."
+    },
+    "forgotPassword": {
+      "title": "Recuperar contraseña",
+      "submitButton": "Enviar enlace de recuperación",
+      "success": "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.",
+      "error": "Error al procesar la solicitud."
+    },
+    "resetPassword": {
+      "title": "Restablecer contraseña",
+      "newPasswordPlaceholder": "Nueva contraseña",
+      "confirmPasswordPlaceholder": "Confirmar nueva contraseña",
+      "submitButton": "Restablecer contraseña",
+      "success": "Contraseña restablecida. Redirigiendo...",
+      "errorToken": "Token no válido.",
+      "errorPasswordMismatch": "Las contraseñas no coinciden.",
+      "errorDefault": "Error al restablecer la contraseña."
+    },
+    "verify": {
+      "title": "Verificación de correo",
+      "verifying": "Verificando...",
+      "success": "Correo verificado exitosamente. Ahora puedes iniciar sesión.",
+      "errorToken": "Token inválido o faltante.",
+      "errorDefault": "Error al verificar el correo."
+    }
   },
   "account": {
     "title": "Configuración de Cuenta",
