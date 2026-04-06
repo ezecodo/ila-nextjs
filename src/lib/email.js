@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import dotenv from "dotenv";
+import * as Sentry from "@sentry/nextjs";
 
 dotenv.config(); // ✅ Cargar las variables de entorno
 
@@ -26,6 +27,7 @@ export async function sendVerificationEmail(email, token) {
     console.log("✅ Correo enviado con éxito:", response);
     return response;
   } catch (error) {
+    Sentry.captureException(error);
     console.error("❌ Error al enviar correo:", error);
     throw new Error("No se pudo enviar el correo de verificación.");
   }

@@ -1,5 +1,6 @@
 import cloudinary from "cloudinary";
 import slugify from "@/lib/slugify";
+import * as Sentry from "@sentry/nextjs";
 
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 
@@ -305,6 +306,7 @@ export async function POST(request) {
 
           imagesUploaded += 1;
         } catch (imgErr) {
+          Sentry.captureException(imgErr);
           console.error(
             `❌ Error subiendo/guardando imagen idx=${idx}:`,
             imgErr
@@ -358,6 +360,7 @@ export async function POST(request) {
         });
       }
     } catch (pdfErr) {
+      Sentry.captureException(pdfErr);
       console.error("❌ Error procesando PDFs:", pdfErr);
     }
 
@@ -374,6 +377,7 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
+    Sentry.captureException(error);
     console.error("❌ Error al crear el artículo:", error.message);
     return new Response(
       JSON.stringify({

@@ -183,6 +183,23 @@ export default function MiPaginaDashboard() {
 - Keys de traducción en `newArticle.form`: `pdfSectionTitle`, `pdfAddButton`, `pdfTitlePlaceholder`, `pdfRemove`, `pdfFileMissing`
 - Keys de traducción en `article`: `pdfSectionTitle`, `pdfDownload`
 
+## Monitoring y observabilidad
+
+### Health Check
+- Endpoint: `GET /api/health` — verifica conectividad con la BD y retorna 200 (ok) o 503 (degraded)
+- Monitorizado por **UptimeRobot** cada 5 minutos — alerta por email si cae
+
+### Sentry (error tracking)
+- Instalado con `@sentry/nextjs`
+- Archivos de config: `sentry.server.config.ts`, `instrumentation-client.ts`, `instrumentation.js`
+- Captura errores automáticamente en cliente y servidor
+- `Sentry.captureException(error)` añadido manualmente en los `catch` críticos de:
+  - `src/app/api/articles/route.js` — creación de artículos, subida de imágenes y PDFs
+  - `src/app/api/articles/[id]/route.js` — GET, PUT, DELETE de artículos
+  - `src/lib/email.js` — envío de emails con Resend
+- Envía errores tanto en local (`development`) como en producción — útil para detectar bugs antes del deploy
+- Dashboard: sentry.io
+
 ## Comandos útiles
 
 ```bash

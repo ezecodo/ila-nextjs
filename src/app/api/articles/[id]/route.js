@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import cloudinary from "cloudinary";
 import { auth } from "../../../auth";
+import * as Sentry from "@sentry/nextjs";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -134,6 +135,7 @@ export async function GET(req, context) {
       }
     );
   } catch (error) {
+    Sentry.captureException(error);
     console.error("Error en GET /api/articles/[id]:", error);
     return new Response(
       JSON.stringify({
@@ -796,6 +798,7 @@ export async function PUT(req, context) {
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
+    Sentry.captureException(error);
     console.error("Error en PUT:", error);
     return new Response(
       JSON.stringify({ error: "Error interno", details: error.message }),
@@ -874,6 +877,7 @@ export async function DELETE(req, { params }) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
+    Sentry.captureException(error);
     console.error("❌ Error en DELETE /api/articles/[id]:", error);
     return new Response(
       JSON.stringify({ error: "Error interno", details: error.message }),
