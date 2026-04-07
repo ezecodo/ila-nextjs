@@ -1,36 +1,167 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ila — Das Lateinamerika-Magazin
 
-## Getting Started
+Plataforma web oficial de **ila** (*Informationsstelle Lateinamerika*), una revista alemana especializada en América Latina publicada desde 1975. El sitio sirve como archivo digital de más de 40 años de publicaciones, canal de noticias y eventos, y sistema de gestión editorial interno.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Funcionalidades principales
+
+### Sitio público
+- **Archivo de dossiers** — todas las ediciones de la revista con sus artículos, accesibles por número de edición o búsqueda
+- **Artículos online** — contenido exclusivo digital, independiente de las ediciones impresas
+- **Aktuelles** — noticias y novedades de la redacción
+- **Eventos** — agenda de eventos relacionados con América Latina
+- **Búsqueda** — búsqueda full-text con filtros por región, temática, tipo de artículo y año
+- **Mapa** — visualización geográfica de artículos por país/región
+- **Registro y suscripción** — gestión de suscripciones ABO y pedidos de ejemplares individuales
+- **Bilingüe** — todo el contenido disponible en alemán (DE) y español (ES)
+
+### Dashboard de administración
+- Gestión completa de artículos, ediciones, autores e interlocutores
+- Editor de texto enriquecido (Quill) con soporte HTML
+- Traducción automática DE ↔ ES vía DeepL
+- Galería de imágenes por artículo con gestión de metadatos (título, alt)
+- Adjuntos PDF por artículo
+- Gestión de Aktuelles y Eventos
+- Banners, carruseles y componentes editoriales
+- Gestión de suscripciones y pedidos
+- Registro de actividad del equipo editorial
+- Generador de contenido para Instagram
+- Panel de usuarios con roles diferenciados
+
+---
+
+## Stack técnico
+
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Lenguaje | JavaScript (src/) |
+| Base de datos | MySQL via Prisma ORM |
+| Autenticación | NextAuth v5 |
+| i18n | next-intl (DE / ES) |
+| Estilos | Tailwind CSS + CSS Modules |
+| Editor | Quill.js (dynamic import) |
+| Traducciones | DeepL API |
+| Email | Resend |
+| Storage | Servidor Hetzner (`~/ila-uploads/`) |
+| Media serving | Next.js API route `/api/media/[...path]` |
+| Error tracking | Sentry |
+| Monitoreo | UptimeRobot (health check cada 5 min) |
+| Proceso | PM2 |
+
+---
+
+## Estructura del proyecto
+
+```
+src/
+  app/
+    [locale]/          # Páginas públicas y dashboard (rutas i18n)
+      dashboard/       # Panel de administración (solo admin)
+      dashboard-users/ # Panel de usuarios registrados
+      auth/            # Login, registro, recuperación de contraseña
+    api/               # API Routes (Route Handlers de Next.js)
+    components/        # Componentes reutilizables
+  lib/
+    prisma.js          # Cliente Prisma singleton
+    localUpload.js     # Helper para subir/borrar archivos en disco
+    translateDeepl.js  # Integración DeepL
+    email.js           # Envío de emails con Resend
+    slugify.js
+  i18n/                # Configuración de next-intl
+  auth.config.js       # Configuración de NextAuth
+  middleware.js        # Auth + i18n middleware
+messages/
+  de.json              # Traducciones alemán (idioma principal)
+  es.json              # Traducciones español
+prisma/
+  schema.prisma        # Schema de la BD
+  migrations/          # Historial de migraciones
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Roles de usuario
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Rol | Acceso |
+|---|---|
+| `admin` | Dashboard completo |
+| `translator` | Solo `/dashboard/translators` y `/dashboard/account` |
+| `user` | Solo `/dashboard-users` (suscriptores) |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Storage de archivos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Los archivos se almacenan en el servidor Hetzner fuera del repositorio:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+/usr/home/ilaweb/ila-uploads/
+  images/
+    aktuelles/              ← imágenes de Aktuelles
+    editions/<num>/
+      articulos/            ← imágenes de artículos de edición
+      portada/              ← portada de la edición
+    online/                 ← imágenes de artículos online
+  pdfs-public/
+    editions/<num>/         ← PDFs de artículos de edición
+    online/                 ← PDFs de artículos online
+  pdfs-private/             ← PDFs privados ABO (acceso autenticado)
+```
 
-## Deploy on Vercel
+Se sirven vía `/api/media/[...path]` con cache de 1 año.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Desarrollo local
+
+```bash
+# Instalar dependencias
+npm install
+
+# Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus credenciales
+
+# Iniciar servidor de desarrollo
+npm run dev
+# → http://localhost:3000
+
+# Explorar la base de datos
+npx prisma studio
+```
+
+### Variables de entorno necesarias
+
+```env
+DATABASE_URL=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+DEEPL_API_KEY=
+RESEND_API_KEY=
+SENTRY_DSN=
+```
+
+---
+
+## Deploy en producción (Hetzner)
+
+```bash
+git pull origin main
+npm install
+npm run build
+pm2 restart ilaweb
+pm2 restart ila-scheduler
+pm2 save
+```
+
+El servidor sigue activo durante el build — solo hay ~1 segundo de interrupción en el `pm2 restart`.
+
+---
+
+## Monitoreo
+
+- **Health check**: `GET /api/health` — verifica conectividad con la BD
+- **UptimeRobot**: monitoriza el health check cada 5 minutos con alerta por email
+- **Sentry**: captura errores en cliente y servidor automáticamente

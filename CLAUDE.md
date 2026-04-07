@@ -172,9 +172,17 @@ export default function MiPaginaDashboard() {
 ### Estructura de directorios en el servidor
 ```
 /usr/home/ilaweb/ila-uploads/
-  images/        ← imágenes (artículos, autores, etc.)
-  pdfs-public/   ← PDFs públicos
-  pdfs-private/  ← PDFs privados ABO (pendiente de implementar auth)
+  images/
+    aktuelles/          ← imágenes de Aktuelles
+    editions/
+      <number>/
+        articulos/      ← imágenes de artículos de una edición
+        portada/        ← portada de la edición
+    online/             ← imágenes de artículos online
+  pdfs-public/
+    editions/<number>/  ← PDFs de artículos de edición
+    online/             ← PDFs de artículos online
+  pdfs-private/         ← PDFs privados ABO (pendiente de implementar auth)
 ```
 
 ### URLs
@@ -197,13 +205,13 @@ await deleteFile(url);
 - `src/app/api/upload/route.js` ✅
 - `src/app/api/articles/route.js` ✅
 - `src/app/api/articles/[id]/route.js` ✅
+- `src/app/api/aktuelles/route.js` ✅
+- `src/app/api/aktuelles/[id]/route.js` ✅
+- `src/app/api/editions/route.js` ✅
+- `src/app/api/editions/[id]/route.js` ✅
 
 ### Módulos pendientes de migrar (aún usan Cloudinary)
-- `src/app/api/aktuelles/route.js`
-- `src/app/api/aktuelles/[id]/route.js`
 - `src/app/api/annual-index/upload/route.js`
-- `src/app/api/editions/route.js`
-- `src/app/api/editions/[id]/route.js`
 - `src/app/api/gifts/route.js`
 - `src/app/api/events/route.js`
 - `src/app/api/events/[id]/route.js`
