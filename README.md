@@ -4,6 +4,12 @@ Plataforma web oficial de **ila** (*Informationsstelle Lateinamerika*), una revi
 
 ---
 
+## Origen del proyecto
+
+El core de este proyecto fue la **migración completa desde Drupal 7**, el sistema anterior de la revista. Se migraron más de **2.000 artículos** con todo su contenido, imágenes, metadatos, autores y estructura de ediciones hacia la nueva base de datos MySQL/Prisma. La nueva plataforma reemplaza completamente al CMS anterior y añade gestión editorial propia, soporte bilingüe nativo y una infraestructura de storage y deploy modernizada.
+
+---
+
 ## Funcionalidades principales
 
 ### Sitio público
