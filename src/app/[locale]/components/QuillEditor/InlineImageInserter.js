@@ -274,6 +274,7 @@ export default function InlineImageInserter({
                         [img.src]: { ...prev[img.src], alt: e.target.value },
                       }))
                     }
+                    onBlur={() => handleUpdateImage(img.src)}
                     placeholder="Alt-Text / Bildunterschrift"
                     className="border rounded px-2 py-1 text-xs w-full focus:outline-none focus:ring-1 focus:ring-blue-400"
                   />
@@ -286,6 +287,7 @@ export default function InlineImageInserter({
                         [img.src]: { ...prev[img.src], title: e.target.value },
                       }))
                     }
+                    onBlur={() => handleUpdateImage(img.src)}
                     placeholder="Bildnachweis / Credit"
                     className="border rounded px-2 py-1 text-xs w-full focus:outline-none focus:ring-1 focus:ring-blue-400"
                   />
@@ -294,13 +296,6 @@ export default function InlineImageInserter({
                     onChange={(val) => handleResizeImage(img.src, val)}
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleUpdateImage(img.src)}
-                  className="flex-shrink-0 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded mt-1"
-                >
-                  ✓
-                </button>
               </div>
             ))}
           </div>

@@ -5,6 +5,27 @@ import Delta from "quill-delta";
 import "quill/dist/quill.snow.css";
 import { useTranslations } from "next-intl";
 
+// Registrar Image blot custom que preserve el atributo "title"
+const BaseImage = Quill.import("formats/image");
+const ALLOWED_IMG_ATTRS = ["alt", "height", "width", "style", "title"];
+class CustomImage extends BaseImage {
+  static formats(domNode) {
+    return ALLOWED_IMG_ATTRS.reduce((formats, attr) => {
+      if (domNode.hasAttribute(attr)) formats[attr] = domNode.getAttribute(attr);
+      return formats;
+    }, {});
+  }
+  format(name, value) {
+    if (ALLOWED_IMG_ATTRS.includes(name)) {
+      if (value) this.domNode.setAttribute(name, value);
+      else this.domNode.removeAttribute(name);
+    } else {
+      super.format(name, value);
+    }
+  }
+}
+Quill.register(CustomImage, true);
+
 // 🔥 NUEVO: Registrar formato para líneas con puntuación
 const Inline = Quill.import("blots/inline");
 const Block = Quill.import("blots/block");
