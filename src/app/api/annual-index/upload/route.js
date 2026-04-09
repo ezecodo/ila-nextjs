@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
 import { prisma } from "@/lib/prisma";
-import cloudinary from "cloudinary";
-
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { uploadFile } from "@/lib/localUpload";
 
 export async function POST(req) {
   try {
@@ -17,57 +11,31 @@ export async function POST(req) {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file");
-    const year = parseInt(formData.get("year"));
-    const title = formData.get("title") || null;
+    const file    = formData.get("file");
+    const year    = parseInt(formData.get("year"));
+    const title   = formData.get("title")   || null;
     const titleES = formData.get("titleES") || null;
 
     if (!file || !file.type.includes("pdf")) {
-      return NextResponse.json(
-        { error: "Archivo PDF inválido" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Archivo PDF inválido" }, { status: 400 });
     }
 
     const existing = await prisma.annualIndex.findUnique({ where: { year } });
     if (existing) {
-      return NextResponse.json(
-        { error: `Ya existe el año ${year}` },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: `Ya existe el año ${year}` }, { status: 409 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
     const downloadFileName = `ila_register_${year}.pdf`;
+    const { url: fileUrl } = await uploadFile(file, "pdfs-public/annual-index", `ila_register_${year}`);
 
-    const result = await new Promise((resolve, reject) => {
-      cloudinary.v2.uploader
-        .upload_stream(
-          {
-            folder: "ila/annual-index",
-            public_id: `Register-${year}`,
-            resource_type: "image", // Crucial para permitir transformaciones
-            format: "pdf",
-            overwrite: true,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          },
-        )
-        .end(buffer);
-    });
-
-    // Guardamos la URL limpia y los bytes reales
     const registro = await prisma.annualIndex.create({
       data: {
         year,
         title,
         titleES,
-        fileUrl: result.secure_url,
+        fileUrl,
         fileName: downloadFileName,
-        fileSize: result.bytes,
+        fileSize: file.size,
         uploadedBy: session.user.email,
       },
     });

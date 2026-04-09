@@ -77,3 +77,11 @@ ALI_topics.json
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Migración Cloudinary → Hetzner
+/migration-test-output/
+/migration-output/
+/migration-test/
+migration-mapping*.json
+migration-mapping-content.json
+migration-errors.json

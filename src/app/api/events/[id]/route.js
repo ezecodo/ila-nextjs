@@ -2,32 +2,20 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import cloudinary from "cloudinary";
-
-// ⚙️ Config Cloudinary
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { uploadFile } from "@/lib/localUpload";
 
 export async function GET(req, { params }) {
   try {
-    const { id } = await params; // ✅ Ahora el ID se trata como un String
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    const event = await prisma.event.findUnique({
-      where: { id }, // ✅ Buscamos por ID como String
-    });
+    const event = await prisma.event.findUnique({ where: { id } });
 
     if (!event) {
-      return NextResponse.json(
-        { error: "Evento no encontrado" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Evento no encontrado" }, { status: 404 });
     }
 
     return NextResponse.json(event);
@@ -41,7 +29,6 @@ export async function GET(req, { params }) {
 }
 
 // 📌 PUT: actualizar evento
-// 📌 PUT: actualizar evento
 export async function PUT(req, { params }) {
   try {
     const { id } = await params;
@@ -50,29 +37,10 @@ export async function PUT(req, { params }) {
     }
 
     const data = await req.json();
-    const {
-      title,
-      titleES,
-      description,
-      descriptionES,
-      date,
-      time,
-      location,
-      images = [],
-    } = data;
+    const { title, titleES, description, descriptionES, date, time, location, images = [] } = data;
 
-    // 🔹 Datos base
-    let updatedData = {
-      title,
-      titleES,
-      description,
-      descriptionES,
-      date: new Date(date),
-      time,
-      location,
-    };
+    let updatedData = { title, titleES, description, descriptionES, date: new Date(date), time, location };
 
-    // 🔹 Procesar imágenes
     let firstImageUrl = null;
 
     for (const img of images) {
@@ -80,9 +48,18 @@ export async function PUT(req, { params }) {
 
       if (!finalUrl && img.fileDataUrl) {
         try {
-          finalUrl = await uploadDataUrlToCloudinary(img.fileDataUrl);
+          // Convertir data URL a File-like object
+          const matches = img.fileDataUrl.match(/^data:([^;]+);base64,(.+)$/);
+          if (!matches) continue;
+          const mimeType = matches[1];
+          const buffer   = Buffer.from(matches[2], "base64");
+          const ext      = mimeType.split("/")[1] || "jpg";
+          const blob     = new Blob([buffer], { type: mimeType });
+          const file     = new File([blob], `event_${id}_${Date.now()}.${ext}`, { type: mimeType });
+          const { url }  = await uploadFile(file, "images/events");
+          finalUrl = url;
         } catch (e) {
-          console.error("❌ Error subiendo a Cloudinary:", e);
+          console.error("❌ Error subiendo imagen:", e);
           continue;
         }
       }
@@ -91,18 +68,13 @@ export async function PUT(req, { params }) {
       if (!firstImageUrl) firstImageUrl = finalUrl;
     }
 
-    // 🔹 Actualizar imagen según lo que venga del form
     if (images.length === 0) {
-      updatedData.image = null; // 👉 eliminaste todas
+      updatedData.image = null;
     } else if (firstImageUrl) {
-      updatedData.image = firstImageUrl; // 👉 nueva o existente
+      updatedData.image = firstImageUrl;
     }
 
-    // 🔹 Actualizar evento
-    const updatedEvent = await prisma.event.update({
-      where: { id },
-      data: updatedData,
-    });
+    const updatedEvent = await prisma.event.update({ where: { id }, data: updatedData });
 
     return NextResponse.json(updatedEvent);
   } catch (error) {
@@ -114,14 +86,6 @@ export async function PUT(req, { params }) {
   }
 }
 
-// 👇 Helper que faltaba
-async function uploadDataUrlToCloudinary(dataUrl) {
-  const res = await cloudinary.v2.uploader.upload(dataUrl, {
-    folder: "ila/events",
-    resource_type: "image",
-  });
-  return res.secure_url;
-}
 export async function DELETE(req, { params }) {
   try {
     const { id } = params;
@@ -130,9 +94,7 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    await prisma.event.delete({
-      where: { id },
-    });
+    await prisma.event.delete({ where: { id } });
 
     return NextResponse.json({ message: "Evento eliminado correctamente" });
   } catch (error) {
