@@ -93,30 +93,16 @@ prisma/
 | Rol | Acceso |
 |---|---|
 | `admin` | Dashboard completo |
-| `translator` | Solo `/dashboard/translators` y `/dashboard/account` |
-| `user` | Solo `/dashboard-users` (suscriptores) |
+| `translator` | Acceso restringido a herramientas de traducción |
+| `user` | Acceso restringido a área de suscriptores |
 
 ---
 
 ## Storage de archivos
 
-Los archivos se almacenan en el servidor Hetzner fuera del repositorio:
+Los archivos se almacenan en el servidor Hetzner fuera del repositorio, organizados en carpetas por tipo de contenido (imágenes de artículos, portadas de ediciones, PDFs públicos y privados).
 
-```
-/usr/home/ilaweb/ila-uploads/
-  images/
-    aktuelles/              ← imágenes de Aktuelles
-    editions/<num>/
-      articulos/            ← imágenes de artículos de edición
-      portada/              ← portada de la edición
-    online/                 ← imágenes de artículos online
-  pdfs-public/
-    editions/<num>/         ← PDFs de artículos de edición
-    online/                 ← PDFs de artículos online
-  pdfs-private/             ← PDFs privados ABO (acceso autenticado)
-```
-
-Se sirven vía `/api/media/[...path]` con cache de 1 año.
+Se sirven vía API route con cache de 1 año.
 
 ---
 
@@ -157,9 +143,7 @@ SENTRY_DSN=
 git pull origin main
 npm install
 npm run build
-pm2 restart ilaweb
-pm2 restart ila-scheduler
-pm2 save
+pm2 restart <app> && pm2 save
 ```
 
 El servidor sigue activo durante el build — solo hay ~1 segundo de interrupción en el `pm2 restart`.
