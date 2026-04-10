@@ -25,7 +25,7 @@ export default function DossiersSection() {
   const fetchEditions = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/editions?admin=true&limit=200&sortField=number&sortOrder=desc");
+      const res = await fetch("/api/editions?admin=true&limit=500&sortField=number&sortOrder=desc");
       const data = await res.json();
       setEditions(data?.items || []);
     } catch {
@@ -50,7 +50,7 @@ export default function DossiersSection() {
       // Actualizar solo esa edición en el estado
       const updated = await res.json();
       setEditions((prev) =>
-        prev.map((e) => (e.id === editionId ? { ...e, editionPdf: updated } : e))
+        prev.map((e) => (e.id === editionId ? { ...e, pdf: updated } : e))
       );
     } catch {
       showToast("Error al subir el PDF", "error");
@@ -67,7 +67,7 @@ export default function DossiersSection() {
       if (!res.ok) throw new Error();
       showToast("PDF eliminado");
       setEditions((prev) =>
-        prev.map((e) => (e.id === editionId ? { ...e, editionPdf: null } : e))
+        prev.map((e) => (e.id === editionId ? { ...e, pdf: null } : e))
       );
     } catch {
       showToast("Error al eliminar el PDF", "error");
@@ -137,9 +137,9 @@ export default function DossiersSection() {
 
 function EditionRow({ edition, uploading, deleting, onUpload, onDelete }) {
   const fileRef = useRef(null);
-  const hasPdf = !!edition.editionPdf;
-  const fileSizeKB = edition.editionPdf?.fileSize
-    ? (edition.editionPdf.fileSize / 1024 / 1024).toFixed(1) + " MB"
+  const hasPdf = !!edition.pdf;
+  const fileSizeKB = edition.pdf?.fileSize
+    ? (edition.pdf.fileSize / 1024 / 1024).toFixed(1) + " MB"
     : "—";
 
   return (

@@ -77,7 +77,7 @@ export async function GET(req) {
       const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
       const limit = Math.min(
         Math.max(parseInt(searchParams.get("limit") || "20", 10), 1),
-        100
+        500
       );
       const skip = (page - 1) * limit;
 
@@ -98,7 +98,7 @@ export async function GET(req) {
             },
             regions: { select: { id: true, name: true, nameES: true } },
             topics: { select: { id: true, name: true, nameES: true } },
-            editionPdf: { select: { pdfUrl: true, fileSize: true, uploadedAt: true } },
+            pdf: { select: { pdfUrl: true, fileSize: true, uploadedAt: true } },
           },
         }),
       ]);
