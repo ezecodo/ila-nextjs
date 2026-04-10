@@ -1169,6 +1169,8 @@
       "resend_success": "E-Mail erneut gesendet an {email}",
       "resend_error": "Fehler beim Senden",
       "connection_error": "Verbindungsfehler",
+      "date_saved": "Startdatum gespeichert",
+      "save_error": "Fehler beim Speichern",
       "confirm_delete": "Sind Sie sicher, dass Sie diese Einladung löschen möchten?"
     },
     "loading": "Daten werden geladen..."

@@ -31,13 +31,13 @@ export async function DELETE(request, { params }) {
 // GET - Obtener invitación individual
 export async function GET(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const invitation = await prisma.pdfAboInvitation.findUnique({
       where: { id },
@@ -72,13 +72,13 @@ export async function GET(request, { params }) {
 // PATCH - Actualizar invitación
 export async function PATCH(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json({ message: "No autorizado" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const data = await request.json();
 
     const invitation = await prisma.pdfAboInvitation.update({

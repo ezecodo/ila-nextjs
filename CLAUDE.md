@@ -19,8 +19,11 @@ src/
   app/
     [locale]/          # Todas las páginas públicas y dashboard
       dashboard/       # Panel de administración (protegido, solo admin)
-      dashboard-users/ # Panel de usuarios normales (protegido)
+      dashboard-users/ # Panel de usuarios normales + PDF-Abo (protegido)
       auth/            # Login / registro
+      pdf-reader/      # Visor de PDFs (dev/test)
+      components/
+        PdfReader/     # Componente visor PDF flip-book (react-pageflip + pdfjs)
     api/               # API routes (Next.js Route Handlers)
     components/        # Componentes globales reutilizables
     globals.css        # Estilos globales
@@ -48,6 +51,8 @@ prisma/
   schema.prisma        # Schema de la BD — NO TOCAR
   migrations/          # Migraciones — NO TOCAR
 scripts/               # Scripts de utilidad y migración de datos (no tocar)
+  pdf-abo-subscribers.json   # Lista de suscriptores PDF-Abo
+  seed-pdf-abo.js            # Script para cargar suscriptores en BD (sin enviar emails)
 ```
 
 ## API Routes disponibles
@@ -61,7 +66,17 @@ src/app/api/
   gifts/           orders/        topics/         translate/
   interviewees/    regions/       subscriptions/  upload/
   links/           network/       toc-match/      users/
+  user/            health/        media/
 ```
+
+### API routes PDF-Abo relevantes
+- `GET /api/user/pdf-abo` — verifica si el usuario actual tiene PDF-Abo activo
+- `GET /api/admin/pdf-abo-invitations` — lista de invitaciones (admin)
+- `POST /api/admin/pdf-abo-invitations` — crear invitación (admin)
+- `DELETE /api/admin/pdf-abo-invitations/[id]` — eliminar invitación (admin)
+- `POST /api/admin/pdf-abo-invitations/[id]/resend` — reenviar email de invitación (admin)
+- `POST /api/admin/pdf-abo-invitations/upload-csv` — carga masiva por CSV (admin)
+- `GET/POST/DELETE /api/editions/[id]/pdf-abo` — gestión del PDF privado de una edición (admin)
 
 ## Páginas del dashboard
 
@@ -69,7 +84,9 @@ src/app/api/
 src/app/[locale]/dashboard/
   account/         articles/      editions/       k2/
   activity/        authors/       events/         links/
-  admin/           banners/       faq/            network/
+  admin/
+    pdf-abo/       # Gestión PDF-Abo: suscriptores + upload de dossiers
+  banners/         faq/            network/
   aktuelles/       carousels/     gifts/          regions/
   annual-index/    components/    instagram-generator/
   orders/          reviewer/      subscriptions/  topics/
@@ -80,8 +97,42 @@ src/app/[locale]/dashboard/
 
 - **admin**: acceso total al dashboard
 - **translator**: solo `/dashboard/translators/*` y `/dashboard/account`
-- **user**: solo `/dashboard-users`
+- **user**: solo `/dashboard-users` (artículos favoritos + cuenta)
+- **user con PDF-Abo**: igual que user + módulo "Mis Dossiers PDF" (controlado por `PdfAboInvitation.isRedeemed`, no por rol separado)
 - Protección gestionada en `src/middleware.js` — **NUNCA modificar**
+
+## Sistema PDF-Abo
+
+### Modelo de datos
+- `PdfAboInvitation` — whitelist de emails autorizados (`email`, `name`, `isRedeemed`, `redeemedBy`, `startDate`, `endDate`)
+- `EditionPdf` — PDF privado de cada edición (`editionId`, `pdfUrl`, `fileSize`, `pageCount`) — relación `Edition.pdf`
+
+### Flujo completo
+1. Admin carga emails en `/dashboard/admin/pdf-abo` (individualmente o por CSV)
+2. Admin sube PDFs de dossiers desde la sección "Dossiers PDF-Abo" de esa misma página
+3. Admin envía invitación por email (botón ✈️ por cada suscriptor) — el link incluye email y nombre pre-rellenados
+4. El suscriptor hace click → llega a `/auth/signup?pdfAbo=true&email=...&name=...` con el form pre-rellenado y el email bloqueado
+5. Al registrarse, `PdfAboInvitation` se marca `isRedeemed: true` y se vincula al `User`
+6. El suscriptor ve el módulo "📰 Mis Dossiers (PDF)" en `/dashboard-users`
+
+### Acceso a PDFs privados
+- Los PDFs se sirven desde `/api/media/pdfs-private/...` — actualmente sin auth (pendiente implementar verificación)
+- Para verificar acceso: `GET /api/user/pdf-abo` → `{ hasPdfAbo: boolean }`
+- El visor usa `PdfReader` component (`react-pageflip` + `pdfjs` desde CDN)
+
+### Archivos clave
+- `src/app/[locale]/dashboard/admin/pdf-abo/page.jsx` — página admin (suscriptores + dossiers)
+- `src/app/[locale]/dashboard/admin/pdf-abo/DossiersSection.jsx` — sección upload de PDFs por edición
+- `src/app/[locale]/dashboard-users/page.js` — dashboard usuario (muestra módulo PDF si tiene ABO)
+- `src/app/[locale]/components/PdfReader/PdfReader.jsx` — visor flip-book
+- `src/app/[locale]/pdf-reader/page.js` — página de prueba del visor (`/de/pdf-reader?url=...`)
+
+### PDFs privados en Hetzner
+```
+/usr/home/ilaweb/ila-uploads/pdfs-private/editions/<number>/ila_<number>_<timestamp>.pdf
+```
+- **No usar `/api/media/`** para PDFs privados hasta implementar auth — pendiente
+- Los PDFs públicos de artículos siguen en `pdfs-public/`
 
 ## Internacionalización (next-intl)
 
@@ -91,12 +142,14 @@ src/app/[locale]/dashboard/
 - Al añadir keys nuevas, añadirlas **siempre en ambos archivos**: `messages/de.json` y `messages/es.json`
 - **Nunca eliminar** keys existentes de los JSON sin confirmación explícita
 - El locale por defecto es `de` (alemán)
+- Los placeholders en traducciones usan `{variable}` (llave simple) — next-intl NO acepta `{{variable}}`
 
 ## Prisma
 
 - Importar siempre el cliente desde: `import { prisma } from "@/lib/prisma"`
 - **NUNCA modificar `prisma/schema.prisma`** sin confirmación explícita
 - **NUNCA ejecutar `prisma migrate`** sin confirmación explícita
+- Las migraciones se corren localmente con `npx prisma migrate dev` — como la BD remota es la misma para dev y prod, quedan aplicadas en producción también
 - Seguir el patrón existente en las API routes para queries
 
 ## Patrón estándar de API Route
@@ -182,12 +235,14 @@ export default function MiPaginaDashboard() {
   pdfs-public/
     editions/<number>/  ← PDFs de artículos de edición
     online/             ← PDFs de artículos online
-  pdfs-private/         ← PDFs privados ABO (pendiente de implementar auth)
+  pdfs-private/
+    editions/<number>/  ← PDFs privados completos para PDF-Abo
 ```
 
 ### URLs
 - Las imágenes se sirven vía API route: `https://www.ila-web.de/api/media/images/nombre.jpg`
 - Los PDFs públicos: `https://www.ila-web.de/api/media/pdfs-public/nombre.pdf`
+- Los PDFs privados: `https://www.ila-web.de/api/media/pdfs-private/editions/<number>/nombre.pdf` — pendiente auth
 - El endpoint `/api/media/[...path]` lee los archivos del disco y los sirve con cache de 1 año
 
 ### Helper `localUpload.js`
@@ -209,6 +264,7 @@ await deleteFile(url);
 - `src/app/api/aktuelles/[id]/route.js` ✅
 - `src/app/api/editions/route.js` ✅
 - `src/app/api/editions/[id]/route.js` ✅
+- `src/app/api/editions/[id]/pdf-abo/route.js` ✅ (PDFs privados)
 
 ### Módulos pendientes de migrar (aún usan Cloudinary)
 - `src/app/api/annual-index/upload/route.js`
@@ -219,6 +275,7 @@ await deleteFile(url);
 ### Mejoras de infraestructura pendientes
 - **Dockerizar la app** — permitiría zero-downtime real con `docker-compose`, rollback instantáneo y entorno reproducible. Los uploads en `~/ila-uploads/` se montarían como volumen Docker.
 - **Migrar módulos restantes** de Cloudinary a storage local (ver lista de módulos pendientes arriba)
+- **Auth en `/api/media/pdfs-private/`** — implementar verificación de sesión + PDF-Abo antes de lanzar
 
 ### Imágenes existentes en Cloudinary
 - Las URLs antiguas de Cloudinary siguen funcionando mientras la cuenta esté activa
@@ -274,6 +331,7 @@ pm2 save
 
 - El servidor sigue corriendo durante el build — sin downtime para los lectores
 - Solo hay ~1 segundo de interrupción en el `pm2 restart`
+- Las migraciones de Prisma se corren desde local (misma BD) — no hace falta `prisma migrate deploy` en el servidor
 
 ## Comandos útiles
 
@@ -281,4 +339,5 @@ pm2 save
 npm run dev          # Servidor de desarrollo en http://localhost:3000
 npm run build        # Build de producción
 npx prisma studio    # GUI para explorar la base de datos
+node scripts/seed-pdf-abo.js  # Cargar suscriptores PDF-Abo en BD (sin enviar emails)
 ```

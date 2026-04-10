@@ -1168,6 +1168,8 @@
       "resend_success": "Email reenviado a {email}",
       "resend_error": "Error al reenviar",
       "connection_error": "Error de conexión",
+      "date_saved": "Fecha de inicio guardada",
+      "save_error": "Error al guardar",
       "confirm_delete": "¿Estás seguro de eliminar esta invitación?"
     },
     "loading": "Cargando datos..."

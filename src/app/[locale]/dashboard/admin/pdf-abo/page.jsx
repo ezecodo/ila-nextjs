@@ -42,6 +42,7 @@ export default function PdfAboAdmin() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [filter, setFilter] = useState("all");
   const [toasts, setToasts] = useState([]);
+  const [editingDate, setEditingDate] = useState(null); // { id, value }
 
   const showToast = (key, type = "success", values = {}) => {
     const id = Date.now();
@@ -142,6 +143,27 @@ export default function PdfAboAdmin() {
       }
     } catch (error) {
       console.error("Error:", error);
+      showToast("toasts.connection_error", "error");
+    }
+  };
+
+  const handleSaveDate = async (id, newDate) => {
+    try {
+      const res = await fetch(`/api/admin/pdf-abo-invitations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate: newDate }),
+      });
+      if (res.ok) {
+        setInvitations((prev) =>
+          prev.map((inv) => inv.id === id ? { ...inv, startDate: newDate } : inv)
+        );
+        setEditingDate(null);
+        showToast("toasts.date_saved");
+      } else {
+        showToast("toasts.save_error", "error");
+      }
+    } catch {
       showToast("toasts.connection_error", "error");
     }
   };
@@ -450,10 +472,41 @@ export default function PdfAboAdmin() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-gray-500 text-sm">
-                        {new Date(inv.startDate).toLocaleDateString(
-                          locale === "es" ? "es-ES" : "de-DE",
-                          dateOptions,
+                      <td className="px-6 py-4 text-sm">
+                        {editingDate?.id === inv.id ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="date"
+                              value={editingDate.value}
+                              onChange={(e) => setEditingDate({ id: inv.id, value: e.target.value })}
+                              className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-[#BD0E0D]"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleSaveDate(inv.id, editingDate.value)}
+                              className="text-green-600 hover:text-green-800 font-bold"
+                              title="Guardar"
+                            >✓</button>
+                            <button
+                              onClick={() => setEditingDate(null)}
+                              className="text-gray-400 hover:text-gray-600"
+                              title="Cancelar"
+                            >✗</button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setEditingDate({
+                              id: inv.id,
+                              value: new Date(inv.startDate).toISOString().split("T")[0],
+                            })}
+                            className="text-gray-500 hover:text-[#BD0E0D] transition-colors cursor-pointer underline decoration-dotted"
+                            title="Editar fecha de inicio"
+                          >
+                            {new Date(inv.startDate).toLocaleDateString(
+                              locale === "es" ? "es-ES" : "de-DE",
+                              dateOptions,
+                            )}
+                          </button>
                         )}
                       </td>
                       <td className="px-6 py-4 text-gray-500 text-sm">

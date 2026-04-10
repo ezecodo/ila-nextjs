@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLocale } from "next-intl";
 import AccountSettings from "../components/AccountSettings/AccountSettings";
 import FavoriteArticlesList from "./FavoriteArticleList/FavoriteArticleList";
+import PdfDossiers from "./PdfDossiers/PdfDossiers";
 
 export default function UserDashboard() {
   const [selectedTab, setSelectedTab] = useState("favorites");
   const [menuOpen, setMenuOpen] = useState(false);
   const [hasPdfAbo, setHasPdfAbo] = useState(false);
+  const locale = useLocale();
 
   useEffect(() => {
     fetch("/api/user/pdf-abo")
@@ -67,21 +70,10 @@ export default function UserDashboard() {
         {selectedTab === "account" && <AccountSettings />}
         {selectedTab === "favorites" && <FavoriteArticlesList />}
         {selectedTab === "pdf-dossiers" && hasPdfAbo && (
-          <PdfDossiersPlaceholder />
+          <PdfDossiers locale={locale} />
         )}
       </div>
     </div>
   );
 }
 
-function PdfDossiersPlaceholder() {
-  return (
-    <div className="flex flex-col items-center justify-center h-64 text-center gap-4">
-      <span className="text-5xl">📰</span>
-      <h2 className="text-xl font-bold text-gray-800">Mis Dossiers PDF</h2>
-      <p className="text-gray-500 text-sm max-w-xs">
-        Aquí aparecerán las ediciones disponibles para tu PDF-Abo. Próximamente.
-      </p>
-    </div>
-  );
-}
