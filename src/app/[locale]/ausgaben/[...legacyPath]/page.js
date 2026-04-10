@@ -153,16 +153,16 @@ export default function LegacyArticlePage() {
   }
   function wrapInlineImagesWithCaption(html) {
     if (!html) return "";
-    return html.replace(/<p>\s*(<img[^>]+>)\s*<\/p>/gi, (match, imgTag) => {
-      const altMatch   = imgTag.match(/alt="([^"]*)"/);
-      const titleMatch = imgTag.match(/title="([^"]*)"/);
+    return html.replace(/<img([^>]+)>/gi, (match, attrs) => {
+      const altMatch   = attrs.match(/alt="([^"]*)"/);
+      const titleMatch = attrs.match(/title="([^"]*)"/);
       const caption    = (altMatch?.[1]   || "").trim();
       const credit     = (titleMatch?.[1] || "").trim();
       if (!caption && !credit) return match;
       const figcaptionContent = caption && credit
-        ? `${caption}<span class="image-credit">${credit}</span>`
+        ? `${caption}<span class="image-credit"> · ${credit}</span>`
         : caption || credit;
-      return `<figure class="inline-image-figure">${imgTag}<figcaption>${figcaptionContent}</figcaption></figure>`;
+      return `<figure class="inline-image-figure">${match}<figcaption>${figcaptionContent}</figcaption></figure>`;
     });
   }
   function rewriteEditionLinksWithLocale(html, locale) {
