@@ -34,12 +34,19 @@ const BookPage = forwardRef(function BookPage(
     let cancelled = false;
     pdfDoc.getPage(pageNumber).then((page) => {
       if (cancelled || !canvasRef.current) return;
+      const pixelRatio = window.devicePixelRatio || 1;
       const baseViewport = page.getViewport({ scale: 1 });
-      const scale = width / baseViewport.width;
-      const viewport = page.getViewport({ scale });
+      const displayScale = width / baseViewport.width;
+      // Renderizar siempre a alta resolución (mínimo 3x el tamaño visual)
+      const renderScale = Math.max(displayScale * pixelRatio, displayScale * 3);
+      const viewport = page.getViewport({ scale: renderScale });
       const canvas = canvasRef.current;
+      // Canvas físico a alta resolución
       canvas.width = viewport.width;
       canvas.height = viewport.height;
+      // Tamaño visual CSS (el display real)
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
       const ctx = canvas.getContext("2d");
       page.render({ canvasContext: ctx, viewport });
     });
@@ -99,7 +106,7 @@ export default function PdfReader({ pdfUrl, title = "ila", onClose }) {
 
   const pageWidth = isMobile
     ? Math.min((typeof window !== "undefined" ? window.innerWidth : 400) - 32, 360)
-    : 520;
+    : Math.min(Math.floor(((typeof window !== "undefined" ? window.innerHeight : 800) - 120) / 1.414), 680);
   const pageHeight = Math.round(pageWidth * 1.414);
 
   const goNext = () => flipBookRef.current?.pageFlip().flipNext();
