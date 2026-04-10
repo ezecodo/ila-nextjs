@@ -180,6 +180,7 @@ const DashboardStats = () => {
               href: "/dashboard/subscriptions",
             },
             { label: t("gifts"), href: "/dashboard/gifts" },
+            { label: t("pdfAbo"), href: "/dashboard/admin/pdf-abo" },
           ]}
           pathname={pathname}
           newOrders={newOrders}
@@ -362,6 +363,13 @@ const DashboardStats = () => {
               onClick={closeMobile}
             >
               {t("gifts")}
+            </Link>
+            <Link
+              href="/dashboard/admin/pdf-abo"
+              className={mobileLinkClass("/dashboard/admin/pdf-abo")}
+              onClick={closeMobile}
+            >
+              {t("pdfAbo")}
             </Link>
 
             {/* Gestaltung */}

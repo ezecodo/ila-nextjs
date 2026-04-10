@@ -33,7 +33,7 @@ export async function POST(request, { params }) {
     }
 
     // Enviar email
-    await sendPdfAboInvitationEmail(invitation.email);
+    await sendPdfAboInvitationEmail(invitation.email, invitation.name || "");
 
     return NextResponse.json({
       message: "Email enviado",

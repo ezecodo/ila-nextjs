@@ -584,6 +584,7 @@
     "orders": "Bestellungen",
     "viewOrders": "Dossiers",
     "gifts": "Prämien",
+    "pdfAbo": "PDF-Abo",
     "auditLabel": "Verwaltung",
     "authors": "Autoren",
     "topics": "Themen",
@@ -1137,6 +1138,7 @@
       "delete": "Löschen"
     },
     "table": {
+      "th_name": "Name",
       "th_email": "E-Mail",
       "th_status": "Status",
       "th_date_inv": "Einladungsdatum",
@@ -1149,6 +1151,8 @@
     },
     "modal": {
       "title": "E-Mail hinzufügen",
+      "label_name": "Name (optional)",
+      "placeholder_name": "Vorname Nachname",
       "label": "E-Mail des Abonnenten",
       "placeholder": "beispiel@email.com",
       "cancel": "Abbrechen",
@@ -1158,11 +1162,11 @@
       "added": "E-Mail erfolgreich hinzugefügt",
       "add_error": "Fehler beim Hinzufügen der E-Mail",
       "load_error": "Fehler beim Laden der Daten",
-      "csv_success": "Verarbeitet: {{added}} neue E-Mails. {{duplicates}} Duplikate.",
+      "csv_success": "Verarbeitet: {added} neue E-Mails. {duplicates} Duplikate.",
       "csv_error": "Fehler beim Verarbeiten der CSV",
       "deleted": "Einladung gelöscht",
       "delete_error": "Fehler beim Löschen",
-      "resend_success": "E-Mail erneut gesendet an {{email}}",
+      "resend_success": "E-Mail erneut gesendet an {email}",
       "resend_error": "Fehler beim Senden",
       "connection_error": "Verbindungsfehler",
       "confirm_delete": "Sind Sie sicher, dass Sie diese Einladung löschen möchten?"

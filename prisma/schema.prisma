@@ -186,6 +186,7 @@ model AnnualIndex {
 model PdfAboInvitation {
   id          String    @id @default(cuid())
   email       String    @unique
+  name        String?
   isRedeemed  Boolean   @default(false)
   redeemedAt  DateTime?
   redeemedBy  String?   @unique  // ← Añade @unique aquí

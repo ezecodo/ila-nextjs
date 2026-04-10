@@ -98,6 +98,7 @@ export async function GET(req) {
             },
             regions: { select: { id: true, name: true, nameES: true } },
             topics: { select: { id: true, name: true, nameES: true } },
+            editionPdf: { select: { pdfUrl: true, fileSize: true, uploadedAt: true } },
           },
         }),
       ]);

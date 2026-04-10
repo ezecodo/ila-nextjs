@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import DossiersSection from "./DossiersSection";
 import {
   FaEnvelope,
   FaUpload,
@@ -34,6 +35,7 @@ export default function PdfAboAdmin() {
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newEmail, setNewEmail] = useState("");
+  const [newName, setNewName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [csvFile, setCsvFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -76,11 +78,12 @@ export default function PdfAboAdmin() {
       const res = await fetch("/api/admin/pdf-abo-invitations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: newEmail.trim().toLowerCase() }),
+        body: JSON.stringify({ email: newEmail.trim().toLowerCase(), name: newName.trim() || null }),
       });
 
       if (res.ok) {
         setNewEmail("");
+        setNewName("");
         fetchInvitations();
         setShowAddModal(false);
         showToast("toasts.added");
@@ -387,6 +390,7 @@ export default function PdfAboAdmin() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 font-semibold">
+                  <th className="px-6 py-4">{t("table.th_name")}</th>
                   <th className="px-6 py-4">{t("table.th_email")}</th>
                   <th className="px-6 py-4">{t("table.th_status")}</th>
                   <th className="px-6 py-4">{t("table.th_date_inv")}</th>
@@ -399,7 +403,7 @@ export default function PdfAboAdmin() {
               <tbody className="divide-y divide-gray-100">
                 {filteredInvitations.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-16 text-center">
+                    <td colSpan={6} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center justify-center gap-4 text-gray-400">
                         <div className="p-4 bg-gray-50 rounded-full">
                           <FaInbox className="text-3xl opacity-50" />
@@ -417,6 +421,11 @@ export default function PdfAboAdmin() {
                       key={inv.id}
                       className="group hover:bg-gray-50 transition-colors duration-200"
                     >
+                      <td className="px-6 py-4">
+                        <span className="text-gray-700">
+                          {inv.name || <span className="text-gray-400 italic">—</span>}
+                        </span>
+                      </td>
                       <td className="px-6 py-4">
                         <span className="font-medium text-gray-900">
                           {inv.email}
@@ -484,6 +493,9 @@ export default function PdfAboAdmin() {
         </div>
       </div>
 
+      {/* ── Sección Dossiers PDF ─────────────────────────────── */}
+      <DossiersSection />
+
       {/* Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity opacity-100 animate-in fade-in duration-200">
@@ -493,7 +505,7 @@ export default function PdfAboAdmin() {
                 {t("modal.title")}
               </h2>
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => { setShowAddModal(false); setNewName(""); setNewEmail(""); }}
                 className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <FaTimes />
@@ -501,6 +513,22 @@ export default function PdfAboAdmin() {
             </div>
 
             <form onSubmit={handleAddEmail} className="p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("modal.label_name")}
+                </label>
+                <div className="relative">
+                  <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder={t("modal.placeholder_name")}
+                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#BD0E0D] focus:ring-1 focus:ring-[#BD0E0D] transition-all"
+                    autoFocus
+                  />
+                </div>
+              </div>
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t("modal.label")}
@@ -514,7 +542,6 @@ export default function PdfAboAdmin() {
                     placeholder={t("modal.placeholder")}
                     className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#BD0E0D] focus:ring-1 focus:ring-[#BD0E0D] transition-all"
                     required
-                    autoFocus
                   />
                 </div>
               </div>

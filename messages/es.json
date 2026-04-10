@@ -584,6 +584,7 @@
     "orders": "Pedidos",
     "viewOrders": "Dossiers",
     "gifts": "Premios",
+    "pdfAbo": "PDF-Abo",
     "auditLabel": "Administración",
     "authors": "Autores",
     "topics": "Temas",
@@ -1136,6 +1137,7 @@
       "delete": "Eliminar"
     },
     "table": {
+      "th_name": "Nombre",
       "th_email": "Email",
       "th_status": "Estado",
       "th_date_inv": "Fecha Invitación",
@@ -1148,6 +1150,8 @@
     },
     "modal": {
       "title": "Añadir Email",
+      "label_name": "Nombre (opcional)",
+      "placeholder_name": "Nombre Apellido",
       "label": "Email del suscriptor",
       "placeholder": "ejemplo@email.com",
       "cancel": "Cancelar",
@@ -1157,11 +1161,11 @@
       "added": "Email añadido correctamente",
       "add_error": "Error al añadir email",
       "load_error": "Error al cargar los datos",
-      "csv_success": "Procesado: {{added}} nuevos emails. {{duplicates}} duplicados.",
+      "csv_success": "Procesado: {added} nuevos emails. {duplicates} duplicados.",
       "csv_error": "Error al procesar el CSV",
       "deleted": "Invitación eliminada",
       "delete_error": "Error al eliminar",
-      "resend_success": "Email reenviado a {{email}}",
+      "resend_success": "Email reenviado a {email}",
       "resend_error": "Error al reenviar",
       "connection_error": "Error de conexión",
       "confirm_delete": "¿Estás seguro de eliminar esta invitación?"

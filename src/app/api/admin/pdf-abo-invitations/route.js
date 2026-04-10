@@ -44,7 +44,7 @@ export async function POST(request) {
       return NextResponse.json({ message: "No autorizado" }, { status: 401 });
     }
 
-    const { email, startDate, endDate } = await request.json();
+    const { email, name, startDate, endDate } = await request.json();
 
     if (!email) {
       return NextResponse.json(
@@ -68,6 +68,7 @@ export async function POST(request) {
     const invitation = await prisma.pdfAboInvitation.create({
       data: {
         email: email.toLowerCase(),
+        name: name?.trim() || null,
         startDate: startDate ? new Date(startDate) : new Date(),
         endDate: endDate ? new Date(endDate) : null,
       },

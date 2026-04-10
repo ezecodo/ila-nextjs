@@ -378,8 +378,10 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
 /**
  * 📩 Enviar email de invitación PDF ABO
  */
-export async function sendPdfAboInvitationEmail(email) {
-  const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?pdfAbo=true`;
+export async function sendPdfAboInvitationEmail(email, name = "") {
+  const params = new URLSearchParams({ pdfAbo: "true", email });
+  if (name) params.set("name", name);
+  const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?${params.toString()}`;
 
   try {
     const response = await resend.emails.send({

@@ -9,10 +9,12 @@ import { useTranslations } from "next-intl";
 function SignUpForm() {
   const searchParams = useSearchParams();
   const isPdfAbo = searchParams.get("pdfAbo") === "true";
+  const prefilledEmail = searchParams.get("email") || "";
+  const prefilledName = searchParams.get("name") || "";
   const t = useTranslations("auth");
 
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState(prefilledEmail);
+  const [name, setName] = useState(prefilledName);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -119,8 +121,13 @@ function SignUpForm() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-[var(--foreground)] text-sm focus:outline-none focus:border-[#d13120] transition-colors"
+                onChange={(e) => !isPdfAbo && setEmail(e.target.value)}
+                readOnly={isPdfAbo}
+                className={`w-full px-3 py-2.5 border border-gray-300 dark:border-neutral-600 text-[var(--foreground)] text-sm focus:outline-none transition-colors ${
+                  isPdfAbo
+                    ? "bg-gray-100 dark:bg-neutral-700 cursor-not-allowed text-gray-500"
+                    : "bg-white dark:bg-neutral-800 focus:border-[#d13120]"
+                }`}
                 required
                 autoComplete="email"
               />
