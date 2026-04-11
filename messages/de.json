@@ -1174,5 +1174,22 @@
       "confirm_delete": "Sind Sie sicher, dass Sie diese Einladung löschen möchten?"
     },
     "loading": "Daten werden geladen..."
+  },
+  "user_dashboard": {
+    "title": "Dashboard",
+    "menu_open": "Menü öffnen ☰",
+    "menu_close": "Menü schließen ☰",
+    "tabs": {
+      "favorites": "Lieblingsartikel",
+      "pdf_dossiers": "📰 Meine Dossiers (PDF)",
+      "account": "Kontoeinstellungen"
+    },
+    "pdf_dossiers": {
+      "heading": "Meine Dossiers",
+      "available_one": "{count} Ausgabe verfügbar",
+      "available_other": "{count} Ausgaben verfügbar",
+      "empty": "Noch keine PDF-Ausgaben verfügbar.",
+      "open": "Öffnen →"
+    }
   }
 }

@@ -1173,5 +1173,22 @@
       "confirm_delete": "¿Estás seguro de eliminar esta invitación?"
     },
     "loading": "Cargando datos..."
+  },
+  "user_dashboard": {
+    "title": "Dashboard",
+    "menu_open": "Abrir Menú ☰",
+    "menu_close": "Cerrar Menú ☰",
+    "tabs": {
+      "favorites": "Artículos Favoritos",
+      "pdf_dossiers": "📰 Mis Dossiers (PDF)",
+      "account": "Configuración de cuenta"
+    },
+    "pdf_dossiers": {
+      "heading": "Mis Dossiers",
+      "available_one": "{count} edición disponible",
+      "available_other": "{count} ediciones disponibles",
+      "empty": "Aún no hay ediciones PDF disponibles.",
+      "open": "Abrir →"
+    }
   }
 }

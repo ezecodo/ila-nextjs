@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const PdfReader = dynamic(
   () => import("../../components/PdfReader/PdfReader"),
@@ -13,6 +14,7 @@ export default function PdfDossiers({ locale }) {
   const [editions, setEditions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activePdf, setActivePdf] = useState(null); // { url, title }
+  const t = useTranslations("user_dashboard.pdf_dossiers");
 
   useEffect(() => {
     fetch("/api/user/pdf-abo/editions")
@@ -46,7 +48,7 @@ export default function PdfDossiers({ locale }) {
       <div className="flex flex-col items-center justify-center h-48 text-center gap-3">
         <span className="text-4xl">📭</span>
         <p className="text-gray-500 text-sm">
-          Noch keine PDF-Ausgaben verfügbar.
+          {t("empty")}
         </p>
       </div>
     );
@@ -54,9 +56,9 @@ export default function PdfDossiers({ locale }) {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-1">Meine Dossiers</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-1">{t("heading")}</h2>
       <p className="text-gray-400 text-sm mb-6">
-        {editions.length} Ausgabe{editions.length !== 1 ? "n" : ""} verfügbar
+        {editions.length === 1 ? t("available_one", { count: 1 }) : t("available_other", { count: editions.length })}
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -79,6 +81,7 @@ export default function PdfDossiers({ locale }) {
 }
 
 function EditionCard({ edition, locale, onOpen }) {
+  const t = useTranslations("user_dashboard.pdf_dossiers");
   const title = locale === "es" && edition.titleES ? edition.titleES : edition.title;
   const year = new Date(edition.datePublished).getFullYear();
 
@@ -113,7 +116,7 @@ function EditionCard({ edition, locale, onOpen }) {
         {/* Overlay al hover */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
           <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-bold bg-[#BD0E0D] px-3 py-1.5 rounded-lg">
-            Öffnen →
+            {t("open")}
           </span>
         </div>
       </div>
