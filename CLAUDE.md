@@ -194,6 +194,36 @@ export default function MiPaginaDashboard() {
 }
 ```
 
+## Editor de artículos (Publisher / ila v2)
+
+### Rutas
+- `/dashboard/articles/edit/[id]` — editor clásico (activo para todos los admins)
+- `/dashboard/articles/edit-v2/[id]` — **nuevo editor v2** (acceso restringido, ver abajo)
+- `/dashboard/articles/new-v2` — nueva ruta v2 equivalente
+
+### Acceso al editor v2
+- El botón "Editar" en `ArticlesList.js` muestra un modal de elección **solo para** `e.zeangeloni@gmail.com`
+- El modal ofrece "Nuevo editor (v2)" o "Editor clásico"
+- Para cualquier otro admin, el botón va directamente al editor clásico
+- La página `edit-v2/[id]/page.js` también verifica la sesión y redirige al editor clásico si el email no coincide
+- Cuando el v2 esté listo para todos: quitar el check de email en `edit-v2/[id]/page.js` y cambiar el href en `ArticlesList.js`
+
+### Componente InterviewEditor (Publisher)
+- Archivo: `src/app/[locale]/components/InterviewEditor/InterviewEditor.jsx`
+- Formulario padre: `src/app/[locale]/dashboard/articles/components/ArticleFormV2.jsx`
+- El `InterviewEditor` recibe `title` y `subtitle` del formulario y los pasa al `PasteImportPanel` para mostrarlos en la Vorschau
+- El Publisher (PasteImportPanel) tiene un modo "Vorschau" que replica exactamente el render de la página de artículos — las transforms están copiadas inline, **no importadas** de ningún archivo externo
+
+### Página de artículos — funciones de transformación
+- `src/app/[locale]/ausgaben/[...legacyPath]/page.js` contiene funciones **definidas localmente** dentro del componente:
+  - `autoFormatHeadings` — `<p><strong>Título</strong></p>` → `<h3>`
+  - `autoDetectHeadings` — párrafos cortos sin punto final → `<h3>` o `<h4>`
+  - `normalizeContentForRender` — pass-through (reservado para futuros usos)
+  - `wrapInlineImagesWithCaption` — `<img>` → `<figure>` con `<figcaption>`
+  - `rewriteEditionLinksWithLocale` — reescribe hrefs `/editions/[id]` con el locale correcto
+- **IMPORTANTE**: estas funciones están referenciadas en el render (línea ~560). Si se eliminan o se mueven sin actualizar el uso, la página rompe con `ReferenceError`
+- `src/lib/articleContentTransforms.js` existe pero está **huérfano** (no importado en ningún sitio) — no borrarlo sin revisar
+
 ## ⚠️ Archivos que NUNCA se deben modificar
 
 - `src/middleware.js`

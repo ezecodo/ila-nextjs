@@ -748,7 +748,8 @@
       "pdfAddButton": "PDF hinzufügen",
       "pdfTitlePlaceholder": "Titel des PDFs",
       "pdfRemove": "Entfernen",
-      "pdfFileMissing": "Bitte eine PDF-Datei auswählen"
+      "pdfFileMissing": "Bitte eine PDF-Datei auswählen",
+      "updateButton": "Änderungen speichern"
     },
     "modals": {
       "addAuthorTitle": "Neue/r Autor/in hinzufügen",

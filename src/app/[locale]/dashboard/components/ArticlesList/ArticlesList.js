@@ -31,8 +31,12 @@ const ArticlesList = ({ mode = "admin" }) => {
   const { data: session } = useSession();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState(null);
+  const [editPickerId, setEditPickerId] = useState(null);
+  const isSuperAdmin = session?.user?.email === "e.zeangeloni@gmail.com";
   const [selectedEdition, setSelectedEdition] = useState("");
   const [editions, setEditions] = useState([]);
+  const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
+  const [beitragstypen, setBeitragstypen] = useState([]);
 
   useEffect(() => {
     async function fetchEditions() {
@@ -44,7 +48,17 @@ const ArticlesList = ({ mode = "admin" }) => {
         console.error("❌ Error cargando ediciones:", err);
       }
     }
+    async function fetchBeitragstypen() {
+      try {
+        const res = await fetch("/api/beitragstypen");
+        const data = await res.json();
+        setBeitragstypen(data);
+      } catch (err) {
+        console.error("❌ Error cargando tipos:", err);
+      }
+    }
     fetchEditions();
+    fetchBeitragstypen();
   }, []);
 
   useEffect(() => {
@@ -71,6 +85,11 @@ const ArticlesList = ({ mode = "admin" }) => {
         // 👁️ Modo revisor (si lo usas)
         if (mode === "reviewer") {
           searchParams.append("reviewer", "true");
+        }
+
+        // Filtro por tipo de artículo
+        if (selectedBeitragstyp) {
+          searchParams.append("beitragstypId", selectedBeitragstyp);
         }
 
         // 👇 NUEVO filtro por dossier
@@ -100,7 +119,7 @@ const ArticlesList = ({ mode = "admin" }) => {
 
     if (mode === "translator" && !session?.user?.id) return;
     fetchArticles();
-  }, [page, sortField, sortOrder, mode, session?.user?.id, selectedEdition]);
+  }, [page, sortField, sortOrder, mode, session?.user?.id, selectedEdition, selectedBeitragstyp]);
 
   const handleSort = (field) => {
     setSortOrder(
@@ -112,30 +131,49 @@ const ArticlesList = ({ mode = "admin" }) => {
   return (
     <div className="w-full py-6">
       {mode !== "translator" && (
-        <div className="mb-4 flex items-center gap-2">
-          <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Filtrar por Dossier:
-          </label>
-          <select
-            value={selectedEdition}
-            onChange={(e) => setSelectedEdition(e.target.value)}
-            className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-          >
-            <option value="">-- Todos --</option>
-            <option value="nur-online">🌐 Nur Online</option>
-            <option value="unpublished">❌ Nicht veröffentlicht</option>
-            {mode === "assign" && (
-              <>
-                <option value="assigned">👤 Asignados</option>
-                <option value="translated">🌐 Traducidos</option>
-              </>
-            )}
-            {editions.map((ed) => (
-              <option key={ed.id} value={ed.id}>
-                {ed.title} (N° {ed.number})
-              </option>
-            ))}
-          </select>
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Dossier:
+            </label>
+            <select
+              value={selectedEdition}
+              onChange={(e) => { setSelectedEdition(e.target.value); setPage(1); }}
+              className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">-- Alle --</option>
+              <option value="nur-online">🌐 Nur Online</option>
+              <option value="unpublished">❌ Nicht veröffentlicht</option>
+              {mode === "assign" && (
+                <>
+                  <option value="assigned">👤 Asignados</option>
+                  <option value="translated">🌐 Traducidos</option>
+                </>
+              )}
+              {editions.map((ed) => (
+                <option key={ed.id} value={ed.id}>
+                  {ed.title} (N° {ed.number})
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Tipo:
+            </label>
+            <select
+              value={selectedBeitragstyp}
+              onChange={(e) => { setSelectedBeitragstyp(e.target.value); setPage(1); }}
+              className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">-- Alle --</option>
+              {beitragstypen.map((bt) => (
+                <option key={bt.id} value={bt.id}>
+                  {bt.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
 
@@ -364,11 +402,15 @@ const ArticlesList = ({ mode = "admin" }) => {
                       )}
                     </td>
                     <td className="px-5 py-3 text-center">
-                      <Link href={`/dashboard/articles/edit/${article.id}`}>
-                        <button className="text-blue-600 hover:underline">
+                      {isSuperAdmin ? (
+                        <button onClick={() => setEditPickerId(article.id)} className="text-blue-600 hover:underline">
                           Editar
                         </button>
-                      </Link>
+                      ) : (
+                        <Link href={`/${locale}/dashboard/articles/edit/${article.id}`}>
+                          <button className="text-blue-600 hover:underline">Editar</button>
+                        </Link>
+                      )}
                     </td>
                     <td className="px-5 py-3 text-center">
                       <button
@@ -602,6 +644,29 @@ const ArticlesList = ({ mode = "admin" }) => {
                 Sí, eliminar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Editor picker — solo para super admin */}
+      {editPickerId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setEditPickerId(null)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">¿Con qué editor?</h3>
+            <p className="text-xs text-gray-500 mb-5">Artículo #{editPickerId}</p>
+            <div className="flex flex-col gap-3">
+              <Link href={`/${locale}/dashboard/articles/edit-v2/${editPickerId}`} onClick={() => setEditPickerId(null)}>
+                <button className="w-full px-4 py-3 bg-[#BD0E0D] hover:bg-[#a50c0b] text-white font-bold rounded-lg text-sm transition">
+                  ✏️ Nuevo editor (v2)
+                </button>
+              </Link>
+              <Link href={`/${locale}/dashboard/articles/edit/${editPickerId}`} onClick={() => setEditPickerId(null)}>
+                <button className="w-full px-4 py-3 border border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm transition">
+                  Editor clásico
+                </button>
+              </Link>
+            </div>
+            <button onClick={() => setEditPickerId(null)} className="mt-4 text-xs text-gray-400 hover:text-gray-600 w-full text-center">Cancelar</button>
           </div>
         </div>
       )}

@@ -747,7 +747,8 @@
       "pdfAddButton": "Agregar PDF",
       "pdfTitlePlaceholder": "Título del PDF",
       "pdfRemove": "Eliminar",
-      "pdfFileMissing": "Por favor seleccioná un archivo PDF"
+      "pdfFileMissing": "Por favor seleccioná un archivo PDF",
+      "updateButton": "Guardar cambios"
     },
     "modals": {
       "addAuthorTitle": "Agregar Nuevo Autor",

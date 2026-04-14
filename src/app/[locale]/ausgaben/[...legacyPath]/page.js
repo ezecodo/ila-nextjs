@@ -96,38 +96,6 @@ export default function LegacyArticlePage() {
       </div>
     );
   }
-  // ✅ Función auxiliar para detectar títulos en párrafos normales
-  function autoDetectHeadings(html) {
-    if (!html) return "";
-
-    // ✅ Si ya hay h4 tags, no los detectes automáticamente
-    const hasH4 = /<h4\b/i.test(html);
-
-    return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
-      const text = inner
-        .replace(/<br\s*\/?>/gi, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-
-      const isShort = text.length > 0 && text.length <= 140;
-      const startsWithUpper = /^[""'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text);
-      const endsAsHeading = /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text);
-      const looksLikeQuestion = /\?\s*$/.test(text);
-      const fewSentences = (text.match(/[.!?]/g) || []).length <= 1;
-
-      // ✅ Solo convertir a h4 si NO hay h4 previos (ya los puso el script)
-      if (!hasH4 && looksLikeQuestion && isShort) {
-        return `<h4>${text}</h4>`;
-      }
-
-      if (isShort && startsWithUpper && endsAsHeading && fewSentences) {
-        return `<h3>${text}</h3>`;
-      }
-
-      return m;
-    });
-  }
-
   function formatDate(dateString, locale) {
     const options = { year: "numeric", month: "long", day: "numeric" };
     const localeCode = locale === "es" ? "es-ES" : "de-DE";
@@ -150,6 +118,28 @@ export default function LegacyArticlePage() {
         return isHeadingLike ? `<h3>${inner}</h3>` : m;
       },
     );
+  }
+  function normalizeContentForRender(html) {
+    if (!html) return "";
+    return html;
+  }
+  function autoDetectHeadings(html) {
+    if (!html) return "";
+    const hasH4 = /<h4\b/i.test(html);
+    return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
+      const text = inner
+        .replace(/<br\s*\/?>/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const isShort = text.length > 0 && text.length <= 140;
+      const startsWithUpper = /^[""'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text);
+      const endsAsHeading = /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text);
+      const looksLikeQuestion = /\?\s*$/.test(text);
+      const fewSentences = (text.match(/[.!?]/g) || []).length <= 1;
+      if (looksLikeQuestion && isShort) return `<h4>${text}</h4>`;
+      if (isShort && startsWithUpper && endsAsHeading && fewSentences) return `<h3>${text}</h3>`;
+      return m;
+    });
   }
   function wrapInlineImagesWithCaption(html) {
     if (!html) return "";
