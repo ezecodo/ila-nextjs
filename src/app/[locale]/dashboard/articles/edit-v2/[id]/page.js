@@ -11,7 +11,6 @@ export default function EditArticleV2Page() {
   const { id } = useParams();
   const { data: session, status } = useSession();
   const router = useRouter();
-
   useEffect(() => {
     if (status === "loading") return;
     if (session?.user?.email !== SUPER_ADMIN_EMAIL) {

@@ -84,8 +84,12 @@ export default function ArticleFormV2({ articleId }) {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
+  const [contentES, setContentES] = useState("");
   const [articleLoaded, setArticleLoaded] = useState(false);
+  const [legacyPath, setLegacyPath] = useState("");
+  const [hasSpanishContent, setHasSpanishContent] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(false);
+
 
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
@@ -374,6 +378,9 @@ export default function ArticleFormV2({ articleId }) {
             }))
           );
         }
+        setLegacyPath(article.legacyPath || "");
+        setContentES(article.contentES || "");
+        setHasSpanishContent(!!article.contentES);
         setArticleLoaded(true);
       } catch (err) {
         console.error("Error cargando artículo:", err);
@@ -510,6 +517,7 @@ export default function ArticleFormV2({ articleId }) {
     formData.append("title", title);
     formData.append("subtitle", subtitle || "");
     formData.append("content", content);
+    if (contentES) formData.append("contentES", contentES);
 
     // Gallery images
     gallery.forEach((img, idx) => {
@@ -702,6 +710,11 @@ export default function ArticleFormV2({ articleId }) {
                 onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
                 title={title}
                 subtitle={subtitle}
+                articleLegacyPath={legacyPath}
+                articleId={articleId}
+                hasSpanishContent={hasSpanishContent}
+                contentES={contentES}
+                onChangeES={setContentES}
               />
             ) : (
               <div className="h-40 flex items-center justify-center text-gray-400 text-sm">Cargando contenido…</div>
@@ -830,6 +843,11 @@ export default function ArticleFormV2({ articleId }) {
                   onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
                   title={title}
                   subtitle={subtitle}
+                  articleLegacyPath={legacyPath}
+                  articleId={articleId}
+                  hasSpanishContent={hasSpanishContent}
+                  contentES={contentES}
+                  onChangeES={setContentES}
                 />
                 {/* Entrevistado */}
                 <div className="pt-2 border-t border-gray-100 space-y-2">
@@ -861,6 +879,11 @@ export default function ArticleFormV2({ articleId }) {
                 onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
                 title={title}
                 subtitle={subtitle}
+                articleLegacyPath={legacyPath}
+                articleId={articleId}
+                hasSpanishContent={hasSpanishContent}
+                contentES={contentES}
+                onChangeES={setContentES}
               />
             )}
           </Section>
@@ -1139,6 +1162,8 @@ export default function ArticleFormV2({ articleId }) {
           <button onClick={handleAddInterviewee} className={styles.addAuthorButton}>Hinzufügen</button>
         </Modal>
       )}
+
+
     </div>
   );
 }

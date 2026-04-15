@@ -380,6 +380,7 @@ export async function PUT(req, context) {
       const subtitle = formData.get("subtitle");
       const previewText = formData.get("previewText");
       const content = formData.get("content");
+      const contentES = formData.get("contentES") || null;
       const additionalInfo = formData.get("additionalInfo");
       let authors = [];
       try {
@@ -637,6 +638,7 @@ export async function PUT(req, context) {
         subtitle,
         previewText: previewText || null,
         content,
+        ...(contentES !== null && { contentES }),
         additionalInfo: additionalInfo || null,
         authors: {
           set: authors.map((id) => ({ id: parseInt(id, 10) })),

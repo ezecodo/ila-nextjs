@@ -35,7 +35,23 @@ const IMG_SIZES = [
 export function qaToHtml(pairs) {
   return pairs
     .map((pair) => {
-      const { question, answer, isSubtitle, headingLevel, isImage, imageUrl, imageAlt, imageTitle, imageWidth, size, isListBlock, items, ordered, isPoemBlock, text: poemText } = pair;
+      const {
+        question,
+        answer,
+        isSubtitle,
+        headingLevel,
+        isImage,
+        imageUrl,
+        imageAlt,
+        imageTitle,
+        imageWidth,
+        size,
+        isListBlock,
+        items,
+        ordered,
+        isPoemBlock,
+        text: poemText,
+      } = pair;
 
       // Image block
       if (isImage) {
@@ -52,7 +68,7 @@ export function qaToHtml(pairs) {
         const validItems = (items || []).filter(Boolean);
         if (!validItems.length) return "";
         const tag = ordered ? "ol" : "ul";
-        const lis = validItems.map(i => `<li>${escapeHtml(i)}</li>`).join("");
+        const lis = validItems.map((i) => `<li>${escapeHtml(i)}</li>`).join("");
         return `<${tag}>${lis}</${tag}>`;
       }
 
@@ -60,12 +76,14 @@ export function qaToHtml(pairs) {
       if (isPoemBlock) {
         if (!(poemText || "").trim()) return "";
         const lines = poemText.split("\n");
-        const html = lines.map((line, idx) => {
-          const t = line.trim();
-          if (!t) return "<br>";
-          const isLast = idx === lines.length - 1;
-          return isLast ? escapeHtml(t) : escapeHtml(t) + "<br>";
-        }).join("");
+        const html = lines
+          .map((line, idx) => {
+            const t = line.trim();
+            if (!t) return "<br>";
+            const isLast = idx === lines.length - 1;
+            return isLast ? escapeHtml(t) : escapeHtml(t) + "<br>";
+          })
+          .join("");
         return `<div class="poem">${html}</div>`;
       }
 
@@ -88,12 +106,21 @@ export function qaToHtml(pairs) {
         : "";
       // Answer is now stored as HTML; backwards-compat with plain-text answers
       const hasBlockHtml = a && /<(p|div|ul|ol|h[1-6])\b/i.test(a);
+      const stripEmptyEdges = (html) =>
+        html
+          .replace(/^(\s*<(p|div)>\s*(<br\s*\/?>)?\s*<\/(p|div)>\s*)+/gi, "")
+          .replace(/(\s*<(p|div)>\s*(<br\s*\/?>)?\s*<\/(p|div)>\s*)+$/gi, "")
+          .trim();
       const answerHtml = a
-        ? (hasBlockHtml
-            ? a
-            : a.split(/\n\n+/).map(para =>
-                `<p>${para.trim().split(/\n/).map(escapeHtml).join("<br>")}</p>`
-              ).join(""))
+        ? hasBlockHtml
+          ? stripEmptyEdges(a)
+          : a
+              .split(/\n\n+/)
+              .map(
+                (para) =>
+                  `<p>${para.trim().split(/\n/).map(escapeHtml).join("<br>")}</p>`,
+              )
+              .join("")
         : "";
       return questionHtml + answerHtml;
     })
@@ -125,10 +152,17 @@ export function htmlToQa(html) {
 
     const flushAnswer = () => {
       const text = answerLines.join("\n").trim();
-      if (!text) { answerLines = []; return; }
-      if (!currentPairPT) currentPairPT = { id: genId(), question: "", answer: "" };
+      if (!text) {
+        answerLines = [];
+        return;
+      }
+      if (!currentPairPT)
+        currentPairPT = { id: genId(), question: "", answer: "" };
       // Split by blank lines to create separate <p> tags
-      const paras = text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+      const paras = text
+        .split(/\n\n+/)
+        .map((p) => p.trim())
+        .filter(Boolean);
       currentPairPT.answer += paras
         .map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
         .join("");
@@ -145,7 +179,12 @@ export function htmlToQa(html) {
       if (looksLikeQuestion) {
         flushAnswer();
         if (currentPairPT) pairs.push(currentPairPT);
-        currentPairPT = { id: genId(), question: unescapeHtml(line), answer: "", headingLevel: 3 };
+        currentPairPT = {
+          id: genId(),
+          question: unescapeHtml(line),
+          answer: "",
+          headingLevel: 3,
+        };
       } else {
         answerLines.push(line);
       }
@@ -162,14 +201,20 @@ export function htmlToQa(html) {
 
   for (const el of elements) {
     const tag = el.tagName;
-    const allowed = ["P","H1","H2","H3","H4","UL","OL","DIV"];
+    const allowed = ["P", "H1", "H2", "H3", "H4", "UL", "OL", "DIV"];
     if (!allowed.includes(tag)) continue;
 
     // Image block: <p><img ...></p>
-    if (tag === "P" && el.children.length === 1 && el.children[0].tagName === "IMG") {
+    if (
+      tag === "P" &&
+      el.children.length === 1 &&
+      el.children[0].tagName === "IMG"
+    ) {
       if (currentPair) pairs.push(currentPair);
       const img = el.children[0];
-      const widthMatch = (img.getAttribute("style") || "").match(/width:\s*(\d+)%/);
+      const widthMatch = (img.getAttribute("style") || "").match(
+        /width:\s*(\d+)%/,
+      );
       pairs.push({
         id: genId(),
         isImage: true,
@@ -185,8 +230,15 @@ export function htmlToQa(html) {
     // List block: <ul> or <ol>
     if (tag === "UL" || tag === "OL") {
       if (currentPair) pairs.push(currentPair);
-      const items = Array.from(el.querySelectorAll("li")).map(li => li.textContent.trim()).filter(Boolean);
-      pairs.push({ id: genId(), isListBlock: true, items, ordered: tag === "OL" });
+      const items = Array.from(el.querySelectorAll("li"))
+        .map((li) => li.textContent.trim())
+        .filter(Boolean);
+      pairs.push({
+        id: genId(),
+        isListBlock: true,
+        items,
+        ordered: tag === "OL",
+      });
       currentPair = null;
       continue;
     }
@@ -198,7 +250,11 @@ export function htmlToQa(html) {
         .replace(/<br\s*\/?>\s*<br\s*\/?>/gi, "\n\n")
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<[^>]+>/g, "");
-      pairs.push({ id: genId(), isPoemBlock: true, text: unescapeHtml(poemText) });
+      pairs.push({
+        id: genId(),
+        isPoemBlock: true,
+        text: unescapeHtml(poemText),
+      });
       currentPair = null;
       continue;
     }
@@ -208,14 +264,15 @@ export function htmlToQa(html) {
 
     const strongChild = el.querySelector("strong, b");
     const wholeTextBold =
-      strongChild &&
-      el.textContent.trim() === strongChild.textContent.trim();
+      strongChild && el.textContent.trim() === strongChild.textContent.trim();
 
     // Also detect Google Docs bold spans: <span style="font-weight:700">
     const boldSpan = el.querySelector('span[style*="font-weight"]');
     const wholeTextBoldSpan =
       boldSpan &&
-      /font-weight\s*:\s*(bold|700|800|900)/i.test(boldSpan.getAttribute("style") || "") &&
+      /font-weight\s*:\s*(bold|700|800|900)/i.test(
+        boldSpan.getAttribute("style") || "",
+      ) &&
       el.textContent.trim() === boldSpan.textContent.trim();
 
     // Any heading tag (H1–H4) → section subtitle (T)
@@ -229,7 +286,7 @@ export function htmlToQa(html) {
         headingLevel: parseInt(tag[1], 10),
       });
       currentPair = null;
-    // Bold paragraph → question (F)
+      // Bold paragraph → question (F)
     } else if (wholeTextBold || wholeTextBoldSpan) {
       if (currentPair) pairs.push(currentPair);
       // Detect headingLevel from inline font-size style on the <p>
@@ -238,14 +295,19 @@ export function htmlToQa(html) {
       let headingLevel = 3; // default H3
       if (fsMatch) {
         const val = parseFloat(fsMatch[1]);
-        if (val >= 1.4) headingLevel = 2;       // H2 (1.5rem)
-        else if (val >= 1.1) headingLevel = 3;  // H3 (1.25rem)
-        else headingLevel = 4;                  // H4 (small)
+        if (val >= 1.4)
+          headingLevel = 2; // H2 (1.5rem)
+        else if (val >= 1.1)
+          headingLevel = 3; // H3 (1.25rem)
+        else headingLevel = 4; // H4 (small)
       } else {
         // No explicit size — simulate what autoFormatHeadings / autoDetectHeadings would do
         const text = el.textContent.trim();
         const endsQuestion = /\?\s*$/.test(text);
-        const willBeH3 = text.length < 80 && /^[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text) && !/[.!?]$/.test(text);
+        const willBeH3 =
+          text.length < 80 &&
+          /^[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text) &&
+          !/[.!?]$/.test(text);
         const willBeH4 = endsQuestion && text.length <= 140;
         if (willBeH3) headingLevel = 3;
         else if (willBeH4) headingLevel = 4;
@@ -281,7 +343,8 @@ export function htmlToQa(html) {
         // Answer paragraph — store as HTML to preserve inline formatting
         const innerHtml = el.innerHTML.trim();
         if (!innerHtml) continue;
-        if (!currentPair) currentPair = { id: genId(), question: "", answer: "" };
+        if (!currentPair)
+          currentPair = { id: genId(), question: "", answer: "" };
         currentPair.answer += el.outerHTML;
       }
     } else {
@@ -308,13 +371,16 @@ function isQuestionBlock(text) {
 }
 
 export function parseToBlocks(plainText, html) {
-  const hasFormatting = html && /<(strong|b|span[^>]+font-weight|h[1-6])\b/i.test(html);
+  const hasFormatting =
+    html && /<(strong|b|span[^>]+font-weight|h[1-6])\b/i.test(html);
 
   if (hasFormatting) {
     if (typeof window !== "undefined") {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, "text/html");
-      const elements = Array.from(doc.body.querySelectorAll("p, h1, h2, h3, h4"));
+      const elements = Array.from(
+        doc.body.querySelectorAll("p, h1, h2, h3, h4"),
+      );
       const blocks = [];
       for (const el of elements) {
         const text = el.textContent.trim();
@@ -333,10 +399,11 @@ export function parseToBlocks(plainText, html) {
           (strongChild && text === strongChild.textContent.trim()) ||
           (boldSpan &&
             /font-weight\s*:\s*(bold|700|800|900)/i.test(
-              boldSpan.getAttribute("style") || ""
+              boldSpan.getAttribute("style") || "",
             ) &&
             text === boldSpan.textContent.trim()) ||
-          tag === "H1" || tag === "H2";
+          tag === "H1" ||
+          tag === "H2";
 
         blocks.push({ text, type: isBold ? "question" : "answer" });
       }
@@ -349,7 +416,7 @@ export function parseToBlocks(plainText, html) {
         return blocks.map((b) =>
           b.type === "subtitle"
             ? b
-            : { ...b, type: isQuestionBlock(b.text) ? "question" : "answer" }
+            : { ...b, type: isQuestionBlock(b.text) ? "question" : "answer" },
         );
       }
     }
@@ -387,7 +454,11 @@ export function parseToBlocks(plainText, html) {
     if (qIdx !== -1) {
       const questionPart = para.slice(0, qIdx + 1).trim();
       const answerPart = para.slice(qIdx + 1).trim();
-      if (questionPart.length >= 10 && questionPart.length <= 500 && answerPart.length >= 20) {
+      if (
+        questionPart.length >= 10 &&
+        questionPart.length <= 500 &&
+        answerPart.length >= 20
+      ) {
         blocks.push({ text: questionPart, type: "question" });
         blocks.push({ text: answerPart, type: "answer" });
         continue;
@@ -404,8 +475,10 @@ export function parseToBlocks(plainText, html) {
 function nextBlockType(type, block) {
   if (type === "answer") return "question";
   if (type === "question") return "subtitle"; // → H2
-  if (type === "subtitle" && (block?.headingLevel || 3) === 2) return "subtitle"; // → H3
-  if (type === "subtitle" && (block?.headingLevel || 3) === 3) return "subtitle"; // → H4
+  if (type === "subtitle" && (block?.headingLevel || 3) === 2)
+    return "subtitle"; // → H3
+  if (type === "subtitle" && (block?.headingLevel || 3) === 3)
+    return "subtitle"; // → H4
   return "answer"; // subtitle(H4) → answer
 }
 
@@ -416,18 +489,41 @@ function blocksToQa(blocks) {
   for (const block of blocks) {
     if (block.type === "image") {
       if (currentPair) pairs.push(currentPair);
-      pairs.push({ id: genId(), isImage: true, imageUrl: block.imageUrl || "", imageAlt: block.imageAlt || "", imageTitle: block.imageTitle || "", imageWidth: block.imageWidth || "100" });
+      pairs.push({
+        id: genId(),
+        isImage: true,
+        imageUrl: block.imageUrl || "",
+        imageAlt: block.imageAlt || "",
+        imageTitle: block.imageTitle || "",
+        imageWidth: block.imageWidth || "100",
+      });
       currentPair = null;
     } else if (block.type === "subtitle") {
       if (currentPair) pairs.push(currentPair);
-      pairs.push({ id: genId(), question: block.text, answer: "", isSubtitle: true, headingLevel: block.headingLevel || 3 });
+      pairs.push({
+        id: genId(),
+        question: block.text,
+        answer: "",
+        isSubtitle: true,
+        headingLevel: block.headingLevel || 3,
+      });
       currentPair = null;
     } else if (block.type === "question") {
       if (currentPair) pairs.push(currentPair);
-      currentPair = { id: genId(), question: block.text, answer: "", headingLevel: block.headingLevel || 3 };
+      currentPair = {
+        id: genId(),
+        question: block.text,
+        answer: "",
+        headingLevel: block.headingLevel || 3,
+      };
     } else if (block.type === "list") {
       if (currentPair) pairs.push(currentPair);
-      pairs.push({ id: genId(), isListBlock: true, items: [...(block.items || [""])], ordered: block.ordered || false });
+      pairs.push({
+        id: genId(),
+        isListBlock: true,
+        items: [...(block.items || [""])],
+        ordered: block.ordered || false,
+      });
       currentPair = null;
     } else if (block.type === "poem") {
       if (currentPair) pairs.push(currentPair);
@@ -437,7 +533,9 @@ function blocksToQa(blocks) {
       // answer — may be plain text or HTML (from contenteditable)
       if (!currentPair) currentPair = { id: genId(), question: "", answer: "" };
       const isHtml = /<[a-z]/i.test(block.text || "");
-      currentPair.answer += isHtml ? block.text : `<p>${escapeHtml(block.text)}</p>`;
+      currentPair.answer += isHtml
+        ? block.text
+        : `<p>${escapeHtml(block.text)}</p>`;
     }
   }
 
@@ -450,15 +548,34 @@ function pairsToBlocks(pairs) {
   const blocks = [];
   for (const pair of pairs) {
     if (pair.isImage) {
-      blocks.push({ type: "image", imageUrl: pair.imageUrl || "", imageAlt: pair.imageAlt || "", imageTitle: pair.imageTitle || "", imageWidth: pair.imageWidth || "100" });
+      blocks.push({
+        type: "image",
+        imageUrl: pair.imageUrl || "",
+        imageAlt: pair.imageAlt || "",
+        imageTitle: pair.imageTitle || "",
+        imageWidth: pair.imageWidth || "100",
+      });
     } else if (pair.isListBlock) {
-      blocks.push({ type: "list", items: [...(pair.items || [""])], ordered: pair.ordered || false });
+      blocks.push({
+        type: "list",
+        items: [...(pair.items || [""])],
+        ordered: pair.ordered || false,
+      });
     } else if (pair.isPoemBlock) {
       blocks.push({ type: "poem", text: pair.text || "" });
     } else if (pair.isSubtitle) {
-      blocks.push({ type: "subtitle", text: pair.question || "", headingLevel: pair.headingLevel || 3 });
+      blocks.push({
+        type: "subtitle",
+        text: pair.question || "",
+        headingLevel: pair.headingLevel || 3,
+      });
     } else {
-      if (pair.question) blocks.push({ type: "question", text: pair.question, headingLevel: pair.headingLevel || 3 });
+      if (pair.question)
+        blocks.push({
+          type: "question",
+          text: pair.question,
+          headingLevel: pair.headingLevel || 3,
+        });
       if (pair.answer) blocks.push({ type: "answer", text: pair.answer }); // HTML
     }
   }
@@ -554,12 +671,17 @@ function InsertImageLine({ onInsert, uploading }) {
 
 // Normalize Chrome's contentEditable output: replace bare <div> with <p>
 function normalizeAnswerHtml(html) {
-  return html
-    .replace(/<div>/gi, "<p>")
-    .replace(/<\/div>/gi, "</p>");
+  return html.replace(/<div>/gi, "<p>").replace(/<\/div>/gi, "</p>");
 }
 
-function DarkAnswerBlock({ value, onChange, onDelete, onRef, onSplit, onMergeUp }) {
+function DarkAnswerBlock({
+  value,
+  onChange,
+  onDelete,
+  onRef,
+  onSplit,
+  onMergeUp,
+}) {
   const divRef = useRef(null);
   const mountedRef = useRef(false);
   const savedRangeRef = useRef(null);
@@ -587,12 +709,17 @@ function DarkAnswerBlock({ value, onChange, onDelete, onRef, onSplit, onMergeUp 
 
   const saveSelection = () => {
     const sel = window.getSelection();
-    if (sel?.rangeCount > 0) savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    if (sel?.rangeCount > 0)
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
   };
 
   const restoreSelection = () => {
     const sel = window.getSelection();
-    if (sel && savedRangeRef.current) { sel.removeAllRanges(); sel.addRange(savedRangeRef.current); return true; }
+    if (sel && savedRangeRef.current) {
+      sel.removeAllRanges();
+      sel.addRange(savedRangeRef.current);
+      return true;
+    }
     return false;
   };
 
@@ -610,7 +737,7 @@ function DarkAnswerBlock({ value, onChange, onDelete, onRef, onSplit, onMergeUp 
     const full = url.startsWith("http") ? url : `https://${url}`;
     restoreSelection();
     document.execCommand("createLink", false, full);
-    divRef.current.querySelectorAll("a:not(.ila-dossier)").forEach(a => {
+    divRef.current.querySelectorAll("a:not(.ila-dossier)").forEach((a) => {
       a.setAttribute("target", "_blank");
       a.setAttribute("rel", "noopener noreferrer");
     });
@@ -640,32 +767,72 @@ function DarkAnswerBlock({ value, onChange, onDelete, onRef, onSplit, onMergeUp 
     const href = `/editions/${edition.id}`;
     if (hasSelection) {
       document.execCommand("createLink", false, href);
-      divRef.current.querySelectorAll(`a[href="${href}"]`).forEach(a => a.classList.add("ila-dossier"));
+      divRef.current
+        .querySelectorAll(`a[href="${href}"]`)
+        .forEach((a) => a.classList.add("ila-dossier"));
     } else {
-      document.execCommand("insertHTML", false, `<a href="${href}" class="ila-dossier">ila ${edition.number}</a>`);
+      document.execCommand(
+        "insertHTML",
+        false,
+        `<a href="${href}" class="ila-dossier">ila ${edition.number}</a>`,
+      );
     }
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
   };
 
-  const btnCls = "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-600 hover:text-gray-200 hover:bg-gray-700 transition-colors";
+  const btnCls =
+    "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-600 hover:text-gray-200 hover:bg-gray-700 transition-colors";
 
   return (
     <div className="flex-1 flex flex-col gap-1.5 min-w-0">
       {/* Dark mini toolbar */}
       <div className="flex items-center gap-0.5 pb-1 border-b border-gray-700">
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); exec("bold"); }}
-          className={`${btnCls} font-black`} title="Fett">B</button>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); exec("italic"); }}
-          className={`${btnCls} italic`} title="Kursiv">I</button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            exec("bold");
+          }}
+          className={`${btnCls} font-black`}
+          title="Fett"
+        >
+          B
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            exec("italic");
+          }}
+          className={`${btnCls} italic`}
+          title="Kursiv"
+        >
+          I
+        </button>
         <span className="w-px h-3.5 bg-gray-700 mx-0.5" />
-        <button type="button" onMouseDown={handleLink}
-          className={btnCls} title="Link">🔗</button>
-        <button type="button" onMouseDown={handleDossierClick}
-          className={btnCls} title="ila Dossier">📕</button>
+        <button
+          type="button"
+          onMouseDown={handleLink}
+          className={btnCls}
+          title="Link"
+        >
+          🔗
+        </button>
+        <button
+          type="button"
+          onMouseDown={handleDossierClick}
+          className={btnCls}
+          title="ila Dossier"
+        >
+          📕
+        </button>
       </div>
       {/* Contenteditable */}
       <div
-        ref={(el) => { divRef.current = el; if (onRef) onRef(el); }}
+        ref={(el) => {
+          divRef.current = el;
+          if (onRef) onRef(el);
+        }}
         contentEditable
         suppressContentEditableWarning
         onInput={() => onChange(normalizeAnswerHtml(divRef.current.innerHTML))}
@@ -674,7 +841,11 @@ function DarkAnswerBlock({ value, onChange, onDelete, onRef, onSplit, onMergeUp 
         }}
         onPaste={(e) => {
           e.preventDefault();
-          document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
+          document.execCommand(
+            "insertText",
+            false,
+            e.clipboardData.getData("text/plain"),
+          );
         }}
         onKeyDown={(e) => {
           if (e.key === "Backspace") {
@@ -700,7 +871,10 @@ function DarkAnswerBlock({ value, onChange, onDelete, onRef, onSplit, onMergeUp 
           if (e.key === "Enter" && !e.shiftKey && onSplit) {
             e.preventDefault();
             const sel = window.getSelection();
-            if (!sel || sel.rangeCount === 0) { onSplit(""); return; }
+            if (!sel || sel.rangeCount === 0) {
+              onSplit("");
+              return;
+            }
             const range = sel.getRangeAt(0);
             range.deleteContents();
             // Extract HTML from cursor to end of block
@@ -734,11 +908,45 @@ function DarkAnswerBlock({ value, onChange, onDelete, onRef, onSplit, onMergeUp 
 
 // ── Paste import panel ────────────────────────────────────────────────────
 
-function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitle, articleSubtitle }) {
+function PasteImportPanel({
+  onImport,
+  onClose,
+  initialBlocks = null,
+  articleTitle,
+  articleSubtitle,
+  articleLegacyPath,
+  articleId,
+  hasSpanishContent,
+  contentES,
+}) {
   const [pastedHtml, setPastedHtml] = useState("");
   const [pastedText, setPastedText] = useState("");
   const [blocks, setBlocks] = useState(initialBlocks);
   const [showPreview, setShowPreview] = useState(false);
+  const [lang, setLang] = useState("de");
+  const [langSplash, setLangSplash] = useState(false);
+  const [langSplashFading, setLangSplashFading] = useState(false);
+  const savedDeBlocksRef = useRef(initialBlocks);
+
+  const switchLang = (targetLang) => {
+    if (targetLang === lang) return;
+    // Save current blocks
+    if (lang === "de") savedDeBlocksRef.current = blocks;
+    // Animate
+    setLangSplash(true);
+    setLangSplashFading(false);
+    setTimeout(() => setLangSplashFading(true), 700);
+    setTimeout(() => {
+      setLang(targetLang);
+      if (targetLang === "es") {
+        const esBlocks = contentES ? pairsToBlocks(htmlToQa(contentES)) : null;
+        setBlocks(esBlocks);
+      } else {
+        setBlocks(savedDeBlocksRef.current);
+      }
+      setLangSplash(false);
+    }, 950);
+  };
   const textareaRef = useRef(null);
   const blockRefsArr = useRef([]);
   const focusTargetRef = useRef(null);
@@ -767,23 +975,29 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
   };
 
   const cycleBlockType = (i) => {
-    setBlocks((prev) => prev.map((b, idx) => {
-      if (idx !== i) return b;
-      const nextType = nextBlockType(b.type, b);
-      // When going from answer (HTML) to question/subtitle (plain text), strip tags
-      const text = (b.type === "answer" && (nextType === "question" || nextType === "subtitle"))
-        ? stripHtml(b.text)
-        : b.text;
-      // Determine headingLevel for type transitions
-      let headingLevel = b.headingLevel;
-      if (nextType === "question" && b.type === "answer") headingLevel = 3; // A → F default H3
-      if (nextType === "subtitle") {
-        if (b.type === "question") headingLevel = 2;            // F → T H2
-        else if ((b.headingLevel || 3) === 2) headingLevel = 3; // T H2 → T H3
-        else if ((b.headingLevel || 3) === 3) headingLevel = 4; // T H3 → T H4
-      }
-      return { ...b, type: nextType, text, headingLevel };
-    }));
+    setBlocks((prev) =>
+      prev.map((b, idx) => {
+        if (idx !== i) return b;
+        const nextType = nextBlockType(b.type, b);
+        // When going from answer (HTML) to question/subtitle (plain text), strip tags
+        const text =
+          b.type === "answer" &&
+          (nextType === "question" || nextType === "subtitle")
+            ? stripHtml(b.text)
+            : b.text;
+        // Determine headingLevel for type transitions
+        let headingLevel = b.headingLevel;
+        if (nextType === "question" && b.type === "answer") headingLevel = 3; // A → F default H3
+        if (nextType === "subtitle") {
+          if (b.type === "question")
+            headingLevel = 2; // F → T H2
+          else if ((b.headingLevel || 3) === 2)
+            headingLevel = 3; // T H2 → T H3
+          else if ((b.headingLevel || 3) === 3) headingLevel = 4; // T H3 → T H4
+        }
+        return { ...b, type: nextType, text, headingLevel };
+      }),
+    );
     // Resize textarea after type change (rows=1 doesn't auto-expand otherwise)
     requestAnimationFrame(() => {
       const el = blockRefsArr.current[i];
@@ -795,35 +1009,43 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
   };
 
   const updateBlockText = (i, text) =>
-    setBlocks((prev) => prev.map((b, idx) => idx === i ? { ...b, text } : b));
+    setBlocks((prev) => prev.map((b, idx) => (idx === i ? { ...b, text } : b)));
 
   const updateBlockSize = (i, size) =>
-    setBlocks((prev) => prev.map((b, idx) => idx === i ? { ...b, size } : b));
+    setBlocks((prev) => prev.map((b, idx) => (idx === i ? { ...b, size } : b)));
 
   const updateBlockField = (i, field, value) =>
-    setBlocks((prev) => prev.map((b, idx) => idx === i ? { ...b, [field]: value } : b));
+    setBlocks((prev) =>
+      prev.map((b, idx) => (idx === i ? { ...b, [field]: value } : b)),
+    );
 
   const updateBlockListItem = (blockIdx, itemIdx, val) =>
-    setBlocks((prev) => prev.map((b, idx) => {
-      if (idx !== blockIdx) return b;
-      const items = [...b.items];
-      items[itemIdx] = val;
-      return { ...b, items };
-    }));
+    setBlocks((prev) =>
+      prev.map((b, idx) => {
+        if (idx !== blockIdx) return b;
+        const items = [...b.items];
+        items[itemIdx] = val;
+        return { ...b, items };
+      }),
+    );
 
   const addBlockListItem = (blockIdx, afterItemIdx) =>
-    setBlocks((prev) => prev.map((b, idx) => {
-      if (idx !== blockIdx) return b;
-      const items = [...b.items];
-      items.splice(afterItemIdx + 1, 0, "");
-      return { ...b, items };
-    }));
+    setBlocks((prev) =>
+      prev.map((b, idx) => {
+        if (idx !== blockIdx) return b;
+        const items = [...b.items];
+        items.splice(afterItemIdx + 1, 0, "");
+        return { ...b, items };
+      }),
+    );
 
   const removeBlockListItem = (blockIdx, itemIdx) =>
-    setBlocks((prev) => prev.map((b, idx) => {
-      if (idx !== blockIdx || b.items.length <= 1) return b;
-      return { ...b, items: b.items.filter((_, i) => i !== itemIdx) };
-    }));
+    setBlocks((prev) =>
+      prev.map((b, idx) => {
+        if (idx !== blockIdx || b.items.length <= 1) return b;
+        return { ...b, items: b.items.filter((_, i) => i !== itemIdx) };
+      }),
+    );
 
   const splitBlock = (i, cursorPos) => {
     setBlocks((prev) => {
@@ -831,26 +1053,33 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
       const before = block.text.slice(0, cursorPos).trim();
       const after = block.text.slice(cursorPos).trim();
       const next = [...prev];
-      next.splice(i, 1,
+      next.splice(
+        i,
+        1,
         { text: before, type: block.type, size: block.size },
-        { text: after, type: "answer" }
+        { text: after, type: "answer" },
       );
-      return next.filter((b) => (b.text?.length ?? 1) > 0 || next.indexOf(b) === i + 1);
+      return next.filter(
+        (b) => (b.text?.length ?? 1) > 0 || next.indexOf(b) === i + 1,
+      );
     });
     focusTargetRef.current = i + 1;
   };
 
   const deleteBlock = (i) => {
-    setBlocks((prev) => prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i));
+    setBlocks((prev) =>
+      prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i),
+    );
     focusTargetRef.current = Math.max(0, i - 1);
   };
 
   const addBlock = (type, afterIdx) => {
-    const newBlock = type === "list"
-      ? { type: "list", items: [""], ordered: false }
-      : type === "poem"
-      ? { type: "poem", text: "" }
-      : { type, text: "" };
+    const newBlock =
+      type === "list"
+        ? { type: "list", items: [""], ordered: false }
+        : type === "poem"
+          ? { type: "poem", text: "" }
+          : { type, text: "" };
     setBlocks((prev) => {
       const next = [...(prev || [])];
       next.splice(afterIdx + 1, 0, newBlock);
@@ -874,12 +1103,27 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
       if (data.url) {
-        const newBlock = { type: "image", imageUrl: data.url, imageAlt: "", imageTitle: "", imageWidth: "100" };
+        const newBlock = {
+          type: "image",
+          imageUrl: data.url,
+          imageAlt: "",
+          imageTitle: "",
+          imageWidth: "100",
+        };
         const insertAt = insertAtRef.current ?? (blocks ? blocks.length : 0);
-        setBlocks((prev) => { const next = [...(prev || [])]; next.splice(insertAt, 0, newBlock); return next; });
+        setBlocks((prev) => {
+          const next = [...(prev || [])];
+          next.splice(insertAt, 0, newBlock);
+          return next;
+        });
       }
-    } catch (err) { console.error("Image upload error:", err); }
-    finally { setUploadingImage(false); insertAtRef.current = null; e.target.value = ""; }
+    } catch (err) {
+      console.error("Image upload error:", err);
+    } finally {
+      setUploadingImage(false);
+      insertAtRef.current = null;
+      e.target.value = "";
+    }
   };
 
   // Focus management after split/delete/add
@@ -910,62 +1154,145 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
     }
   });
 
-  // Auto-resize textareas on load
+  // Auto-resize all textareas whenever blocks change
   useEffect(() => {
     if (!blocks) return;
-    blockRefsArr.current.forEach((el) => {
-      if (el?.tagName === "TEXTAREA") { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
+    requestAnimationFrame(() => {
+      blockRefsArr.current.forEach((el) => {
+        if (el?.tagName === "TEXTAREA") {
+          el.style.height = "auto";
+          el.style.height = el.scrollHeight + "px";
+        }
+      });
     });
-  }, [blocks?.length]);
+  }, [blocks]);
 
-  const reset = () => { setBlocks(null); setPastedHtml(""); setPastedText(""); if (textareaRef.current) textareaRef.current.value = ""; };
+  const reset = () => {
+    setBlocks(null);
+    setPastedHtml("");
+    setPastedText("");
+    if (textareaRef.current) textareaRef.current.value = "";
+  };
 
-  const usedHtml = pastedHtml && /<(strong|b|span[^>]+font-weight|h[1-6])\b/i.test(pastedHtml) && blocks?.some((b) => b.type === "question" || b.type === "subtitle");
-  const questionCount = blocks?.filter((b) => b.type === "question").length ?? 0;
-  const subtitleCount = blocks?.filter((b) => b.type === "subtitle").length ?? 0;
-  const answerCount   = blocks?.filter((b) => b.type === "answer").length ?? 0;
+  const usedHtml =
+    pastedHtml &&
+    /<(strong|b|span[^>]+font-weight|h[1-6])\b/i.test(pastedHtml) &&
+    blocks?.some((b) => b.type === "question" || b.type === "subtitle");
+  const questionCount =
+    blocks?.filter((b) => b.type === "question").length ?? 0;
+  const subtitleCount =
+    blocks?.filter((b) => b.type === "subtitle").length ?? 0;
+  const answerCount = blocks?.filter((b) => b.type === "answer").length ?? 0;
   const finalPairs = blocks ? blocksToQa(blocks) : null;
   const hasBlocks = blocks && blocks.length > 0;
 
   return (
     <div className="fixed inset-0 z-[9999] flex flex-col bg-gray-950">
-
       {/* Top bar */}
-      <div className="shrink-0 relative flex items-center justify-end px-6 py-3 border-b border-gray-800" style={{ background: "#141414" }}>
+      <div
+        className="shrink-0 relative flex items-center justify-end px-6 py-3 border-b border-gray-800"
+        style={{ background: "#141414" }}
+      >
         {/* Logo centrado */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <span className="text-xl tracking-tight" style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}>
-            <span className="text-gray-400 font-semibold">publ</span><span className="text-white font-black">ila</span><span className="text-gray-400 font-semibold">b</span>
+          <span
+            className="text-xl tracking-tight"
+            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+          >
+            <span className="text-gray-400 font-semibold">publ</span>
+            <span className="text-white font-black">ila</span>
+            <span className="text-gray-400 font-semibold">b</span>
           </span>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* DE/ES toggle — always visible if ES content exists */}
+          {contentES && (
+            <div className="flex items-center rounded overflow-hidden border border-gray-700">
+              <button
+                type="button"
+                onClick={() => switchLang("de")}
+                className={`text-xs px-2.5 py-1.5 font-bold transition-colors ${lang === "de" ? "bg-white text-gray-900" : "text-gray-500 hover:text-white"}`}
+              >
+                DE
+              </button>
+              <button
+                type="button"
+                onClick={() => switchLang("es")}
+                className={`text-xs px-2.5 py-1.5 font-bold transition-colors ${lang === "es" ? "bg-[#BD0E0D] text-white" : "text-gray-500 hover:text-white"}`}
+              >
+                ES
+              </button>
+            </div>
+          )}
           {hasBlocks && (
             <>
               <span className="text-xs text-gray-500 hidden sm:block">
-                {usedHtml ? "✅ Fettdruck" : "⚠️ per «?»"}{" · "}
-                <span className="text-[#BD0E0D] font-bold">{questionCount} F</span>{" · "}
-                <span className="text-amber-400 font-bold">{subtitleCount} T</span>{" · "}
+                {usedHtml ? "✅ Fettdruck" : "⚠️ per «?»"}
+                {" · "}
+                <span className="text-[#BD0E0D] font-bold">
+                  {questionCount} F
+                </span>
+                {" · "}
+                <span className="text-amber-400 font-bold">
+                  {subtitleCount} T
+                </span>
+                {" · "}
                 <span className="text-gray-500">{answerCount} A</span>
               </span>
-              <button type="button" onClick={() => setShowPreview(true)}
-                className="text-xs text-gray-400 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors">
+              {articleLegacyPath && (
+                <a
+                  href={`/${lang}${articleLegacyPath}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-gray-400 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors flex items-center gap-1.5"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  Web
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowPreview(true)}
+                className="text-xs text-gray-400 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors"
+              >
                 Vorschau
               </button>
-              <button type="button" onClick={reset}
-                className="text-xs text-gray-500 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors">
+              <button
+                type="button"
+                onClick={reset}
+                className="text-xs text-gray-500 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors"
+              >
                 + Importieren
               </button>
-              <button type="button" onClick={() => onImport(finalPairs, blocks)}
-                className="text-sm font-bold bg-[#BD0E0D] hover:bg-[#a50c0b] text-white rounded-lg px-5 py-2 transition-colors">
-                Speichern
+              <button
+                type="button"
+                onClick={() => onImport(finalPairs, blocks, lang)}
+                className={`text-sm font-bold text-white rounded-lg px-5 py-2 transition-colors ${lang === "es" ? "bg-blue-600 hover:bg-blue-700" : "bg-[#BD0E0D] hover:bg-[#a50c0b]"}`}
+              >
+                {lang === "es" ? "💾 ES" : "Speichern"}
               </button>
             </>
           )}
-          <button type="button" onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -973,22 +1300,32 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
 
       {/* Body */}
       <div className="flex-1 overflow-hidden flex">
-
         {/* Paste area — only when no blocks at all */}
         {!hasBlocks && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
             <div className="text-center">
-              <p className="text-white text-xl font-bold mb-2">Text importieren</p>
+              <p className="text-white text-xl font-bold mb-2">
+                Text importieren
+              </p>
               <p className="text-gray-400 text-sm">
-                Kopiere den Text aus Google Docs, Word oder einer Webseite<br />
+                Kopiere den Text aus Google Docs, Word oder einer Webseite
+                <br />
                 und füge ihn unten ein — Fragen werden automatisch erkannt
               </p>
             </div>
-            <textarea ref={textareaRef} onPaste={handlePaste} onChange={() => {}} placeholder="Strg+V / Cmd+V"
-              className="w-full max-w-3xl h-72 bg-gray-900 text-gray-200 text-sm border border-gray-700 rounded-xl px-5 py-4 outline-none focus:border-[#BD0E0D] resize-none placeholder:text-gray-600 leading-relaxed" />
+            <textarea
+              ref={textareaRef}
+              onPaste={handlePaste}
+              onChange={() => {}}
+              placeholder="Strg+V / Cmd+V"
+              className="w-full max-w-3xl h-72 bg-gray-900 text-gray-200 text-sm border border-gray-700 rounded-xl px-5 py-4 outline-none focus:border-[#BD0E0D] resize-none placeholder:text-gray-600 leading-relaxed"
+            />
             {pastedText && (
-              <button type="button" onClick={() => analyse(pastedText, pastedHtml)}
-                className="px-6 py-2.5 bg-[#BD0E0D] text-white text-sm font-bold rounded-lg hover:bg-[#a50c0b] transition-colors">
+              <button
+                type="button"
+                onClick={() => analyse(pastedText, pastedHtml)}
+                className="px-6 py-2.5 bg-[#BD0E0D] text-white text-sm font-bold rounded-lg hover:bg-[#a50c0b] transition-colors"
+              >
                 Analysieren
               </button>
             )}
@@ -996,153 +1333,322 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
         )}
 
         {/* Hidden image input */}
-        <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handlePanelImageUpload} />
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handlePanelImageUpload}
+        />
 
         {/* Block editor */}
         {hasBlocks && (
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 max-w-4xl mx-auto w-full">
             <p className="text-xs text-gray-600 mb-4">
-              <span className="text-gray-400 font-semibold">Badge</span> = Typ wechseln (
-              <span className="text-[#BD0E0D] font-bold">H3</span> → <span className="text-amber-400 font-bold">H2</span> → <span className="text-amber-400 font-bold">H3</span> → <span className="text-amber-400 font-bold">H4</span> → <span className="text-gray-400">A</span>
-              ) · F-Blöcke: H2/H3/H4 wählen{" · "}<span className="text-gray-400 font-semibold">Enter</span> = neuer Block {" · "}<span className="text-gray-400 font-semibold">Shift+Enter</span> in A = Zeilenumbruch
+              <span className="text-gray-400 font-semibold">Badge</span> = Typ
+              wechseln (<span className="text-[#BD0E0D] font-bold">H3</span> →{" "}
+              <span className="text-amber-400 font-bold">H2</span> →{" "}
+              <span className="text-amber-400 font-bold">H3</span> →{" "}
+              <span className="text-amber-400 font-bold">H4</span> →{" "}
+              <span className="text-gray-400">A</span>) · F-Blöcke: H2/H3/H4
+              wählen{" · "}
+              <span className="text-gray-400 font-semibold">Enter</span> = neuer
+              Block {" · "}
+              <span className="text-gray-400 font-semibold">
+                Shift+Enter
+              </span>{" "}
+              in A = Zeilenumbruch
             </p>
 
-            <InsertImageLine onInsert={() => triggerImageInsert(0)} uploading={uploadingImage} />
+            <InsertImageLine
+              onInsert={() => triggerImageInsert(0)}
+              uploading={uploadingImage}
+            />
 
             {blocks.map((block, i) => {
               const s = BLOCK_STYLES[block.type] || BLOCK_STYLES.answer;
-              const blockHl = block.headingLevel || (block.type === "question" ? 3 : 3);
-              const taSize = block.type === "subtitle" || block.type === "question"
-                ? (blockHl === 2 ? "text-lg" : blockHl === 3 ? "text-base" : "text-sm")
-                : "text-sm";
+              const blockHl =
+                block.headingLevel || (block.type === "question" ? 3 : 3);
+              const taSize =
+                block.type === "subtitle" || block.type === "question"
+                  ? blockHl === 2
+                    ? "text-lg"
+                    : blockHl === 3
+                      ? "text-base"
+                      : "text-sm"
+                  : "text-sm";
 
               return (
                 <div key={i} className="mb-1">
-
                   {/* ── IMAGE block ── */}
                   {block.type === "image" && (
-                    <div className={`w-full rounded-xl border px-4 py-3 flex items-center gap-3 ${s.rowClass}`}>
-                      <span className={`shrink-0 w-8 h-7 flex items-center justify-center rounded font-black text-[9px] ${s.badgeClass}`}>IMG</span>
-                      {block.imageUrl && <img src={block.imageUrl} alt={block.imageAlt} className="h-12 w-16 object-cover rounded border border-blue-500/30 shrink-0" />}
+                    <div
+                      className={`w-full rounded-xl border px-4 py-3 flex items-center gap-3 ${s.rowClass}`}
+                    >
+                      <span
+                        className={`shrink-0 w-8 h-7 flex items-center justify-center rounded font-black text-[9px] ${s.badgeClass}`}
+                      >
+                        IMG
+                      </span>
+                      {block.imageUrl && (
+                        <img
+                          src={block.imageUrl}
+                          alt={block.imageAlt}
+                          className="h-12 w-16 object-cover rounded border border-blue-500/30 shrink-0"
+                        />
+                      )}
                       <div className="flex-1 flex flex-col gap-1 min-w-0">
-                        <input type="text" value={block.imageAlt || ""} onChange={(e) => updateBlockField(i, "imageAlt", e.target.value)} placeholder="Alt-Text…" className="w-full bg-transparent text-blue-200 text-xs outline-none placeholder:text-blue-900 border-b border-blue-800 focus:border-blue-500 pb-0.5" />
-                        <input type="text" value={block.imageTitle || ""} onChange={(e) => updateBlockField(i, "imageTitle", e.target.value)} placeholder="Title (Tooltip)…" className="w-full bg-transparent text-blue-300 text-xs outline-none placeholder:text-blue-900 pb-0.5" />
+                        <input
+                          type="text"
+                          value={block.imageAlt || ""}
+                          onChange={(e) =>
+                            updateBlockField(i, "imageAlt", e.target.value)
+                          }
+                          placeholder="Alt-Text…"
+                          className="w-full bg-transparent text-blue-200 text-xs outline-none placeholder:text-blue-900 border-b border-blue-800 focus:border-blue-500 pb-0.5"
+                        />
+                        <input
+                          type="text"
+                          value={block.imageTitle || ""}
+                          onChange={(e) =>
+                            updateBlockField(i, "imageTitle", e.target.value)
+                          }
+                          placeholder="Title (Tooltip)…"
+                          className="w-full bg-transparent text-blue-300 text-xs outline-none placeholder:text-blue-900 pb-0.5"
+                        />
                       </div>
                       <div className="flex gap-0.5 shrink-0">
                         {IMG_SIZES.map(({ label, value }) => (
-                          <button key={value} type="button" onClick={() => updateBlockField(i, "imageWidth", value)}
-                            className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-colors ${(block.imageWidth || "100") === value ? "bg-blue-600 text-white" : "border border-blue-700 text-blue-500 hover:border-blue-400"}`}>{label}</button>
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() =>
+                              updateBlockField(i, "imageWidth", value)
+                            }
+                            className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-colors ${(block.imageWidth || "100") === value ? "bg-blue-600 text-white" : "border border-blue-700 text-blue-500 hover:border-blue-400"}`}
+                          >
+                            {label}
+                          </button>
                         ))}
                       </div>
-                      <button type="button" onClick={() => deleteBlock(i)} className="w-6 h-6 flex items-center justify-center text-blue-600 hover:text-red-400 transition-colors">✕</button>
+                      <button
+                        type="button"
+                        onClick={() => deleteBlock(i)}
+                        className="w-6 h-6 flex items-center justify-center text-blue-600 hover:text-red-400 transition-colors"
+                      >
+                        ✕
+                      </button>
                     </div>
                   )}
 
                   {/* ── LIST block ── */}
                   {block.type === "list" && (
-                    <div className={`w-full rounded-xl border px-4 py-3 ${s.rowClass}`}>
+                    <div
+                      className={`w-full rounded-xl border px-4 py-3 ${s.rowClass}`}
+                    >
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`shrink-0 w-8 h-7 flex items-center justify-center rounded font-black text-[9px] ${s.badgeClass}`}>{block.ordered ? "OL" : "UL"}</span>
-                        <button type="button" onClick={() => updateBlockField(i, "ordered", !block.ordered)} className="text-xs text-green-500 border border-green-700 rounded px-2 py-0.5 hover:bg-green-900/30 transition-colors">
+                        <span
+                          className={`shrink-0 w-8 h-7 flex items-center justify-center rounded font-black text-[9px] ${s.badgeClass}`}
+                        >
+                          {block.ordered ? "OL" : "UL"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateBlockField(i, "ordered", !block.ordered)
+                          }
+                          className="text-xs text-green-500 border border-green-700 rounded px-2 py-0.5 hover:bg-green-900/30 transition-colors"
+                        >
                           {block.ordered ? "• • •" : "1. 2."}
                         </button>
-                        <button type="button" onClick={() => deleteBlock(i)} className="ml-auto w-6 h-6 flex items-center justify-center text-green-700 hover:text-red-400 transition-colors">✕</button>
+                        <button
+                          type="button"
+                          onClick={() => deleteBlock(i)}
+                          className="ml-auto w-6 h-6 flex items-center justify-center text-green-700 hover:text-red-400 transition-colors"
+                        >
+                          ✕
+                        </button>
                       </div>
                       <div className="space-y-1">
                         {(block.items || [""]).map((item, j) => (
                           <div key={j} className="flex items-center gap-2">
-                            <span className="text-green-600 text-xs w-4 shrink-0">{block.ordered ? `${j + 1}.` : "•"}</span>
-                            <input type="text" value={item} onChange={(e) => updateBlockListItem(i, j, e.target.value)}
+                            <span className="text-green-600 text-xs w-4 shrink-0">
+                              {block.ordered ? `${j + 1}.` : "•"}
+                            </span>
+                            <input
+                              type="text"
+                              value={item}
+                              onChange={(e) =>
+                                updateBlockListItem(i, j, e.target.value)
+                              }
                               onKeyDown={(e) => {
-                                if (e.key === "Enter") { e.preventDefault(); addBlockListItem(i, j); }
-                                if (e.key === "Backspace" && item === "" && (block.items?.length ?? 1) > 1) { e.preventDefault(); removeBlockListItem(i, j); }
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  addBlockListItem(i, j);
+                                }
+                                if (
+                                  e.key === "Backspace" &&
+                                  item === "" &&
+                                  (block.items?.length ?? 1) > 1
+                                ) {
+                                  e.preventDefault();
+                                  removeBlockListItem(i, j);
+                                }
                               }}
                               placeholder={`Punkt ${j + 1}…`}
-                              className="flex-1 bg-transparent text-green-200 text-sm outline-none placeholder:text-green-900" />
+                              className="flex-1 bg-transparent text-green-200 text-sm outline-none placeholder:text-green-900"
+                            />
                             {(block.items?.length ?? 1) > 1 && (
-                              <button type="button" onClick={() => removeBlockListItem(i, j)} className="w-5 h-5 text-green-800 hover:text-red-400 text-xs">✕</button>
+                              <button
+                                type="button"
+                                onClick={() => removeBlockListItem(i, j)}
+                                className="w-5 h-5 text-green-800 hover:text-red-400 text-xs"
+                              >
+                                ✕
+                              </button>
                             )}
                           </div>
                         ))}
-                        <button type="button" onClick={() => addBlockListItem(i, (block.items?.length ?? 1) - 1)} className="text-xs text-green-700 hover:text-green-400 mt-1 transition-colors">+ Punkt</button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addBlockListItem(i, (block.items?.length ?? 1) - 1)
+                          }
+                          className="text-xs text-green-700 hover:text-green-400 mt-1 transition-colors"
+                        >
+                          + Punkt
+                        </button>
                       </div>
                     </div>
                   )}
 
                   {/* ── POEM block ── */}
                   {block.type === "poem" && (
-                    <div className={`w-full rounded-xl border px-4 py-3 ${s.rowClass}`}>
+                    <div
+                      className={`w-full rounded-xl border px-4 py-3 ${s.rowClass}`}
+                    >
                       <div className="flex items-center gap-2 mb-2">
-                        <span className={`shrink-0 w-8 h-7 flex items-center justify-center rounded font-black text-[9px] ${s.badgeClass}`}>P</span>
-                        <span className="text-xs text-purple-500 flex-1">Leerzeile = neue Strophe</span>
-                        <button type="button" onClick={() => deleteBlock(i)} className="w-6 h-6 flex items-center justify-center text-purple-700 hover:text-red-400 transition-colors">✕</button>
+                        <span
+                          className={`shrink-0 w-8 h-7 flex items-center justify-center rounded font-black text-[9px] ${s.badgeClass}`}
+                        >
+                          P
+                        </span>
+                        <span className="text-xs text-purple-500 flex-1">
+                          Leerzeile = neue Strophe
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => deleteBlock(i)}
+                          className="w-6 h-6 flex items-center justify-center text-purple-700 hover:text-red-400 transition-colors"
+                        >
+                          ✕
+                        </button>
                       </div>
                       <textarea
-                        ref={(el) => { blockRefsArr.current[i] = el; }}
+                        ref={(el) => {
+                          blockRefsArr.current[i] = el;
+                        }}
                         value={block.text || ""}
                         onChange={(e) => updateBlockText(i, e.target.value)}
                         rows={3}
-                        placeholder={"Verse eingeben…\n\nLeerzeile = neue Strophe"}
+                        placeholder={
+                          "Verse eingeben…\n\nLeerzeile = neue Strophe"
+                        }
                         className="w-full bg-transparent text-purple-200 text-sm outline-none resize-none leading-relaxed placeholder:text-purple-900"
-                        style={{ minHeight: "60px", fontFamily: "Georgia, serif" }}
+                        style={{
+                          minHeight: "60px",
+                          fontFamily: "Georgia, serif",
+                        }}
                       />
                     </div>
                   )}
 
                   {/* ── ANSWER block (contenteditable + toolbar) ── */}
                   {block.type === "answer" && (
-                    <div className={`w-full rounded-xl border px-4 py-3 transition-colors flex items-start gap-3 ${s.rowClass}`}>
-                      <button type="button" onClick={() => cycleBlockType(i)} title="Typ wechseln"
-                        className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${s.badgeClass}`}>
+                    <div
+                      className={`w-full rounded-xl border px-4 py-3 transition-colors flex items-start gap-3 ${s.rowClass}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => cycleBlockType(i)}
+                        title="Typ wechseln"
+                        className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${s.badgeClass}`}
+                      >
                         {s.badge}
                       </button>
                       <DarkAnswerBlock
                         value={block.text}
                         onChange={(html) => updateBlockText(i, html)}
                         onDelete={() => deleteBlock(i)}
-                        onRef={(el) => { blockRefsArr.current[i] = el; }}
+                        onRef={(el) => {
+                          blockRefsArr.current[i] = el;
+                        }}
                         onSplit={(beforeHtml, afterHtml) => {
-                          setBlocks(prev => {
+                          setBlocks((prev) => {
                             const next = [...prev];
                             next[i] = { ...next[i], text: beforeHtml };
-                            next.splice(i + 1, 0, { type: "answer", text: afterHtml });
+                            next.splice(i + 1, 0, {
+                              type: "answer",
+                              text: afterHtml,
+                            });
                             return next;
                           });
                           focusTargetRef.current = i + 1;
                         }}
-                        onMergeUp={i === 0 ? null : (html) => {
-                          setBlocks(prev => {
-                            if (i === 0) return prev;
-                            const next = [...prev];
-                            const prevBlock = next[i - 1];
-                            next[i - 1] = { ...prevBlock, text: (prevBlock.text || "") + html };
-                            next.splice(i, 1);
-                            return next;
-                          });
-                          // Focus at end of previous block AFTER React re-renders
-                          // (using focusTargetRef ensures sync effects run first)
-                          focusTargetRef.current = i - 1;
-                          focusEndRef.current = true;
-                        }}
+                        onMergeUp={
+                          i === 0
+                            ? null
+                            : (html) => {
+                                setBlocks((prev) => {
+                                  if (i === 0) return prev;
+                                  const next = [...prev];
+                                  const prevBlock = next[i - 1];
+                                  next[i - 1] = {
+                                    ...prevBlock,
+                                    text: (prevBlock.text || "") + html,
+                                  };
+                                  next.splice(i, 1);
+                                  return next;
+                                });
+                                // Focus at end of previous block AFTER React re-renders
+                                // (using focusTargetRef ensures sync effects run first)
+                                focusTargetRef.current = i - 1;
+                                focusEndRef.current = true;
+                              }
+                        }
                       />
                     </div>
                   )}
 
                   {/* ── QUESTION / SUBTITLE blocks (textarea) ── */}
                   {(block.type === "question" || block.type === "subtitle") && (
-                    <div className={`w-full rounded-xl border px-4 py-3 transition-colors flex items-start gap-3 ${s.rowClass}`}>
-                      <button type="button" onClick={() => cycleBlockType(i)} title="Typ wechseln"
-                        className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${s.badgeClass}`}>
+                    <div
+                      className={`w-full rounded-xl border px-4 py-3 transition-colors flex items-start gap-3 ${s.rowClass}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => cycleBlockType(i)}
+                        title="Typ wechseln"
+                        className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${s.badgeClass}`}
+                      >
                         {`H${block.headingLevel || (block.type === "question" ? 3 : 3)}`}
                       </button>
                       <div className="flex-1 flex flex-col gap-2">
                         <textarea
-                          ref={(el) => { blockRefsArr.current[i] = el; }}
+                          ref={(el) => {
+                            blockRefsArr.current[i] = el;
+                          }}
                           value={block.text}
                           onChange={(e) => updateBlockText(i, e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); splitBlock(i, e.target.selectionStart); }
-                            if (e.key === "Backspace" && block.text === "") { e.preventDefault(); deleteBlock(i); }
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              splitBlock(i, e.target.selectionStart);
+                            }
+                            if (e.key === "Backspace" && block.text === "") {
+                              e.preventDefault();
+                              deleteBlock(i);
+                            }
                           }}
                           rows={1}
                           className={`w-full bg-transparent outline-none resize-none leading-relaxed overflow-hidden font-bold ${taSize} ${s.textClass}`}
@@ -1151,10 +1657,21 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
                         {block.type === "question" && (
                           <div className="flex items-center gap-1">
                             {[2, 3, 4].map((hl) => (
-                              <button key={hl} type="button"
-                                onClick={() => setBlocks(prev => prev.map((b, idx) => idx === i ? { ...b, headingLevel: hl } : b))}
+                              <button
+                                key={hl}
+                                type="button"
+                                onClick={() =>
+                                  setBlocks((prev) =>
+                                    prev.map((b, idx) =>
+                                      idx === i
+                                        ? { ...b, headingLevel: hl }
+                                        : b,
+                                    ),
+                                  )
+                                }
                                 title={`H${hl}`}
-                                className={`w-7 h-5 flex items-center justify-center rounded text-[9px] font-black transition-colors ${blockHl === hl ? "bg-[#BD0E0D] text-white" : "text-gray-500 border border-gray-600 hover:border-gray-300 hover:text-gray-200"}`}>
+                                className={`w-7 h-5 flex items-center justify-center rounded text-[9px] font-black transition-colors ${blockHl === hl ? "bg-[#BD0E0D] text-white" : "text-gray-500 border border-gray-600 hover:border-gray-300 hover:text-gray-200"}`}
+                              >
                                 H{hl}
                               </button>
                             ))}
@@ -1164,36 +1681,57 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
                     </div>
                   )}
 
-                  <InsertImageLine onInsert={() => triggerImageInsert(i + 1)} uploading={uploadingImage} />
+                  <InsertImageLine
+                    onInsert={() => triggerImageInsert(i + 1)}
+                    uploading={uploadingImage}
+                  />
                 </div>
               );
             })}
 
             {/* Bottom bar: add buttons + save */}
             <div className="sticky bottom-0 bg-gray-950 pt-3 pb-3 flex flex-wrap gap-2">
-              <button type="button" onClick={() => addBlock("question", blocks.length - 1)}
-                className="border border-dashed border-[#BD0E0D]/40 hover:border-[#BD0E0D] text-[#BD0E0D]/60 hover:text-[#BD0E0D] rounded-lg py-2 px-4 text-xs font-bold transition-colors">
+              <button
+                type="button"
+                onClick={() => addBlock("question", blocks.length - 1)}
+                className="border border-dashed border-[#BD0E0D]/40 hover:border-[#BD0E0D] text-[#BD0E0D]/60 hover:text-[#BD0E0D] rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+              >
                 + F
               </button>
-              <button type="button" onClick={() => addBlock("answer", blocks.length - 1)}
-                className="border border-dashed border-gray-700 hover:border-gray-400 text-gray-600 hover:text-gray-300 rounded-lg py-2 px-4 text-xs font-bold transition-colors">
+              <button
+                type="button"
+                onClick={() => addBlock("answer", blocks.length - 1)}
+                className="border border-dashed border-gray-700 hover:border-gray-400 text-gray-600 hover:text-gray-300 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+              >
                 + A
               </button>
-              <button type="button" onClick={() => addBlock("subtitle", blocks.length - 1)}
-                className="border border-dashed border-amber-700/40 hover:border-amber-500 text-amber-700 hover:text-amber-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors">
+              <button
+                type="button"
+                onClick={() => addBlock("subtitle", blocks.length - 1)}
+                className="border border-dashed border-amber-700/40 hover:border-amber-500 text-amber-700 hover:text-amber-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+              >
                 + T
               </button>
-              <button type="button" onClick={() => addBlock("list", blocks.length - 1)}
-                className="border border-dashed border-green-800/40 hover:border-green-500 text-green-800 hover:text-green-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors">
+              <button
+                type="button"
+                onClick={() => addBlock("list", blocks.length - 1)}
+                className="border border-dashed border-green-800/40 hover:border-green-500 text-green-800 hover:text-green-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+              >
                 ☰ Liste
               </button>
-              <button type="button" onClick={() => addBlock("poem", blocks.length - 1)}
-                className="border border-dashed border-purple-800/40 hover:border-purple-500 text-purple-800 hover:text-purple-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors">
+              <button
+                type="button"
+                onClick={() => addBlock("poem", blocks.length - 1)}
+                className="border border-dashed border-purple-800/40 hover:border-purple-500 text-purple-800 hover:text-purple-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+              >
                 📜 Poem
               </button>
               <div className="flex-1" />
-              <button type="button" onClick={() => onImport(finalPairs, blocks)}
-                className="py-2 px-6 bg-[#BD0E0D] hover:bg-[#a50c0b] text-white font-bold rounded-xl transition-colors text-sm">
+              <button
+                type="button"
+                onClick={() => onImport(finalPairs, blocks)}
+                className="py-2 px-6 bg-[#BD0E0D] hover:bg-[#a50c0b] text-white font-bold rounded-xl transition-colors text-sm"
+              >
                 Speichern
               </button>
             </div>
@@ -1202,74 +1740,115 @@ function PasteImportPanel({ onImport, onClose, initialBlocks = null, articleTitl
       </div>
 
       {/* ── Article preview modal ── */}
-      {showPreview && finalPairs && (() => {
-        // Same transforms as the article page (copied, not imported — never touch the article page)
-        const transformHtml = (html) => {
-          if (!html) return "";
-          // 1. autoFormatHeadings: <p><strong>Title</strong></p> → <h3>
-          html = html.replace(/<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi, (m, inner) => {
-            const ok = inner.length > 0 && inner.length < 120 && /^[A-ZÄÖÜÑÁÉÍÓÚ]/.test(inner) && !/[.!?]$/.test(inner);
-            return ok ? `<h3>${inner}</h3>` : m;
-          });
-          // 2. autoDetectHeadings: short plain <p> → <h3> or <h4>
-          const hasH4 = /<h4\b/i.test(html);
-          html = html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
-            const text = inner.replace(/<br\s*\/?>/gi, " ").replace(/\s+/g, " ").trim();
-            const isShort = text.length > 0 && text.length <= 140;
-            const startsUpper = /^[""'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text);
-            const endsHeading = /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text);
-            const isQuestion = /\?\s*$/.test(text);
-            const fewSentences = (text.match(/[.!?]/g) || []).length <= 1;
-            if (!hasH4 && isQuestion && isShort) return `<h4>${text}</h4>`;
-            if (isShort && startsUpper && endsHeading && fewSentences) return `<h3>${text}</h3>`;
-            return m;
-          });
-          // 3. wrapInlineImagesWithCaption
-          html = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
-            const caption = (attrs.match(/alt="([^"]*)"/))?.[1]?.trim() || "";
-            const credit  = (attrs.match(/title="([^"]*)"/))?.[1]?.trim() || "";
-            if (!caption && !credit) return match;
-            const fig = caption && credit ? `${caption}<span class="image-credit"> · ${credit}</span>` : caption || credit;
-            return `<figure class="inline-image-figure">${match}<figcaption>${fig}</figcaption></figure>`;
-          });
-          return html;
-        };
-        return (
-          <div className="fixed inset-0 z-[10000] flex flex-col bg-white">
-            <div className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white">
-              <span className="text-sm font-semibold text-gray-500">Vorschau — Artikelinhalt</span>
-              <button type="button" onClick={() => setShowPreview(false)}
-                className="text-xs text-gray-500 hover:text-gray-900 border border-gray-300 rounded px-3 py-1.5 transition-colors">
-                ✕ Schließen
-              </button>
+      {showPreview &&
+        finalPairs &&
+        (() => {
+          // Same transforms as the article page (copied, not imported — never touch the article page)
+          const transformHtml = (html) => {
+            if (!html) return "";
+            // 1. autoFormatHeadings: <p><strong>Title</strong></p> → <h3>
+            html = html.replace(
+              /<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi,
+              (m, inner) => {
+                const ok =
+                  inner.length > 0 &&
+                  inner.length < 120 &&
+                  /^[A-ZÄÖÜÑÁÉÍÓÚ]/.test(inner) &&
+                  !/[.!?]$/.test(inner);
+                return ok ? `<h3>${inner}</h3>` : m;
+              },
+            );
+            // 2. autoDetectHeadings: short plain <p> → <h3> or <h4>
+            const hasH4 = /<h4\b/i.test(html);
+            html = html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
+              const text = inner
+                .replace(/<br\s*\/?>/gi, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+              const isShort = text.length > 0 && text.length <= 140;
+              const startsUpper = /^[""'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text);
+              const endsHeading =
+                /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text);
+              const isQuestion = /\?\s*$/.test(text);
+              const fewSentences = (text.match(/[.!?]/g) || []).length <= 1;
+              if (!hasH4 && isQuestion && isShort) return `<h4>${text}</h4>`;
+              if (isShort && startsUpper && endsHeading && fewSentences)
+                return `<h3>${text}</h3>`;
+              return m;
+            });
+            // 3. wrapInlineImagesWithCaption
+            html = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
+              const caption = attrs.match(/alt="([^"]*)"/)?.[1]?.trim() || "";
+              const credit = attrs.match(/title="([^"]*)"/)?.[1]?.trim() || "";
+              if (!caption && !credit) return match;
+              const fig =
+                caption && credit
+                  ? `${caption}<span class="image-credit"> · ${credit}</span>`
+                  : caption || credit;
+              return `<figure class="inline-image-figure">${match}<figcaption>${fig}</figcaption></figure>`;
+            });
+            return html;
+          };
+          return (
+            <div className="fixed inset-0 z-[10000] flex flex-col bg-white">
+              <div className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white">
+                <span className="text-sm font-semibold text-gray-500">
+                  Vorschau — Artikelinhalt
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(false)}
+                  className="text-xs text-gray-500 hover:text-gray-900 border border-gray-300 rounded px-3 py-1.5 transition-colors"
+                >
+                  ✕ Schließen
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <main className="max-w-4xl mx-auto px-4 py-6 md:px-6">
+                  {/* Title + subtitle — same structure as article page */}
+                  {(articleTitle || articleSubtitle) && (
+                    <div className="max-w-3xl mx-auto mb-6">
+                      {articleTitle && (
+                        <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight text-gray-900 mb-4 break-words">
+                          {articleTitle}
+                        </h1>
+                      )}
+                      {articleSubtitle && (
+                        <h2 className="text-lg md:text-xl font-light italic text-gray-600 mb-8">
+                          {articleSubtitle}
+                        </h2>
+                      )}
+                    </div>
+                  )}
+                  {/* Body content — directly inside max-w-4xl, same as article page */}
+                  <div
+                    className="article-content text-gray-700"
+                    dangerouslySetInnerHTML={{
+                      __html: transformHtml(qaToHtml(finalPairs)),
+                    }}
+                  />
+                </main>
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto">
-              <main className="max-w-4xl mx-auto px-4 py-6 md:px-6">
-                {/* Title + subtitle — same structure as article page */}
-                {(articleTitle || articleSubtitle) && (
-                  <div className="max-w-3xl mx-auto mb-6">
-                    {articleTitle && (
-                      <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight text-gray-900 mb-4 break-words">
-                        {articleTitle}
-                      </h1>
-                    )}
-                    {articleSubtitle && (
-                      <h2 className="text-lg md:text-xl font-light italic text-gray-600 mb-8">
-                        {articleSubtitle}
-                      </h2>
-                    )}
-                  </div>
-                )}
-                {/* Body content — directly inside max-w-4xl, same as article page */}
-                <div
-                  className="article-content text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: transformHtml(qaToHtml(finalPairs)) }}
-                />
-              </main>
-            </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
+
+      {/* Lang switch splash */}
+      {langSplash && (
+        <div
+          className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center transition-opacity duration-300 ${langSplashFading ? "opacity-0" : "opacity-100"}`}
+          style={{ background: "#0d0d0d" }}
+        >
+          <span className="text-5xl tracking-tight select-none" style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}>
+            <span className="text-gray-400 font-semibold">publ</span>
+            <span className="text-white font-black">ila</span>
+            <span className="text-gray-400 font-semibold">b</span>
+          </span>
+          <span className="mt-3 text-xs font-bold tracking-widest uppercase" style={{ color: lang === "de" ? "#9ca3af" : "#3b82f6" }}>
+            {lang === "de" ? "→ Español" : "→ Deutsch"}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -1287,7 +1866,9 @@ function DossierModal({ editions, loading, onSelect, onClose }) {
         style={{ maxHeight: "60vh" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-bold text-gray-900 mb-4 text-sm">📕 ila Dossier verlinken</h3>
+        <h3 className="font-bold text-gray-900 mb-4 text-sm">
+          📕 ila Dossier verlinken
+        </h3>
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="w-6 h-6 border-2 border-gray-200 border-t-[#BD0E0D] rounded-full animate-spin" />
@@ -1301,8 +1882,12 @@ function DossierModal({ editions, loading, onSelect, onClose }) {
                 onClick={() => onSelect(edition)}
                 className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors text-sm"
               >
-                <span className="font-bold text-[#BD0E0D]">ila {edition.number}</span>
-                <span className="text-gray-600 ml-2 text-xs">{edition.title}</span>
+                <span className="font-bold text-[#BD0E0D]">
+                  ila {edition.number}
+                </span>
+                <span className="text-gray-600 ml-2 text-xs">
+                  {edition.title}
+                </span>
               </button>
             ))}
           </div>
@@ -1411,33 +1996,65 @@ function RichAnswerField({ value, onChange }) {
     const href = `/editions/${edition.id}`;
     if (hasSelection) {
       document.execCommand("createLink", false, href);
-      divRef.current.querySelectorAll(`a[href="${href}"]`).forEach((a) =>
-        a.classList.add("ila-dossier")
-      );
+      divRef.current
+        .querySelectorAll(`a[href="${href}"]`)
+        .forEach((a) => a.classList.add("ila-dossier"));
     } else {
       document.execCommand(
-        "insertHTML", false,
-        `<a href="${href}" class="ila-dossier">ila ${edition.number}</a>`
+        "insertHTML",
+        false,
+        `<a href="${href}" class="ila-dossier">ila ${edition.number}</a>`,
       );
     }
     if (onChange) onChange(divRef.current.innerHTML);
   };
 
-  const btnBase = "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-400 hover:bg-gray-100 transition-colors";
+  const btnBase =
+    "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-400 hover:bg-gray-100 transition-colors";
 
   return (
     <div className="flex-1 flex flex-col gap-1 min-w-0">
       {/* Mini toolbar */}
       <div className="flex items-center gap-0.5 pb-1 border-b border-gray-100">
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); exec("bold"); }}
-          className={`${btnBase} font-black hover:text-gray-800`} title="Fett (Strg+B)">B</button>
-        <button type="button" onMouseDown={(e) => { e.preventDefault(); exec("italic"); }}
-          className={`${btnBase} italic font-semibold hover:text-gray-800`} title="Kursiv (Strg+I)">I</button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            exec("bold");
+          }}
+          className={`${btnBase} font-black hover:text-gray-800`}
+          title="Fett (Strg+B)"
+        >
+          B
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            exec("italic");
+          }}
+          className={`${btnBase} italic font-semibold hover:text-gray-800`}
+          title="Kursiv (Strg+I)"
+        >
+          I
+        </button>
         <span className="w-px h-4 bg-gray-200 mx-0.5" />
-        <button type="button" onMouseDown={handleLink}
-          className={`${btnBase} hover:text-blue-600`} title="Link einfügen">🔗</button>
-        <button type="button" onMouseDown={handleDossierClick}
-          className={`${btnBase} hover:text-[#BD0E0D]`} title="ila Dossier verlinken">📕</button>
+        <button
+          type="button"
+          onMouseDown={handleLink}
+          className={`${btnBase} hover:text-blue-600`}
+          title="Link einfügen"
+        >
+          🔗
+        </button>
+        <button
+          type="button"
+          onMouseDown={handleDossierClick}
+          className={`${btnBase} hover:text-[#BD0E0D]`}
+          title="ila Dossier verlinken"
+        >
+          📕
+        </button>
       </div>
 
       {/* Contenteditable answer area */}
@@ -1495,7 +2112,11 @@ function QAListBlock({ pair, index, total, onChange, onRemove, onMove }) {
 
   const removeItem = (idx) => {
     if (pair.items.length <= 1) return;
-    onChange(pair.id, "items", pair.items.filter((_, i) => i !== idx));
+    onChange(
+      pair.id,
+      "items",
+      pair.items.filter((_, i) => i !== idx),
+    );
     focusNext.current = Math.max(0, idx - 1);
   };
 
@@ -1511,15 +2132,33 @@ function QAListBlock({ pair, index, total, onChange, onRemove, onMove }) {
           className="text-xs text-green-600 border border-green-300 rounded px-2 py-0.5 hover:bg-green-100 transition-colors"
           title="Typ wechseln"
         >
-          {pair.ordered ? "1. 2. 3. →" : "• • • →"} {pair.ordered ? "• • •" : "1. 2. 3."}
+          {pair.ordered ? "1. 2. 3. →" : "• • • →"}{" "}
+          {pair.ordered ? "• • •" : "1. 2. 3."}
         </button>
         <div className="flex items-center gap-1 ml-auto shrink-0">
-          <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0}
-            className="w-6 h-6 flex items-center justify-center text-green-400 hover:text-green-700 disabled:opacity-30 rounded transition-colors">▲</button>
-          <button type="button" onClick={() => onMove(index, 1)} disabled={index === total - 1}
-            className="w-6 h-6 flex items-center justify-center text-green-400 hover:text-green-700 disabled:opacity-30 rounded transition-colors">▼</button>
-          <button type="button" onClick={() => onRemove(pair.id)}
-            className="w-6 h-6 flex items-center justify-center text-green-400 hover:text-red-500 rounded transition-colors">✕</button>
+          <button
+            type="button"
+            onClick={() => onMove(index, -1)}
+            disabled={index === 0}
+            className="w-6 h-6 flex items-center justify-center text-green-400 hover:text-green-700 disabled:opacity-30 rounded transition-colors"
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            onClick={() => onMove(index, 1)}
+            disabled={index === total - 1}
+            className="w-6 h-6 flex items-center justify-center text-green-400 hover:text-green-700 disabled:opacity-30 rounded transition-colors"
+          >
+            ▼
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(pair.id)}
+            className="w-6 h-6 flex items-center justify-center text-green-400 hover:text-red-500 rounded transition-colors"
+          >
+            ✕
+          </button>
         </div>
       </div>
       <div className="px-4 py-3 space-y-1">
@@ -1529,13 +2168,22 @@ function QAListBlock({ pair, index, total, onChange, onRemove, onMove }) {
               {pair.ordered ? `${idx + 1}.` : "•"}
             </span>
             <input
-              ref={(el) => { itemRefs.current[idx] = el; }}
+              ref={(el) => {
+                itemRefs.current[idx] = el;
+              }}
               type="text"
               value={item}
               onChange={(e) => updateItem(idx, e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); addItem(idx); }
-                if (e.key === "Backspace" && item === "" && pair.items.length > 1) {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addItem(idx);
+                }
+                if (
+                  e.key === "Backspace" &&
+                  item === "" &&
+                  pair.items.length > 1
+                ) {
                   e.preventDefault();
                   removeItem(idx);
                 }
@@ -1544,8 +2192,13 @@ function QAListBlock({ pair, index, total, onChange, onRemove, onMove }) {
               className="flex-1 bg-transparent text-gray-800 text-sm outline-none placeholder:text-gray-400"
             />
             {pair.items.length > 1 && (
-              <button type="button" onClick={() => removeItem(idx)}
-                className="w-5 h-5 flex items-center justify-center text-gray-300 hover:text-red-400 text-xs transition-colors shrink-0">✕</button>
+              <button
+                type="button"
+                onClick={() => removeItem(idx)}
+                className="w-5 h-5 flex items-center justify-center text-gray-300 hover:text-red-400 text-xs transition-colors shrink-0"
+              >
+                ✕
+              </button>
             )}
           </div>
         ))}
@@ -1573,14 +2226,33 @@ function QAPoemBlock({ pair, index, total, onChange, onRemove, onMove }) {
         <span className="text-xs font-black uppercase tracking-widest text-purple-700 shrink-0">
           POEM
         </span>
-        <span className="text-xs text-purple-400 flex-1">Leerzeile = Strophenende</span>
+        <span className="text-xs text-purple-400 flex-1">
+          Leerzeile = Strophenende
+        </span>
         <div className="flex items-center gap-1 shrink-0">
-          <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0}
-            className="w-6 h-6 flex items-center justify-center text-purple-400 hover:text-purple-700 disabled:opacity-30 rounded transition-colors">▲</button>
-          <button type="button" onClick={() => onMove(index, 1)} disabled={index === total - 1}
-            className="w-6 h-6 flex items-center justify-center text-purple-400 hover:text-purple-700 disabled:opacity-30 rounded transition-colors">▼</button>
-          <button type="button" onClick={() => onRemove(pair.id)}
-            className="w-6 h-6 flex items-center justify-center text-purple-400 hover:text-red-500 rounded transition-colors">✕</button>
+          <button
+            type="button"
+            onClick={() => onMove(index, -1)}
+            disabled={index === 0}
+            className="w-6 h-6 flex items-center justify-center text-purple-400 hover:text-purple-700 disabled:opacity-30 rounded transition-colors"
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            onClick={() => onMove(index, 1)}
+            disabled={index === total - 1}
+            className="w-6 h-6 flex items-center justify-center text-purple-400 hover:text-purple-700 disabled:opacity-30 rounded transition-colors"
+          >
+            ▼
+          </button>
+          <button
+            type="button"
+            onClick={() => onRemove(pair.id)}
+            className="w-6 h-6 flex items-center justify-center text-purple-400 hover:text-red-500 rounded transition-colors"
+          >
+            ✕
+          </button>
         </div>
       </div>
       <div className="px-4 py-3">
@@ -1591,7 +2263,10 @@ function QAPoemBlock({ pair, index, total, onChange, onRemove, onMove }) {
           placeholder={"Verse eingeben…\n\nLeerzeile = neue Strophe"}
           rows={4}
           className="w-full bg-transparent text-gray-800 text-sm outline-none resize-none leading-relaxed placeholder:text-gray-400"
-          style={{ minHeight: "80px", fontFamily: "Georgia, 'Times New Roman', serif" }}
+          style={{
+            minHeight: "80px",
+            fontFamily: "Georgia, 'Times New Roman', serif",
+          }}
         />
       </div>
     </div>
@@ -1604,7 +2279,9 @@ function ImageBlock({ pair, index, total, onChange, onRemove, onMove }) {
   return (
     <div className="border border-blue-200 rounded-lg overflow-hidden bg-blue-50 shadow-sm">
       <div className="px-4 py-2.5 flex items-center gap-3">
-        <span className="text-xs font-black uppercase tracking-widest text-blue-600 shrink-0">IMG</span>
+        <span className="text-xs font-black uppercase tracking-widest text-blue-600 shrink-0">
+          IMG
+        </span>
         {pair.imageUrl && (
           <img
             src={pair.imageUrl}
@@ -1646,12 +2323,29 @@ function ImageBlock({ pair, index, total, onChange, onRemove, onMove }) {
           ))}
         </div>
         <span className="w-px h-4 bg-blue-200 mx-1" />
-        <button type="button" onClick={() => onMove(index, -1)} disabled={index === 0}
-          className="w-6 h-6 flex items-center justify-center text-blue-300 hover:text-blue-600 disabled:opacity-30 rounded transition-colors">▲</button>
-        <button type="button" onClick={() => onMove(index, 1)} disabled={index === total - 1}
-          className="w-6 h-6 flex items-center justify-center text-blue-300 hover:text-blue-600 disabled:opacity-30 rounded transition-colors">▼</button>
-        <button type="button" onClick={() => onRemove(pair.id)}
-          className="w-6 h-6 flex items-center justify-center text-blue-300 hover:text-red-500 rounded transition-colors">✕</button>
+        <button
+          type="button"
+          onClick={() => onMove(index, -1)}
+          disabled={index === 0}
+          className="w-6 h-6 flex items-center justify-center text-blue-300 hover:text-blue-600 disabled:opacity-30 rounded transition-colors"
+        >
+          ▲
+        </button>
+        <button
+          type="button"
+          onClick={() => onMove(index, 1)}
+          disabled={index === total - 1}
+          className="w-6 h-6 flex items-center justify-center text-blue-300 hover:text-blue-600 disabled:opacity-30 rounded transition-colors"
+        >
+          ▼
+        </button>
+        <button
+          type="button"
+          onClick={() => onRemove(pair.id)}
+          className="w-6 h-6 flex items-center justify-center text-blue-300 hover:text-red-500 rounded transition-colors"
+        >
+          ✕
+        </button>
       </div>
     </div>
   );
@@ -1660,7 +2354,6 @@ function ImageBlock({ pair, index, total, onChange, onRemove, onMove }) {
 // ── Individual Q&A pair card ──────────────────────────────────────────────
 
 function QAPair({ pair, index, total, onChange, onRemove, onMove }) {
-
   // ── Subtitle (T) variant ──────────────────────────────────────────────
   if (pair.isSubtitle) {
     return (
@@ -1786,10 +2479,23 @@ function Preview({ pairs }) {
 
 // ── Main component ────────────────────────────────────────────────────────
 
-export default function InterviewEditor({ value, onChange, onUrlInserted, title, subtitle }) {
+export default function InterviewEditor({
+  value,
+  onChange,
+  onUrlInserted,
+  title,
+  subtitle,
+  articleLegacyPath,
+  articleId,
+  hasSpanishContent,
+  contentES,
+  onChangeES,
+}) {
   const [pairs, setPairs] = useState(() => htmlToQa(value));
   const [showPastePanel, setShowPastePanel] = useState(false);
   const [lastBlocks, setLastBlocks] = useState(null);
+  const [showSplash, setShowSplash] = useState(false);
+  const [splashFading, setSplashFading] = useState(false);
 
   // When content is loaded externally (edit page), sync once
   const initializedRef = useRef(false);
@@ -1806,21 +2512,38 @@ export default function InterviewEditor({ value, onChange, onUrlInserted, title,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pairs]);
 
-  const handleImportFromPaste = (importedPairs, blocks) => {
-    setPairs(importedPairs);
-    setLastBlocks(blocks ?? null);
-    setShowPastePanel(false);
-    if (onUrlInserted) {
-      // notify parent of any image URLs in the new pairs
-      importedPairs.forEach((p) => { if (p.isImage && p.imageUrl) onUrlInserted(p.imageUrl); });
+  const handleImportFromPaste = (importedPairs, blocks, lang) => {
+    const html = qaToHtml(importedPairs);
+    if (lang === "es") {
+      onChangeES && onChangeES(html);
+    } else {
+      setPairs(importedPairs);
+      setLastBlocks(blocks ?? null);
+      if (onUrlInserted) {
+        importedPairs.forEach((p) => {
+          if (p.isImage && p.imageUrl) onUrlInserted(p.imageUrl);
+        });
+      }
     }
+    setShowPastePanel(false);
   };
 
-  const questionCount = pairs.filter((p) => !p.isSubtitle && !p.isImage && !p.isListBlock && !p.isPoemBlock).length;
+  const questionCount = pairs.filter(
+    (p) => !p.isSubtitle && !p.isImage && !p.isListBlock && !p.isPoemBlock,
+  ).length;
   const blockCount = pairs.length;
-  const hasContent = pairs.some((p) => p.question || p.answer || p.isImage || p.isListBlock || p.isPoemBlock);
+  const hasContent = pairs.some(
+    (p) =>
+      p.question || p.answer || p.isImage || p.isListBlock || p.isPoemBlock,
+  );
 
-  const openEditor = () => setShowPastePanel(true);
+  const openEditor = () => {
+    setShowSplash(true);
+    setSplashFading(false);
+    setTimeout(() => setSplashFading(true), 2600);
+    setTimeout(() => setShowPastePanel(true), 2400);
+    setTimeout(() => setShowSplash(false), 3400);
+  };
 
   return (
     <div className="space-y-2">
@@ -1829,9 +2552,15 @@ export default function InterviewEditor({ value, onChange, onUrlInserted, title,
         <PasteImportPanel
           onImport={handleImportFromPaste}
           onClose={() => setShowPastePanel(false)}
-          initialBlocks={lastBlocks ?? (hasContent ? pairsToBlocks(pairs) : null)}
+          initialBlocks={
+            lastBlocks ?? (hasContent ? pairsToBlocks(pairs) : null)
+          }
           articleTitle={title}
           articleSubtitle={subtitle}
+          articleLegacyPath={articleLegacyPath}
+          articleId={articleId}
+          hasSpanishContent={hasSpanishContent}
+          contentES={contentES}
         />
       )}
 
@@ -1853,9 +2582,22 @@ export default function InterviewEditor({ value, onChange, onUrlInserted, title,
           <div className="p-5 pointer-events-none">
             {/* Summary bar */}
             <div className="flex items-center gap-3 mb-3 text-xs text-gray-400">
-              <span className="inline-flex items-baseline" style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}><span className="text-gray-400 font-normal text-xs">publ</span><span className="font-black text-xs text-gray-700">ila</span><span className="text-gray-400 font-normal text-xs">b</span></span>
-              <span className="text-[#BD0E0D] font-bold">{questionCount} F</span>
-              {pairs.filter(p => p.isSubtitle).length > 0 && <span className="text-amber-500 font-bold">{pairs.filter(p => p.isSubtitle).length} T</span>}
+              <span
+                className="inline-flex items-baseline"
+                style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+              >
+                <span className="text-gray-400 font-normal text-xs">publ</span>
+                <span className="font-black text-xs text-gray-700">ila</span>
+                <span className="text-gray-400 font-normal text-xs">b</span>
+              </span>
+              <span className="text-[#BD0E0D] font-bold">
+                {questionCount} F
+              </span>
+              {pairs.filter((p) => p.isSubtitle).length > 0 && (
+                <span className="text-amber-500 font-bold">
+                  {pairs.filter((p) => p.isSubtitle).length} T
+                </span>
+              )}
               <span>{blockCount} Blöcke</span>
             </div>
             {/* HTML preview */}
@@ -1866,11 +2608,129 @@ export default function InterviewEditor({ value, onChange, onUrlInserted, title,
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-12 gap-3 text-center">
             <span className="text-4xl">✍️</span>
-            <p className="text-gray-500 font-semibold text-sm">Klicken zum Schreiben</p>
-            <p className="text-gray-400 text-xs" style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}>Öffnet den <span className="font-normal">publ</span><span className="font-black text-gray-500">ila</span><span className="font-normal">b</span> — Vollbild-Editor</p>
+            <p className="text-gray-500 font-semibold text-sm">
+              Klicken zum Schreiben
+            </p>
+            <p
+              className="text-gray-400 text-xs"
+              style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+            >
+              Öffnet den <span className="font-normal">publ</span>
+              <span className="font-black text-gray-500">ila</span>
+              <span className="font-normal">b</span> — Vollbild-Editor
+            </p>
           </div>
         )}
       </div>
+
+      {/* publilab splash overlay */}
+      {showSplash && (
+        <>
+          <style>{`
+            @keyframes plb-reveal {
+              from { clip-path: inset(110% 0 0 0); transform: translateY(12px); }
+              to   { clip-path: inset(0% 0 0 0);   transform: translateY(0); }
+            }
+            @keyframes plb-line {
+              from { transform: scaleX(0); opacity: 0; }
+              to   { transform: scaleX(1); opacity: 1; }
+            }
+            @keyframes plb-sub {
+              from { opacity: 0; letter-spacing: 0.25em; }
+              to   { opacity: 0.35; letter-spacing: 0.45em; }
+            }
+            @keyframes plb-progress {
+              0%   { width: 0%; }
+              15%  { width: 28%; }
+              35%  { width: 52%; }
+              60%  { width: 74%; }
+              80%  { width: 88%; }
+              95%  { width: 96%; }
+              100% { width: 100%; }
+            }
+            @keyframes plb-progress-glow {
+              0%, 100% { opacity: 0.7; }
+              50%       { opacity: 1; }
+            }
+          `}</style>
+          <div
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-[700ms] ${splashFading ? "opacity-0" : "opacity-100"}`}
+            style={{ background: "#0d0d0d" }}
+          >
+            {/* Logo */}
+            <div style={{ overflow: "hidden", paddingBottom: "4px" }}>
+              <span
+                className="select-none"
+                style={{
+                  fontFamily: "Futura Cyrillic, Arial, sans-serif",
+                  fontSize: "88px",
+                  lineHeight: 1,
+                  letterSpacing: "-0.02em",
+                  display: "inline-block",
+                  animation:
+                    "plb-reveal 0.65s cubic-bezier(0.16,1,0.3,1) 0.05s both",
+                }}
+              >
+                <span style={{ color: "#6b7280", fontWeight: 600 }}>publ</span>
+                <span style={{ color: "#ffffff", fontWeight: 900 }}>ila</span>
+                <span style={{ color: "#6b7280", fontWeight: 600 }}>b</span>
+              </span>
+            </div>
+
+            {/* Thin line */}
+            <div
+              style={{
+                marginTop: "14px",
+                width: "80px",
+                height: "1px",
+                background:
+                  "linear-gradient(90deg, transparent, #ffffff60, transparent)",
+                transformOrigin: "center",
+                animation:
+                  "plb-line 0.5s cubic-bezier(0.16,1,0.3,1) 0.45s both",
+              }}
+            />
+
+            {/* Tagline */}
+            <div
+              style={{
+                marginTop: "14px",
+                color: "#fff",
+                fontSize: "10px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                animation: "plb-sub 0.6s cubic-bezier(0.16,1,0.3,1) 0.55s both",
+              }}
+            >
+              publilabor editorial v.1.4
+            </div>
+
+            {/* Progress bar */}
+            <div
+              style={{
+                marginTop: "32px",
+                width: "160px",
+                height: "2px",
+                background: "rgba(255,255,255,0.1)",
+                borderRadius: "99px",
+                overflow: "hidden",
+                animation: "plb-sub 0.4s ease 0.7s both",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  background: "linear-gradient(90deg, #ffffff80, #ffffff)",
+                  borderRadius: "99px",
+                  animation:
+                    "plb-progress 2.4s cubic-bezier(0.4,0,0.2,1) 0.7s both, plb-progress-glow 0.8s ease-in-out 0.7s infinite",
+                  boxShadow: "0 0 8px rgba(255,255,255,0.4)",
+                }}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
