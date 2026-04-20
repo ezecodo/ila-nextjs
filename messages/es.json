@@ -1182,7 +1182,8 @@
     "tabs": {
       "favorites": "Artículos Favoritos",
       "pdf_dossiers": "📰 Mis Dossiers (PDF)",
-      "account": "Configuración de cuenta"
+      "account": "Configuración de cuenta",
+      "pdf_bundle": "PDF Bundle"
     },
     "pdf_dossiers": {
       "heading": "Mis Dossiers",
@@ -1190,6 +1191,23 @@
       "available_other": "{count} ediciones disponibles",
       "empty": "Aún no hay ediciones PDF disponibles.",
       "open": "Abrir →"
+    },
+    "favorites_heading": "Artículos Favoritos",
+    "pdf_bundle": {
+      "create_button": "Crear Bundle PDF",
+      "cancel": "Cancelar",
+      "select_all": "Seleccionar todo",
+      "deselect_all": "Deseleccionar todo",
+      "loading": "Cargando favoritos…",
+      "empty": "No tienes artículos favoritos aún.",
+      "selected_one": "{count} artículo seleccionado",
+      "selected_other": "{count} artículos seleccionados",
+      "download": "Descargar PDF",
+      "generating": "Generando…",
+      "cover_title": "Mis Artículos",
+      "toc_label": "CONTENIDO",
+      "online": "Online",
+      "footer": "www.ila-web.de · Informationsstelle Lateinamerika e.V."
     }
   }
 }

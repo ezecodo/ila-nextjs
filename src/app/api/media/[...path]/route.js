@@ -34,6 +34,7 @@ export async function GET(_request, { params }) {
       headers: {
         "Content-Type": mimeType,
         "Cache-Control": "public, max-age=31536000, immutable",
+        "Access-Control-Allow-Origin": "*",
       },
     });
   } catch (error) {

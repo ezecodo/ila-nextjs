@@ -371,7 +371,7 @@ body {
   font-weight: 700 !important;
   font-size: 1rem !important;
   line-height: 1.3 !important;
-  margin: 1.5rem 0 1rem 0 !important;
+  margin: 1.8rem 0 0.4rem 0 !important;
   padding: 0 !important;
   color: #1f2937 !important;
   font-family: inherit !important;
@@ -452,8 +452,13 @@ body {
 
 .article-content h2 + p,
 .article-content h3 + p,
-.article-content p strong + p {
+.article-content p:has(strong) + p {
   margin-top: 0 !important;
+}
+
+/* Pregunta en entrevista (p con solo un <strong> como hijo) → gap tight con la respuesta */
+.article-content p:has(> strong:only-child) {
+  margin-bottom: 0.4rem !important;
 }
 /* --- FIX para títulos y textos largos en móvil --- */
 .article-content,

@@ -347,6 +347,11 @@ const ArticlesList = ({ mode = "admin" }) => {
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
                         Enviado
                       </span>
+                    ) : article.translationStatus === "approved" &&
+                      article.editedAfterReview ? (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                        ✏️ Editado tras revisión
+                      </span>
                     ) : article.translationStatus === "approved" ? (
                       <span className="px-2 py-1 bg-green-200 text-green-900 rounded-full text-xs">
                         Revisado
@@ -534,6 +539,21 @@ const ArticlesList = ({ mode = "admin" }) => {
                             className="text-yellow-500 text-[10px] hover:underline"
                           >
                             Revisión
+                          </Link>
+                        )
+                      ) : article.editedAfterReview ? (
+                        mode === "translator" ? (
+                          <Check
+                            className="w-4 h-4 text-yellow-500"
+                            title="Revisado"
+                          />
+                        ) : (
+                          <Link
+                            href={`/dashboard/articles/translate/${article.id}?mode=review`}
+                            className="text-blue-500 text-[10px] hover:underline"
+                            title="Editado tras revisión"
+                          >
+                            ✏️ Editado
                           </Link>
                         )
                       ) : (

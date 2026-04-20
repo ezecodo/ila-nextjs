@@ -224,6 +224,46 @@ export default function MiPaginaDashboard() {
 - **IMPORTANTE**: estas funciones están referenciadas en el render (línea ~560). Si se eliminan o se mueven sin actualizar el uso, la página rompe con `ReferenceError`
 - `src/lib/articleContentTransforms.js` existe pero está **huérfano** (no importado en ningún sitio) — no borrarlo sin revisar
 
+## Sistema de traducción ES
+
+### Modelo de datos (campos en `Article`)
+- `translationStatus` — `not_assigned` | `in_progress` | `submitted` | `approved`
+- `isTranslatedES` — true cuando `submitted` o `approved`
+- `needsReviewES` — true solo cuando está `submitted` esperando revisión
+- `reviewedAt` — fecha de la última aprobación
+- `editedAfterReview` — true cuando un artículo `approved` se edita después (sin volver a aprobar)
+- `translatorId`, `reviewerId`, `assignedAt`
+
+### Flujo de estados
+1. Admin asigna traductor → `in_progress`
+2. Traductor guarda borrador → sigue `in_progress`
+3. Traductor envía traducción → `submitted` + `needsReviewES: true` (badge amarillo "Revisión")
+4. Reviewer aprueba → `approved` + `needsReviewES: false` + `reviewedAt` (badge verde "Revisado")
+5. Si alguien edita un artículo ya aprobado (campos ES o alt/title de imágenes) → mantiene `approved` pero marca `editedAfterReview: true` (badge azul "✏️ Editado tras revisión")
+6. Re-aprobar resetea `editedAfterReview` a `false`
+
+### Indicadores visuales en `ArticlesList.js`
+- Modo admin (columna "🌐 Tra"):
+  - Check verde → traducido
+  - Link amarillo "Revisión" → `needsReviewES`
+  - Link azul "✏️ Editado" → `editedAfterReview`
+  - Check amarillo → revisado y sin cambios posteriores
+- Modo reviewer: badges en columna de estado (verde/azul/amarillo) con acción "Revisar" o "🔁 Revisar"
+
+### Editor de traducción (`/dashboard/articles/translate/[id]`)
+- Vista compacta: alemán y español lado a lado
+- El campo ES compacto es **solo lectura** — click en él abre el modal de traducción a pantalla completa
+- Modal tiene en el header: "⚡ Autotraducir con DeepL", "💾 Guardar borrador" (con feedback inline) y "✕ Cerrar"
+- Backspace al inicio de un `<p>` con un heading arriba: convierte el heading a `<p>` antes del merge nativo (evita que el texto herede h3/h4)
+- Toolbar (`setBlockTag`, `execModal`) re-guarda la selección post-comando para que clicks consecutivos (h3 → h4) no pierdan la selección
+- Botón "🖼️ Guardar alt/title de imágenes" abajo solo aparece si `inlineImages.length > 0`
+- En modo `?mode=review` el botón de abajo es "✅ Aprobar traducción"
+
+### API PUT `/api/articles/[id]` — lógica de traducción
+- Si llega con `translationStatus`, actualiza estado y deriva `isTranslatedES` / `needsReviewES`
+- Si el artículo estaba `approved` y cambian campos ES o `imageTranslations` sin re-aprobar → fuerza `approved` y marca `editedAfterReview: true`
+- Caso `imageTranslationsOnly: true` → solo actualiza `Image.titleES`/`altES` (no toca estado), pero también marca `editedAfterReview` si el artículo estaba aprobado
+
 ## ⚠️ Archivos que NUNCA se deben modificar
 
 - `src/middleware.js`

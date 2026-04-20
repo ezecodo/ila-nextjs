@@ -182,7 +182,19 @@ export async function PUT(req, context) {
           });
         }
 
-        // Devolver el artículo sin modificarlo
+        // Si el artículo estaba aprobado, marcamos que fue editado tras revisión
+        const current = await prisma.article.findUnique({
+          where: { id: parseInt(id, 10) },
+          select: { translationStatus: true },
+        });
+        if (current?.translationStatus === "approved") {
+          await prisma.article.update({
+            where: { id: parseInt(id, 10) },
+            data: { editedAfterReview: true },
+          });
+        }
+
+        // Devolver el artículo (con el flag actualizado si aplica)
         const article = await prisma.article.findUnique({
           where: { id: parseInt(id, 10) },
           include: {
@@ -220,6 +232,19 @@ export async function PUT(req, context) {
         );
       }
 
+      // 🔎 Estado actual para detectar edición tras revisión
+      const currentArticle = await prisma.article.findUnique({
+        where: { id: parseInt(id, 10) },
+        select: {
+          translationStatus: true,
+          titleES: true,
+          subtitleES: true,
+          contentES: true,
+          previewTextES: true,
+          additionalInfoES: true,
+        },
+      });
+
       // 🧠 Construimos el objeto de actualización
       const dataToUpdate = {
         titleES: body.titleES,
@@ -242,6 +267,8 @@ export async function PUT(req, context) {
       // ✅ reviewedAt SOLO cuando se aprueba
       if (body.translationStatus === "approved") {
         dataToUpdate.reviewedAt = new Date();
+        // Re-aprobación limpia la marca de edición posterior
+        dataToUpdate.editedAfterReview = false;
       } else if (
         body.translationStatus === "submitted" ||
         body.translationStatus === "in_progress"
@@ -249,6 +276,34 @@ export async function PUT(req, context) {
         // Enviado / En progreso ⇒ no hay revisión válida
         dataToUpdate.reviewedAt = null;
         // (si prefieres no tocar reviewedAt en estos estados, borra la línea anterior)
+      }
+
+      // ✏️ Edición tras revisión: artículo ya estaba "approved" y cambió algún campo ES
+      const isAlreadyApproved =
+        currentArticle?.translationStatus === "approved";
+      const translationFieldsChanged =
+        currentArticle &&
+        (currentArticle.titleES !== body.titleES ||
+          currentArticle.subtitleES !== body.subtitleES ||
+          currentArticle.contentES !== body.contentES ||
+          currentArticle.previewTextES !== body.previewES ||
+          currentArticle.additionalInfoES !== body.additionalInfoES);
+      const imageTranslationsTouched =
+        body.imageTranslations &&
+        Object.keys(body.imageTranslations).length > 0;
+
+      if (
+        isAlreadyApproved &&
+        body.translationStatus !== "approved" &&
+        (translationFieldsChanged || imageTranslationsTouched)
+      ) {
+        // Mantenemos el artículo como aprobado pero marcamos que fue editado
+        dataToUpdate.translationStatus = "approved";
+        dataToUpdate.isTranslatedES = true;
+        dataToUpdate.needsReviewES = false;
+        dataToUpdate.editedAfterReview = true;
+        // No tocamos reviewedAt: la fecha de la revisión original sigue siendo válida
+        delete dataToUpdate.reviewedAt;
       }
 
       const updatedArticle = await prisma.article.update({

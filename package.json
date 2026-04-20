@@ -19,6 +19,7 @@
     "@lexical/react": "^0.21.0",
     "@lexical/rich-text": "^0.21.0",
     "@prisma/client": "^5.22.0",
+    "@react-pdf/renderer": "^4.5.0",
     "@sentry/nextjs": "^10.46.0",
     "@tailwindcss/typography": "^0.5.16",
     "bcryptjs": "^3.0.2",

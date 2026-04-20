@@ -135,6 +135,21 @@ export function htmlToQa(html) {
 
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
+
+  // Normalize <font> tags: split on <br><br> and replace with proper <p> tags
+  doc.body.querySelectorAll("font").forEach((font) => {
+    const fragment = doc.createDocumentFragment();
+    const parts = font.innerHTML.split(/<br\s*\/?>\s*<br\s*\/?>/gi);
+    parts.forEach((part) => {
+      const clean = part.replace(/^(<br\s*\/?>|\s)+|(<br\s*\/?>|\s)+$/gi, "").trim();
+      if (!clean) return;
+      const p = doc.createElement("p");
+      p.innerHTML = clean;
+      fragment.appendChild(p);
+    });
+    font.parentNode.replaceChild(fragment, font);
+  });
+
   // Normalize non-poem DIVs (e.g. from contentEditable/Chrome) to <p> so they get processed
   doc.body.querySelectorAll("div:not(.poem)").forEach((div) => {
     const p = doc.createElement("p");
@@ -259,12 +274,22 @@ export function htmlToQa(html) {
       continue;
     }
 
-    // Non-poem DIVs (e.g. from contentEditable/Chrome) — treat as <p>
-    if (tag === "DIV") continue;
+    // Non-poem DIVs (e.g. from contentEditable/Chrome) — treat as paragraph
+    if (tag === "DIV") {
+      const innerHtml = el.innerHTML.trim();
+      if (!innerHtml) continue;
+      if (!currentPair) currentPair = { id: genId(), question: "", answer: "" };
+      // If div contains block-level children, use their HTML directly to avoid nesting <p> inside <p>
+      const hasBlock = /<(p|h[1-6]|ul|ol|blockquote)\b/i.test(innerHtml);
+      currentPair.answer += hasBlock ? innerHtml : `<p>${innerHtml}</p>`;
+      continue;
+    }
 
     const strongChild = el.querySelector("strong, b");
     const wholeTextBold =
-      strongChild && el.textContent.trim() === strongChild.textContent.trim();
+      strongChild &&
+      el.textContent.trim() !== "" &&
+      el.textContent.trim() === strongChild.textContent.trim();
 
     // Also detect Google Docs bold spans: <span style="font-weight:700">
     const boldSpan = el.querySelector('span[style*="font-weight"]');
@@ -320,6 +345,50 @@ export function htmlToQa(html) {
         headingLevel,
       };
     } else if (tag === "P") {
+      // Detect lead-bold pattern: <p><strong>Question</strong> answer…</p>
+      // → split into question (F) + answer (A) blocks
+      {
+        const childNodes = Array.from(el.childNodes);
+        let firstIdx = 0;
+        while (
+          firstIdx < childNodes.length &&
+          childNodes[firstIdx].nodeType === 3 &&
+          !childNodes[firstIdx].textContent.trim()
+        ) {
+          firstIdx++;
+        }
+        const leadEl = childNodes[firstIdx];
+        const isLeadBold =
+          leadEl &&
+          leadEl.nodeType === 1 &&
+          /^(STRONG|B)$/.test(leadEl.tagName);
+        if (isLeadBold) {
+          const boldText = leadEl.textContent.trim();
+          const restP = el.cloneNode(true);
+          for (let k = 0; k <= firstIdx; k++) {
+            if (restP.firstChild) restP.removeChild(restP.firstChild);
+          }
+          if (restP.firstChild && restP.firstChild.nodeType === 3) {
+            restP.firstChild.textContent = restP.firstChild.textContent.replace(
+              /^\s+/,
+              "",
+            );
+          }
+          const restText = restP.textContent.trim();
+          if (boldText.length >= 3 && restText.length > 0) {
+            if (currentPair) pairs.push(currentPair);
+            const restHtml = restP.innerHTML.trim();
+            pairs.push({
+              id: genId(),
+              question: unescapeHtml(boldText),
+              answer: restHtml ? `<p>${restHtml}</p>` : "",
+              headingLevel: 4,
+            });
+            currentPair = null;
+            continue;
+          }
+        }
+      }
       // Check if this plain paragraph looks like a heading (same heuristic as autoDetectHeadings on the article page)
       const text = el.textContent.trim();
       const isShortHeading =
@@ -368,6 +437,17 @@ function isQuestionBlock(text) {
     /\?\s*$/.test(text) ||
     (text.length <= 200 && /^[A-ZÄÖÜÑÁÉÍÓÚ¿]/.test(text) && /:\s*$/.test(text))
   );
+}
+
+function isSubtitleBlock(text) {
+  if (!text || text.length > 140) return false;
+  if (!/^[""'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text)) return false;
+  // Ends with colon → clear section heading
+  if (/:\s*$/.test(text)) return true;
+  // No real sentence ending (abbreviations like "EE. UU." allowed)
+  const endsWithSentence = /[a-z][.!?]\s*$/.test(text);
+  const fewSentences = (text.match(/[a-z][.!?]/g) || []).length <= 1;
+  return !endsWithSentence && fewSentences;
 }
 
 export function parseToBlocks(plainText, html) {
@@ -424,32 +504,57 @@ export function parseToBlocks(plainText, html) {
   }
 
   // ── Plain text parsing ─────────────────────────────────────────────────
+  // Split into paragraphs at blank lines, but also treat subtitle-like single
+  // lines as paragraph boundaries (so headings don't merge into body text).
   const rawLines = plainText.split("\n");
-  const paragraphs = [];
+  const paragraphs = []; // { text, forcedSubtitle? }
   let currentLines = [];
 
   for (const line of rawLines) {
-    if (line.trim() === "") {
+    const trimmed = line.trim();
+    if (trimmed === "") {
       if (currentLines.length > 0) {
-        paragraphs.push(currentLines.join(" ").trim());
+        paragraphs.push({ text: currentLines.join(" ").trim() });
         currentLines = [];
       }
+    } else if (isSubtitleBlock(trimmed)) {
+      // Flush any accumulated lines first
+      if (currentLines.length > 0) {
+        paragraphs.push({ text: currentLines.join(" ").trim() });
+        currentLines = [];
+      }
+      paragraphs.push({ text: trimmed, forcedSubtitle: true });
     } else {
-      currentLines.push(line.trim());
+      currentLines.push(trimmed);
     }
   }
-  if (currentLines.length > 0) paragraphs.push(currentLines.join(" ").trim());
+  if (currentLines.length > 0)
+    paragraphs.push({ text: currentLines.join(" ").trim() });
 
   const blocks = [];
 
-  for (const para of paragraphs) {
+  for (const { text: para, forcedSubtitle } of paragraphs) {
     if (!para) continue;
 
-    if (/\?\s*$/.test(para)) {
+    // Lines pre-classified as subtitle during grouping
+    if (forcedSubtitle) {
+      blocks.push({ text: para, type: "subtitle" });
+      continue;
+    }
+
+    // Short paragraph ending with "?" → question
+    if (/\?\s*$/.test(para) && para.length <= 300) {
       blocks.push({ text: para, type: "question" });
       continue;
     }
 
+    // Short heading-like paragraph → subtitle (T)
+    if (isSubtitleBlock(para)) {
+      blocks.push({ text: para, type: "subtitle" });
+      continue;
+    }
+
+    // Paragraph with "?" in the middle → split into question + answer
     const qIdx = para.indexOf("?");
     if (qIdx !== -1) {
       const questionPart = para.slice(0, qIdx + 1).trim();
@@ -608,38 +713,38 @@ const BLOCK_STYLES = {
   question: {
     badge: "F",
     badgeClass: "bg-[#BD0E0D] text-white",
-    rowClass: "bg-[#BD0E0D]/10 border-[#BD0E0D]/40 hover:bg-[#BD0E0D]/15",
-    textClass: "font-bold text-white",
+    rowClass: "bg-transparent border-transparent hover:bg-[#BD0E0D]/5",
+    textClass: "font-bold text-gray-900 tracking-tight",
   },
   subtitle: {
     badge: "T",
     badgeClass: "bg-amber-500 text-white",
-    rowClass: "bg-amber-500/10 border-amber-400/40 hover:bg-amber-500/15",
-    textClass: "font-semibold text-amber-200",
+    rowClass: "bg-transparent border-transparent hover:bg-amber-500/5",
+    textClass: "font-bold text-gray-900 tracking-tight",
   },
   answer: {
     badge: "A",
-    badgeClass: "bg-gray-700 text-gray-400",
-    rowClass: "bg-gray-900 border-gray-700 hover:border-gray-500",
-    textClass: "text-gray-400",
+    badgeClass: "bg-gray-200 text-gray-600",
+    rowClass: "bg-transparent border-transparent hover:bg-gray-100/60",
+    textClass: "text-gray-700",
   },
   image: {
     badge: "IMG",
     badgeClass: "bg-blue-600 text-white text-[9px]",
-    rowClass: "bg-blue-900/20 border-blue-500/30",
-    textClass: "text-blue-200",
+    rowClass: "bg-blue-50/60 border-blue-100 hover:bg-blue-50",
+    textClass: "text-blue-900",
   },
   list: {
     badge: "UL",
     badgeClass: "bg-green-600 text-white text-[9px]",
-    rowClass: "bg-green-900/20 border-green-500/30",
-    textClass: "text-green-200",
+    rowClass: "bg-green-50/60 border-green-100 hover:bg-green-50",
+    textClass: "text-green-900",
   },
   poem: {
     badge: "P",
     badgeClass: "bg-purple-600 text-white text-[9px]",
-    rowClass: "bg-purple-900/20 border-purple-500/30",
-    textClass: "text-purple-200",
+    rowClass: "bg-purple-50/60 border-purple-100 hover:bg-purple-50",
+    textClass: "text-purple-900",
   },
 };
 
@@ -647,22 +752,22 @@ const BLOCK_STYLES = {
 
 function InsertImageLine({ onInsert, uploading }) {
   return (
-    <div className="group flex items-center gap-2 my-1 px-1">
-      <div className="flex-1 h-px bg-gray-800 group-hover:bg-gray-700 transition-colors" />
+    <div className="group flex items-center gap-2 my-0.5 px-1 opacity-0 hover:opacity-100 focus-within:opacity-100 transition-opacity">
+      <div className="flex-1 h-px bg-gray-200 group-hover:bg-gray-300 transition-colors" />
       <button
         type="button"
         onClick={onInsert}
         disabled={uploading}
         title="Bild hier einfügen"
-        className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-gray-600 hover:text-blue-400 hover:bg-blue-900/30 border border-transparent hover:border-blue-700 transition-all disabled:opacity-40"
+        className="shrink-0 flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all disabled:opacity-40"
       >
         {uploading ? (
-          <span className="w-3 h-3 border border-gray-500 border-t-blue-400 rounded-full animate-spin inline-block" />
+          <span className="w-3 h-3 border border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
         ) : (
           "📷"
         )}
       </button>
-      <div className="flex-1 h-px bg-gray-800 group-hover:bg-gray-700 transition-colors" />
+      <div className="flex-1 h-px bg-gray-200 group-hover:bg-gray-300 transition-colors" />
     </div>
   );
 }
@@ -670,8 +775,34 @@ function InsertImageLine({ onInsert, uploading }) {
 // ── Dark answer block (contenteditable + dark mini-toolbar) ──────────────
 
 // Normalize Chrome's contentEditable output: replace bare <div> with <p>
+function stripInlineColors(html) {
+  if (!html || typeof window === "undefined") return html;
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  const MEDIA = new Set(["IMG", "FIGURE", "VIDEO", "IFRAME"]);
+  tmp.querySelectorAll("*").forEach((el) => {
+    if (!MEDIA.has(el.tagName)) {
+      el.removeAttribute("style");
+      el.removeAttribute("class");
+    }
+  });
+  return tmp.innerHTML;
+}
+
 function normalizeAnswerHtml(html) {
-  return html.replace(/<div>/gi, "<p>").replace(/<\/div>/gi, "</p>");
+  return html
+    .replace(/<div>/gi, "<p>")
+    .replace(/<\/div>/gi, "</p>");
+}
+
+// Elimina <p> vacíos al inicio y final (residuo del extractContents al dividir
+// bloques en Enter). Evita líneas en blanco espurias al principio del bloque nuevo.
+function trimEmptyParagraphs(html) {
+  if (!html) return "";
+  return html
+    .replace(/^(\s*<p>\s*(<br\s*\/?>)?\s*<\/p>\s*)+/i, "")
+    .replace(/(\s*<p>\s*(<br\s*\/?>)?\s*<\/p>\s*)+$/i, "")
+    .trim();
 }
 
 function DarkAnswerBlock({
@@ -692,7 +823,7 @@ function DarkAnswerBlock({
   useEffect(() => {
     if (!mountedRef.current && divRef.current) {
       mountedRef.current = true;
-      const html = value || "";
+      const html = stripInlineColors(value || "");
       const hasBlock = /<(p|div|ul|ol)\b/i.test(html);
       divRef.current.innerHTML = html && !hasBlock ? `<p>${html}</p>` : html;
     }
@@ -701,7 +832,7 @@ function DarkAnswerBlock({
   // Sync external value changes (e.g. merge from sibling block)
   useEffect(() => {
     if (divRef.current && document.activeElement !== divRef.current) {
-      const html = value || "";
+      const html = stripInlineColors(value || "");
       const hasBlock = /<(p|div|ul|ol)\b/i.test(html);
       divRef.current.innerHTML = html && !hasBlock ? `<p>${html}</p>` : html;
     }
@@ -781,12 +912,12 @@ function DarkAnswerBlock({
   };
 
   const btnCls =
-    "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-600 hover:text-gray-200 hover:bg-gray-700 transition-colors";
+    "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors";
 
   return (
-    <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-      {/* Dark mini toolbar */}
-      <div className="flex items-center gap-0.5 pb-1 border-b border-gray-700">
+    <div className="flex-1 flex flex-col gap-1.5 min-w-0 group/answer">
+      {/* Mini toolbar — appears on hover/focus */}
+      <div className="flex items-center gap-0.5 pb-1 border-b border-gray-100 opacity-0 group-focus-within/answer:opacity-100 group-hover/answer:opacity-100 transition-opacity">
         <button
           type="button"
           onMouseDown={(e) => {
@@ -809,7 +940,7 @@ function DarkAnswerBlock({
         >
           I
         </button>
-        <span className="w-px h-3.5 bg-gray-700 mx-0.5" />
+        <span className="w-px h-3.5 bg-gray-200 mx-0.5" />
         <button
           type="button"
           onMouseDown={handleLink}
@@ -837,7 +968,11 @@ function DarkAnswerBlock({
         suppressContentEditableWarning
         onInput={() => onChange(normalizeAnswerHtml(divRef.current.innerHTML))}
         onBlur={() => {
-          if (!divRef.current.textContent.trim()) onDelete();
+          const el = divRef.current;
+          setTimeout(() => {
+            if (el && !el.isConnected) return; // element was removed from DOM
+            if (el && !el.textContent.trim()) onDelete();
+          }, 150);
         }}
         onPaste={(e) => {
           e.preventDefault();
@@ -886,12 +1021,16 @@ function DarkAnswerBlock({
             const fragment = afterRange.extractContents();
             const temp = document.createElement("div");
             temp.appendChild(fragment);
-            const afterHtml = normalizeAnswerHtml(temp.innerHTML);
-            const beforeHtml = normalizeAnswerHtml(divRef.current.innerHTML);
+            const afterHtml = trimEmptyParagraphs(
+              normalizeAnswerHtml(temp.innerHTML),
+            );
+            const beforeHtml = trimEmptyParagraphs(
+              normalizeAnswerHtml(divRef.current.innerHTML),
+            );
             onSplit(beforeHtml, afterHtml);
           }
         }}
-        className="text-gray-300 text-sm outline-none leading-relaxed"
+        className="text-gray-800 text-sm outline-none leading-relaxed [&_p]:mb-3 [&_p:last-child]:mb-0 [&_a]:text-blue-600 [&_a]:underline [&_a]:decoration-blue-400/60 [&_a.ila-dossier]:text-[#BD0E0D] [&_a.ila-dossier]:decoration-[#BD0E0D]/60"
         style={{ minHeight: "48px" }}
       />
       {showDossier && (
@@ -939,7 +1078,8 @@ function PasteImportPanel({
     setTimeout(() => {
       setLang(targetLang);
       if (targetLang === "es") {
-        const esBlocks = contentES ? pairsToBlocks(htmlToQa(contentES)) : null;
+        const cleanedES = contentES ? stripInlineColors(contentES) : null;
+        const esBlocks = cleanedES ? pairsToBlocks(htmlToQa(cleanedES)) : null;
         setBlocks(esBlocks);
       } else {
         setBlocks(savedDeBlocksRef.current);
@@ -958,13 +1098,12 @@ function PasteImportPanel({
   const analyse = (text, html) => setBlocks(parseToBlocks(text, html));
 
   const handlePaste = (e) => {
-    const html = e.clipboardData.getData("text/html");
     const text = e.clipboardData.getData("text/plain");
-    setPastedHtml(html);
+    setPastedHtml("");
     setPastedText(text);
     e.preventDefault();
     if (textareaRef.current) textareaRef.current.value = text;
-    analyse(text, html);
+    analyse(text, "");
   };
 
   const stripHtml = (html) => {
@@ -1187,11 +1326,10 @@ function PasteImportPanel({
   const hasBlocks = blocks && blocks.length > 0;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col bg-gray-950">
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-gray-50">
       {/* Top bar */}
       <div
-        className="shrink-0 relative flex items-center justify-end px-6 py-3 border-b border-gray-800"
-        style={{ background: "#141414" }}
+        className="shrink-0 relative flex items-center justify-end px-6 py-3 border-b border-gray-200 bg-white"
       >
         {/* Logo centrado */}
         <div className="absolute left-1/2 -translate-x-1/2">
@@ -1199,27 +1337,27 @@ function PasteImportPanel({
             className="text-xl tracking-tight"
             style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
           >
-            <span className="text-gray-400 font-semibold">publ</span>
-            <span className="text-white font-black">ila</span>
-            <span className="text-gray-400 font-semibold">b</span>
+            <span className="text-gray-500 font-semibold">publ</span>
+            <span className="text-gray-900 font-black">ila</span>
+            <span className="text-gray-500 font-semibold">b</span>
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           {/* DE/ES toggle — always visible if ES content exists */}
           {contentES && (
-            <div className="flex items-center rounded overflow-hidden border border-gray-700">
+            <div className="flex items-center rounded overflow-hidden border border-gray-300">
               <button
                 type="button"
                 onClick={() => switchLang("de")}
-                className={`text-xs px-2.5 py-1.5 font-bold transition-colors ${lang === "de" ? "bg-white text-gray-900" : "text-gray-500 hover:text-white"}`}
+                className={`text-xs px-2.5 py-1.5 font-bold transition-colors ${lang === "de" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-900"}`}
               >
                 DE
               </button>
               <button
                 type="button"
                 onClick={() => switchLang("es")}
-                className={`text-xs px-2.5 py-1.5 font-bold transition-colors ${lang === "es" ? "bg-[#BD0E0D] text-white" : "text-gray-500 hover:text-white"}`}
+                className={`text-xs px-2.5 py-1.5 font-bold transition-colors ${lang === "es" ? "bg-[#BD0E0D] text-white" : "text-gray-500 hover:text-gray-900"}`}
               >
                 ES
               </button>
@@ -1234,7 +1372,7 @@ function PasteImportPanel({
                   {questionCount} F
                 </span>
                 {" · "}
-                <span className="text-amber-400 font-bold">
+                <span className="text-amber-600 font-bold">
                   {subtitleCount} T
                 </span>
                 {" · "}
@@ -1245,7 +1383,7 @@ function PasteImportPanel({
                   href={`/${lang}${articleLegacyPath}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-gray-400 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors flex items-center gap-1.5"
+                  className="text-xs text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 transition-colors flex items-center gap-1.5"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -1256,30 +1394,35 @@ function PasteImportPanel({
               <button
                 type="button"
                 onClick={() => setShowPreview(true)}
-                className="text-xs text-gray-400 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors"
+                className="text-xs text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 transition-colors"
               >
                 Vorschau
               </button>
               <button
                 type="button"
-                onClick={reset}
-                className="text-xs text-gray-500 hover:text-white border border-gray-700 rounded px-3 py-1.5 transition-colors"
+                onClick={() => {
+                  if (window.confirm("Alles löschen und neu importieren?")) {
+                    reset();
+                  }
+                }}
+                className="text-xs text-red-600 hover:text-red-700 border border-red-200 hover:border-red-400 rounded px-3 py-1.5 transition-colors"
+                title="Alles löschen"
               >
-                + Importieren
+                🗑 Löschen
               </button>
               <button
                 type="button"
-                onClick={() => onImport(finalPairs, blocks, lang)}
-                className={`text-sm font-bold text-white rounded-lg px-5 py-2 transition-colors ${lang === "es" ? "bg-blue-600 hover:bg-blue-700" : "bg-[#BD0E0D] hover:bg-[#a50c0b]"}`}
+                onClick={reset}
+                className="text-xs text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 transition-colors"
               >
-                {lang === "es" ? "💾 ES" : "Speichern"}
+                + Importieren
               </button>
             </>
           )}
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-white transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors"
           >
             <svg
               className="w-5 h-5"
@@ -1304,10 +1447,10 @@ function PasteImportPanel({
         {!hasBlocks && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
             <div className="text-center">
-              <p className="text-white text-xl font-bold mb-2">
+              <p className="text-gray-900 text-xl font-bold mb-2">
                 Text importieren
               </p>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-500 text-sm">
                 Kopiere den Text aus Google Docs, Word oder einer Webseite
                 <br />
                 und füge ihn unten ein — Fragen werden automatisch erkannt
@@ -1318,7 +1461,7 @@ function PasteImportPanel({
               onPaste={handlePaste}
               onChange={() => {}}
               placeholder="Strg+V / Cmd+V"
-              className="w-full max-w-3xl h-72 bg-gray-900 text-gray-200 text-sm border border-gray-700 rounded-xl px-5 py-4 outline-none focus:border-[#BD0E0D] resize-none placeholder:text-gray-600 leading-relaxed"
+              className="w-full max-w-3xl h-72 bg-white text-gray-800 text-sm border border-gray-200 rounded-xl px-5 py-4 outline-none focus:border-[#BD0E0D] resize-none placeholder:text-gray-400 leading-relaxed shadow-sm"
             />
             {pastedText && (
               <button
@@ -1344,17 +1487,17 @@ function PasteImportPanel({
         {/* Block editor */}
         {hasBlocks && (
           <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 max-w-4xl mx-auto w-full">
-            <p className="text-xs text-gray-600 mb-4">
-              <span className="text-gray-400 font-semibold">Badge</span> = Typ
+            <p className="text-xs text-gray-400 mb-4">
+              <span className="text-gray-600 font-semibold">Badge</span> = Typ
               wechseln (<span className="text-[#BD0E0D] font-bold">H3</span> →{" "}
-              <span className="text-amber-400 font-bold">H2</span> →{" "}
-              <span className="text-amber-400 font-bold">H3</span> →{" "}
-              <span className="text-amber-400 font-bold">H4</span> →{" "}
-              <span className="text-gray-400">A</span>) · F-Blöcke: H2/H3/H4
+              <span className="text-amber-600 font-bold">H2</span> →{" "}
+              <span className="text-amber-600 font-bold">H3</span> →{" "}
+              <span className="text-amber-600 font-bold">H4</span> →{" "}
+              <span className="text-gray-600">A</span>) · F-Blöcke: H2/H3/H4
               wählen{" · "}
-              <span className="text-gray-400 font-semibold">Enter</span> = neuer
+              <span className="text-gray-600 font-semibold">Enter</span> = neuer
               Block {" · "}
-              <span className="text-gray-400 font-semibold">
+              <span className="text-gray-600 font-semibold">
                 Shift+Enter
               </span>{" "}
               in A = Zeilenumbruch
@@ -1372,14 +1515,14 @@ function PasteImportPanel({
               const taSize =
                 block.type === "subtitle" || block.type === "question"
                   ? blockHl === 2
-                    ? "text-lg"
+                    ? "text-2xl"
                     : blockHl === 3
-                      ? "text-base"
-                      : "text-sm"
+                      ? "text-xl"
+                      : "text-lg"
                   : "text-sm";
 
               return (
-                <div key={i} className="mb-1">
+                <div key={`${lang}-${i}`} className="mb-0.5">
                   {/* ── IMAGE block ── */}
                   {block.type === "image" && (
                     <div
@@ -1394,7 +1537,7 @@ function PasteImportPanel({
                         <img
                           src={block.imageUrl}
                           alt={block.imageAlt}
-                          className="h-12 w-16 object-cover rounded border border-blue-500/30 shrink-0"
+                          className="h-12 w-16 object-cover rounded border border-blue-200 shrink-0"
                         />
                       )}
                       <div className="flex-1 flex flex-col gap-1 min-w-0">
@@ -1405,7 +1548,7 @@ function PasteImportPanel({
                             updateBlockField(i, "imageAlt", e.target.value)
                           }
                           placeholder="Alt-Text…"
-                          className="w-full bg-transparent text-blue-200 text-xs outline-none placeholder:text-blue-900 border-b border-blue-800 focus:border-blue-500 pb-0.5"
+                          className="w-full bg-transparent text-blue-900 text-xs outline-none placeholder:text-blue-300 border-b border-blue-200 focus:border-blue-500 pb-0.5"
                         />
                         <input
                           type="text"
@@ -1414,7 +1557,7 @@ function PasteImportPanel({
                             updateBlockField(i, "imageTitle", e.target.value)
                           }
                           placeholder="Title (Tooltip)…"
-                          className="w-full bg-transparent text-blue-300 text-xs outline-none placeholder:text-blue-900 pb-0.5"
+                          className="w-full bg-transparent text-blue-700 text-xs outline-none placeholder:text-blue-300 pb-0.5"
                         />
                       </div>
                       <div className="flex gap-0.5 shrink-0">
@@ -1425,7 +1568,7 @@ function PasteImportPanel({
                             onClick={() =>
                               updateBlockField(i, "imageWidth", value)
                             }
-                            className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-colors ${(block.imageWidth || "100") === value ? "bg-blue-600 text-white" : "border border-blue-700 text-blue-500 hover:border-blue-400"}`}
+                            className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-colors ${(block.imageWidth || "100") === value ? "bg-blue-600 text-white" : "border border-blue-200 text-blue-600 hover:border-blue-400"}`}
                           >
                             {label}
                           </button>
@@ -1434,7 +1577,7 @@ function PasteImportPanel({
                       <button
                         type="button"
                         onClick={() => deleteBlock(i)}
-                        className="w-6 h-6 flex items-center justify-center text-blue-600 hover:text-red-400 transition-colors"
+                        className="w-6 h-6 flex items-center justify-center text-blue-400 hover:text-red-500 transition-colors"
                       >
                         ✕
                       </button>
@@ -1457,14 +1600,14 @@ function PasteImportPanel({
                           onClick={() =>
                             updateBlockField(i, "ordered", !block.ordered)
                           }
-                          className="text-xs text-green-500 border border-green-700 rounded px-2 py-0.5 hover:bg-green-900/30 transition-colors"
+                          className="text-xs text-green-700 border border-green-200 rounded px-2 py-0.5 hover:bg-green-100 transition-colors"
                         >
                           {block.ordered ? "• • •" : "1. 2."}
                         </button>
                         <button
                           type="button"
                           onClick={() => deleteBlock(i)}
-                          className="ml-auto w-6 h-6 flex items-center justify-center text-green-700 hover:text-red-400 transition-colors"
+                          className="ml-auto w-6 h-6 flex items-center justify-center text-green-400 hover:text-red-500 transition-colors"
                         >
                           ✕
                         </button>
@@ -1496,13 +1639,13 @@ function PasteImportPanel({
                                 }
                               }}
                               placeholder={`Punkt ${j + 1}…`}
-                              className="flex-1 bg-transparent text-green-200 text-sm outline-none placeholder:text-green-900"
+                              className="flex-1 bg-transparent text-green-900 text-sm outline-none placeholder:text-green-300"
                             />
                             {(block.items?.length ?? 1) > 1 && (
                               <button
                                 type="button"
                                 onClick={() => removeBlockListItem(i, j)}
-                                className="w-5 h-5 text-green-800 hover:text-red-400 text-xs"
+                                className="w-5 h-5 text-green-400 hover:text-red-500 text-xs"
                               >
                                 ✕
                               </button>
@@ -1514,7 +1657,7 @@ function PasteImportPanel({
                           onClick={() =>
                             addBlockListItem(i, (block.items?.length ?? 1) - 1)
                           }
-                          className="text-xs text-green-700 hover:text-green-400 mt-1 transition-colors"
+                          className="text-xs text-green-600 hover:text-green-800 mt-1 transition-colors"
                         >
                           + Punkt
                         </button>
@@ -1533,13 +1676,13 @@ function PasteImportPanel({
                         >
                           P
                         </span>
-                        <span className="text-xs text-purple-500 flex-1">
+                        <span className="text-xs text-purple-600 flex-1">
                           Leerzeile = neue Strophe
                         </span>
                         <button
                           type="button"
                           onClick={() => deleteBlock(i)}
-                          className="w-6 h-6 flex items-center justify-center text-purple-700 hover:text-red-400 transition-colors"
+                          className="w-6 h-6 flex items-center justify-center text-purple-400 hover:text-red-500 transition-colors"
                         >
                           ✕
                         </button>
@@ -1554,7 +1697,7 @@ function PasteImportPanel({
                         placeholder={
                           "Verse eingeben…\n\nLeerzeile = neue Strophe"
                         }
-                        className="w-full bg-transparent text-purple-200 text-sm outline-none resize-none leading-relaxed placeholder:text-purple-900"
+                        className="w-full bg-transparent text-purple-900 text-sm outline-none resize-none leading-relaxed placeholder:text-purple-300"
                         style={{
                           minHeight: "60px",
                           fontFamily: "Georgia, serif",
@@ -1601,8 +1744,13 @@ function PasteImportPanel({
                             : (html) => {
                                 setBlocks((prev) => {
                                   if (i === 0) return prev;
+                                  const prevBlock = prev[i - 1];
+                                  // Solo permitir merge si el bloque anterior es
+                                  // también "answer" (contentEditable). Si es un
+                                  // heading/question/list/etc., concatenar HTML a
+                                  // su texto plano rompe el contenido.
+                                  if (prevBlock.type !== "answer") return prev;
                                   const next = [...prev];
-                                  const prevBlock = next[i - 1];
                                   next[i - 1] = {
                                     ...prevBlock,
                                     text: (prevBlock.text || "") + html,
@@ -1654,9 +1802,14 @@ function PasteImportPanel({
                           className={`w-full bg-transparent outline-none resize-none leading-relaxed overflow-hidden font-bold ${taSize} ${s.textClass}`}
                           style={{ minHeight: "22px" }}
                         />
-                        {block.type === "question" && (
-                          <div className="flex items-center gap-1">
-                            {[2, 3, 4].map((hl) => (
+                        <div className="flex items-center gap-1">
+                          {[2, 3, 4].map((hl) => {
+                            const isActive = blockHl === hl;
+                            const activeClass =
+                              block.type === "subtitle"
+                                ? "bg-amber-500 text-white"
+                                : "bg-[#BD0E0D] text-white";
+                            return (
                               <button
                                 key={hl}
                                 type="button"
@@ -1670,13 +1823,13 @@ function PasteImportPanel({
                                   )
                                 }
                                 title={`H${hl}`}
-                                className={`w-7 h-5 flex items-center justify-center rounded text-[9px] font-black transition-colors ${blockHl === hl ? "bg-[#BD0E0D] text-white" : "text-gray-500 border border-gray-600 hover:border-gray-300 hover:text-gray-200"}`}
+                                className={`w-7 h-5 flex items-center justify-center rounded text-[9px] font-black transition-colors ${isActive ? activeClass : "text-gray-500 border border-gray-300 hover:border-gray-500 hover:text-gray-800"}`}
                               >
                                 H{hl}
                               </button>
-                            ))}
-                          </div>
-                        )}
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1690,49 +1843,49 @@ function PasteImportPanel({
             })}
 
             {/* Bottom bar: add buttons + save */}
-            <div className="sticky bottom-0 bg-gray-950 pt-3 pb-3 flex flex-wrap gap-2">
+            <div className="sticky bottom-0 bg-gray-50/95 backdrop-blur-sm border-t border-gray-200 pt-3 pb-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => addBlock("question", blocks.length - 1)}
-                className="border border-dashed border-[#BD0E0D]/40 hover:border-[#BD0E0D] text-[#BD0E0D]/60 hover:text-[#BD0E0D] rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+                className="border border-dashed border-[#BD0E0D]/30 hover:border-[#BD0E0D] text-[#BD0E0D]/70 hover:text-[#BD0E0D] rounded-lg py-2 px-4 text-xs font-bold transition-colors"
               >
                 + F
               </button>
               <button
                 type="button"
                 onClick={() => addBlock("answer", blocks.length - 1)}
-                className="border border-dashed border-gray-700 hover:border-gray-400 text-gray-600 hover:text-gray-300 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+                className="border border-dashed border-gray-300 hover:border-gray-500 text-gray-500 hover:text-gray-800 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
               >
                 + A
               </button>
               <button
                 type="button"
                 onClick={() => addBlock("subtitle", blocks.length - 1)}
-                className="border border-dashed border-amber-700/40 hover:border-amber-500 text-amber-700 hover:text-amber-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+                className="border border-dashed border-amber-300 hover:border-amber-500 text-amber-600 hover:text-amber-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
               >
                 + T
               </button>
               <button
                 type="button"
                 onClick={() => addBlock("list", blocks.length - 1)}
-                className="border border-dashed border-green-800/40 hover:border-green-500 text-green-800 hover:text-green-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+                className="border border-dashed border-green-300 hover:border-green-500 text-green-600 hover:text-green-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
               >
                 ☰ Liste
               </button>
               <button
                 type="button"
                 onClick={() => addBlock("poem", blocks.length - 1)}
-                className="border border-dashed border-purple-800/40 hover:border-purple-500 text-purple-800 hover:text-purple-400 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+                className="border border-dashed border-purple-300 hover:border-purple-500 text-purple-600 hover:text-purple-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
               >
                 📜 Poem
               </button>
               <div className="flex-1" />
               <button
                 type="button"
-                onClick={() => onImport(finalPairs, blocks)}
-                className="py-2 px-6 bg-[#BD0E0D] hover:bg-[#a50c0b] text-white font-bold rounded-xl transition-colors text-sm"
+                onClick={() => onImport(finalPairs, blocks, lang)}
+                className={`py-2 px-6 text-white font-bold rounded-xl transition-colors text-sm shadow-sm ${lang === "es" ? "bg-blue-600 hover:bg-blue-700" : "bg-[#BD0E0D] hover:bg-[#a50c0b]"}`}
               >
-                Speichern
+                {lang === "es" ? "💾 Guardar ES" : "Speichern"}
               </button>
             </div>
           </div>
@@ -1746,6 +1899,19 @@ function PasteImportPanel({
           // Same transforms as the article page (copied, not imported — never touch the article page)
           const transformHtml = (html) => {
             if (!html) return "";
+            // Strip inline font/color styles so Vorschau matches the actual article page
+            if (typeof window !== "undefined") {
+              const tmp = document.createElement("div");
+              tmp.innerHTML = html;
+              const MEDIA = new Set(["IMG", "FIGURE", "VIDEO", "IFRAME"]);
+              tmp.querySelectorAll("*").forEach((el) => {
+                if (!MEDIA.has(el.tagName)) {
+                  el.removeAttribute("style");
+                  el.removeAttribute("class");
+                }
+              });
+              html = tmp.innerHTML;
+            }
             // 1. autoFormatHeadings: <p><strong>Title</strong></p> → <h3>
             html = html.replace(
               /<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi,

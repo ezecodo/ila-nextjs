@@ -86,22 +86,6 @@ export async function POST(req) {
       return chunks;
     }
 
-    // Extrae <a>...</a> y los reemplaza con placeholders atómicos que DeepL no toca
-    function extractLinks(html) {
-      const links = [];
-      const processed = html.replace(/<a[\s\S]*?<\/a>/gi, (match) => {
-        const idx = links.length;
-        links.push(match);
-        return `<x id="lnk${idx}"/>`;
-      });
-      return { processed, links };
-    }
-
-    function restoreLinks(html, links) {
-      if (!links.length) return html;
-      return html.replace(/<x id="lnk(\d+)"\s*\/?>/gi, (_, i) => links[parseInt(i)] || "");
-    }
-
     async function callDeepl(text, isHtml) {
       const params = {
         text,
@@ -109,8 +93,10 @@ export async function POST(req) {
         source_lang: "DE",
       };
       if (isHtml) {
+        // tag_handling=html: DeepL translates text inside tags (incl. <a>)
+        // while preserving all tag attributes (href, class, etc.)
         params.tag_handling = "html";
-        params.ignore_tags = "img,x";
+        params.ignore_tags = "img";
       }
       const res = await fetch(`${DEEPL_API_BASE}/translate`, {
         method: "POST",
@@ -131,33 +117,22 @@ export async function POST(req) {
     async function translateText(text, isHtml = false) {
       if (!text) return "";
 
-      // Para HTML: proteger links antes de enviar a DeepL
-      let links = [];
-      let textToTranslate = text;
-      if (isHtml) {
-        const extracted = extractLinks(text);
-        textToTranslate = extracted.processed;
-        links = extracted.links;
-      }
-
-      const chunks = splitIntoChunks(textToTranslate, 50000);
+      const chunks = splitIntoChunks(text, 50000);
 
       if (chunks.length === 1) {
-        const translated = await callDeepl(textToTranslate, isHtml);
-        return restoreLinks(translated, links);
+        return await callDeepl(text, isHtml);
       }
 
-      // Texto largo: traducir por chunks y restaurar links al final
-      console.log(`📏 Texto largo: ${textToTranslate.length} chars. Dividiendo en ${chunks.length} chunks...`);
+      // Texto largo: traducir por chunks
+      console.log(`📏 Texto largo: ${text.length} chars. Dividiendo en ${chunks.length} chunks...`);
       const translatedChunks = [];
       for (let i = 0; i < chunks.length; i++) {
         console.log(`🔄 Traduciendo chunk ${i + 1}/${chunks.length}...`);
-        const translated = await callDeepl(chunks[i], isHtml);
-        translatedChunks.push(translated);
+        translatedChunks.push(await callDeepl(chunks[i], isHtml));
       }
 
       console.log(`✅ Traducción completada`);
-      return restoreLinks(translatedChunks.join("\n"), links);
+      return translatedChunks.join("\n");
     }
 
     const translations = {
