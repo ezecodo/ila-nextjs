@@ -1183,7 +1183,7 @@
       "favorites": "Artículos Favoritos",
       "pdf_dossiers": "📰 Mis Dossiers (PDF)",
       "account": "Configuración de cuenta",
-      "pdf_bundle": "PDF Bundle"
+      "pdf_bundle": "Paquete PDF"
     },
     "pdf_dossiers": {
       "heading": "Mis Dossiers",
@@ -1194,7 +1194,7 @@
     },
     "favorites_heading": "Artículos Favoritos",
     "pdf_bundle": {
-      "create_button": "Crear Bundle PDF",
+      "create_button": "Crear Paquete PDF",
       "cancel": "Cancelar",
       "select_all": "Seleccionar todo",
       "deselect_all": "Deseleccionar todo",
@@ -1204,6 +1204,10 @@
       "selected_other": "{count} artículos seleccionados",
       "download": "Descargar PDF",
       "generating": "Generando…",
+      "name_modal_title": "Nombrar PDF",
+      "name_modal_description": "Dale un nombre a tu paquete (opcional).",
+      "name_modal_placeholder": "ej: Selección Bolivia",
+      "name_modal_confirm": "Descargar",
       "cover_title": "Mis Artículos",
       "toc_label": "CONTENIDO",
       "online": "Online",

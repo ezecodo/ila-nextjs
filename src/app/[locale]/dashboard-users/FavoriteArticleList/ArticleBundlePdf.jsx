@@ -55,6 +55,15 @@ function applyHeadingTransforms(html) {
   return html;
 }
 
+// Mirrors wrapInlineImagesWithCaption in the article page:
+// alt = visible caption/credit, title = secondary. Join with " · " when both present.
+function buildImgCaption(imgNode) {
+  const alt = (imgNode.getAttribute("alt") || "").trim();
+  const title = (imgNode.getAttribute("title") || "").trim();
+  if (alt && title) return `${alt} · ${title}`;
+  return alt || title || "";
+}
+
 // ── HTML → structured blocks ──────────────────────────────────────────────────
 // isInterview: when true, <p style="…"><strong>Q</strong></p> → red question
 export function htmlToBlocks(html, isInterview = false) {
@@ -116,7 +125,7 @@ export function htmlToBlocks(html, isInterview = false) {
           blocks.push({
             type: "image",
             src,
-            caption: node.getAttribute("title") || node.getAttribute("alt") || "",
+            caption: buildImgCaption(node),
           });
         }
         break;
@@ -133,9 +142,7 @@ export function htmlToBlocks(html, isInterview = false) {
               src,
               caption:
                 node.querySelector("figcaption")?.textContent.trim() ||
-                img.getAttribute("title") ||
-                img.getAttribute("alt") ||
-                "",
+                buildImgCaption(img),
             });
           }
         }
@@ -153,7 +160,7 @@ export function htmlToBlocks(html, isInterview = false) {
             blocks.push({
               type: "image",
               src,
-              caption: imgEl.getAttribute("title") || imgEl.getAttribute("alt") || "",
+              caption: buildImgCaption(imgEl),
             });
           }
           break;
@@ -537,8 +544,9 @@ const PDF_STRINGS = {
 };
 
 // ── Cover page ────────────────────────────────────────────────────────────────
-function CoverPage({ articles, locale }) {
+function CoverPage({ articles, locale, customTitle }) {
   const str = PDF_STRINGS[locale] ?? PDF_STRINGS.de;
+  const heading = (customTitle && customTitle.trim()) || str.coverTitle;
   const dateLocale = locale === "es" ? "es-ES" : "de-DE";
   const today = new Date().toLocaleDateString(dateLocale, {
     day: "2-digit",
@@ -551,7 +559,7 @@ function CoverPage({ articles, locale }) {
       <View>
         <View style={S.coverAccent} />
         <Text style={S.coverLogo}>ila</Text>
-        <Text style={S.coverHeading}>{str.coverTitle}</Text>
+        <Text style={S.coverHeading}>{heading}</Text>
         <Text style={S.coverDate}>{today}</Text>
 
         <Text style={S.tocLabel}>{str.tocLabel}</Text>
@@ -598,7 +606,14 @@ function ArticlePage({ article, locale }) {
     : "";
   const meta = [authors, edition, date].filter(Boolean).join(" · ");
 
-  const coverImage = article.images?.[0]?.url || null;
+  const coverImg = article.images?.[0] || null;
+  const coverImage = coverImg?.url || null;
+  const coverAlt = (coverImg?.displayAlt || "").trim();
+  const coverTitle = (coverImg?.displayTitle || "").trim();
+  const coverCaption =
+    coverAlt && coverTitle
+      ? `${coverAlt} · ${coverTitle}`
+      : coverAlt || coverTitle || "";
 
   return (
     <Page size="A4" style={S.articlePage} wrap>
@@ -613,7 +628,12 @@ function ArticlePage({ article, locale }) {
       <View style={S.articleDivider} />
 
       {coverImage && (
-        <Image src={coverImage} style={S.articleCoverImage} />
+        <View style={S.imageWrap}>
+          <Image src={coverImage} style={S.articleCoverImage} />
+          {coverCaption ? (
+            <Text style={S.imageCaption}>{coverCaption}</Text>
+          ) : null}
+        </View>
       )}
 
       {blocks.map((block, i) => (
@@ -630,14 +650,16 @@ function ArticlePage({ article, locale }) {
 }
 
 // ── Document ──────────────────────────────────────────────────────────────────
-export function ArticleBundleDocument({ articles, locale = "de" }) {
-  const coverTitle = PDF_STRINGS[locale]?.coverTitle ?? "Meine Artikel";
+export function ArticleBundleDocument({ articles, locale = "de", customTitle }) {
+  const defaultTitle = PDF_STRINGS[locale]?.coverTitle ?? "Meine Artikel";
+  const docTitle =
+    (customTitle && customTitle.trim()) || defaultTitle;
   return (
     <Document
-      title={`ila – ${coverTitle}`}
+      title={`ila – ${docTitle}`}
       author="ila – Informationsstelle Lateinamerika"
     >
-      <CoverPage articles={articles} locale={locale} />
+      <CoverPage articles={articles} locale={locale} customTitle={customTitle} />
       {articles.map((article) => (
         <ArticlePage key={article.id} article={article} locale={locale} />
       ))}

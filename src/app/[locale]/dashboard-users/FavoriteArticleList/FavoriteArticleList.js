@@ -21,6 +21,8 @@ export default function FavoriteArticlesList() {
   const [allFavorites, setAllFavorites] = useState([]);
   const [loadingAll, setLoadingAll] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [nameModalOpen, setNameModalOpen] = useState(false);
+  const [bundleName, setBundleName] = useState("");
 
   const fetchFavoriteArticles = async (page = 1) => {
     try {
@@ -108,6 +110,18 @@ export default function FavoriteArticlesList() {
     }
   };
 
+  // ── Open naming modal before generating ────────────────────────────────────
+  const openNameModal = () => {
+    if (selectedIds.length === 0) return;
+    setBundleName("");
+    setNameModalOpen(true);
+  };
+
+  const closeNameModal = () => {
+    if (generating) return;
+    setNameModalOpen(false);
+  };
+
   // ── Generate and download PDF bundle ──────────────────────────────────────
   const handleDownload = async () => {
     if (selectedIds.length === 0) return;
@@ -144,10 +158,11 @@ export default function FavoriteArticlesList() {
       );
 
       // 5. Replace URLs with base64 + pick correct locale content
+      const isES = locale === "es";
       const articlesReady = ordered.map((a) => {
-        const content = locale === "es" ? (a.contentES || a.content || "") : (a.content || "");
-        const title = locale === "es" ? (a.titleES || a.title) : a.title;
-        const subtitle = locale === "es" ? (a.subtitleES || a.subtitle) : a.subtitle;
+        const content = isES ? (a.contentES || a.content || "") : (a.content || "");
+        const title = isES ? (a.titleES || a.title) : a.title;
+        const subtitle = isES ? (a.subtitleES || a.subtitle) : a.subtitle;
 
         return {
           ...a,
@@ -158,10 +173,16 @@ export default function FavoriteArticlesList() {
             (m, pre, src) =>
               imageCache[src] ? `<img${pre}src="${imageCache[src]}"` : m
           ),
-          images: a.images?.map((img) => ({
-            ...img,
-            url: imageCache[img.url] || img.url,
-          })),
+          images: a.images?.map((img) => {
+            const alt = (isES && img.altES) || img.alt || "";
+            const titleTxt = (isES && img.titleES) || img.title || "";
+            return {
+              ...img,
+              url: imageCache[img.url] || img.url,
+              displayAlt: alt,
+              displayTitle: titleTxt,
+            };
+          }),
         };
       });
 
@@ -171,16 +192,26 @@ export default function FavoriteArticlesList() {
         import("./ArticleBundlePdf"),
       ]);
 
+      const trimmedName = bundleName.trim();
       const blob = await pdf(
-        <ArticleBundleDocument articles={articlesReady} locale={locale} />
+        <ArticleBundleDocument
+          articles={articlesReady}
+          locale={locale}
+          customTitle={trimmedName || undefined}
+        />
       ).toBlob();
+
+      const safeName = trimmedName
+        ? trimmedName.replace(/[\\/:*?"<>|]+/g, "-").slice(0, 80)
+        : `ila-artikel-${new Date().toISOString().slice(0, 10)}`;
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `ila-artikel-${new Date().toISOString().slice(0, 10)}.pdf`;
+      a.download = `${safeName}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
+      setNameModalOpen(false);
     } catch (err) {
       console.error("❌ Error generando PDF:", err);
     } finally {
@@ -336,37 +367,85 @@ export default function FavoriteArticlesList() {
                   )}
                 </span>
                 <button
-                  onClick={handleDownload}
+                  onClick={openNameModal}
                   disabled={generating}
                   className="flex items-center gap-2 bg-[#BD0E0D] hover:bg-[#a50c0b] disabled:opacity-60 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
                 >
-                  {generating ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      {tb("generating")}
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                        />
-                      </svg>
-                      {tb("download")}
-                    </>
-                  )}
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  {tb("download")}
                 </button>
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Name modal */}
+      {nameModalOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          onClick={closeNameModal}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
+              {tb("name_modal_title")}
+            </h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {tb("name_modal_description")}
+            </p>
+            <input
+              type="text"
+              autoFocus
+              value={bundleName}
+              onChange={(e) => setBundleName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !generating) handleDownload();
+                if (e.key === "Escape") closeNameModal();
+              }}
+              placeholder={tb("name_modal_placeholder")}
+              maxLength={80}
+              disabled={generating}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#BD0E0D] focus:ring-1 focus:ring-[#BD0E0D] disabled:opacity-60"
+            />
+            <div className="flex items-center justify-end gap-2 mt-5">
+              <button
+                onClick={closeNameModal}
+                disabled={generating}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-60 transition-colors"
+              >
+                {tb("cancel")}
+              </button>
+              <button
+                onClick={handleDownload}
+                disabled={generating}
+                className="flex items-center gap-2 bg-[#BD0E0D] hover:bg-[#a50c0b] disabled:opacity-60 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors"
+              >
+                {generating ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    {tb("generating")}
+                  </>
+                ) : (
+                  tb("name_modal_confirm")
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

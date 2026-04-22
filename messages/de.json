@@ -1184,7 +1184,7 @@
       "favorites": "Lieblingsartikel",
       "pdf_dossiers": "📰 Meine Dossiers (PDF)",
       "account": "Kontoeinstellungen",
-      "pdf_bundle": "PDF Bundle"
+      "pdf_bundle": "PDF Paket"
     },
     "pdf_dossiers": {
       "heading": "Meine Dossiers",
@@ -1195,7 +1195,7 @@
     },
     "favorites_heading": "Lieblingsartikel",
     "pdf_bundle": {
-      "create_button": "PDF Bundle erstellen",
+      "create_button": "PDF Paket erstellen",
       "cancel": "Abbrechen",
       "select_all": "Alle auswählen",
       "deselect_all": "Auswahl aufheben",
@@ -1205,6 +1205,10 @@
       "selected_other": "{count} Artikel ausgewählt",
       "download": "PDF herunterladen",
       "generating": "Wird generiert…",
+      "name_modal_title": "PDF benennen",
+      "name_modal_description": "Gib deinem Paket einen Namen (optional).",
+      "name_modal_placeholder": "z.B. Bolivien-Auswahl",
+      "name_modal_confirm": "Herunterladen",
       "cover_title": "Meine Artikel",
       "toc_label": "INHALT",
       "online": "Online",
