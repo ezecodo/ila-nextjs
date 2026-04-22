@@ -7,21 +7,90 @@ dotenv.config(); // ✅ Cargar las variables de entorno
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
+ * 🎨 Template base para emails de ila (header rojo con logo + card blanca + footer)
+ */
+function renderIlaEmail(bodyHtml, preheader = "") {
+  // El logo siempre se sirve desde la URL pública de producción — los clientes de email
+  // no pueden cargar http://localhost:3000 cuando se prueba desde dev.
+  const logoUrl = "https://www.ila-web.de/logo/ila-Schriftzug_weiss.png";
+  return `
+    <!DOCTYPE html>
+    <html lang="de">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>ila</title>
+      </head>
+      <body style="margin:0; padding:0; background-color:#f2f2ef; font-family: Arial, Helvetica, sans-serif;">
+        ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</div>` : ""}
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f2f2ef;">
+          <tr>
+            <td align="center" style="padding:32px 16px;">
+              <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+                <tr>
+                  <td align="center" style="background-color:#c21f2e; padding:36px 24px 28px 24px;">
+                    <img src="${logoUrl}" alt="ila" width="120" style="display:block; border:0; max-width:120px; height:auto; margin:0 auto;">
+                    <div style="margin-top:14px; font-family:Georgia, 'Times New Roman', serif; font-style:italic; font-size:15px; letter-spacing:0.02em; color:#ffffff; opacity:0.95;">
+                      Das Lateinamerika-Magazin
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:40px 40px 32px 40px; color:#1a1a1a; font-family: Arial, Helvetica, sans-serif; font-size:16px; line-height:1.6;">
+                    ${bodyHtml}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:24px 40px; border-top:1px solid #eaeaea; background-color:#fafafa; text-align:center; font-family: Arial, Helvetica, sans-serif; font-size:13px; color:#777;">
+                    <a href="https://ila-web.de" style="color:#c21f2e; text-decoration:none; font-weight:600;">ila-web.de</a><br>
+                    <span style="color:#999;">Informationsstelle Lateinamerika e.V.</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+}
+
+/**
  * 📩 Enviar email de verificación de cuenta
  */
 export async function sendVerificationEmail(email, token) {
   const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify?token=${token}`;
 
+  const body = `
+    <h1 style="margin:0 0 20px 0; font-size:26px; font-weight:700; color:#1a1a1a; letter-spacing:-0.01em;">Willkommen bei ila!</h1>
+
+    <p style="margin:0 0 24px 0;">
+      Nur noch ein Schritt zum neuen Digitalabo. Bitte verifiziere dein Konto mit diesem Link:
+    </p>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 32px 0;">
+      <tr>
+        <td style="background-color:#c21f2e; border-radius:4px;">
+          <a href="${confirmUrl}" target="_blank"
+             style="display:inline-block; padding:14px 32px; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; font-family:Arial,Helvetica,sans-serif;">
+            Konto verifizieren
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:32px 0 0 0; color:#555;">
+      Solidarische Grüße<br>
+      <strong style="color:#1a1a1a;">von der ila-Redaktion</strong>
+    </p>
+  `;
+
   try {
     const response = await resend.emails.send({
       from: "no-reply@ila-web.de", // 🚨 Asegúrate de que esta es una dirección válida del dominio verificado
       to: email,
-      subject: "Verifica tu cuenta en ila",
-      html: `
-          <h2>¡Bienvenido a ila</h2>
-          <p>Por favor, verifica tu cuenta haciendo clic en el siguiente enlace:</p>
-          <a href="${confirmUrl}" target="_blank">Verificar cuenta</a>
-        `,
+      subject: "Willkommen bei ila – Konto verifizieren",
+      html: renderIlaEmail(body, "Nur noch ein Schritt zum neuen Digitalabo"),
     });
 
     console.log("✅ Correo enviado con éxito:", response);
@@ -382,43 +451,60 @@ export async function sendPdfAboInvitationEmail(email, name = "") {
   const params = new URLSearchParams({ pdfAbo: "true", email });
   if (name) params.set("name", name);
   const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?${params.toString()}`;
+  const donateUrl = `${process.env.NEXT_PUBLIC_APP_URL}/de/support/donations`;
+
+  const body = `
+    <h1 style="margin:0 0 20px 0; font-size:26px; font-weight:700; color:#1a1a1a; letter-spacing:-0.01em;">Willkommen bei ila!</h1>
+
+    <p style="margin:0 0 16px 0;">Hallo,</p>
+
+    <p style="margin:0 0 24px 0;">
+      dein <strong>Digitalabo</strong> der Zeitschrift <strong>ila</strong> ist jetzt verfügbar! Um Zugang zu den Ausgaben zu erhalten, registriere dich bitte mit dieser E-Mail-Adresse:
+    </p>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 32px 0;">
+      <tr>
+        <td style="background-color:#c21f2e; border-radius:4px;">
+          <a href="${registerUrl}" target="_blank"
+             style="display:inline-block; padding:14px 32px; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; font-family:Arial,Helvetica,sans-serif;">
+            Jetzt registrieren
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 20px 0;">
+      Du erhältst dann eine E-Mail, um deine Registrierung zu bestätigen. Danach ist dein Konto bereit und du findest alle verfügbaren Ausgaben in deinem persönlichen Dashboard unter <strong>„Meine Dossiers"</strong>. Außerdem kannst du Lieblingsartikel markieren und im Bereich <strong>„Eigenes PDF-Paket erstellen"</strong> selbst Spezialdossiers zusammenstellen und herunterladen.
+    </p>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;">
+      <tr>
+        <td style="padding:16px 20px; background-color:#fff5f5; border-left:4px solid #c21f2e; border-radius:4px; font-size:14px; color:#333; line-height:1.55;">
+          <strong style="color:#c21f2e;">Wichtig:</strong> Bitte registriere dich mit genau dieser E-Mail-Adresse (<strong>${email}</strong>), damit dein Abo automatisch aktiviert wird.
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:28px 0 16px 0;">
+      Die Umstellung auf das neue Digitalsystem heißt: Die ila-Inhalte werden für alle zugänglich und ihr könnt sie leichter für eure Recherchen nutzen. Das ist teuer und unsere Kasse ist klamm. Hast du noch fünf Euro übrig? Dann freuen wir uns über eine <a href="${donateUrl}" style="color:#c21f2e; font-weight:600;">Spende</a>. Kennst du eine Freundin, die sich für unsere Inhalte interessiert? Dann freuen wir uns über eine Empfehlung.
+    </p>
+
+    <p style="margin:0 0 32px 0; font-weight:600; color:#1a1a1a;">
+      Und jetzt: Spannendes Stöbern!
+    </p>
+
+    <p style="margin:0; color:#555;">
+      Solidarische Grüße<br>
+      <strong style="color:#1a1a1a;">von der ila-Redaktion</strong>
+    </p>
+  `;
 
   try {
     const response = await resend.emails.send({
       from: "no-reply@ila-web.de",
       to: email,
-      subject: "Dein PDF-Abo bei ila ist bereit!",
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto;">
-          <h2 style="color: #c21f2e;">Willkommen bei ila!</h2>
-          
-          <p>Hallo,</p>
-          
-          <p>Dein <strong>PDF-Abo</strong> der Zeitschrift <strong>ila</strong> ist jetzt verfügbar!</p>
-          
-          <p>Um Zugang zu deinen PDF-Ausgaben zu erhalten, registriere dich bitte mit dieser E-Mail-Adresse:</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${registerUrl}" 
-               target="_blank" 
-               style="display: inline-block; padding: 15px 30px; background-color: #c21f2e; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">
-              Jetzt registrieren
-            </a>
-          </div>
-          
-          <p>Nach der Registrierung findest du alle verfügbaren Ausgaben in deinem persönlichen Dashboard unter <strong>"Meine Dossiers"</strong>.</p>
-          
-          <p style="margin-top: 30px; padding: 15px; background: #f5f5f5; border-radius: 5px; font-size: 14px;">
-            <strong>Wichtig:</strong> Bitte registriere dich mit genau dieser E-Mail-Adresse (${email}), damit dein Abo automatisch aktiviert wird.
-          </p>
-          
-          <p style="margin-top: 30px;">
-            Herzliche Grüße,<br>
-            das ila-Team<br>
-            <a href="https://ila-web.de" style="color: #c21f2e; text-decoration: none;">ila-web.de</a>
-          </p>
-        </div>
-      `,
+      subject: "Dein Digitalabo bei ila ist bereit!",
+      html: renderIlaEmail(body, "Dein Digitalabo der Zeitschrift ila ist jetzt verfügbar"),
     });
 
     console.log("✅ Correo de invitación PDF ABO enviado:", response);
