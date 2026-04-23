@@ -444,7 +444,7 @@ export default function GlobeMap() {
   }, [locale]);
 
   return (
-    <div className="relative w-full h-[600px] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+    <div className="relative w-full h-[600px] overflow-hidden">
       {/* Contenedor Canvas + HTML Overlay */}
       <div ref={mountRef} className="w-full h-full bg-black">
         {isLoading && (
