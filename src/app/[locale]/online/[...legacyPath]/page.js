@@ -545,17 +545,19 @@ export default function LegacyArticlePage() {
             }}
           />
           {((isES && article.additionalInfoES) || article.additionalInfo) && (
-            <div
-              className="article-content mt-6 text-base text-gray-700 dark:text-gray-300"
-              dangerouslySetInnerHTML={{
-                __html: rewriteEditionLinksWithLocale(
-                  isES && article.additionalInfoES
-                    ? article.additionalInfoES
-                    : article.additionalInfo,
-                  locale
-                ),
-              }}
-            />
+            <div className="mt-8 mb-6 p-5 bg-gray-50 dark:bg-gray-800 border-l-4 border-red-600 rounded-r-lg shadow-sm">
+              <div
+                className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 [&_p]:mb-2 [&_a]:text-blue-600 [&_a]:hover:underline"
+                dangerouslySetInnerHTML={{
+                  __html: rewriteEditionLinksWithLocale(
+                    isES && article.additionalInfoES
+                      ? article.additionalInfoES
+                      : article.additionalInfo,
+                    locale
+                  ),
+                }}
+              />
+            </div>
           )}
         </article>
 
