@@ -146,6 +146,21 @@ function stripHtml(html) {
   return doc.body.textContent || "";
 }
 
+// Convierte texto plano (con \n\n y URLs sueltas) a HTML con <p> y <a>.
+// Si ya viene como HTML estructurado, lo deja igual.
+function plainToHtmlAdditionalInfo(input) {
+  if (!input) return "";
+  if (/<(p|br|a)\b/i.test(input)) return input;
+  const linked = input.replace(
+    /(https?:\/\/[^\s<>()]+[^\s<>().,;:!?])/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+  );
+  return linked
+    .split(/\n{2,}/)
+    .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
+    .join("");
+}
+
 // ── Smart paste formatting (same logic as Publisher/Publilab) ─────────────
 
 function escHtml(text) {
@@ -283,6 +298,7 @@ const TranslateArticlePage = () => {
   const [modalSaveState, setModalSaveState] = useState("idle"); // idle | saving | saved | error
   const contentEditableRef = useRef(null);
   const contentEditableModalRef = useRef(null);
+  const additionalInfoEditableRef = useRef(null);
   const [deepl, setDeepl] = useState(null); // { titleES, subtitleES, previewTextES, contentES, additionalInfoES }
   const [deeplLoading, setDeeplLoading] = useState(false);
   const [deeplError, setDeeplError] = useState("");
@@ -383,6 +399,17 @@ const TranslateArticlePage = () => {
       }
     });
   }, [translations.contentES]);
+
+  // Sincroniza additionalInfoES con su contentEditable solo cuando cambia externamente
+  useEffect(() => {
+    const ref = additionalInfoEditableRef;
+    if (!ref.current) return;
+    if (document.activeElement === ref.current) return;
+    const html = plainToHtmlAdditionalInfo(translations.additionalInfoES || "");
+    if (ref.current.innerHTML !== html) {
+      ref.current.innerHTML = html;
+    }
+  }, [translations.additionalInfoES]);
 
   // Cerrar modal con Esc
   useEffect(() => {
@@ -767,7 +794,7 @@ const TranslateArticlePage = () => {
       subtitleES: hasRealContent(prev.subtitleES) ? prev.subtitleES : (tr.translations.subtitleES || ""),
       previewES: hasRealContent(prev.previewES) ? prev.previewES : (stripHtml(tr.translations.previewTextES) || ""),
       contentES: hasRealContent(prev.contentES) ? prev.contentES : (cleanContentHtml(tr.translations.contentES || "") || ""),
-      additionalInfoES: hasRealContent(prev.additionalInfoES) ? prev.additionalInfoES : (stripHtml(tr.translations.additionalInfoES) || ""),
+      additionalInfoES: hasRealContent(prev.additionalInfoES) ? prev.additionalInfoES : (tr.translations.additionalInfoES || ""),
     }));
 
     // 🖼️ Rellenar traducciones de imágenes
@@ -795,10 +822,15 @@ const TranslateArticlePage = () => {
     if (!tr) return;
     setTranslations((prev) => {
       if (!force && hasRealContent(prev[stateKey])) return prev;
-      // contentES conserva HTML para preservar imágenes inline
-      const value = stateKey === "contentES"
-        ? cleanContentHtml(tr.translations[deeplKey] || "")
-        : (stripHtml(tr.translations[deeplKey]) || "");
+      // contentES y additionalInfoES conservan HTML para preservar estructura/links
+      let value;
+      if (stateKey === "contentES") {
+        value = cleanContentHtml(tr.translations[deeplKey] || "");
+      } else if (stateKey === "additionalInfoES") {
+        value = tr.translations[deeplKey] || "";
+      } else {
+        value = stripHtml(tr.translations[deeplKey]) || "";
+      }
       return { ...prev, [stateKey]: value };
     });
   };
@@ -1358,18 +1390,25 @@ const TranslateArticlePage = () => {
             </button>
             <label className="font-bold">Información adicional (alemán)</label>
           </div>
-          <p className="field-readonly mt-1">
-            {stripHtml(article.additionalInfo) || "—"}
-          </p>
+          <div
+            className="field-readonly mt-1 article-content [&_p]:mb-2 [&_a]:text-blue-600 [&_a]:hover:underline"
+            dangerouslySetInnerHTML={{
+              __html: plainToHtmlAdditionalInfo(article.additionalInfo || "") || "—",
+            }}
+          />
         </div>
         <div>
           <label className="font-bold">Información adicional (español)</label>
           <div className="flex gap-2">
-            <textarea
-              name="additionalInfoES"
-              value={translations.additionalInfoES || ""}
-              onChange={handleChange}
-              className="border p-2 w-full rounded h-24 flex-1"
+            <div
+              ref={additionalInfoEditableRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={(e) => {
+                const html = e.currentTarget.innerHTML;
+                setTranslations((prev) => ({ ...prev, additionalInfoES: html }));
+              }}
+              className="border p-2 w-full rounded min-h-24 flex-1 article-content [&_p]:mb-2 [&_a]:text-blue-600 [&_a]:hover:underline focus:outline-none focus:border-purple-400"
             />
             <button
               type="button"
@@ -1377,7 +1416,7 @@ const TranslateArticlePage = () => {
                 const text = await navigator.clipboard.readText();
                 setTranslations((prev) => ({
                   ...prev,
-                  additionalInfoES: stripHtml(text),
+                  additionalInfoES: plainToHtmlAdditionalInfo(text),
                 }));
               }}
               className="px-3 py-1 bg-gray-200 text-sm rounded hover:bg-gray-300 h-fit mt-1"
