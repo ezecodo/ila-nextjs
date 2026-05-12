@@ -11,6 +11,7 @@ export async function GET(req, { params }) {
         items: {
           include: { edition: true }, // 👉 incluye info de la edición
         },
+        recipients: true,
       },
     });
 

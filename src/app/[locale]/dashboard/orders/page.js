@@ -139,6 +139,11 @@ export default function OrdersPage() {
                     {order.items.length}{" "}
                     {order.items.length === 1 ? "Item" : "Items"}
                   </span>
+                  {order.recipients?.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                      {t("addressesBadge", { count: order.recipients.length + 1 })}
+                    </span>
+                  )}
                   <button
                     onClick={() => openOrderDetails(order.id)}
                     className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 transition"
@@ -198,6 +203,11 @@ export default function OrdersPage() {
                     <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
                       {order.items.length}
                     </span>
+                    {order.recipients?.length > 0 && (
+                      <span className="ml-2 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
+                        {t("addressesBadge", { count: order.recipients.length + 1 })}
+                      </span>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-center">
                     <button
@@ -358,22 +368,99 @@ export default function OrdersPage() {
                     <h3 className="text-lg font-semibold mb-3">
                       {t("requestedItems")}
                     </h3>
-                    <ul className="space-y-2">
-                      {selectedOrder.items.map((item) => (
-                        <li
-                          key={item.id}
-                          className="p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
-                        >
-                          <span className="font-medium">
-                            ila {item.edition.number}:
-                          </span>{" "}
-                          {item.edition.title}
-                          <span className="ml-2 px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-semibold">
-                            x{item.qty}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                    {selectedOrder.recipients?.length > 0 ? (
+                      <div className="space-y-4">
+                        {/* Items para el comprador */}
+                        {(() => {
+                          const buyerItems = selectedOrder.items.filter(
+                            (i) => !i.recipientId
+                          );
+                          if (buyerItems.length === 0) return null;
+                          return (
+                            <div className="border border-gray-200 dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-800">
+                              <h4 className="text-sm font-bold text-red-700 dark:text-red-400 mb-2">
+                                {t("buyerShipmentTitle")}
+                              </h4>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                {selectedOrder.firstName} {selectedOrder.lastName} ·{" "}
+                                {selectedOrder.street}, {selectedOrder.zip}{" "}
+                                {selectedOrder.city}, {selectedOrder.country}
+                              </p>
+                              <ul className="space-y-1">
+                                {buyerItems.map((item) => (
+                                  <li key={item.id} className="text-sm">
+                                    <span className="font-medium">
+                                      ila {item.edition.number}:
+                                    </span>{" "}
+                                    {item.edition.title}
+                                    <span className="ml-2 px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-semibold">
+                                      x{item.qty}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Items para cada destinatario alternativo */}
+                        {selectedOrder.recipients.map((rec, idx) => {
+                          const recItems = selectedOrder.items.filter(
+                            (i) => i.recipientId === rec.id
+                          );
+                          return (
+                            <div
+                              key={rec.id}
+                              className="border border-blue-200 dark:border-blue-900 rounded-md p-3 bg-blue-50 dark:bg-blue-950/20"
+                            >
+                              <h4 className="text-sm font-bold text-blue-700 dark:text-blue-400 mb-2">
+                                {t("recipientShipmentTitle", { n: idx + 1 })}
+                              </h4>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                {rec.salutation ? `${rec.salutation} ` : ""}
+                                {rec.firstName} {rec.lastName}
+                                {rec.institution ? ` · ${rec.institution}` : ""}
+                                <br />
+                                {rec.street}
+                                {rec.addressExtra ? `, ${rec.addressExtra}` : ""},{" "}
+                                {rec.zip} {rec.city}, {rec.country}
+                                {rec.phone ? ` · Tel.: ${rec.phone}` : ""}
+                              </p>
+                              <ul className="space-y-1">
+                                {recItems.map((item) => (
+                                  <li key={item.id} className="text-sm">
+                                    <span className="font-medium">
+                                      ila {item.edition.number}:
+                                    </span>{" "}
+                                    {item.edition.title}
+                                    <span className="ml-2 px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-xs font-semibold">
+                                      x{item.qty}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <ul className="space-y-2">
+                        {selectedOrder.items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+                          >
+                            <span className="font-medium">
+                              ila {item.edition.number}:
+                            </span>{" "}
+                            {item.edition.title}
+                            <span className="ml-2 px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-semibold">
+                              x{item.qty}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
                 {/* Estado de procesamiento */}

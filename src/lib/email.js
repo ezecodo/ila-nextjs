@@ -338,23 +338,73 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
     ? "Danke für deine ila-Bestellung"
     : "Gracias por tu pedido de Dossiers de ila";
 
-  // 🧾 Obtenemos el pedido completo con ediciones
+  // 🧾 Obtenemos el pedido completo con ediciones y destinatarios
   const fullOrder = await prisma.order.findUnique({
     where: { id: order.id },
     include: {
       items: {
         include: { edition: true },
       },
+      recipients: true,
     },
   });
 
-  // 🗂️ Lista de items
-  const itemsList = fullOrder.items
-    .map(
-      (item) =>
-        `<li>${item.qty} × <strong>ila ${item.edition.number}</strong> – ${item.edition.title}</li>`,
-    )
-    .join("");
+  // 🗂️ Agrupar items por destinatario (null = comprador)
+  const buyerItems = fullOrder.items.filter((i) => !i.recipientId);
+  const itemsByRecipient = fullOrder.recipients.map((r) => ({
+    recipient: r,
+    items: fullOrder.items.filter((i) => i.recipientId === r.id),
+  }));
+  const hasExtraRecipients = fullOrder.recipients.length > 0;
+
+  const renderItemsList = (items) =>
+    items
+      .map(
+        (item) =>
+          `<li>${item.qty} × <strong>ila ${item.edition.number}</strong> – ${item.edition.title}</li>`,
+      )
+      .join("");
+
+  const renderAddress = (a) => `
+    ${a.salutation ? `${a.salutation} ` : ""}${a.firstName} ${a.lastName}<br>
+    ${a.institution ? `${a.institution}<br>` : ""}
+    ${a.street}${a.addressExtra ? `, ${a.addressExtra}` : ""}<br>
+    ${a.zip} ${a.city}<br>
+    ${a.country}
+    ${a.phone ? `<br>${isGerman ? "Tel." : "Tel."}: ${a.phone}` : ""}
+  `;
+
+  const shipmentBuyerTitle = isGerman
+    ? "📦 Lieferung an Besteller"
+    : "📦 Envío a quien hace el pedido";
+  const shipmentRecipientTitle = (n) =>
+    isGerman ? `📦 Lieferung an Empfänger ${n}` : `📦 Envío al destinatario ${n}`;
+
+  // 🗂️ Bloque de envíos (lista plana si solo hay comprador, agrupado si hay extras)
+  let shipmentsBlock = "";
+  if (!hasExtraRecipients) {
+    shipmentsBlock = `<ul style="padding-left:18px;">${renderItemsList(fullOrder.items)}</ul>`;
+  } else {
+    const buyerBlock = buyerItems.length
+      ? `
+        <div style="margin-top:18px;padding:12px 15px;border:1px solid #eee;border-radius:6px;background:#fafafa;">
+          <h4 style="margin:0 0 8px 0;color:#c21f2e;">${shipmentBuyerTitle}</h4>
+          <p style="margin:0 0 8px 0;font-size:13px;color:#555;">${renderAddress(fullOrder)}</p>
+          <ul style="padding-left:18px;margin:0;">${renderItemsList(buyerItems)}</ul>
+        </div>`
+      : "";
+    const recipientBlocks = itemsByRecipient
+      .map(
+        ({ recipient, items }, idx) => `
+        <div style="margin-top:14px;padding:12px 15px;border:1px solid #eee;border-radius:6px;background:#fafafa;">
+          <h4 style="margin:0 0 8px 0;color:#c21f2e;">${shipmentRecipientTitle(idx + 1)}</h4>
+          <p style="margin:0 0 8px 0;font-size:13px;color:#555;">${renderAddress(recipient)}</p>
+          <ul style="padding-left:18px;margin:0;">${renderItemsList(items)}</ul>
+        </div>`,
+      )
+      .join("");
+    shipmentsBlock = buyerBlock + recipientBlocks;
+  }
 
   // 💬 Mensaje del usuario (opcional)
   const userMessage = fullOrder.message
@@ -364,6 +414,19 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
     : "";
 
   // 📨 HTML del correo
+  const overviewTitle = isGerman ? "🧾 Bestellübersicht" : "🧾 Resumen de tu pedido";
+  const singleAddressHeading = isGerman ? "📍 Lieferadresse" : "📍 Dirección de envío";
+
+  const singleAddressBlock = !hasExtraRecipients
+    ? `
+        <h3 style="margin-top:25px;">${singleAddressHeading}</h3>
+        <p>
+          ${fullOrder.street}<br>
+          ${fullOrder.zip} ${fullOrder.city}<br>
+          ${fullOrder.country}
+        </p>`
+    : "";
+
   const html = isGerman
     ? `
       <div style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:auto;">
@@ -371,8 +434,8 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
         <p>Hallo <strong>${fullOrder.firstName} ${fullOrder.lastName}</strong>,</p>
         <p>wir haben deine Bestellung erhalten. In Kürze wird sich jemand aus unserem Team mit dir in Verbindung setzen.</p>
 
-        <h3 style="margin-top:25px;">🧾 Bestellübersicht</h3>
-        <ul style="padding-left:18px;">${itemsList}</ul>
+        <h3 style="margin-top:25px;">${overviewTitle}</h3>
+        ${shipmentsBlock}
 
         ${
           fullOrder.totalPrice
@@ -386,12 +449,7 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
             : ""
         }
 
-        <h3 style="margin-top:25px;">📍 Lieferadresse</h3>
-        <p>
-          ${fullOrder.street}<br>
-          ${fullOrder.zip} ${fullOrder.city}<br>
-          ${fullOrder.country}
-        </p>
+        ${singleAddressBlock}
 
         <p style="margin-top:30px;">Herzliche Grüße,<br>das ila-Team<br>
         <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>
@@ -403,8 +461,8 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
         <p>Hola <strong>${fullOrder.firstName} ${fullOrder.lastName}</strong>,</p>
         <p>Hemos recibido correctamente tu pedido. En breve alguien de nuestro equipo se pondrá en contacto contigo.</p>
 
-        <h3 style="margin-top:25px;">🧾 Resumen de tu pedido</h3>
-        <ul style="padding-left:18px;">${itemsList}</ul>
+        <h3 style="margin-top:25px;">${overviewTitle}</h3>
+        ${shipmentsBlock}
 
         ${
           fullOrder.totalPrice
@@ -418,12 +476,7 @@ export async function sendDossierOrderConfirmationEmail(order, locale = "de") {
             : ""
         }
 
-        <h3 style="margin-top:25px;">📍 Dirección de envío</h3>
-        <p>
-          ${fullOrder.street}<br>
-          ${fullOrder.zip} ${fullOrder.city}<br>
-          ${fullOrder.country}
-        </p>
+        ${singleAddressBlock}
 
         <p style="margin-top:30px;">Un cordial saludo,<br>El equipo de ila<br>
         <a href="https://ila-web.de" style="color:#c21f2e;text-decoration:none;">ila-web.de</a></p>

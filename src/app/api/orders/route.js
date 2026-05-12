@@ -9,9 +9,10 @@ export async function GET() {
       include: {
         items: {
           include: {
-            edition: true, // 👈 mantiene lo que ya tenías
+            edition: true,
           },
         },
+        recipients: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -52,9 +53,10 @@ export async function POST(req) {
       email,
       message,
       items,
+      recipients,
     } = body;
 
-    // Validación de campos requeridos
+    // Validación de campos requeridos del comprador
     if (
       !firstName ||
       !lastName ||
@@ -70,45 +72,100 @@ export async function POST(req) {
       );
     }
 
-    // 1️⃣ Crear el pedido (esto funciona perfecto)
-    const order = await prisma.order.create({
-      data: {
-        salutation,
-        firstName,
-        lastName,
-        institution,
-        street,
-        addressExtra,
-        zip,
-        city,
-        country,
-        phone,
-        email,
-        message,
-        isNew: true,
-        items: {
-          create: items.map((item) => ({
+    // Normalizar y validar destinatarios alternativos (máx. 2)
+    const recipientsInput = Array.isArray(recipients) ? recipients : [];
+    if (recipientsInput.length > 2) {
+      return NextResponse.json(
+        { error: "Maximum 2 alternate recipients allowed" },
+        { status: 400 }
+      );
+    }
+    for (const r of recipientsInput) {
+      if (
+        !r.firstName ||
+        !r.lastName ||
+        !r.street ||
+        !r.zip ||
+        !r.city ||
+        !r.country
+      ) {
+        return NextResponse.json(
+          { error: "Missing recipient fields" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Crear pedido + destinatarios + items en transacción
+    const order = await prisma.$transaction(async (tx) => {
+      const created = await tx.order.create({
+        data: {
+          salutation,
+          firstName,
+          lastName,
+          institution,
+          street,
+          addressExtra,
+          zip,
+          city,
+          country,
+          phone,
+          email,
+          message,
+          isNew: true,
+        },
+      });
+
+      const createdRecipients = [];
+      for (const r of recipientsInput) {
+        const rec = await tx.orderRecipient.create({
+          data: {
+            orderId: created.id,
+            salutation: r.salutation || null,
+            firstName: r.firstName,
+            lastName: r.lastName,
+            institution: r.institution || null,
+            street: r.street,
+            addressExtra: r.addressExtra || null,
+            zip: r.zip,
+            city: r.city,
+            country: r.country,
+            phone: r.phone || null,
+          },
+        });
+        createdRecipients.push(rec);
+      }
+
+      for (const item of items) {
+        const idx = item.recipientIndex;
+        const recipientId =
+          idx === 0 || idx === 1 ? createdRecipients[idx]?.id ?? null : null;
+        await tx.orderItem.create({
+          data: {
+            orderId: created.id,
             editionId: Number(item.editionId),
             qty: item.qty,
-          })),
+            recipientId,
+          },
+        });
+      }
+
+      return tx.order.findUnique({
+        where: { id: created.id },
+        include: {
+          items: { include: { edition: true } },
+          recipients: true,
         },
-      },
-      include: {
-        items: {
-          include: { edition: true },
-        },
-      },
+      });
     });
 
-    // 2️⃣ Intentar enviar email — si falla, NO romper el pedido
+    // Intentar enviar email — si falla, NO romper el pedido
     try {
       await sendDossierOrderConfirmationEmail(order, locale);
     } catch (emailErr) {
       console.error("⚠️ Error sending email:", emailErr);
-      // IMPORTANTE: no hacemos throw
     }
 
-    // 3️⃣ Siempre devolver éxito si el pedido fue creado correctamente
     return NextResponse.json(order, { status: 201 });
   } catch (error) {
     console.error("❌ Error creating order:", error);

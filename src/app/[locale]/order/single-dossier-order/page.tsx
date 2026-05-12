@@ -6,11 +6,37 @@ import OrderForm from "../../components/OrderForm/OrderForm";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
+import countries from "i18n-iso-countries";
+import de from "i18n-iso-countries/langs/de.json";
+import es from "i18n-iso-countries/langs/es.json";
+
+countries.registerLocale(de);
+countries.registerLocale(es);
 
 // 👇 añade esto después de tus imports
+type RecipientData = {
+  salutation: string;
+  firstName: string;
+  lastName: string;
+  institution: string;
+  street: string;
+  addressExtra: string;
+  zip: string;
+  city: string;
+  country: string;
+  phone: string;
+};
+
+// splits[itemKey][recipientIndex] = qty asignada a ese destinatario.
+// recipientIndex: -1 = comprador, 0 = Empfänger 1, 1 = Empfänger 2
+type ItemSplit = Record<number, number>;
+type SplitsMap = Record<string, ItemSplit>;
+
 type OrderFormProps = {
   selectedNormal: EditionWithQty[];
   selectedOffers: EditionWithQty[];
+  recipients: RecipientData[];
+  splits: SplitsMap;
 };
 // 👇 creamos un alias con tipado
 const TypedOrderForm = OrderForm as React.FC<OrderFormProps>;
@@ -27,6 +53,19 @@ type Edition = {
 };
 type EditionWithQty = Edition & { qty: number };
 
+const emptyRecipient = (country: string): RecipientData => ({
+  salutation: "",
+  firstName: "",
+  lastName: "",
+  institution: "",
+  street: "",
+  addressExtra: "",
+  zip: "",
+  city: "",
+  country,
+  phone: "",
+});
+
 export default function SingleDossierOrderPage() {
   const locale = useLocale();
   const t = useTranslations("orderForm");
@@ -41,7 +80,146 @@ export default function SingleDossierOrderPage() {
   const [yearOffer, setYearOffer] = useState<string>("all");
   const [dossierType, setDossierType] = useState<"normal" | "offer">("normal");
 
+  // 👉 destinatarios alternativos (máx. 2 además del comprador)
+  const defaultCountry = locale === "de" ? "Deutschland" : "España";
+  const [activeRecipients, setActiveRecipients] = useState<number>(0);
+  const [recipients, setRecipients] = useState<RecipientData[]>([
+    emptyRecipient(defaultCountry),
+    emptyRecipient(defaultCountry),
+  ]);
+  // splits: cuántas unidades de cada item van a cada destinatario
+  const [splits, setSplits] = useState<SplitsMap>({});
+
+  // diálogo modal para mover unidades entre envíos
+  const [moveDialog, setMoveDialog] = useState<{
+    itemKey: string;
+    itemNumber: number;
+    itemTitle: string;
+    fromIdx: number;
+    maxQty: number;
+  } | null>(null);
+  const [moveDest, setMoveDest] = useState<number>(0);
+  const [moveQty, setMoveQty] = useState<number>(1);
+
+  const updateRecipient = (
+    index: number,
+    field: keyof RecipientData,
+    value: string
+  ) => {
+    setRecipients((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  // Añade `delta` unidades de un item al split del comprador (-1).
+  // Si delta<0, se quita primero del comprador, luego de rec0, luego de rec1.
+  const adjustSplit = (key: string, delta: number) => {
+    setSplits((prev) => {
+      const cur: ItemSplit = { ...(prev[key] || {}) };
+      if (delta > 0) {
+        cur[-1] = (cur[-1] || 0) + delta;
+      } else {
+        let toRemove = -delta;
+        for (const idx of [-1, 0, 1]) {
+          if (toRemove <= 0) break;
+          const have = cur[idx] || 0;
+          const take = Math.min(have, toRemove);
+          cur[idx] = have - take;
+          toRemove -= take;
+        }
+      }
+      return { ...prev, [key]: cur };
+    });
+  };
+
+  // Mueve `qty` unidades de un item entre destinatarios
+  const moveUnits = (
+    key: string,
+    fromIdx: number,
+    toIdx: number,
+    qty: number
+  ) => {
+    setSplits((prev) => {
+      const cur: ItemSplit = { ...(prev[key] || {}) };
+      const have = cur[fromIdx] || 0;
+      const move = Math.min(have, qty);
+      cur[fromIdx] = have - move;
+      cur[toIdx] = (cur[toIdx] || 0) + move;
+      return { ...prev, [key]: cur };
+    });
+  };
+
+  // Añade un destinatario extra (hasta 2)
+  const addRecipient = () => {
+    setActiveRecipients((prev) => Math.min(prev + 1, 2));
+  };
+
+  // Quita el último destinatario: devuelve sus items al comprador y resetea sus datos
+  const removeLastRecipient = () => {
+    setActiveRecipients((prev) => {
+      const newCount = Math.max(prev - 1, 0);
+      const removedIdx = newCount; // índice del que se quita
+      // mover unidades al comprador
+      setSplits((p) => {
+        const next: SplitsMap = {};
+        for (const [key, split] of Object.entries(p)) {
+          const ns: ItemSplit = { ...split };
+          if ((ns[removedIdx] || 0) > 0) {
+            ns[-1] = (ns[-1] || 0) + (ns[removedIdx] || 0);
+            delete ns[removedIdx];
+          }
+          next[key] = ns;
+        }
+        return next;
+      });
+      // resetear datos del destinatario removido
+      setRecipients((p) => {
+        const next = [...p];
+        next[removedIdx] = emptyRecipient(defaultCountry);
+        return next;
+      });
+      return newCount;
+    });
+  };
+
+  // Abre el diálogo de mover para un item desde un origen
+  const openMoveDialog = (
+    itemKey: string,
+    itemNumber: number,
+    itemTitle: string,
+    fromIdx: number,
+    currentQty: number
+  ) => {
+    // primer destino disponible distinto del origen
+    const dests: number[] = [];
+    if (fromIdx !== -1) dests.push(-1);
+    for (let i = 0; i < activeRecipients; i++) {
+      if (i !== fromIdx) dests.push(i);
+    }
+    if (dests.length === 0) return;
+    setMoveDest(dests[0]);
+    setMoveQty(1);
+    setMoveDialog({
+      itemKey,
+      itemNumber,
+      itemTitle,
+      fromIdx,
+      maxQty: currentQty,
+    });
+  };
+
+  const closeMoveDialog = () => setMoveDialog(null);
+
+  const confirmMove = () => {
+    if (!moveDialog) return;
+    moveUnits(moveDialog.itemKey, moveDialog.fromIdx, moveDest, moveQty);
+    setMoveDialog(null);
+  };
+
   const addToOrder = (edition: Edition, type: "normal" | "offer") => {
+    const key = `${type}-${edition.id}`;
     if (type === "normal") {
       setSelectedNormal((prev) => {
         const exists = prev.find((item) => item.id === edition.id);
@@ -63,7 +241,7 @@ export default function SingleDossierOrderPage() {
         return [...prev, { ...edition, qty: 1 }];
       });
     }
-
+    adjustSplit(key, 1);
   };
 
   const updateQty = (
@@ -71,17 +249,43 @@ export default function SingleDossierOrderPage() {
     id: number,
     delta: number
   ) => {
+    const key = `${type}-${id}`;
     const setter = type === "normal" ? setSelectedNormal : setSelectedOffers;
-    setter((prev) =>
-      prev
+    let removed = false;
+    setter((prev) => {
+      const next = prev
         .map((item) => item.id === id ? { ...item, qty: item.qty + delta } : item)
-        .filter((item) => item.qty > 0)
-    );
+        .filter((item) => {
+          if (item.id === id && item.qty <= 0) {
+            removed = true;
+            return false;
+          }
+          return true;
+        });
+      return next;
+    });
+    if (removed) {
+      setSplits((prev) => {
+        if (!(key in prev)) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    } else {
+      adjustSplit(key, delta);
+    }
   };
 
   const removeItem = (type: "normal" | "offer", id: number) => {
     if (type === "normal") setSelectedNormal((prev) => prev.filter((item) => item.id !== id));
     else setSelectedOffers((prev) => prev.filter((item) => item.id !== id));
+    const key = `${type}-${id}`;
+    setSplits((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -456,42 +660,44 @@ export default function SingleDossierOrderPage() {
               {selectedNormal.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0"
+                  className="border-b border-gray-50 dark:border-gray-800 last:border-0"
                 >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold dark:text-gray-100 truncate">
-                      ila {item.number}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {item.title}
-                    </p>
-                  </div>
-                  {/* +/- controls */}
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-3 px-5 py-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold dark:text-gray-100 truncate">
+                        ila {item.number}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {item.title}
+                      </p>
+                    </div>
+                    {/* +/- controls */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => updateQty("normal", item.id, -1)}
+                        className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                      >
+                        −
+                      </button>
+                      <span className="w-6 text-center text-sm font-semibold dark:text-gray-200">
+                        {item.qty}
+                      </span>
+                      <button
+                        onClick={() => updateQty("normal", item.id, 1)}
+                        className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
+                    {/* Remove */}
                     <button
-                      onClick={() => updateQty("normal", item.id, -1)}
-                      className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                      onClick={() => removeItem("normal", item.id)}
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                      aria-label="Entfernen"
                     >
-                      −
-                    </button>
-                    <span className="w-6 text-center text-sm font-semibold dark:text-gray-200">
-                      {item.qty}
-                    </span>
-                    <button
-                      onClick={() => updateQty("normal", item.id, 1)}
-                      className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
-                    >
-                      +
+                      ✕
                     </button>
                   </div>
-                  {/* Remove */}
-                  <button
-                    onClick={() => removeItem("normal", item.id)}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
-                    aria-label="Entfernen"
-                  >
-                    ✕
-                  </button>
                 </div>
               ))}
 
@@ -511,47 +717,49 @@ export default function SingleDossierOrderPage() {
                   {selectedOffers.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 px-5 py-3 border-b border-gray-50 dark:border-gray-800 last:border-0"
+                      className="border-b border-gray-50 dark:border-gray-800 last:border-0"
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold dark:text-gray-100 truncate">
-                            ila {item.number}
+                      <div className="flex items-center gap-3 px-5 py-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold dark:text-gray-100 truncate">
+                              ila {item.number}
+                            </p>
+                            <span className="px-1.5 py-0.5 bg-amber-400 text-amber-900 text-[10px] font-black rounded-full uppercase">
+                              DEAL
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {item.title}
                           </p>
-                          <span className="px-1.5 py-0.5 bg-amber-400 text-amber-900 text-[10px] font-black rounded-full uppercase">
-                            DEAL
-                          </span>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {item.title}
-                        </p>
-                      </div>
-                      {/* +/- controls */}
-                      <div className="flex items-center gap-1 shrink-0">
+                        {/* +/- controls */}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => updateQty("offer", item.id, -1)}
+                            className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                          >
+                            −
+                          </button>
+                          <span className="w-6 text-center text-sm font-semibold dark:text-gray-200">
+                            {item.qty}
+                          </span>
+                          <button
+                            onClick={() => updateQty("offer", item.id, 1)}
+                            className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                        {/* Remove */}
                         <button
-                          onClick={() => updateQty("offer", item.id, -1)}
-                          className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
+                          onClick={() => removeItem("offer", item.id)}
+                          className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                          aria-label="Entfernen"
                         >
-                          −
-                        </button>
-                        <span className="w-6 text-center text-sm font-semibold dark:text-gray-200">
-                          {item.qty}
-                        </span>
-                        <button
-                          onClick={() => updateQty("offer", item.id, 1)}
-                          className="w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-bold"
-                        >
-                          +
+                          ✕
                         </button>
                       </div>
-                      {/* Remove */}
-                      <button
-                        onClick={() => removeItem("offer", item.id)}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
-                        aria-label="Entfernen"
-                      >
-                        ✕
-                      </button>
                     </div>
                   ))}
                 </>
@@ -559,11 +767,420 @@ export default function SingleDossierOrderPage() {
             </div>
           )}
         </div>
+        {/* 🔹 Envíos: una tarjeta por destinatario */}
+        {(selectedNormal.length > 0 || selectedOffers.length > 0) && (() => {
+          const itemsForShipment = (destIdx: number) => {
+            const result: Array<{
+              key: string;
+              item: EditionWithQty;
+              qty: number;
+              isOffer: boolean;
+            }> = [];
+            for (const item of selectedNormal) {
+              const key = `normal-${item.id}`;
+              const q = splits[key]?.[destIdx] || 0;
+              if (q > 0) result.push({ key, item, qty: q, isOffer: false });
+            }
+            for (const item of selectedOffers) {
+              const key = `offer-${item.id}`;
+              const q = splits[key]?.[destIdx] || 0;
+              if (q > 0) result.push({ key, item, qty: q, isOffer: true });
+            }
+            return result;
+          };
+
+          const renderShipmentItems = (destIdx: number) => {
+            const items = itemsForShipment(destIdx);
+            if (items.length === 0) {
+              return (
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic px-3 py-2">
+                  ⚠️ {t("emptyShipmentHint")}
+                </p>
+              );
+            }
+            return (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {items.map(({ key, item, qty, isOffer }) => (
+                  <li
+                    key={key}
+                    className="flex items-center gap-3 px-3 py-2"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold dark:text-gray-100">
+                          ila {item.number}
+                        </span>
+                        {isOffer && (
+                          <span className="px-1.5 py-0.5 bg-amber-400 text-amber-900 text-[10px] font-black rounded-full uppercase">
+                            DEAL
+                          </span>
+                        )}
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">
+                          ×{qty}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        {item.title}
+                      </p>
+                    </div>
+                    {activeRecipients > 0 && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openMoveDialog(
+                            key,
+                            item.number,
+                            item.title,
+                            destIdx,
+                            qty
+                          )
+                        }
+                        className="text-xs px-2.5 py-1 rounded-md border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition whitespace-nowrap"
+                      >
+                        {t("moveButton")} →
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            );
+          };
+
+          return (
+            <div className="max-w-2xl mx-auto mb-8 space-y-4">
+              <h3 className="font-bold text-base dark:text-gray-100 flex items-center gap-2">
+                <span>📮</span>
+                <span>{t("shipmentsTitle")}</span>
+              </h3>
+
+              {/* Envío del comprador (siempre presente) */}
+              <div className="bg-white dark:bg-gray-900 border-2 border-red-200 dark:border-red-900/40 rounded-xl overflow-hidden">
+                <div className="bg-red-50 dark:bg-red-950/30 px-4 py-2.5 border-b border-red-100 dark:border-red-900/40">
+                  <h4 className="font-bold text-sm text-red-800 dark:text-red-300">
+                    {t("shipmentBuyerTitle")}
+                  </h4>
+                  <p className="text-[11px] text-red-700/70 dark:text-red-300/70 mt-0.5">
+                    {t("shipmentBuyerNote")}
+                  </p>
+                </div>
+                {renderShipmentItems(-1)}
+              </div>
+
+              {/* Envíos de destinatarios extras */}
+              {Array.from({ length: activeRecipients }).map((_, idx) => {
+                const isLast = idx === activeRecipients - 1;
+                return (
+                  <div
+                    key={idx}
+                    className="bg-white dark:bg-gray-900 border-2 border-blue-200 dark:border-blue-900/40 rounded-xl overflow-hidden"
+                  >
+                    <div className="bg-blue-50 dark:bg-blue-950/30 px-4 py-2.5 border-b border-blue-100 dark:border-blue-900/40 flex items-start justify-between gap-3">
+                      <h4 className="font-bold text-sm text-blue-800 dark:text-blue-300">
+                        {t("shipmentRecipientTitle", {
+                          n: idx + 2,
+                          r: idx + 1,
+                        })}
+                      </h4>
+                      {isLast && (
+                        <button
+                          type="button"
+                          onClick={removeLastRecipient}
+                          className="text-xs text-blue-700 dark:text-blue-400 hover:text-red-600 dark:hover:text-red-400 transition"
+                          aria-label={t("removeRecipientButton")}
+                          title={t("removeRecipientButton")}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Items asignados */}
+                    {renderShipmentItems(idx)}
+
+                    {/* Formulario inline del destinatario */}
+                    <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50/50 dark:bg-gray-950/30">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("salutation")}
+                          </label>
+                          <select
+                            value={recipients[idx].salutation}
+                            onChange={(e) =>
+                              updateRecipient(idx, "salutation", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          >
+                            <option value="">{t("choose")}</option>
+                            <option value="Frau">{t("mrs")}</option>
+                            <option value="Herr">{t("mr")}</option>
+                            <option value="Divers">{t("diverse")}</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("firstName")} *
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].firstName}
+                            onChange={(e) =>
+                              updateRecipient(idx, "firstName", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("lastName")} *
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].lastName}
+                            onChange={(e) =>
+                              updateRecipient(idx, "lastName", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("institution")}
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].institution}
+                            onChange={(e) =>
+                              updateRecipient(
+                                idx,
+                                "institution",
+                                e.target.value
+                              )
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("street")} *
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].street}
+                            onChange={(e) =>
+                              updateRecipient(idx, "street", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("addressExtra")}
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].addressExtra}
+                            onChange={(e) =>
+                              updateRecipient(
+                                idx,
+                                "addressExtra",
+                                e.target.value
+                              )
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("zip")} *
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].zip}
+                            onChange={(e) =>
+                              updateRecipient(idx, "zip", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("city")} *
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].city}
+                            onChange={(e) =>
+                              updateRecipient(idx, "city", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("country")} *
+                          </label>
+                          <select
+                            value={recipients[idx].country}
+                            onChange={(e) =>
+                              updateRecipient(idx, "country", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          >
+                            <option value="">{t("choose")}</option>
+                            {Object.entries(
+                              countries.getNames(
+                                locale === "de" ? "de" : "es",
+                                { select: "official" }
+                              ) as Record<string, string>
+                            ).map(([code, name]) => (
+                              <option key={code} value={name}>
+                                {name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            {t("phone")}
+                          </label>
+                          <input
+                            type="text"
+                            value={recipients[idx].phone}
+                            onChange={(e) =>
+                              updateRecipient(idx, "phone", e.target.value)
+                            }
+                            className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-200"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Botón "+ Otro destinatario" */}
+              {activeRecipients < 2 && (
+                <button
+                  type="button"
+                  onClick={addRecipient}
+                  className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-[#BD0E0D] hover:text-[#BD0E0D] dark:hover:border-red-500 dark:hover:text-red-400 transition-colors"
+                >
+                  {t("addRecipientButton")}
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
         <TypedOrderForm
           selectedNormal={selectedNormal}
           selectedOffers={selectedOffers}
+          recipients={recipients.slice(0, activeRecipients)}
+          splits={
+            activeRecipients > 0
+              ? Object.fromEntries(
+                  Object.entries(splits).map(([k, split]) => {
+                    const filtered: ItemSplit = {};
+                    for (const [idxStr, q] of Object.entries(split)) {
+                      const idx = Number(idxStr);
+                      if (idx < activeRecipients) filtered[idx] = q;
+                    }
+                    return [k, filtered];
+                  })
+                )
+              : {}
+          }
         />
       </section>
+
+      {/* 🔹 Modal: mover unidades entre envíos */}
+      {moveDialog && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+          onClick={closeMoveDialog}
+        >
+          <div
+            className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold mb-1 dark:text-gray-100">
+              {t("moveDialogTitle", { number: moveDialog.itemNumber })}
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 truncate">
+              {moveDialog.itemTitle}
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2">
+                  {t("moveDialogDest")}
+                </label>
+                <select
+                  value={moveDest}
+                  onChange={(e) => setMoveDest(Number(e.target.value))}
+                  className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-800 dark:text-gray-200"
+                >
+                  {moveDialog.fromIdx !== -1 && (
+                    <option value={-1}>{t("buyerLabel")}</option>
+                  )}
+                  {Array.from({ length: activeRecipients }).map((_, idx) => {
+                    if (idx === moveDialog.fromIdx) return null;
+                    return (
+                      <option key={idx} value={idx}>
+                        {t("recipientLabel", { n: idx + 1 })}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {moveDialog.maxQty > 1 && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2">
+                    {t("moveDialogQty")}{" "}
+                    <span className="font-normal text-gray-500">
+                      ({t("moveDialogQtyAvail", { max: moveDialog.maxQty })})
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={moveDialog.maxQty}
+                    value={moveQty}
+                    onChange={(e) =>
+                      setMoveQty(
+                        Math.max(
+                          1,
+                          Math.min(moveDialog.maxQty, Number(e.target.value))
+                        )
+                      )
+                    }
+                    className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-800 dark:text-gray-200"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                type="button"
+                onClick={closeMoveDialog}
+                className="flex-1 px-3 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-gray-200"
+              >
+                {t("moveDialogCancel")}
+              </button>
+              <button
+                type="button"
+                onClick={confirmMove}
+                className="flex-1 px-3 py-2 text-sm font-medium rounded-md bg-[#BD0E0D] text-white hover:bg-red-800 transition"
+              >
+                {t("moveDialogConfirm")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
 
       {/* ── Floating cart bar ── */}

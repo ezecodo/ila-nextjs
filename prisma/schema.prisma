@@ -230,9 +230,9 @@ model Banner {
 }
 
 model Order {
-  id           String      @id @default(uuid())
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id           String           @id @default(uuid())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   salutation   String?
   firstName    String
   lastName     String
@@ -245,20 +245,43 @@ model Order {
   phone        String?
   email        String
   message      String?
-  isNew        Boolean     @default(true)
+  isNew        Boolean          @default(true)
   items        OrderItem[]
+  recipients   OrderRecipient[]
+}
+
+model OrderRecipient {
+  id           String      @id @default(uuid())
+  orderId      String
+  salutation   String?
+  firstName    String
+  lastName     String
+  institution  String?
+  street       String
+  addressExtra String?
+  zip          String
+  city         String
+  country      String
+  phone        String?
+  order        Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  items        OrderItem[]
+
+  @@index([orderId], map: "OrderRecipient_orderId_fkey")
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  orderId   String
-  editionId Int
-  qty       Int     @default(1)
-  edition   Edition @relation(fields: [editionId], references: [id])
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  id          String          @id @default(uuid())
+  orderId     String
+  editionId   Int
+  qty         Int             @default(1)
+  recipientId String?
+  edition     Edition         @relation(fields: [editionId], references: [id])
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  recipient   OrderRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
 
   @@index([editionId], map: "OrderItem_editionId_fkey")
   @@index([orderId], map: "OrderItem_orderId_fkey")
+  @@index([recipientId], map: "OrderItem_recipientId_fkey")
 }
 
 model Subscription {

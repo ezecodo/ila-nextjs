@@ -13,6 +13,8 @@ countries.registerLocale(es);
 export default function OrderForm({
   selectedNormal = [],
   selectedOffers = [],
+  recipients = [],
+  splits = {},
 }) {
   const [successMessage, setSuccessMessage] = useState(null);
   const t = useTranslations("orderForm");
@@ -50,26 +52,70 @@ export default function OrderForm({
       return;
     }
 
-    // 👉 Combinar items seleccionados
-    // 👉 Combinar items seleccionados
-    const items = [
-      ...selectedNormal.map((item) => ({
-        editionId: Number(item.id), // 👈 asegurar que es Int
-        qty: item.qty,
-      })),
-      ...selectedOffers.map((item) => ({
-        editionId: Number(item.id),
-        qty: item.qty,
-      })),
+    // Validar campos de cada destinatario activo
+    for (let i = 0; i < recipients.length; i++) {
+      const r = recipients[i];
+      if (
+        !r.firstName ||
+        !r.lastName ||
+        !r.street ||
+        !r.zip ||
+        !r.city ||
+        !r.country
+      ) {
+        alert(t("errorRecipientFields", { n: i + 1 }));
+        return;
+      }
+    }
+
+    // Expandir items según los splits (cada destinatario → un OrderItem)
+    const cartEntries = [
+      ...selectedNormal.map((item) => ({ key: `normal-${item.id}`, item })),
+      ...selectedOffers.map((item) => ({ key: `offer-${item.id}`, item })),
     ];
 
-    console.log("📦 Items enviados al backend:", items);
+    const items = [];
+    for (const { key, item } of cartEntries) {
+      const split = splits[key];
+      if (!split) {
+        // sin split → todo al comprador
+        items.push({
+          editionId: Number(item.id),
+          qty: item.qty,
+          recipientIndex: null,
+        });
+        continue;
+      }
+      for (const [idxStr, q] of Object.entries(split)) {
+        if (!q || q <= 0) continue;
+        const idx = Number(idxStr);
+        items.push({
+          editionId: Number(item.id),
+          qty: q,
+          recipientIndex: idx >= 0 ? idx : null,
+        });
+      }
+    }
+
+    // Verificar que cada destinatario activo tenga al menos 1 unidad asignada
+    for (let i = 0; i < recipients.length; i++) {
+      const hasAssignment = items.some((it) => it.recipientIndex === i);
+      if (!hasAssignment) {
+        alert(t("errorRecipientNoItems", { n: i + 1 }));
+        return;
+      }
+    }
 
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, items, locale }), // 👈 añadimos idioma
+        body: JSON.stringify({
+          ...formData,
+          items,
+          recipients,
+          locale,
+        }),
       });
 
       if (!res.ok) throw new Error("❌ Error al crear el pedido");
@@ -102,7 +148,7 @@ export default function OrderForm({
             <button
               onClick={() => {
                 setSuccessMessage(null);
-                window.location.reload(); // 🔄 resetea toda la página
+                window.location.reload();
               }}
               className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
             >
