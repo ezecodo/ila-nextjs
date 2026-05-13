@@ -10,6 +10,7 @@ import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import HoverInfo from "../../components/HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
+import DonationInlineBanner from "../../components/DonationInlineBanner/DonationInlineBanner";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
@@ -184,6 +185,28 @@ export default function LegacyArticlePage() {
 
     return html;
   }
+
+  // Parte el HTML en 2 mitades por cantidad de </p>, para insertar el banner inline.
+  // Devuelve splitWorked=false si hay menos de 4 párrafos (artículo muy corto).
+  function splitHtmlAtMiddleParagraph(html) {
+    if (!html) return { firstHalf: "", secondHalf: "", splitWorked: false };
+    const closings = [];
+    const re = /<\/p>/gi;
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      closings.push(m.index + m[0].length);
+    }
+    if (closings.length < 4) {
+      return { firstHalf: html, secondHalf: "", splitWorked: false };
+    }
+    const splitPos = closings[Math.floor(closings.length / 2) - 1];
+    return {
+      firstHalf: html.slice(0, splitPos),
+      secondHalf: html.slice(splitPos),
+      splitWorked: true,
+    };
+  }
+
   return (
     <>
       {/* JSON-LD structured data */}
@@ -574,26 +597,43 @@ export default function LegacyArticlePage() {
               </div>
             )}
           </div>
-          <div
-            className="article-content text-gray-700 dark:text-gray-200"
-            itemProp="articleBody"
-            dangerouslySetInnerHTML={{
-              __html: wrapInlineImagesWithCaption(
-                rewriteEditionLinksWithLocale(
-                  autoDetectHeadings(
-                    autoFormatHeadings(
-                      normalizeContentForRender(
-                        isES && article.contentES
-                          ? article.contentES
-                          : article.content,
-                      ),
+          {(() => {
+            const fullHtml = wrapInlineImagesWithCaption(
+              rewriteEditionLinksWithLocale(
+                autoDetectHeadings(
+                  autoFormatHeadings(
+                    normalizeContentForRender(
+                      isES && article.contentES
+                        ? article.contentES
+                        : article.content,
                     ),
                   ),
-                  locale,
                 ),
+                locale,
               ),
-            }}
-          />
+            );
+            const { firstHalf, secondHalf, splitWorked } =
+              splitHtmlAtMiddleParagraph(fullHtml);
+            if (!splitWorked) {
+              return (
+                <div
+                  className="article-content text-gray-700 dark:text-gray-200"
+                  itemProp="articleBody"
+                  dangerouslySetInnerHTML={{ __html: fullHtml }}
+                />
+              );
+            }
+            return (
+              <div
+                className="article-content text-gray-700 dark:text-gray-200"
+                itemProp="articleBody"
+              >
+                <div dangerouslySetInnerHTML={{ __html: firstHalf }} />
+                <DonationInlineBanner />
+                <div dangerouslySetInnerHTML={{ __html: secondHalf }} />
+              </div>
+            );
+          })()}
           {((isES && article.additionalInfoES) || article.additionalInfo) && (
             <div className="mt-8 mb-6 p-5 bg-gray-50 dark:bg-gray-800 border-l-4 border-red-600 rounded-r-lg shadow-sm">
               <div

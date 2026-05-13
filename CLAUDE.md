@@ -411,3 +411,86 @@ npm run build        # Build de producción
 npx prisma studio    # GUI para explorar la base de datos
 node scripts/seed-pdf-abo.js  # Cargar suscriptores PDF-Abo en BD (sin enviar emails)
 ```
+
+## 🎨 Brand Kit
+
+### Colores principales
+
+**Rojo ila (primario)**
+- `#BD0E0D` — color marca principal (212 usos), fondos rojo, botones primarios, accents
+- `#c21f2e` — variante para emails (`lib/email.js`) y popup donation
+- `#d13120` — variante en CSS legacy
+
+**Verde (acento)**
+- `#89B881` — animaciones 50 años, success states
+
+**Neutrales (escala Tailwind)**
+- `#ffffff` white — fondos cards, texto sobre rojo
+- `#f3f4f6` gray-100 — fondos sutiles
+- `#9ca3af` gray-400 — texto secundario
+- `#6b7280` gray-500 — texto medio
+- `#1f2937` gray-800 — texto principal artículos (`.article-content h2/h3/h4` lo aplican con `!important`)
+- `#0a0a0a` — dark mode background
+
+**Tailwind red-\* utilizados**
+- `#dc2626` red-600 — botones, popup gradient start
+- `#b91c1c` red-700 — botones hover, popup gradient end
+- `#a50c0b` ≈ red-800 — sombras profundas
+
+### Tipografías
+
+Las tres se cargan con `next/font/local` en `src/app/[locale]/layout.tsx` y se exponen como variables CSS + clases Tailwind.
+
+**Futura Cyrillic** — `--font-futura` / clase `font-futura`
+- Uso: logo "ila", branding (caja "ila", número "50"), títulos especiales
+- Archivos: `/public/fonts/FuturaCyrillic{Light,Book,Medium,Demi,Bold,ExtraBold}.ttf`
+- Pesos disponibles: 300 / 400 / 500 / 600 / 700 / 800
+- En SVG inline el fallback completo es: `'Futura PT', Futura, 'Jost', sans-serif`
+
+**Geist Sans** — `--font-geist-sans` / clase `font-geist`
+- Uso: tipografía body, UI general, dashboard
+- Archivo: `/public/fonts/GeistVF.woff` (variable, pesos 100–900)
+
+**Geist Mono** — `--font-geist-mono` / clase `font-mono`
+- Uso: código, datos técnicos
+- Archivo: `/public/fonts/GeistMonoVF.woff` (variable, pesos 100–900)
+
+### Jerarquía tipográfica del artículo
+
+Definida en `src/app/globals.css` (con `!important`):
+
+| Elemento | Tamaño | Peso | Color |
+|---|---|---|---|
+| `.article-content h2` | 1.5rem (24px) | 700 | `#1f2937` |
+| `.article-content h3` | 1.25rem (20px) | 700 | `#1f2937` |
+| `.article-content h4` | 1rem (16px) | 700 | `#1f2937` claro / `#f3f4f6` oscuro |
+| `.article-content a` | — | — | `#2563eb` blue-600 / hover `#1d4ed8` |
+
+⚠️ El `color: #1f2937 !important` del `h3` puede romper banners/callouts dentro de `.article-content` — usar `<p role="heading">` para evitarlo (el `style` inline no gana al `!important`).
+
+### Logo
+
+Componente `<IlaLogo50 />` en `src/app/[locale]/components/IlaLogo/ilaLogo50.jsx` renderiza el wordmark "ıla" en SVG + el mapa de Latinoamérica + el "50" en blanco. Tamaños: `mini` (80px), `mobile`, `compact` (96px), `default` (168px), `large` (240px). PNGs alternativos en `/public/logo/`:
+- `ila-Schriftzug_weiss.png` — wordmark "ila" blanco
+- `50_Schriftzug_weiss.png` — número "50" (8-bit gray+alpha, en realidad gris oscuro; mejor usar el componente)
+- `Lateinamerika_ohne_Grenzen_weiss.png` — mapa Latinoamérica blanco
+
+### Convenciones de estilo
+
+- **Border radius**: la marca usa rectángulos puros para identidad editorial (logo "ila" en caja blanca sin redondeo); en UI general se usa `rounded-md`/`rounded-xl`.
+- **Shadows**: `shadow-sm`/`shadow-md`/`shadow-lg`/`shadow-xl` (Tailwind defaults).
+- **Animaciones custom** en `tailwind.config.ts`: `ping-once`, `float-left`/`float-right`, `fadeIn`, `scaleIn`.
+
+### Resumen rápido
+
+```
+PRIMARIO     #BD0E0D  rojo ila
+SECUNDARIO   #89B881  verde 50 años
+TEXT BODY    #1f2937  gray-800
+WHITE        #ffffff
+DARK BG      #0a0a0a
+
+FONT MARCA   Futura Cyrillic  (logo, "ila", "50")
+FONT BODY    Geist Sans       (texto, UI)
+FONT MONO   Geist Mono        (código)
+```

@@ -811,6 +811,16 @@
     "independent": "unabhängig",
     "trustMessage": "Jede Spende hilft uns, unabhängigen Journalismus zu ermöglichen."
   },
+  "donationInline": {
+    "ariaLabel": "Spendenaufruf",
+    "kicker": "Spendenaufruf",
+    "title": "Diesen Artikel hast du gratis gelesen.",
+    "subtitle": "Kritischer Journalismus aus Lateinamerika kostet Geld – aber keinen Cent von Konzernen oder Werbung. Halt die ila am Leben.",
+    "donateButton": "Jetzt spenden",
+    "years": "Jahre",
+    "yearly": "pro Jahr",
+    "independent": "unabhängig"
+  },
   "donation": {
     "title": "Unterstützt die ila!",
     "body": "Wir stellen alle unsere Inhalte kostenlos zur Verfügung. Dahinter steckt aber viel Schweiß und ohne Geld geht es auch nicht. Unterstützt den unabhängigen und engagierten Journalismus. Jeder Beitrag zählt.",

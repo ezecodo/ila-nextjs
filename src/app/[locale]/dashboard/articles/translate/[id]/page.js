@@ -147,18 +147,31 @@ function stripHtml(html) {
 }
 
 // Convierte texto plano (con \n\n y URLs sueltas) a HTML con <p> y <a>.
-// Si ya viene como HTML estructurado, lo deja igual.
+// - Si no tiene <p>/<br>/<div>, envuelve párrafos con <p>.
+// - Si no tiene <a>, linkea URLs sueltas (preservando el HTML existente).
+// Idempotente: si ya tiene <p> Y <a>, devuelve igual.
 function plainToHtmlAdditionalInfo(input) {
   if (!input) return "";
-  if (/<(p|br|a)\b/i.test(input)) return input;
-  const linked = input.replace(
-    /(https?:\/\/[^\s<>()]+[^\s<>().,;:!?])/g,
-    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
-  );
-  return linked
-    .split(/\n{2,}/)
-    .map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`)
-    .join("");
+  let out = input;
+
+  const hasStructure = /<(p|br|div)\b/i.test(out);
+  if (!hasStructure) {
+    out = out
+      .split(/\n{2,}/)
+      .map((p) => p.replace(/\n/g, "<br>"))
+      .filter((p) => p.replace(/<br>/g, "").trim() !== "")
+      .map((p) => `<p>${p}</p>`)
+      .join("");
+  }
+
+  if (!/<a\b[^>]*>/i.test(out)) {
+    out = out.replace(
+      /(https?:\/\/[^\s<>()]+[^\s<>().,;:!?])/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+    );
+  }
+
+  return out;
 }
 
 // ── Smart paste formatting (same logic as Publisher/Publilab) ─────────────

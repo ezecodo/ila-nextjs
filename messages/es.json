@@ -810,6 +810,16 @@
     "independent": "independiente",
     "trustMessage": "Cada donación nos ayuda a posibilitar el periodismo independiente."
   },
+  "donationInline": {
+    "ariaLabel": "Llamada a donar",
+    "kicker": "Llamada a donar",
+    "title": "Has leído este artículo gratis.",
+    "subtitle": "Hacer periodismo crítico desde América Latina cuesta — pero ni un céntimo viene de grupos económicos ni de publicidad. Mantén viva a ila.",
+    "donateButton": "Donar ahora",
+    "years": "años",
+    "yearly": "al año",
+    "independent": "independiente"
+  },
   "donation": {
     "title": "¡Apoya la ila!",
     "body": "Ponemos todos nuestros contenidos a disposición de forma gratuita. Detrás hay mucho esfuerzo, pero sin dinero no es posible. Apoya el periodismo independiente y comprometido. Cada aporte cuenta.",
