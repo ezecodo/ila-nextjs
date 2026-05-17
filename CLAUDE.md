@@ -412,6 +412,37 @@ npx prisma studio    # GUI para explorar la base de datos
 node scripts/seed-pdf-abo.js  # Cargar suscriptores PDF-Abo en BD (sin enviar emails)
 ```
 
+## Scripts de migración / mantenimiento
+
+### `scripts/migrate-additionalinfo-to-html.js`
+
+Normaliza los campos `additionalInfo` (DE) y `additionalInfoES` (ES) del modelo `Article` convirtiendo texto plano con URLs sueltas y `\n\n` a HTML estructurado (`<p>`, `<br>`, `<a>`), igual que el editor de traducción. Función **idempotente**: si el campo ya tiene `<p>` y `<a>` no lo toca; si tiene `<p>` pero sin `<a>` solo linkea URLs.
+
+```bash
+# Modo dry-run (por defecto) — no toca la BD, solo muestra qué cambiaría
+node scripts/migrate-additionalinfo-to-html.js
+
+# Aplicar a TODOS los artículos
+node scripts/migrate-additionalinfo-to-html.js --apply
+
+# Probar con un solo artículo (mostrar diff con contenido completo)
+node scripts/migrate-additionalinfo-to-html.js --id=22093 --verbose
+
+# Aplicar solo a un artículo
+node scripts/migrate-additionalinfo-to-html.js --apply --id=22093
+
+# Modo interactivo — confirma artículo por artículo con link al browser
+node scripts/migrate-additionalinfo-to-html.js --review
+node scripts/migrate-additionalinfo-to-html.js --review --base-url=http://localhost:3001
+
+# Filtros: solo alemán / solo español / limitar cantidad
+node scripts/migrate-additionalinfo-to-html.js --de-only
+node scripts/migrate-additionalinfo-to-html.js --es-only
+node scripts/migrate-additionalinfo-to-html.js --limit=10
+```
+
+La misma función `plainToHtmlAdditionalInfo` vive duplicada en `src/app/[locale]/dashboard/articles/translate/[id]/page.js` (usada por el editor de traducción). Si se cambia una, actualizar la otra para mantener consistencia.
+
 ## 🎨 Brand Kit
 
 ### Colores principales
