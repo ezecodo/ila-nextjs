@@ -986,7 +986,10 @@
     "processedLabel": "Bearbeitet am",
     "addressesBadge": "{count} Lieferadressen",
     "buyerShipmentTitle": "📦 Lieferung an Besteller",
-    "recipientShipmentTitle": "📦 Lieferung an Empfänger {n}"
+    "recipientShipmentTitle": "📦 Lieferung an Empfänger {n}",
+    "exportCsvButton": "📥 Neue Bestellungen exportieren ({count})",
+    "exportCsvEmpty": "Keine neuen Bestellungen zum Exportieren",
+    "exportCsvError": "Fehler beim Exportieren der Bestellungen"
   },
   "abo": {
     "title": "Abonnement abschließen",
@@ -1127,7 +1130,10 @@
       "rewardForPayer": "Prämie für den Abonnenten",
       "rewardForRecipient": "Prämie für den Geschenkempfänger",
       "markProcessed": "✅ Als bearbeitet markieren",
-      "processedLabel": "Bearbeitet am"
+      "processedLabel": "Bearbeitet am",
+      "exportCsvButton": "📥 Neue Abos exportieren ({count})",
+      "exportCsvEmpty": "Keine neuen Abos zum Exportieren",
+      "exportCsvError": "Fehler beim Exportieren der Abos"
     },
     "popularLabel": "Beliebt",
     "heroSubtitle": "Unabhängig. Kritisch. Solidarisch.",

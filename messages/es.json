@@ -985,7 +985,10 @@
     "processedLabel": "Procesado el",
     "addressesBadge": "{count} direcciones de envío",
     "buyerShipmentTitle": "📦 Envío a quien hace el pedido",
-    "recipientShipmentTitle": "📦 Envío al destinatario {n}"
+    "recipientShipmentTitle": "📦 Envío al destinatario {n}",
+    "exportCsvButton": "📥 Exportar pedidos nuevos ({count})",
+    "exportCsvEmpty": "No hay pedidos nuevos para exportar",
+    "exportCsvError": "Error al exportar los pedidos"
   },
   "abo": {
     "title": "Suscripción a ila",
@@ -1126,7 +1129,10 @@
       "rewardForPayer": "Premio enviado al abonado",
       "rewardForRecipient": "Premio enviado al destinatario del regalo",
       "markProcessed": "✅ Marcar como procesada",
-      "processedLabel": "Procesada el"
+      "processedLabel": "Procesada el",
+      "exportCsvButton": "📥 Exportar suscripciones nuevas ({count})",
+      "exportCsvEmpty": "No hay suscripciones nuevas para exportar",
+      "exportCsvError": "Error al exportar las suscripciones"
     },
     "popularLabel": "Popular",
     "heroSubtitle": "Independiente. Crítico. Solidario.",

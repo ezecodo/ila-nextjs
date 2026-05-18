@@ -7,7 +7,9 @@ import { useTranslations } from "next-intl";
 export default function OrdersPage() {
   const t = useTranslations("orders");
   const [orders, setOrders] = useState([]);
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [search, setSearch] = useState("");
@@ -50,6 +52,7 @@ export default function OrdersPage() {
         if (!res.ok) throw new Error("Error cargando pedidos");
         const data = await res.json();
         setOrders(data.orders || []);
+        setNewOrdersCount(data.newOrdersCount || 0);
       } catch (err) {
         console.error("❌ Error:", err);
       } finally {
@@ -58,6 +61,30 @@ export default function OrdersPage() {
     }
     fetchOrders();
   }, []);
+
+  async function handleExportCsv() {
+    if (exporting || newOrdersCount === 0) return;
+    setExporting(true);
+    try {
+      const res = await fetch("/api/orders/export-csv");
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const today = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ila-bestellungen-${today}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("❌ Error exportando CSV:", err);
+      alert(t("exportCsvError"));
+    } finally {
+      setExporting(false);
+    }
+  }
 
   async function openOrderDetails(id) {
     try {
@@ -93,15 +120,25 @@ export default function OrdersPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
             {t("title")}
           </h1>
-          <div className="relative w-full sm:w-72">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder={t("searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-red-500"
-            />
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <button
+              onClick={handleExportCsv}
+              disabled={newOrdersCount === 0 || exporting}
+              title={newOrdersCount === 0 ? t("exportCsvEmpty") : ""}
+              className="px-4 py-2 text-sm font-semibold rounded-md bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {t("exportCsvButton", { count: newOrdersCount })}
+            </button>
+            <div className="relative w-full sm:w-72">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder={t("searchPlaceholder")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-red-500"
+              />
+            </div>
           </div>
         </div>
 
@@ -489,6 +526,7 @@ export default function OrdersPage() {
                           const updatedRes = await fetch("/api/orders");
                           const updatedData = await updatedRes.json();
                           setOrders(updatedData.orders || []);
+                          setNewOrdersCount(updatedData.newOrdersCount || 0);
                         } catch (err) {
                           console.error("❌ Error al actualizar pedido:", err);
                           alert("❌ No se pudo actualizar el pedido");
