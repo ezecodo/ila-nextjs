@@ -78,6 +78,31 @@ src/app/api/
 - `POST /api/admin/pdf-abo-invitations/upload-csv` — carga masiva por CSV (admin)
 - `GET/POST/DELETE /api/editions/[id]/pdf-abo` — gestión del PDF privado de una edición (admin)
 
+## Export CSV de Bestellungen y Abos (CiviCRM bridge)
+
+Los pedidos de Dossiers y las suscripciones se procesan manualmente en CiviCRM. Para evitar que la persona tenga que copiar a mano desde el panel, hay un botón **"📥 Exportar nuevos (N)"** en `/dashboard/orders` y `/dashboard/subscriptions` que descarga un CSV con los registros `isNew=true`.
+
+### Endpoints
+- `GET /api/orders/export-csv` — CSV de pedidos de Dossiers con `isNew=true`
+- `GET /api/subscriptions/export-csv` — CSV de suscripciones con `isNew=true`
+
+### Convenciones de formato
+- **Encoding**: UTF-8 con BOM (`﻿`) → Excel alemán abre directo con umlauts correctos.
+- **Separador**: `;` (estándar europeo, no `,`).
+- **Filename**: `ila-bestellungen-YYYY-MM-DD.csv` / `ila-abos-YYYY-MM-DD.csv`.
+- **Headers en alemán** (la persona que procesa es nativo alemán).
+- **Una fila por transacción** — los destinatarios adicionales van en columnas planas con prefijo (`Empfänger1*`, `Empfänger2*`, `Geschenkempfänger*`). NO usar múltiples filas por contacto: confunde al hacer data entry manual.
+- **NO marca `isNew=false` al exportar** — el flujo "marcar como procesado" sigue siendo manual desde el modal, para que la persona pueda re-exportar si lo necesita antes de cerrar en CiviCRM.
+
+### Disambiguación crítica (Abos)
+- `Prämie` = el regalo físico que recibe el abonado como agradecimiento (relación `gift` → modelo `Gift`).
+- `Geschenkempfänger*` = la persona a la que se le **regala la suscripción** (`giftRecipient*` en schema, solo si `isGift=true`).
+- `VersandPrämie` = a quién se envía la Prämie cuando es Geschenkabo (`giftDelivery`: `to_payer` / `to_recipient`).
+- `Geschenkdauer` = duración del Geschenkabo (1 año / hasta cancelación).
+
+### Si se reactiva la promo de fin de año
+La promo "3 meses gratis para tercera persona" (`promoGiftRecipient*` en schema) **NO está en el CSV** — se quitó porque la promo era de fin de año 2025. El componente `PromoGiftForm` sigue en el formulario por si se reactiva. Si vuelve a usarse activamente, hay que añadir columnas `PromoEmpfänger*` en `src/app/api/subscriptions/export-csv/route.js`.
+
 ## Páginas del dashboard
 
 ```
