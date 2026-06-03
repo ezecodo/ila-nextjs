@@ -84,23 +84,25 @@ export default function AktuellesPreview() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="group flex gap-4 p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-200 dark:hover:border-gray-600 transition-all duration-300"
+            className="group flex gap-4 p-3 rounded-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300"
           >
             {/* Contenido Texto */}
             <div className="flex flex-col justify-between flex-1 min-w-0">
               <div>
-                {/* Fecha estilo sutil */}
-                <p className="text-xs font-semibold text-red-600 mb-1 uppercase tracking-wider">
+                {/* Fecha — rojo de marca, igual que el grid */}
+                <p className="text-xs font-semibold text-[#BD0E0D] mb-1 uppercase tracking-wider">
                   {formatDate(item.date)}
                 </p>
 
-                {/* Título con fuente Serif - CAMBIO: text-base -> text-xl */}
+                {/* Título en sans con subrayado animado, alineado al grid */}
                 <Link
                   href={`/aktuell/aktuelles?scrollTo=${item.id}`}
                   className="block"
                 >
-                  <h4 className="font-serif text-xl font-bold text-gray-900 dark:text-gray-100 leading-snug group-hover:text-red-600 dark:group-hover:text-red-500 transition-colors">
-                    {getTitle(item)}
+                  <h4 className="text-[17px] font-bold leading-[1.25] text-gray-900 dark:text-gray-100 text-balance">
+                    <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
+                      {getTitle(item)}
+                    </span>
                   </h4>
                 </Link>
               </div>

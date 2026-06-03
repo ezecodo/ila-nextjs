@@ -7,12 +7,13 @@ export default function EntityBadges({
   topics,
   context,
   locale,
+  className = "",
 }) {
   const badgeClasses =
     "text-[11px] px-2 py-[1px] rounded-none bg-white/80 text-gray-800 font-normal shadow-sm border border-gray-300";
 
   return (
-    <div className="badgeContainer flex flex-wrap gap-[4px]">
+    <div className={`badgeContainer flex flex-wrap gap-[4px] ${className}`}>
       {/* 🔥 Regiones */}
       {regions?.map((region) => (
         <Link

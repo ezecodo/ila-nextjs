@@ -168,7 +168,7 @@ export default function ArticleCarouselVer(props) {
                   articles.length === 1 ? "max-w-[280px] mx-auto" : ""
                 }`}
               >
-                <div className="group w-full mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="group flex flex-col w-full mx-auto rounded-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300">
                   {/* Imagen VERTICAL - aspect ratio 2:3 */}
                   {hasImage && (
                     <div className="relative w-full max-w-[280px] mx-auto aspect-[2/3] overflow-hidden bg-gray-100 dark:bg-gray-700">
@@ -221,9 +221,9 @@ export default function ArticleCarouselVer(props) {
                     )}
 
                     {/* Título */}
-                    <h3 className="text-lg font-bold font-serif leading-tight line-clamp-2 mb-1">
+                    <h3 className="text-[17px] font-bold leading-[1.25] text-gray-900 dark:text-gray-100 text-balance line-clamp-2 mb-1">
                       <ArticleLink article={article}>
-                        <span className="hover:text-red-600 transition-colors duration-200">
+                        <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
                           {articleTitle}
                         </span>
                       </ArticleLink>
@@ -231,14 +231,14 @@ export default function ArticleCarouselVer(props) {
 
                     {/* Subtítulo */}
                     {subtitle && (
-                      <p className="text-sm font-serif text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
+                      <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-snug line-clamp-2 mb-2">
                         {subtitle}
                       </p>
                     )}
 
                     {/* Teaser */}
                     {teaser && (
-                      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 mb-3">
+                      <p className="text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3 mb-3">
                         {teaser}
                       </p>
                     )}
@@ -255,7 +255,7 @@ export default function ArticleCarouselVer(props) {
                             <span key={author.id}>
                               <LocaleLink
                                 href={`/authors/${author.id}`}
-                                className="text-red-600 hover:underline font-medium"
+                                className="text-[#BD0E0D] hover:underline font-semibold"
                               >
                                 <HoverInfo
                                   id={author.id}
@@ -271,11 +271,11 @@ export default function ArticleCarouselVer(props) {
 
                       {/* Badge de edición */}
                       {article.edition?.number && editionYear ? (
-                        <span className="inline-block bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-[10px] font-semibold">
+                        <span className="inline-block bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-none text-[10px] font-semibold tabular-nums">
                           {article.edition.number}/{editionYear}
                         </span>
                       ) : (
-                        <span className="inline-block bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-wide">
+                        <span className="inline-block bg-[#BD0E0D] text-white px-2 py-1 rounded-none text-[10px] font-semibold uppercase tracking-wide">
                           {locale === "de" ? "Nur online" : "Solo online"}
                         </span>
                       )}

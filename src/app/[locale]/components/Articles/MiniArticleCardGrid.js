@@ -1,3 +1,7 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import EntityBadges from "../EntityBadges/EntityBadges";
 import HoverInfo from "../HoverInfo/HoverInfo";
@@ -6,7 +10,6 @@ import ArticleLink from "../Articles/ArticleLink/ArticleLink";
 import SmartImage from "../SmartImage/SmartImage";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
-// 🔥 NUEVA FUNCIÓN: Limpiar HTML
 const stripHTML = (html) => {
   if (!html) return "";
   return html
@@ -26,7 +29,6 @@ export default function MiniArticleCardGrid({
   const t = useTranslations("article");
   const isES = locale === "es" && article.isTranslatedES;
 
-  // 🔥 Soporte para artículos viejos (images[]) y nuevos (articleImage)
   const primaryImage =
     article.images && article.images.length > 0
       ? article.images[0]
@@ -39,11 +41,26 @@ export default function MiniArticleCardGrid({
 
   const hasImage = Boolean(primaryImage?.url);
 
+  const [orient, setOrient] = useState("landscape");
+  useEffect(() => {
+    if (!hasImage) return;
+    let active = true;
+    const img = new window.Image();
+    img.onload = () => {
+      if (!active || !img.naturalWidth || !img.naturalHeight) return;
+      const r = img.naturalWidth / img.naturalHeight;
+      setOrient(r > 1.05 ? "landscape" : r < 0.95 ? "portrait" : "square");
+    };
+    img.src = primaryImage.url;
+    return () => {
+      active = false;
+    };
+  }, [hasImage, primaryImage?.url]);
+
+  const title = isES ? article.titleES : article.title;
   const subtitle = isES ? article.subtitleES : article.subtitle;
 
-  // Vorspann fijo (con fallback al contenido limpio)
   let teaser = "";
-
   if (isES) {
     teaser =
       stripHTML(article.previewTextES) ||
@@ -62,142 +79,241 @@ export default function MiniArticleCardGrid({
       ? new Date(article.publicationDate).getFullYear()
       : null;
 
-  const MetaInfo = () =>
-    (article.authors?.length > 0 ||
-      article.categories?.length > 0 ||
-      article.edition?.number) && (
-      <div className="text-sm text-gray-600 dark:text-gray-300 mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center gap-1">
-        {/* Autores */}
-        {article.authors?.length > 0 && (
-          <div className="flex items-center gap-1">
-            <span className="text-gray-400">{t("by")}</span>
-            {article.authors.map((author, i) => (
-              <span key={author.id}>
-                <LocaleLink
-                  href={`/authors/${author.id}`}
-                  className="text-red-600 hover:underline font-medium"
-                >
-                  <HoverInfo
-                    id={author.id}
-                    name={author.name}
-                    entityType="authors"
-                  />
-                </LocaleLink>
-                {i < article.authors.length - 1 && ", "}
-              </span>
-            ))}
+  const region =
+    article.regions?.length > 0
+      ? locale === "es" && article.regions[0].nameES
+        ? article.regions[0].nameES
+        : article.regions[0].name
+      : null;
+  const category =
+    article.categories?.length > 0
+      ? locale === "es" && article.categories[0].nameES
+        ? article.categories[0].nameES
+        : article.categories[0].name
+      : null;
+
+  const poster = hasImage && orient === "portrait";
+
+  /* ============================ PÓSTER A SANGRE (vertical) ============================ */
+  if (poster) {
+    return (
+      <article
+        className={`group relative flex h-full min-h-[380px] overflow-hidden rounded-none border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 bg-gray-200 dark:bg-gray-900 ${
+          isTransitioning
+            ? "opacity-0 translate-y-4"
+            : "opacity-100 translate-y-0"
+        }`}
+        style={{
+          transitionDelay: isTransitioning ? "0ms" : `${delay + 600}ms`,
+        }}
+        data-orient="portrait"
+      >
+        {/* Link global: TODA la card es clickeable */}
+        <ArticleLink article={article} className="absolute inset-0 z-[1]">
+          <Image
+            src={primaryImage.url}
+            alt={primaryImage.alt || "Imagen del artículo"}
+            fill
+            sizes="(max-width: 768px) 100vw, 420px"
+            style={{ objectFit: "cover", objectPosition: "50% 35%" }}
+            className="transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+          />
+        </ArticleLink>
+
+        {/* Degradado más suave y extenso para mejor legibilidad */}
+        <div
+          className="absolute inset-0 z-[2] pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(10,5,5,0.92) 0%, rgba(10,5,5,0.5) 35%, rgba(10,5,5,0.1) 60%, transparent 75%)",
+          }}
+        />
+
+        {/* Chip de región más integrado */}
+        {region && (
+          <span className="absolute top-3 left-3 z-[3] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-[#BD0E0D] shadow-md">
+            {region}
+          </span>
+        )}
+
+        {/* Botón favoritos con fondo sutil para no perderse en la imagen */}
+        <div className="absolute top-3 right-3 z-[3]">
+          <div className="bg-black/30 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <FavoriteButton articleId={article.id} variant="icon" />
           </div>
-        )}
+        </div>
 
-        {/* Separador si hay autores y categorías */}
-        {article.authors?.length > 0 && article.categories?.length > 0 && (
-          <span className="opacity-60">|</span>
-        )}
+        {/* Texto superpuesto: pointer-events-none deja pasar el clic al link global */}
+        <div className="absolute inset-x-0 bottom-0 z-[3] p-4 pt-12 pointer-events-none">
+          {(region || category) && (
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70 mb-1.5">
+              {[region, category].filter(Boolean).join(" · ")}
+            </div>
+          )}
 
-        {/* Categorías (localizadas) */}
-        {article.categories?.length > 0 && (
-          <span className="text-gray-700 dark:text-gray-400">
-            {article.categories.map((cat, i) => (
-              <span key={cat.id}>
-                {locale === "es" && cat.nameES ? cat.nameES : cat.name}
-                {i < article.categories.length - 1 && ", "}
+          <h3 className="text-xl font-bold leading-[1.15] text-white text-balance mb-2">
+            <span className="bg-gradient-to-r from-white/90 to-white/90 bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
+              {title}
+            </span>
+          </h3>
+
+          {/* Subtítulo en póster si existe */}
+          {subtitle && (
+            <p className="text-sm text-white/90 leading-snug mb-2 line-clamp-2">
+              {subtitle}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/20">
+            {article.authors?.length > 0 ? (
+              <span className="text-[12px] font-medium text-white/80 pointer-events-auto">
+                {t("by")}{" "}
+                {article.authors.map((author, i) => (
+                  <span key={author.id}>
+                    <LocaleLink
+                      href={`/authors/${author.id}`}
+                      className="text-white hover:underline underline-offset-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <HoverInfo
+                        id={author.id}
+                        name={author.name}
+                        entityType="authors"
+                      />
+                    </LocaleLink>
+                    {i < article.authors.length - 1 && ", "}
+                  </span>
+                ))}
               </span>
-            ))}
-          </span>
-        )}
-
-        {/* Badge de edición/año */}
-        {article.edition?.number && editionYear && (
-          <span className="ml-auto bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-[10px] font-semibold">
-            {article.edition.number}/{editionYear}
-          </span>
-        )}
-      </div>
+            ) : (
+              <span />
+            )}
+            {article.edition?.number && editionYear && (
+              <span className="text-[11px] font-semibold text-white/70 whitespace-nowrap tracking-wide tabular-nums">
+                № {article.edition.number} · {editionYear}
+              </span>
+            )}
+          </div>
+        </div>
+      </article>
     );
+  }
 
+  /* =================== HORIZONTAL / CUADRADA / SIN IMAGEN =================== */
   return (
-    <div
-      className={`group w-full rounded-lg bg-white dark:bg-gray-800 shadow-md hover:shadow-xl dark:shadow-md transition-all duration-300 ease-in-out transform hover:-translate-y-1 ${
-        isTransitioning ? "opacity-0" : "opacity-100"
+    <article
+      className={`group relative flex flex-col h-full rounded-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 ${
+        isTransitioning
+          ? "opacity-0 translate-y-4"
+          : "opacity-100 translate-y-0"
       }`}
-      style={{
-        transitionDelay: isTransitioning ? "0ms" : `${delay + 600}ms`,
-      }}
+      style={{ transitionDelay: isTransitioning ? "0ms" : `${delay + 600}ms` }}
+      data-orient={orient}
     >
-      {/* Imagen */}
-      {hasImage ? (
-        <div className="relative w-full aspect-[16/9] overflow-hidden">
-          <ArticleLink article={article}>
+      {/* Área de imagen más compacta y con ratio controlado */}
+      {hasImage && (
+        <div className="relative w-full aspect-[16/10] overflow-hidden shrink-0">
+          <div className="block w-full h-full">
             <SmartImage
               src={primaryImage.url}
               alt={primaryImage.alt || "Imagen del artículo"}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
               faceTopBias
             />
-          </ArticleLink>
-
-          {/* Favorito en esquina superior derecha */}
-          <div className="absolute top-2 right-2">
-            <FavoriteButton articleId={article.id} variant="compact" />
           </div>
 
-          {/* Themenetiketten sobre la imagen */}
-          <div className="absolute bottom-0 left-0 w-full px-3 py-2 bg-gradient-to-t from-black/60 via-black/30 to-transparent">
-            <EntityBadges
-              categories={article.categories}
-              regions={article.regions}
-              topics={article.topics}
-              context="articles"
-              disableLinks={true}
-            />
+          {/* Overlay sutil en hover para feedback táctil */}
+          <div className="absolute inset-0 bg-[#BD0E0D]/0 group-hover:bg-[#BD0E0D]/10 transition-colors duration-300 pointer-events-none" />
+
+          {/* Favoritos integrado en esquina con fondo */}
+          <div className="absolute top-2.5 right-2.5 z-10">
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full p-1 shadow-sm opacity-80 group-hover:opacity-100 transition-opacity">
+              <FavoriteButton articleId={article.id} variant="compact" />
+            </div>
           </div>
         </div>
-      ) : (
-        <div className="px-3 pt-3 flex justify-between items-start">
+      )}
+
+      {/* Contenido más denso, menos aire */}
+      <div className="flex flex-col gap-1.5 p-3.5 flex-1">
+        {/* Badges más compactos — relative z-10 para quedar sobre el overlay */}
+        <div className="relative z-10 flex items-start justify-between gap-2">
           <EntityBadges
             categories={article.categories}
             regions={article.regions}
             topics={article.topics}
             context="articles"
-            disableLinks={true}
+            locale={locale}
+            className="[&>a]:!text-[9px] [&>a]:!px-1.5 [&>a]:!py-0.5"
           />
-          {/* Favorito sin imagen */}
-          <FavoriteButton articleId={article.id} variant="compact" />
+          {!hasImage && (
+            <div className="shrink-0">
+              <FavoriteButton articleId={article.id} variant="compact" />
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Contenido */}
-      <div className="p-4 flex flex-col gap-1">
-        {/* Título */}
-        <h3 className="text-xl font-extrabold font-serif leading-snug">
-          <ArticleLink article={article}>
-            <span className="hover:text-red-600 transition-colors duration-200">
-              {isES ? article.titleES : article.title}
-            </span>
-          </ArticleLink>
+        {/* Título: el link lo da el overlay de la card (un solo <a>) */}
+        <h3 className="text-xl font-bold leading-[1.15] text-gray-900 dark:text-gray-100 text-balance">
+          <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
+            {title}
+          </span>
         </h3>
 
-        {/* Subtítulo */}
+        {/* Subtítulo más integrado */}
         {subtitle && (
-          <p className="font-serif text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-snug line-clamp-1">
             {subtitle}
           </p>
         )}
 
-        {/* Vorspann */}
+        {/* Teaser: más líneas si no hay imagen, menos si la hay */}
         {teaser && (
           <p
-            className={`text-sm text-gray-600 dark:text-gray-300 mt-1 overflow-hidden ${
-              hasImage ? "line-clamp-3" : "line-clamp-[12]"
+            className={`text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed overflow-hidden ${
+              hasImage ? "line-clamp-2" : "line-clamp-5"
             }`}
           >
-            {teaser}...
+            {teaser}
           </p>
         )}
 
-        {/* Meta info */}
-        <MetaInfo />
+        {/* Footer siempre al fondo — relative z-10 para que el autor sea clickeable sobre el overlay */}
+        <div className="relative z-10 mt-auto pt-2.5 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2">
+          {article.authors?.length > 0 ? (
+            <span className="text-[12px] text-gray-500 dark:text-gray-400 min-w-0">
+              {t("by")}{" "}
+              {article.authors.map((author, i) => (
+                <span key={author.id}>
+                  <LocaleLink
+                    href={`/authors/${author.id}`}
+                    className="text-[#BD0E0D] hover:underline font-semibold"
+                  >
+                    <HoverInfo
+                      id={author.id}
+                      name={author.name}
+                      entityType="authors"
+                    />
+                  </LocaleLink>
+                  {i < article.authors.length - 1 && ", "}
+                </span>
+              ))}
+            </span>
+          ) : (
+            <span className="flex-1" />
+          )}
+          {article.edition?.number && editionYear && (
+            <span className="text-[11px] font-semibold text-gray-400 whitespace-nowrap tracking-wide tabular-nums">
+              № {article.edition.number} · {editionYear}
+            </span>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Link que cubre toda la card — único <a> del artículo, con nombre accesible */}
+      <ArticleLink article={article} className="absolute inset-0 z-0">
+        <span className="sr-only">{title}</span>
+      </ArticleLink>
+    </article>
   );
 }

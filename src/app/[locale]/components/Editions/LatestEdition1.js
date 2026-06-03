@@ -505,7 +505,7 @@ export default function LatestEditionWithArticles() {
                       )}
                     </div>
 
-                    <div className="font-serif font-bold text-[#BD0E0D] !important dark:text-[#BD0E0D]/80 text-xl md:text-2xl leading-snug">
+                    <div className="font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-xl md:text-2xl leading-snug">
                       {locale === "es" && currentEdition.titleES
                         ? currentEdition.titleES
                         : currentEdition.title}
@@ -575,7 +575,7 @@ export default function LatestEditionWithArticles() {
                     >
                       <div
                         className="p-[5px] bg-white"
-                        style={{ boxShadow: "0 25px 55px -5px rgba(0,0,0,0.45), 4px 8px 0px rgba(0,0,0,0.07)" }}
+                        style={{ boxShadow: "0 6px 16px -8px rgba(0,0,0,0.25)" }}
                       >
                         <Image
                           src={currentEdition.coverImage}
@@ -630,49 +630,30 @@ export default function LatestEditionWithArticles() {
                     </div>
                   )}
 
-                  {/* Indicadores de posición */}
-                  <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2 pointer-events-none z-30">
-                    {editions
-                      .slice(
-                        Math.max(0, currentEditionIndex - 2),
-                        Math.min(editions.length, currentEditionIndex + 3),
-                      )
-                      .map((_, idx) => {
-                        const actualIdx =
-                          Math.max(0, currentEditionIndex - 2) + idx;
-                        return (
-                          <div
-                            key={actualIdx}
-                            className={`h-1 rounded-full transition-all duration-300 ${
-                              actualIdx === currentEditionIndex
-                                ? "w-8 bg-[#BD0E0D]"
-                                : "w-2 bg-gray-400 dark:bg-gray-600"
-                            }`}
-                          />
-                        );
-                      })}
-                  </div>
                 </div>
 
-                <div className="order-3 w-full">
-                  <EntityBadges
-                    regions={currentEdition.regions.map((region) => ({
-                      ...region,
-                      count: editionsCount.regions?.[region.id] || 0,
-                    }))}
-                    topics={currentEdition.topics.map((topic) => ({
-                      ...topic,
-                      count: editionsCount.topics?.[topic.id] || 0,
-                    }))}
-                    entityType="editions"
-                    context="editions"
-                    locale={locale}
-                  />
-                </div>
+                {(currentEdition.regions?.length > 0 ||
+                  currentEdition.topics?.length > 0) && (
+                  <div className="order-4 w-full max-w-[280px] mx-auto">
+                    <EntityBadges
+                      regions={currentEdition.regions.map((region) => ({
+                        ...region,
+                        count: editionsCount.regions?.[region.id] || 0,
+                      }))}
+                      topics={currentEdition.topics.map((topic) => ({
+                        ...topic,
+                        count: editionsCount.topics?.[topic.id] || 0,
+                      }))}
+                      entityType="editions"
+                      context="editions"
+                      locale={locale}
+                    />
+                  </div>
+                )}
 
                 <Link
                   href={`/${locale}/editions/${currentEdition.id}`}
-                  className="order-4 w-full flex items-center justify-center gap-2 bg-[#BD0E0D] text-white font-bold px-6 py-3 hover:bg-[#a50c0b] transition-colors"
+                  className="relative z-30 order-3 w-full max-w-[230px] lg:max-w-[270px] mx-auto -mt-6 flex items-center justify-center gap-2 bg-[#BD0E0D] text-white font-bold px-6 py-3 hover:bg-[#a50c0b] transition-colors"
                 >
                   {t("editorialButton")}
                   <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

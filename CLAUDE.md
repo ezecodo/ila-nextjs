@@ -550,3 +550,39 @@ FONT MARCA   Futura Cyrillic  (logo, "ila", "50")
 FONT BODY    Geist Sans       (texto, UI)
 FONT MONO   Geist Mono        (código)
 ```
+
+## Sistema estético de la landing (home)
+
+Los componentes del home comparten un mismo lenguaje visual. **Nada de `font-serif` en la landing** (la serif era un fallback genérico de Tailwind, quedaba feo; el sistema de marca no la usa fuera del cuerpo del artículo). Reglas comunes:
+
+- **Tipografía**: sans (Geist), nunca serif.
+- **Rojo**: siempre el de marca `#BD0E0D` (no `text-red-600`/`red-500`). Autores en `text-[#BD0E0D]`.
+- **Bordes**: `rounded-none` (rectángulos puros), `border border-gray-200 dark:border-gray-700`, hover `shadow-md` + `border-gray-300 dark:border-gray-600`.
+- **Títulos de card**: `text-[17px] font-bold leading-[1.25] text-balance` + subrayado animado:
+  ```
+  bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500
+  ```
+- **Subtítulo/teaser**: `text-[13px]` (`leading-snug` / `leading-relaxed`).
+
+Componentes alineados a este sistema: `MiniArticleCardGrid`, `AktuellesPreview`, `Events`, `ArticleCarousel`, `ArticleCarouselVer`.
+
+### Card canónica: `MiniArticleCardGrid.js`
+
+Es la card de referencia. Detecta la orientación de la imagen client-side (`new window.Image()`) y renderiza:
+- **Vertical (portrait)** → póster a sangre: `<Image fill>` con `object-cover`, gradiente y texto superpuesto. Toda la card es un único `<ArticleLink>` overlay; el texto va `pointer-events-none` y el autor `pointer-events-auto`.
+- **Horizontal / cuadrada / sin imagen** → foto arriba (`aspect-[16/10]`) + texto abajo. Badges (`relative z-10`) y footer (`relative z-10`) quedan por encima del overlay link; el autor usa `min-w-0` (no `truncate`, que recortaba el tooltip de `HoverInfo`).
+
+### Carruseles de artículos
+
+- **`ArticleCarousel`** (horizontal): **reusa `<MiniArticleCardGrid>` dentro de cada slide** (mismo patrón que `LatestEdition1`). Para igualar alturas en la fila usa variantes arbitrarias en la `<section>`: `[&_.slick-track]:!flex [&_.slick-slide]:!h-auto [&_.slick-slide>div]:h-full` (más `h-full` en el wrapper del slide). Slick por defecto NO estira los slides; esto replica el `items-stretch` del grid.
+- **`ArticleCarouselVer`** (vertical): es un carrusel de **portadas de libros**, todas verticales con `object-contain` + `aspect-[2/3]` (no se recortan). **NO usa `MiniArticleCardGrid`** — solo se le trasladó la estética (sans, `#BD0E0D`, `rounded-none`, título con subrayado). Las alturas ya quedan parejas por ser todas portadas.
+- `CarouselFromDb` enruta a uno u otro según `carousel.carouselType` (`"vertical"` → Ver).
+- Ojo: `EntityBadges` ya **no** acepta `disableLinks` (ese prop quedó como no-op en las llamadas viejas de los carruseles); siempre renderiza `<Link>`. Acepta `className` que se reenvía al div raíz.
+
+### Hero de la edición actual (`Editions/LatestEdition1.js`)
+
+La portada del dossier actual y el botón **"Editorial und Inhalt"** (`t("editorialButton")`) forman una sola unidad:
+- **Solape con z-index**: el botón es `relative z-30 order-3 -mt-6`, se solapa sobre el borde inferior de la portada (`z-20`), tapando el marco blanco y butteando contra la franja roja impresa de la revista. Al hacer hover, el `group-hover:scale-[1.02]` de la portada mete su base **por debajo** del botón → sin franja blanca antes/durante/después.
+- **Ancho = franja roja**: botón `max-w-[230px] lg:max-w-[270px]` = ancho de la portada (`max-w-[240px] lg:max-w-[280px]`) menos el marco `p-[5px]` de cada lado.
+- **Badges** (regiones/temas): movidos a `order-4` (debajo del botón, para que el solape no los pise) y renderizados **solo si hay regiones o temas** (si no, el div vacío comía espacio de gap y dejaba un blanco).
+- Sombra de la portada suavizada (`0 6px 16px -8px rgba(0,0,0,0.25)`) y bullets indicadores de posición eliminados.
