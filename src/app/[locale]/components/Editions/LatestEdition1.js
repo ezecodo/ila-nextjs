@@ -46,6 +46,7 @@ export default function LatestEditionWithArticles() {
   const currentEdition = editions[currentEditionIndex];
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoverBlocked, setHoverBlocked] = useState(false);
+  const [coverHover, setCoverHover] = useState(false);
   const [mobileSlideIndex, setMobileSlideIndex] = useState(0);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   // ✅ Función helper para actualizar la URL
@@ -505,7 +506,7 @@ export default function LatestEditionWithArticles() {
                       )}
                     </div>
 
-                    <div className="font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-xl md:text-2xl leading-snug">
+                    <div className="font-futura font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-2xl md:text-3xl leading-tight">
                       {locale === "es" && currentEdition.titleES
                         ? currentEdition.titleES
                         : currentEdition.title}
@@ -571,18 +572,20 @@ export default function LatestEditionWithArticles() {
                   >
                     <Link
                       href={`/${locale}/editions/${currentEdition.id}`}
-                      className="relative w-full cursor-pointer block group"
+                      className="relative w-full cursor-pointer block"
+                      onMouseEnter={() => setCoverHover(true)}
+                      onMouseLeave={() => setCoverHover(false)}
                     >
-                      <div
-                        className="p-[5px] bg-white"
-                        style={{ boxShadow: "0 6px 16px -8px rgba(0,0,0,0.25)" }}
-                      >
+                      <div className="border-x-[5px] border-t-[5px] border-white">
+
                         <Image
                           src={currentEdition.coverImage}
                           alt={`Portada de ${currentEdition.title}`}
                           width={360}
                           height={480}
-                          className="object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
+                          className={`block object-cover w-full h-auto transition-transform duration-300 ${
+                            coverHover ? "scale-[1.02]" : ""
+                          }`}
                           priority
                         />
                       </div>
@@ -653,7 +656,11 @@ export default function LatestEditionWithArticles() {
 
                 <Link
                   href={`/${locale}/editions/${currentEdition.id}`}
-                  className="relative z-30 order-3 w-full max-w-[230px] lg:max-w-[270px] mx-auto -mt-6 flex items-center justify-center gap-2 bg-[#BD0E0D] text-white font-bold px-6 py-3 hover:bg-[#a50c0b] transition-colors"
+                  onMouseEnter={() => setCoverHover(true)}
+                  onMouseLeave={() => setCoverHover(false)}
+                  className={`relative z-10 order-3 w-full max-w-[230px] lg:max-w-[270px] mx-auto -mt-5 flex items-center justify-center gap-2 bg-[#BD0E0D] text-white font-bold px-6 py-3 transition-all duration-300 origin-top ${
+                    coverHover ? "scale-[1.02]" : ""
+                  }`}
                 >
                   {t("editorialButton")}
                   <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

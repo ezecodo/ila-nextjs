@@ -92,16 +92,6 @@ export default function EditionDetails() {
         const articlesData = await articlesRes.json();
         setArticles(articlesData);
 
-        // 🔍 LOGS DETALLADOS
-        console.log("🔍 === ARTÍCULOS CARGADOS ===");
-        console.log("   Total artículos:", articlesData.length);
-        articlesData.forEach((a) => {
-          console.log(`   📰 ${a.title}`);
-          console.log(`      isPublished: ${a.isPublished}`);
-          console.log(`      publicationDate: ${a.publicationDate}`);
-          console.log("   ---");
-        });
-
         // Cargar matches manuales
         const matchesRes = await fetch(`/api/toc-match?editionId=${data.id}`);
         const matchesData = await matchesRes.json();
@@ -355,14 +345,6 @@ export default function EditionDetails() {
 
         const normalizedTocTitle = cleanTitle(titleWithoutParentheses);
 
-        // 🔍 DEBUG LOG
-        console.log(
-          "🔍 Buscando match para:",
-          titleWithoutPage,
-          "→",
-          normalizedTocTitle,
-        );
-
         // 🔸 Caso especial: "Die Redaktion liest/hoert/hört …" + siguiente línea = TÍTULO real
         let matchedArticle = null;
         let subtitleToUse = null;
@@ -406,21 +388,6 @@ export default function EditionDetails() {
               normalizedTocTitle.includes(dbTitle)
             );
           });
-
-          // 🔍 DEBUG LOGs
-          if (matchedArticle) {
-            console.log("✅ Match:", matchedArticle.title);
-          } else {
-            console.log("❌ No match para:", normalizedTocTitle);
-            console.log(
-              "   Artículos disponibles:",
-              articles.map((a) => ({
-                id: a.id,
-                title: a.title,
-                normalized: cleanTitle(a.title),
-              })),
-            );
-          }
         }
 
         // 🔥 Fallback: Si no hay match por título, intentar con autor + palabras clave
@@ -1036,20 +1003,17 @@ export default function EditionDetails() {
           )}
           {edition.isAvailableToOrder && (
             <CartButton
-              onClick={() => console.log("Añadido al carrito")}
+              onClick={() => {}}
               className="mt-2"
             />
           )}
         </div>
         <div className="overflow-hidden">
           <h1 className="text-3xl md:text-4xl mb-4 leading-snug">
-            <span
-              className="font-bold text-gray-800 dark:text-gray-200"
-              style={{ fontFamily: "Futura" }}
-            >
+            <span className="font-futura font-bold text-gray-800 dark:text-gray-200">
               ila {edition.number}
             </span>{" "}
-            <span className="font-serif font-bold text-red-800 dark:text-red-400">
+            <span className="font-bold text-red-800 dark:text-red-400">
               {titleToShow}
             </span>
           </h1>
@@ -1106,7 +1070,7 @@ export default function EditionDetails() {
           </button>
         </div>
 
-        <div className="article-content font-serif text-lg md:text-xlleading-normal text-gray-800 dark:text-gray-200">
+        <div className="article-content text-lg md:text-xl leading-normal text-gray-800 dark:text-gray-200">
           {summaryToShow ? (
             /<\/?[a-z][\s\S]*>/i.test(summaryToShow) ? (
               <div dangerouslySetInnerHTML={{ __html: summaryToShow }} />
@@ -1126,9 +1090,9 @@ export default function EditionDetails() {
       {tableOfContentsToShow && (
         <div id="tableOfContents" className="my-8 scroll-mt-24">
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <div className="flex items-center justify-center w-10 h-10 bg-red-100 dark:bg-red-900 rounded-lg">
               <svg
-                className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                className="w-6 h-6 text-red-600 dark:text-red-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

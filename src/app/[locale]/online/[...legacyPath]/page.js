@@ -77,7 +77,6 @@ export default function LegacyArticlePage() {
         );
         if (!res.ok) throw new Error("Artículo no encontrado");
         const data = await res.json();
-        console.log("🟢 Article recibido:", data); // 👈 DEBUG
         setArticle(data);
       } catch (err) {
         setError(err.message);
@@ -286,7 +285,7 @@ export default function LegacyArticlePage() {
 
             {/* TITULO */}
             <h1
-              className="text-4xl md:text-5xl font-serif font-bold leading-tight text-gray-900 dark:text-white mb-4 break-words"
+              className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 dark:text-white mb-4 break-words"
               itemProp="headline"
             >
               {isES && article.isTranslatedES ? article.titleES : article.title}
@@ -304,7 +303,7 @@ export default function LegacyArticlePage() {
           {(isES ? article.previewTextES : article.previewText) && (
             <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
               <div
-                className="article-content font-serif text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
+                className="article-content text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
                 dangerouslySetInnerHTML={{
                   __html: rewriteEditionLinksWithLocale(
                     isES && article.previewTextES
