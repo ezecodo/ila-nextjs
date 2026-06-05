@@ -191,6 +191,11 @@ export default function Header() {
     router.push("/");
   };
 
+  useEffect(() => {
+    setShowUserMenu(false);
+    setMenuOpen(false);
+  }, [pathname]);
+
   let dashboardRoute = "/dashboard-users";
 
   if (session?.user?.role === "admin") {

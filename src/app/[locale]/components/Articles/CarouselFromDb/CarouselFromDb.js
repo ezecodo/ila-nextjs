@@ -25,7 +25,7 @@ export default function CarouselFromDb({ placement = "after" }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
+      <div className="flex justify-center items-center py-4">
         <IlaLoader />
       </div>
     );

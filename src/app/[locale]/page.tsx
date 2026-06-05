@@ -66,7 +66,7 @@ export default function Home() {
           <DynamicBanner position="top" />
           <CarouselFromDb placement="top" />
 
-          <div id="dossiers" className="scroll-mt-[120px] mt-6">
+          <div id="dossiers" className="scroll-mt-[120px] mt-1 lg:mt-6">
             <LatestEdition1 />
           </div>
 
