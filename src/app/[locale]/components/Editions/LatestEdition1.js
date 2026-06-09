@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { useSwipeable } from "react-swipeable";
 import Image from "next/image";
 import Link from "next/link";
-import DonationBanner from "../DonationBanner/DonationBanner";
 import Events from "../Events/Events";
 import AktuellesPreview from "../AktuellesPreview/AktuellesPreview";
 import EntityBadges from "../EntityBadges/EntityBadges";
@@ -47,11 +46,6 @@ export default function LatestEditionWithArticles() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [hoverBlocked, setHoverBlocked] = useState(false);
   const [coverHover, setCoverHover] = useState(false);
-  const [desktopVisible, setDesktopVisible] = useState(8);
-  const [baseFill, setBaseFill] = useState(8);
-  const articlesSectionRef = useRef(null);
-  const leftColRef = useRef(null);
-  const autoFillDoneRef = useRef(false);
   const [mobileSlideIndex, setMobileSlideIndex] = useState(0);
   const [showSwipeHint, setShowSwipeHint] = useState(false);
   // ✅ Función helper para actualizar la URL
@@ -69,7 +63,6 @@ export default function LatestEditionWithArticles() {
 
     setIsTransitioning(true);
     setHoverBlocked(true);
-    setDesktopVisible(8);
     setCurrentEditionIndex(newIndex);
     updateEditionInURL(newIndex);
 
@@ -193,52 +186,18 @@ export default function LatestEditionWithArticles() {
     return img && img.url;
   });
 
-  // 💻 Desktop → grid con "cargar más" (lotes de 8)
-  const desktopArticles = articlesWithImages.slice(0, desktopVisible);
+  // 💻 Desktop → mostrar solo 6 artículos con imagen
+  const desktopArticles = articlesWithImages.slice(0, 8);
 
-  const handleCollapseDesktop = () => {
-    setDesktopVisible(baseFill);
-    requestAnimationFrame(() => {
-      articlesSectionRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
-  };
+  // 📚 Dossiers anteriores (más viejos que el actual) — para rellenar el hueco
+  // cuando el dossier nuevo todavía tiene pocos artículos cargados
+  const previousEditions = editions
+    .filter((_, i) => i > currentEditionIndex && editions[i]?.coverImage)
+    .slice(0, 18);
 
-  // 🔄 Reset del auto-relleno al cambiar de edición/idioma o al recargar artículos
-  useEffect(() => {
-    autoFillDoneRef.current = false;
-    setDesktopVisible(8);
-    setBaseFill(8);
-  }, [currentEditionIndex, locale, loading]);
-
-  // 📏 Auto-rellenar el grid (de a una fila de 3) hasta igualar la altura
-  // de la columna izquierda (que termina en el banner de la fiesta).
-  useEffect(() => {
-    if (loading) return;
-    if (autoFillDoneRef.current) return;
-    if (typeof window === "undefined" || window.innerWidth < 1024) return;
-
-    const left = leftColRef.current;
-    const right = articlesSectionRef.current;
-    if (!left || !right) return;
-
-    const total = articlesWithImages.length;
-
-    // Ya se muestran todos, o el grid ya alcanzó/superó la izquierda → fijar base
-    if (
-      desktopArticles.length >= total ||
-      right.offsetHeight >= left.offsetHeight
-    ) {
-      autoFillDoneRef.current = true;
-      setBaseFill(desktopArticles.length);
-      return;
-    }
-
-    // Falta altura → cargar una fila más
-    setDesktopVisible((v) => Math.min(v + 3, total));
-  }, [loading, desktopVisible, articlesWithImages.length, currentEditionIndex, locale]);
+  // Cuantos menos artículos haya cargados, más alto es el hueco → más filas
+  // de portadas. A partir de 8 artículos la grilla llena sola y no se muestra.
+  const editionsCarouselRows = desktopArticles.length <= 6 ? 2 : 1;
 
   const isVertical = (img) =>
     img?.width && img?.height && Number(img.height) > Number(img.width);
@@ -277,6 +236,24 @@ export default function LatestEditionWithArticles() {
       setShowSwipeHint(false);
       localStorage.setItem("ila_mobile_swiped", "1");
     },
+  };
+
+  const editionsCarouselSettings = {
+    infinite: previousEditions.length > 6 * editionsCarouselRows,
+    speed: 500,
+    slidesToShow: 6,
+    slidesToScroll: 3,
+    rows: editionsCarouselRows,
+    slidesPerRow: 1,
+    arrows: true,
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />,
+    dots: false,
+    swipeToSlide: true,
+    responsive: [
+      { breakpoint: 1536, settings: { slidesToShow: 5, slidesToScroll: 2 } },
+      { breakpoint: 1280, settings: { slidesToShow: 4, slidesToScroll: 2 } },
+    ],
   };
 
   const focusInputSoon = () => setTimeout(() => inputRef.current?.focus(), 0);
@@ -351,12 +328,9 @@ export default function LatestEditionWithArticles() {
       <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-6 lg:px-4 pb-16">
         {currentEdition && (
           <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 items-start justify-between">
-            <div
-              ref={leftColRef}
-              className="relative w-full lg:w-auto flex items-start justify-end"
-            >
-              <div className="bg-white dark:bg-gray-900 lg:shadow-lg lg:dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
-                <div className="relative w-full order-1 lg:order-1">
+            <div className="relative w-full lg:w-auto flex items-start justify-end">
+              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
+                <div className="relative w-full order-2 lg:order-1">
                   <div className="text-center flex flex-col items-center space-y-1">
                     <div className="flex items-baseline justify-center gap-3 leading-none relative">
                       <button
@@ -570,7 +544,7 @@ export default function LatestEditionWithArticles() {
 
                 <div
                   {...swipeHandlers}
-                  className="relative w-full h-auto flex items-start justify-center pt-0 order-2 lg:order-2"
+                  className="relative w-full h-auto flex items-start justify-center pt-0 order-1 lg:order-2"
                   style={{ minHeight: "320px" }}
                   onMouseLeave={() => setHoverBlocked(false)}
                 >
@@ -731,10 +705,7 @@ export default function LatestEditionWithArticles() {
               </div>
             </div>
 
-            <div
-              ref={articlesSectionRef}
-              className="w-full lg:flex-1 flex flex-col gap-6 mt-8 lg:mt-0 scroll-mt-[120px]"
-            >
+            <div className="w-full lg:flex-1 min-w-0 lg:self-stretch flex flex-col gap-6 mt-8 lg:mt-0">
 
               {/* Articles section header */}
               {!loading && filteredArticles.length > 0 && (
@@ -770,9 +741,9 @@ export default function LatestEditionWithArticles() {
 
               {/* Desktop */}
               {/* Desktop */}
-              <div className="hidden lg:grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
                 {loading ? (
-                  <div className="col-span-full flex items-center justify-center min-h-[400px]">
+                  <div className="col-span-2 flex items-center justify-center min-h-[400px]">
                     <IlaLoader />
                   </div>
                 ) : desktopArticles.length > 0 ? (
@@ -787,40 +758,51 @@ export default function LatestEditionWithArticles() {
                 ) : locale === "es" ? (
                   <NoArticlesAvailable edition={currentEdition} />
                 ) : (
-                  <div className="col-span-full flex items-center justify-center min-h-[400px]">
+                  <div className="col-span-2 flex items-center justify-center min-h-[400px]">
                     <IlaLoader />
                   </div>
                 )}
               </div>
 
-              {/* Cargar más / Mostrar menos (solo desktop) */}
-              {!loading && articlesWithImages.length > baseFill && (
-                <div className="hidden lg:flex justify-center">
-                  {desktopArticles.length < articlesWithImages.length ? (
-                    <button
-                      type="button"
-                      onClick={() => setDesktopVisible((v) => v + 8)}
-                      className="flex items-center gap-2 px-6 py-3 border border-[#BD0E0D] text-[#BD0E0D] font-bold hover:bg-[#BD0E0D] hover:text-white transition-colors"
-                    >
-                      {locale === "de" ? "Mehr laden" : "Cargar más"}
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleCollapseDesktop}
-                      className="flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-bold hover:border-[#BD0E0D] hover:text-[#BD0E0D] transition-colors"
-                    >
-                      {locale === "de" ? "Weniger anzeigen" : "Mostrar menos"}
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              )}
+              {/* Rellena el hueco cuando el dossier todavía tiene pocos
+                  artículos: carrusel de dossiers anteriores */}
+              {!loading &&
+                desktopArticles.length > 0 &&
+                desktopArticles.length < 8 &&
+                previousEditions.length > 0 && (
+                  <div className="hidden lg:flex lg:flex-col lg:flex-1 lg:min-h-0 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="shrink-0 font-bold text-lg dark:text-gray-100 leading-tight mb-3">
+                      {locale === "de"
+                        ? "Frühere Ausgaben"
+                        : "Números anteriores"}
+                    </h3>
+                    <div className="relative px-8 lg:flex-1 lg:min-h-0 flex flex-col justify-center">
+                      <Slider {...editionsCarouselSettings}>
+                        {previousEditions.map((ed) => (
+                          <div key={ed.id} className="p-1.5">
+                          <Link
+                            href={`/${locale}/editions/${ed.id}`}
+                            className="group block"
+                          >
+                            <div className="overflow-hidden border border-gray-200 dark:border-gray-700 group-hover:border-gray-300 dark:group-hover:border-gray-600 group-hover:shadow-md transition-all">
+                              <Image
+                                src={ed.coverImage}
+                                alt={`ila ${ed.number}`}
+                                width={140}
+                                height={187}
+                                className="block object-cover w-full h-auto transition-transform duration-300 group-hover:scale-[1.03]"
+                              />
+                            </div>
+                            <p className="mt-1.5 text-xs font-bold text-gray-700 dark:text-gray-300 text-center">
+                              ila {ed.number}
+                            </p>
+                          </Link>
+                        </div>
+                      ))}
+                      </Slider>
+                    </div>
+                  </div>
+                )}
 
               {/* Mobile */}
               {/* Mobile */}
