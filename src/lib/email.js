@@ -131,6 +131,61 @@ export async function sendPasswordResetEmail(email, token) {
 }
 
 /**
+ * 🌐 Enviar invitación a una nueva traductora/traductor
+ * Link a /auth/reset-password donde define su contraseña (y se verifica la cuenta).
+ */
+export async function sendTranslatorInvitationEmail(email, name = "", token) {
+  const setupUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${token}`;
+  const saludo = name ? `Hola ${name},` : "¡Hola!";
+
+  const body = `
+    <h1 style="margin:0 0 20px 0; font-size:26px; font-weight:700; color:#1a1a1a; letter-spacing:-0.01em;">Bienvenida/o al equipo de traducción de ila</h1>
+
+    <p style="margin:0 0 16px 0;">${saludo}</p>
+
+    <p style="margin:0 0 24px 0;">
+      Te hemos dado de alta como traductor/a en el sistema de ila. Para activar tu cuenta,
+      definí tu contraseña haciendo clic en el siguiente botón:
+    </p>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 32px 0;">
+      <tr>
+        <td style="background-color:#c21f2e; border-radius:4px;">
+          <a href="${setupUrl}" target="_blank"
+             style="display:inline-block; padding:14px 32px; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; font-family:Arial,Helvetica,sans-serif;">
+            Definir mi contraseña
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 8px 0; color:#555;">Tu usuario es este correo: <strong style="color:#1a1a1a;">${email}</strong></p>
+    <p style="margin:0 0 24px 0; color:#555;">Este enlace expira en 7 días.</p>
+
+    <p style="margin:32px 0 0 0; color:#555;">
+      Solidarische Grüße<br>
+      <strong style="color:#1a1a1a;">von der ila-Redaktion</strong>
+    </p>
+  `;
+
+  try {
+    const response = await resend.emails.send({
+      from: "no-reply@ila-web.de",
+      to: email,
+      subject: "Invitación al equipo de traducción de ila",
+      html: renderIlaEmail(body, "Activá tu cuenta de traductor/a en ila"),
+    });
+
+    console.log("✅ Invitación de traductor/a enviada:", response);
+    return response;
+  } catch (error) {
+    Sentry.captureException(error);
+    console.error("❌ Error al enviar invitación de traductor/a:", error);
+    throw new Error("No se pudo enviar la invitación.");
+  }
+}
+
+/**
  * 📩 Enviar email de invitación de admin
  */
 export async function sendAdminInvitationEmail(email, token) {

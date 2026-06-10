@@ -95,11 +95,23 @@ export default function AssignPage() {
         >
           📚 Dossiers
         </button>
+        <button
+          onClick={() => setActiveTab("assigned")}
+          className={`px-6 py-3 font-semibold transition-all ${
+            activeTab === "assigned"
+              ? "border-b-2 border-green-600 text-green-600"
+              : "text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          👤 Asignados
+        </button>
       </div>
 
       {/* Contenido */}
       {activeTab === "articles" ? (
-        <ArticlesList mode="assign" />
+        <ArticlesList key="articles" mode="assign" />
+      ) : activeTab === "assigned" ? (
+        <ArticlesList key="assigned" mode="assign" initialFilter="assigned" />
       ) : (
         <GenericAdminListDossiers
           endpoint="/api/editions"

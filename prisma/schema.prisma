@@ -405,6 +405,7 @@ model User {
   updatedAt            DateTime         @updatedAt
   password             String
   role                 Role             @default(user)
+  canTranslate         Boolean          @default(false)
   language             String           @default("de")
   accounts             Account?
   pdfAboInvitation  PdfAboInvitation?

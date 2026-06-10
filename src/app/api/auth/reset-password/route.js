@@ -37,6 +37,14 @@ export async function POST(req) {
       data: { password: hashedPassword },
     });
 
+    // Definir la contraseña vía el link enviado por email verifica el correo si
+    // aún no lo estaba (caso invitación de traductores: la cuenta se crea sin
+    // verificar). Para cuentas ya verificadas no cambia nada.
+    await prisma.user.updateMany({
+      where: { email, emailVerified: null },
+      data: { emailVerified: new Date() },
+    });
+
     // 🗑️ Eliminar el token de recuperación usando `findFirst()` y eliminándolo con `deleteMany()`
     await prisma.verificationToken.deleteMany({
       where: { token },

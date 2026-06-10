@@ -14,7 +14,7 @@ export default function AssignTranslatorCellEdition({ edition, onAssigned }) {
   useEffect(() => {
     const fetchTranslators = async () => {
       try {
-        const res = await fetch("/api/users?role=translator");
+        const res = await fetch("/api/users?assignable=1");
         if (!res.ok) throw new Error("Error al obtener traductores");
         const data = await res.json();
         setTranslators(data.users);

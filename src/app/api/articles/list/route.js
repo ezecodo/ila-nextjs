@@ -118,6 +118,8 @@ export async function GET(req) {
       whereCondition = {
         ...whereCondition,
         translatorId: { not: null }, // 👈 artículos ya asignados
+        // 👇 solo los pendientes: traducción aún no enviada ni revisada
+        translationStatus: { notIn: ["submitted", "approved"] },
       };
     }
 

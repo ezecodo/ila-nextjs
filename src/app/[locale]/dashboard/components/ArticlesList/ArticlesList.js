@@ -20,7 +20,7 @@ const formatDateTime = (value) =>
       })
     : "";
 
-const ArticlesList = ({ mode = "admin" }) => {
+const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
   const [articles, setArticles] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -33,7 +33,7 @@ const ArticlesList = ({ mode = "admin" }) => {
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [editPickerId, setEditPickerId] = useState(null);
   const isSuperAdmin = session?.user?.email === "e.zeangeloni@gmail.com";
-  const [selectedEdition, setSelectedEdition] = useState("");
+  const [selectedEdition, setSelectedEdition] = useState(initialFilter);
   const [editions, setEditions] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
   const [beitragstypen, setBeitragstypen] = useState([]);
@@ -77,8 +77,13 @@ const ArticlesList = ({ mode = "admin" }) => {
           searchParams.append("translatorId", session.user.id);
         }
 
-        // 📌 Modo asignación (solo artículos sin traductor)
-        if (mode === "assign") {
+        // 📌 Modo asignación: por defecto solo artículos sin traductor,
+        // salvo cuando el filtro pide ver los ya asignados o traducidos.
+        if (
+          mode === "assign" &&
+          selectedEdition !== "assigned" &&
+          selectedEdition !== "translated"
+        ) {
           searchParams.append("unassigned", "true");
         }
 

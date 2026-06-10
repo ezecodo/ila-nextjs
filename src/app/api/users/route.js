@@ -13,10 +13,16 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("role"); // e.g. "translator"
     const q = searchParams.get("q"); // opcional: búsqueda por nombre/email
+    const withStats = searchParams.get("withStats") === "1"; // alta + nº asignados
+    // Conjunto "asignable para traducir": traductores reales + cualquier usuario
+    // (p. ej. un admin) habilitado manualmente con canTranslate=true.
+    const assignable = searchParams.get("assignable") === "1";
 
     const where = {};
 
-    if (role) {
+    if (assignable) {
+      where.OR = [{ role: "translator" }, { canTranslate: true }];
+    } else if (role) {
       // Prisma acepta el string del enum (si tu enum Role ya incluye "translator")
       where.role = role;
     }
@@ -29,16 +35,25 @@ export async function GET(req) {
       ];
     }
 
+    const select = {
+      id: true,
+      name: true,
+      email: true,
+      username: true,
+      image: true,
+      role: true,
+      canTranslate: true,
+    };
+
+    if (withStats) {
+      select.createdAt = true;
+      select.emailVerified = true;
+      select._count = { select: { translationsAssigned: true } };
+    }
+
     const users = await prisma.user.findMany({
       where,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        username: true,
-        image: true,
-        role: true,
-      },
+      select,
       orderBy: [{ name: "asc" }, { email: "asc" }],
       take: 200, // tope razonable
     });

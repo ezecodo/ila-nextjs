@@ -155,6 +155,14 @@ const DashboardStats = () => {
               label: t("reviewTranslations"),
               href: "/dashboard/reviewer/review",
             },
+            {
+              label: t("manageTranslators"),
+              href: "/dashboard/admin/translators",
+            },
+            {
+              label: t("myAssignments"),
+              href: "/dashboard/translators/assignments",
+            },
           ]}
           pathname={pathname}
         />
