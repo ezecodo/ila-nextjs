@@ -123,9 +123,11 @@ export async function POST(req) {
       );
     }
 
-    // Capitalizar el nombre del tema
+    // Capitalizar solo la primera letra, preservando el resto tal cual se
+    // escribió (los sustantivos en alemán van en mayúscula, ej. "Das Haus")
+    const trimmedName = name.trim();
     const capitalizedName =
-      name.trim().charAt(0).toUpperCase() + name.trim().slice(1).toLowerCase();
+      trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1);
 
     // Verificar duplicados
     const existingTopic = await prisma.topic.findUnique({

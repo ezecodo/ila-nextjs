@@ -124,7 +124,7 @@ export async function DELETE(request, context) {
     const topic = await prisma.topic.findUnique({
       where: { id: topicId },
       include: {
-        _count: { select: { articles: true, children: true } },
+        _count: { select: { children: true } },
       },
     });
 
@@ -135,15 +135,9 @@ export async function DELETE(request, context) {
       });
     }
 
-    if (topic._count.articles > 0) {
-      return new Response(
-        JSON.stringify({
-          error: `No se puede eliminar. El topic tiene ${topic._count.articles} artículo(s) asociado(s).`,
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
+    // Se permite borrar aunque tenga artículos asociados: la relación
+    // ArticleTopics es many-to-many implícita y Prisma desvincula solo.
+    // Solo se bloquea si tiene subtopics (FK por parentId).
     if (topic._count.children > 0) {
       return new Response(
         JSON.stringify({
