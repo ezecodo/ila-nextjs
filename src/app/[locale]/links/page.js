@@ -242,41 +242,143 @@ const EditionLinkCard = ({ link, onClick, locale }) => {
   );
 };
 
+// --- COMPONENTE 3: HERO del Dossier vigente (portada de revista) ---
+const DossierHero = ({ dossier, onClick, locale }) => {
+  const title =
+    locale === "es"
+      ? dossier.titleES || dossier.title
+      : dossier.title || dossier.titleES;
+
+  return (
+    <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#BD0E0D] via-[#e60000] to-red-800 text-white shadow-2xl border border-red-500/30">
+        {/* Shimmer */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
+
+        <div className="relative px-6 pt-7 pb-6 flex flex-col items-center text-center">
+          {/* Badge */}
+          <span className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full mb-5">
+            {dossier.number && (
+              <span className="text-white">#{dossier.number}</span>
+            )}
+            {locale === "es" ? "Edición Actual" : "Aktuelle Ausgabe"}
+          </span>
+
+          {/* Portada vertical grande */}
+          {dossier.coverImage && (
+            <div className="relative w-44 sm:w-48 mb-5 group">
+              <div className="absolute top-1.5 -right-1.5 w-full h-full bg-white/15 rounded-md" />
+              <div className="absolute top-3 -right-3 w-full h-full bg-white/10 rounded-md" />
+              <img
+                src={dossier.coverImage}
+                alt={title}
+                className="relative w-full aspect-[2/3] object-cover rounded-md shadow-2xl ring-1 ring-white/20"
+                loading="eager"
+              />
+              <div className="absolute inset-0 bg-gradient-to-tr from-black/25 via-transparent to-white/20 rounded-md pointer-events-none" />
+            </div>
+          )}
+
+          {/* Título */}
+          <h2
+            className="text-2xl leading-tight font-bold mb-2 whitespace-normal"
+            style={{ fontFamily: "'Futura', sans-serif" }}
+          >
+            {title}
+          </h2>
+
+          {/* Subtítulo */}
+          {dossier.subtitle && (
+            <p className="text-sm text-red-100 font-medium mb-5 whitespace-normal max-w-xs">
+              {dossier.subtitle}
+            </p>
+          )}
+
+          {/* CTA */}
+          <button
+            onClick={onClick}
+            className="inline-flex items-center gap-2 bg-white text-[#BD0E0D] font-black uppercase tracking-[0.15em] text-sm px-6 py-3 rounded-full shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] transition-all duration-300"
+            style={{ fontFamily: "'Futura', sans-serif" }}
+          >
+            <FaBook size={15} />
+            {locale === "es" ? "Ver dossier" : "Zum Dossier"}
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 export default function LinksPage() {
   const locale = useLocale();
   const [links, setLinks] = useState([]);
+  const [currentDossier, setCurrentDossier] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/links")
-      .then((res) => res.json())
-      .then((data) => {
-        setLinks(data);
+    async function loadLinks() {
+      try {
+        const [linksRes, edRes] = await Promise.all([
+          fetch("/api/links"),
+          fetch("/api/editions?current=true"),
+        ]);
+        const data = await linksRes.json();
+        const ed = await edRes.json();
+        setLinks(Array.isArray(data) ? data : []);
+        setCurrentDossier(ed && ed.id ? ed : null);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error cargando links:", err);
         setLoading(false);
-      });
+      }
+    }
+    loadLinks();
   }, []);
 
   const handleClick = async (link) => {
     try {
-      fetch(`/api/links/click/${link.id}`, { method: "POST" });
-    } catch (e) {}
+      if (typeof link.id === "number") {
+        fetch(`/api/links/click/${link.id}`, { method: "POST" });
+      }
+    } catch {}
     window.open(link.url, "_blank", "noopener,noreferrer");
   };
 
-  // Agrupar links
+  // Agrupar links — el Dossier vigente se inyecta siempre y de forma automática
   const groupedLinks = useMemo(() => {
     if (!Array.isArray(links)) return {};
-    return links.reduce((acc, link) => {
+    const grouped = links.reduce((acc, link) => {
       const cat = link.category || "general";
+      // Saltar la edición guardada que apunta al Dossier vigente (se inyecta abajo)
+      if (
+        cat === "editions" &&
+        currentDossier &&
+        (String(link.url).includes(`/editions/${currentDossier.id}`) ||
+          link.editionNumber === currentDossier.number)
+      ) {
+        return acc;
+      }
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(link);
       return acc;
     }, {});
-  }, [links]);
+
+    // El Dossier vigente se muestra como hero arriba (ver DossierHero), no en la lista.
+    return grouped;
+  }, [links, currentDossier]);
 
   if (loading) {
     return (
@@ -347,6 +449,17 @@ export default function LinksPage() {
         {/* --- CONTENIDO --- */}
         <main className="flex-1 px-4 pt-8 pb-12 overflow-y-auto">
           <div className="space-y-12">
+            {currentDossier && (
+              <DossierHero
+                dossier={currentDossier}
+                locale={locale}
+                onClick={() =>
+                  handleClick({
+                    url: `https://ila-web.de/editions/${currentDossier.id}`,
+                  })
+                }
+              />
+            )}
             {Object.entries(groupedLinks).map(([category, categoryLinks]) => (
               <section
                 key={category}

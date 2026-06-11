@@ -49,6 +49,9 @@ export async function POST(req) {
       endDate,
       authorName,
       imageUrl,
+      linkType,
+      editionNumber,
+      editionCoverImage,
     } = body;
 
     if (!title || !url) {
@@ -76,6 +79,9 @@ export async function POST(req) {
         order: (maxOrder?.order || 0) + 1,
         authorName: authorName || null,
         imageUrl: imageUrl || null,
+        linkType: linkType || "general",
+        editionNumber: editionNumber ?? null,
+        editionCoverImage: editionCoverImage || null,
       },
     });
 

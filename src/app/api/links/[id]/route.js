@@ -22,6 +22,9 @@ export async function PUT(request, context) {
       startDate,
       endDate,
       order,
+      linkType,
+      editionNumber,
+      editionCoverImage,
     } = body;
 
     const updated = await prisma.link.update({
@@ -37,6 +40,10 @@ export async function PUT(request, context) {
         startDate: startDate ? new Date(startDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         order: order ?? undefined,
+        linkType: linkType ?? undefined,
+        editionNumber: editionNumber === undefined ? undefined : editionNumber,
+        editionCoverImage:
+          editionCoverImage === undefined ? undefined : editionCoverImage,
       },
     });
 

@@ -77,6 +77,7 @@ export default function LinksPage() {
   const router = useRouter();
   const locale = useLocale();
   const [links, setLinks] = useState([]);
+  const [currentDossier, setCurrentDossier] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -109,20 +110,25 @@ export default function LinksPage() {
     }
   }, [session, status, router]);
 
-  // Cargar links
+  // Cargar links + dossier vigente (la sección de ediciones es automática)
   useEffect(() => {
-    fetch("/api/links?all=true")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setLinks(data);
-        }
+    async function loadLinks() {
+      try {
+        const [linksRes, edRes] = await Promise.all([
+          fetch("/api/links?all=true"),
+          fetch("/api/editions?current=true"),
+        ]);
+        const data = await linksRes.json();
+        const ed = await edRes.json();
+        if (Array.isArray(data)) setLinks(data);
+        setCurrentDossier(ed && ed.id ? ed : null);
         setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error cargando links:", err);
         setLoading(false);
-      });
+      }
+    }
+    loadLinks();
   }, []);
 
   const handleEdit = (link) => {
@@ -311,13 +317,39 @@ export default function LinksPage() {
   // Filtrar links activos para el preview
   const activeLinks = links.filter((l) => l.isActive);
 
-  // Agrupar
+  // Agrupar — el Dossier vigente se inyecta siempre y de forma automática
   const groupedLinks = activeLinks.reduce((acc, link) => {
     const cat = link.category || "general";
+    // Saltar la edición guardada que apunta al Dossier vigente (se inyecta abajo)
+    if (
+      cat === "editions" &&
+      currentDossier &&
+      (String(link.url).includes(`/editions/${currentDossier.id}`) ||
+        link.editionNumber === currentDossier.number)
+    ) {
+      return acc;
+    }
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(link);
     return acc;
   }, {});
+
+  if (currentDossier) {
+    if (!groupedLinks.editions) groupedLinks.editions = [];
+    groupedLinks.editions.unshift({
+      id: `auto-dossier-${currentDossier.id}`,
+      url: `https://ila-web.de/editions/${currentDossier.id}`,
+      imageUrl: currentDossier.coverImage,
+      editionCoverImage: currentDossier.coverImage,
+      editionNumber: currentDossier.number,
+      title: `ila ${currentDossier.number}: ${currentDossier.title}`,
+      titleES: currentDossier.titleES
+        ? `ila ${currentDossier.number}: ${currentDossier.titleES}`
+        : `ila ${currentDossier.number}: ${currentDossier.title}`,
+      authorName: currentDossier.subtitle || "",
+      category: "editions",
+    });
+  }
 
   const getPreviewTitle = (link) => {
     if (previewLocale === "es" && link.titleES) return link.titleES;
@@ -650,45 +682,12 @@ export default function LinksPage() {
                       <FaEnvelope size={14} />
                       ✉️ Añadir Abo
                     </button>
-                    {/* NUEVO BOTÓN: ULTIMO DOSSIER */}
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          // Llamamos a tu API de ediciones para pillar la última
-                          const res = await fetch("/api/editions?limit=1");
-                          const data = await res.json();
-                          if (data && data.length > 0) {
-                            const lastEd = data[0];
-                            setNewLink({
-                              ...newLink,
-                              title: `Dossier: ${lastEd.title}`,
-                              titleES: lastEd.titleES
-                                ? `Dossier: ${lastEd.titleES}`
-                                : `Dossier: ${lastEd.title}`,
-                              url: `https://ila-web.de/editions/${lastEd.id}`,
-                              icon: "book",
-                              category: "editions",
-                              isFeatured: true,
-                              linkType: "edition",
-                              editionNumber: lastEd.number,
-                              imageUrl: lastEd.coverImage || "",
-                              authorName: lastEd.subtitle || "Dossier Especial",
-                            });
-                          }
-                        } catch (err) {
-                          alert("Error al obtener el último dossier");
-                        }
-                      }}
-                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors flex items-center gap-2"
-                    >
-                      <FaStar size={14} className="text-purple-500" />
-                      🔥 Último Dossier
-                    </button>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    Selecciona un artículo o edición para auto-rellenar los
-                    campos, o déjalo vacío para crear un link manual.
+                    El Dossier actual aparece automáticamente en la sección
+                    &quot;Ausgaben&quot; — no hace falta crearlo a mano.
+                    Selecciona un artículo para auto-rellenar los campos, o
+                    déjalo vacío para crear un link manual.
                   </p>
                 </div>
 

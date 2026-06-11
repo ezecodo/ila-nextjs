@@ -37,8 +37,6 @@ export async function GET(req: NextRequest) {
       baseWhere.push({ beitragstypId: parseInt(beitragstypId, 10) });
     }
 
-    let regionFilteredBeitragsIds: number[] | null = null;
-
     if (regionId) {
       const allRegions: Region[] = await prisma.region.findMany();
       const targetId = Number(regionId);
@@ -72,26 +70,23 @@ export async function GET(req: NextRequest) {
           },
         },
         select: {
-          beitragsId: true,
+          id: true,
         },
       });
 
-      regionFilteredBeitragsIds = Array.from(
-        new Set(
-          articlesInRegions
-            .map((a: { beitragsId: number | null }) => a.beitragsId)
-            .filter(
-              (id: number | null): id is number => typeof id === "number",
-            ),
-        ),
+      // Matcheamos por el id propio del artículo (no por beitragsId legacy):
+      // los artículos creados en el editor nuevo tienen beitragsId NULL y antes
+      // quedaban excluidos del carrusel automático por región.
+      const regionFilteredIds = articlesInRegions.map(
+        (a: { id: number }) => a.id,
       );
 
-      if (regionFilteredBeitragsIds.length === 0) {
+      if (regionFilteredIds.length === 0) {
         return NextResponse.json({ articles: [] });
       }
 
       baseWhere.push({
-        beitragsId: { in: regionFilteredBeitragsIds },
+        id: { in: regionFilteredIds },
       });
     }
 
