@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import ArticleCarousel from "../../components/Articles/ArticleCarousel/ArticleCarousel";
+import ArticleCarouselVer from "../../components/Articles/ArticleCarouselVer/ArticleCarouselVer";
 
 export default function CarouselsDashboardPage() {
   const [carousels, setCarousels] = useState([]);
@@ -34,10 +36,16 @@ export default function CarouselsDashboardPage() {
       ? c.region?.name
       : c.region?.nameES;
 
+  // Mismo título que usa la landing (CarouselFromDb)
+  const carouselTitle = (c) =>
+    String(locale).toLowerCase().startsWith("de")
+      ? c.titleDE || c.titleES
+      : c.titleES || c.titleDE;
+
   if (loading) return <p>{t("loadingCarousels")}</p>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 w-full">
       <h1 className="text-2xl font-bold mb-4">{t("activeCarousels")}</h1>
 
       <Link
@@ -52,35 +60,34 @@ export default function CarouselsDashboardPage() {
           return (
             <div
               key={carousel.id}
-              className="relative rounded-lg border border-red-200 p-6 shadow-md bg-gradient-to-r from-white via-rose-50 to-red-100"
+              className="rounded-lg border border-gray-200 shadow-md bg-white overflow-hidden"
             >
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-red-800">
+              {/* Barra fina de controles */}
+              <div className="flex flex-wrap justify-between items-center gap-3 px-4 py-2 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                  <h2 className="text-base font-bold text-red-800 truncate">
                     #{index + 1} ·{" "}
                     {String(locale).toLowerCase().startsWith("de")
-                      ? carousel.titleES
-                      : carousel.titleDE}
+                      ? carousel.titleDE || carousel.titleES
+                      : carousel.titleES || carousel.titleDE}
                   </h2>
-
-                  <p className="text-sm text-gray-700">
-                    {t("type")}:{" "}
-                    <span className="font-semibold">
-                      {getTypeName(carousel)}
-                    </span>{" "}
-                    ·{" "}
-                    <span className="text-red-600 font-bold">
-                      {carousel.limit}
-                    </span>{" "}
-                    {t("articles")}
-                  </p>
-
-                  <span className="text-sm italic text-gray-500">
-                    🌍 {getRegionName(carousel)}
+                  <span
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      carousel.isManual
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
+                    {carousel.isManual ? t("badgeManual") : t("badgeAutomatic")}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {getTypeName(carousel) ? `${getTypeName(carousel)} · ` : ""}
+                    {getRegionName(carousel) ? `🌍 ${getRegionName(carousel)} · ` : ""}
+                    {carousel.limit} {t("articles")}
                   </span>
                 </div>
 
-                <div className="flex gap-3 text-sm items-center">
+                <div className="flex gap-2 text-sm items-center shrink-0">
                   {/* 🔼 Subir */}
                   <button
                     disabled={index === 0}
@@ -175,13 +182,37 @@ export default function CarouselsDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 mt-2 overflow-hidden">
-                {Array.from({ length: carousel.limit }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 h-16 bg-gradient-to-tr from-red-500 to-rose-400 rounded-md shadow-inner"
+              {/* Preview real — igual que en la landing */}
+              <div className="p-4">
+                {carousel.carouselType === "vertical" ? (
+                  <ArticleCarouselVer
+                    beitragstypId={carousel.beitragstypId}
+                    region={carousel.regionId || null}
+                    title={carouselTitle(carousel)}
+                    limit={carousel.limit}
+                    slidesToShow={5}
+                    isManual={carousel.isManual}
+                    manualArticles={
+                      carousel.isManual && carousel.articles
+                        ? carousel.articles.map((ca) => ca.article)
+                        : null
+                    }
                   />
-                ))}
+                ) : (
+                  <ArticleCarousel
+                    beitragstypId={carousel.beitragstypId}
+                    region={carousel.regionId || null}
+                    title={carouselTitle(carousel)}
+                    limit={carousel.limit}
+                    slidesToShow={4}
+                    isManual={carousel.isManual}
+                    manualArticles={
+                      carousel.isManual && carousel.articles
+                        ? carousel.articles.map((ca) => ca.article)
+                        : null
+                    }
+                  />
+                )}
               </div>
             </div>
           );

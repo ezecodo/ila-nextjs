@@ -551,6 +551,8 @@
       "carouselTypeLabel": "Karussell-Typ",
       "automatic": "Automatisch (nach Filtern)",
       "manual": "Manuell (Artikelauswahl)",
+      "badgeAutomatic": "Automatisch",
+      "badgeManual": "Manuell",
       "selectDossier": "Dossier auswählen",
       "chooseDossier": "-- Wähle ein Dossier --",
       "searchArticles": "Artikel suchen",
