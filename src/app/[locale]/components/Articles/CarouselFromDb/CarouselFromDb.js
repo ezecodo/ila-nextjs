@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "next-intl";
 import ArticleCarousel from "../ArticleCarousel/ArticleCarousel";
 import IlaLoader from "../../IlaLoader/IlaLoader";
 import ArticleCarouselVer from "../ArticleCarouselVer/ArticleCarouselVer";
@@ -8,6 +9,13 @@ import ArticleCarouselVer from "../ArticleCarouselVer/ArticleCarouselVer";
 export default function CarouselFromDb({ placement = "after" }) {
   const [carousels, setCarousels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const locale = useLocale();
+
+  // Título según idioma, con fallback al otro si falta el del locale actual
+  const carouselTitle = (c) =>
+    locale === "es"
+      ? c.titleES || c.titleDE
+      : c.titleDE || c.titleES;
 
   useEffect(() => {
     fetch("/api/carousels")
@@ -51,7 +59,7 @@ export default function CarouselFromDb({ placement = "after" }) {
               key={carousel.id}
               beitragstypId={carousel.beitragstypId}
               region={carousel.regionId || null}
-              title={carousel.titleES}
+              title={carouselTitle(carousel)}
               limit={carousel.limit}
               slidesToShow={4}
               isManual={carousel.isManual}
@@ -70,7 +78,7 @@ export default function CarouselFromDb({ placement = "after" }) {
             key={carousel.id}
             beitragstypId={carousel.beitragstypId}
             region={carousel.regionId || null}
-            title={carousel.titleES}
+            title={carouselTitle(carousel)}
             limit={carousel.limit}
             isManual={carousel.isManual}
             manualArticles={

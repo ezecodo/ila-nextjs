@@ -11,7 +11,18 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(url.searchParams.get("limit") || "10");
     const onlineOnly = url.searchParams.get("onlineOnly") === "true";
 
-    const baseWhere: Prisma.ArticleWhereInput[] = [{ isPublished: true }];
+    const baseWhere: Prisma.ArticleWhereInput[] = [
+      { isPublished: true },
+      // 🚫 No mostrar artículos con fecha de publicación futura
+      // (todavía no publicados oficialmente; el scheduler los publica al llegar el día).
+      // Se conservan los de fecha NULL (artículos antiguos ya publicados).
+      {
+        OR: [
+          { publicationDate: null },
+          { publicationDate: { lte: new Date() } },
+        ],
+      },
+    ];
 
     if (onlineOnly) {
       baseWhere.push({ editionId: null });
