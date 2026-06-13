@@ -662,19 +662,22 @@ export default function LatestEditionWithArticles() {
                     </Link>
                   </div>
 
-                  {/* Portada central (actual) — mobile: misma portada con marco
-                      que desktop (next/image). El mockup 3D casero se rompía en
-                      navegadores mobile, así que usamos el render probado. */}
+                  {/* Portada central (actual) — mobile: portada plana con marco
+                      (next/image), igual que el desktop. Sin 3D, anda en todos
+                      los navegadores mobile. */}
                   <Link
                     key={`${currentEdition.id}-mobile`}
                     href={`/${locale}/editions/${currentEdition.id}`}
-                    className={`lg:hidden relative z-20 mx-auto block max-w-[240px] transition-all duration-600 ease-in-out ${
+                    className={`lg:hidden relative z-20 mx-auto block w-[230px] max-w-full transition-all duration-600 ease-in-out ${
                       isTransitioning
                         ? "opacity-0 scale-95"
                         : "opacity-100 scale-100"
                     }`}
                   >
-                    <div className="relative z-20 border-x-[5px] border-t-[5px] border-white">
+                    <div
+                      className="relative border-x-[5px] border-t-[5px] border-white"
+                      style={{ boxShadow: "0 10px 24px -10px rgba(0,0,0,0.35)" }}
+                    >
                       <Image
                         src={currentEdition.coverImage}
                         alt={`Portada de ${currentEdition.title}`}
