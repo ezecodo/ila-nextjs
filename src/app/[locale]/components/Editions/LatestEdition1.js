@@ -7,7 +7,6 @@ import Link from "next/link";
 import Events from "../Events/Events";
 import AktuellesPreview from "../AktuellesPreview/AktuellesPreview";
 import EntityBadges from "../EntityBadges/EntityBadges";
-import MagazineMockup from "./MagazineMockup";
 import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
 import { useCart } from "../Cart/CartContext";
 import { useTranslations, useLocale } from "next-intl";
@@ -663,32 +662,28 @@ export default function LatestEditionWithArticles() {
                     </Link>
                   </div>
 
-                  {/* Portada central (actual) — mobile: revista 3D */}
+                  {/* Portada central (actual) — mobile: misma portada con marco
+                      que desktop (next/image). El mockup 3D casero se rompía en
+                      navegadores mobile, así que usamos el render probado. */}
                   <Link
                     key={`${currentEdition.id}-mobile`}
                     href={`/${locale}/editions/${currentEdition.id}`}
-                    className={`lg:hidden relative z-20 mx-auto block transition-all duration-600 ease-in-out ${
+                    className={`lg:hidden relative z-20 mx-auto block max-w-[240px] transition-all duration-600 ease-in-out ${
                       isTransitioning
                         ? "opacity-0 scale-95"
                         : "opacity-100 scale-100"
                     }`}
                   >
-                    <MagazineMockup
-                      cover={currentEdition.coverImage}
-                      alt={`Portada de ${currentEdition.title}`}
-                      issue={`ila ${currentEdition.number}${
-                        currentEdition.datePublished
-                          ? ` · ${new Date(currentEdition.datePublished)
-                              .toLocaleDateString(
-                                locale === "es" ? "es-ES" : "de-DE",
-                                { month: "short", year: "numeric" },
-                              )
-                              .replace(".", "")
-                              .replace(/^\w/, (c) => c.toUpperCase())}`
-                          : ""
-                      }`}
-                      width={272}
-                    />
+                    <div className="relative z-20 border-x-[5px] border-t-[5px] border-white">
+                      <Image
+                        src={currentEdition.coverImage}
+                        alt={`Portada de ${currentEdition.title}`}
+                        width={360}
+                        height={480}
+                        className="block object-cover w-full h-auto"
+                        priority
+                      />
+                    </div>
                   </Link>
 
                   {/* Portada siguiente (derecha) — solo desktop */}
