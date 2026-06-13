@@ -29,7 +29,17 @@ export default function MagazineMockup({
     "repeating-linear-gradient(to right, #f4f0e7 0px, #f4f0e7 1px, #d7d0c0 1px, #d7d0c0 2.4px)";
   const pagesH =
     "repeating-linear-gradient(to bottom, #f4f0e7 0px, #f4f0e7 1px, #d7d0c0 1px, #d7d0c0 2.4px)";
-  const face = { position: "absolute", left: "50%", top: "50%", overflow: "hidden" };
+  // Sin overflow:hidden: en navegadores móviles (iOS Safari) aplicar overflow a
+  // una cara dentro de preserve-3d colapsa su profundidad 3D (z-fighting) y la
+  // contraportada/cantos terminan pisando la portada. backfaceVisibility evita
+  // que la cara trasera roja se transparente sobre la portada.
+  const face = {
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+    backfaceVisibility: "hidden",
+    WebkitBackfaceVisibility: "hidden",
+  };
 
   return (
     <div
@@ -64,6 +74,7 @@ export default function MagazineMockup({
           position: "absolute",
           inset: 0,
           transformStyle: "preserve-3d",
+          WebkitTransformStyle: "preserve-3d",
           transform: `rotateX(${rx}deg) rotateY(${ry}deg)`,
         }}
       >
@@ -193,9 +204,8 @@ export default function MagazineMockup({
                 position: "absolute",
                 inset: 0,
                 pointerEvents: "none",
-                mixBlendMode: "screen",
                 background:
-                  "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.16) 47%, rgba(255,255,255,0.24) 50%, rgba(255,255,255,0.16) 53%, transparent 70%)",
+                  "linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.12) 47%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.12) 53%, transparent 70%)",
               }}
             />
           )}
