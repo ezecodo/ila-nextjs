@@ -15,6 +15,7 @@ export default function OrderForm({
   selectedOffers = [],
   recipients = [],
   splits = {},
+  onOrderSuccess,
 }) {
   const [successMessage, setSuccessMessage] = useState(null);
   const t = useTranslations("orderForm");
@@ -122,6 +123,7 @@ export default function OrderForm({
 
       const data = await res.json();
       console.log("✅ Pedido creado:", data);
+      if (typeof onOrderSuccess === "function") onOrderSuccess();
       setSuccessMessage(
         locale === "de"
           ? "🎉 Vielen Dank! Ihr Auftrag wurde erfolgreich übermittelt. Sie erhalten in Kürze eine Bestätigungs-E-Mail und wir bearbeiten Ihre Bestellung schnellstmöglich."

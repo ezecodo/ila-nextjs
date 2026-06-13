@@ -5,6 +5,7 @@ import GenericAdminListDossiers from "../components/GenericAdminListDossiers/Gen
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { FaShoppingCart } from "react-icons/fa";
+import ArticlePriorityButton from "../components/ArticlePriorityButton/ArticlePriorityButton";
 
 export default function EditionListPage() {
   const t = useTranslations("dossiers");
@@ -82,6 +83,11 @@ export default function EditionListPage() {
         ) : (
           <FaShoppingCart className="text-red-600 text-lg mx-auto" />
         ),
+    },
+    {
+      key: "priority",
+      label: t("priorityColumn") || "Frontpage",
+      format: (value, item) => <ArticlePriorityButton edition={item} />,
     },
     {
       key: "isTranslatedES",

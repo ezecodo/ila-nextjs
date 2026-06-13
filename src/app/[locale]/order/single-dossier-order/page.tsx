@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCart } from "../../components/Cart/CartContext";
 import MiniEditionCard from "../../components/Editions/MiniEditionCard/MiniEditionCard";
 import OrderForm from "../../components/OrderForm/OrderForm";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
@@ -37,6 +39,7 @@ type OrderFormProps = {
   selectedOffers: EditionWithQty[];
   recipients: RecipientData[];
   splits: SplitsMap;
+  onOrderSuccess?: () => void;
 };
 // 👇 creamos un alias con tipado
 const TypedOrderForm = OrderForm as React.FC<OrderFormProps>;
@@ -66,9 +69,21 @@ const emptyRecipient = (country: string): RecipientData => ({
   phone: "",
 });
 
-export default function SingleDossierOrderPage() {
+function SingleDossierOrderContent() {
   const locale = useLocale();
   const t = useTranslations("orderForm");
+  const searchParams = useSearchParams();
+  const preselectEditionId = searchParams.get("editionId");
+  const focusParam = searchParams.get("focus");
+  const {
+    items: cartItems,
+    hydrated: cartHydrated,
+    replaceCart,
+    clearCart,
+  } = useCart();
+  const seededRef = useRef(false);
+  const selectorRef = useRef<HTMLElement | null>(null);
+  const [offerMinWarning, setOfferMinWarning] = useState(false);
   const [normalEditions, setNormalEditions] = useState<Edition[]>([]);
   const [offerEditions, setOfferEditions] = useState<Edition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -322,6 +337,85 @@ export default function SingleDossierOrderPage() {
       });
   }, []);
 
+  // Sembrar selección desde el carrito (una sola vez, cuando editions y carrito están listos).
+  // El form toma una "foto" del carrito al entrar; luego sincroniza de vuelta.
+  useEffect(() => {
+    if (loading || !cartHydrated || seededRef.current) return;
+    seededRef.current = true;
+
+    const byId = new Map<number, Edition>();
+    [...normalEditions, ...offerEditions].forEach((e) => byId.set(e.id, e));
+
+    // Combinar items del carrito con un posible ?editionId (deep-link del editorial)
+    const seed = new Map<string, { edition: Edition; type: "normal" | "offer"; qty: number }>();
+    for (const it of cartItems) {
+      const edition = byId.get(it.id);
+      if (!edition) continue;
+      const type = edition.isSpecialOffer ? "offer" : "normal";
+      seed.set(`${type}-${edition.id}`, { edition, type, qty: it.qty });
+    }
+    if (preselectEditionId) {
+      const edition = byId.get(Number(preselectEditionId));
+      if (edition) {
+        const type = edition.isSpecialOffer ? "offer" : "normal";
+        const key = `${type}-${edition.id}`;
+        if (!seed.has(key)) seed.set(key, { edition, type, qty: 1 });
+      }
+    }
+
+    if (seed.size === 0) return;
+
+    const nextNormal: EditionWithQty[] = [];
+    const nextOffers: EditionWithQty[] = [];
+    const nextSplits: SplitsMap = {};
+    let hasOffer = false;
+    let lastType: "normal" | "offer" = "normal";
+
+    seed.forEach(({ edition, type, qty }, key) => {
+      const withQty: EditionWithQty = { ...edition, qty };
+      if (type === "offer") {
+        nextOffers.push(withQty);
+        hasOffer = true;
+      } else {
+        nextNormal.push(withQty);
+      }
+      nextSplits[key] = { [-1]: qty };
+      lastType = type;
+    });
+
+    setSelectedNormal(nextNormal);
+    setSelectedOffers(nextOffers);
+    setSplits(nextSplits);
+    setDossierType(lastType);
+
+    // Si hay ofertas pero no se llega al mínimo de 3, llevar a la pestaña de ofertas.
+    // Si no, y se llegó con ?focus=cart (botón del carrito), bajar a la lista de items.
+    const offerQty = nextOffers.reduce((s, it) => s + it.qty, 0);
+    if (hasOffer && offerQty < 3) {
+      setDossierType("offer");
+      setOfferMinWarning(true);
+      setTimeout(() => {
+        selectorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    } else if (focusParam === "cart") {
+      setTimeout(() => {
+        document
+          .getElementById("cartSection")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, [loading, cartHydrated, cartItems, normalEditions, offerEditions, preselectEditionId, focusParam]);
+
+  // Sincronizar la selección de vuelta al carrito (sólo después del seed inicial)
+  useEffect(() => {
+    if (!seededRef.current) return;
+    const next = [
+      ...selectedNormal.map((it) => ({ id: it.id, type: "normal" as const, qty: it.qty })),
+      ...selectedOffers.map((it) => ({ id: it.id, type: "offer" as const, qty: it.qty })),
+    ];
+    replaceCart(next);
+  }, [selectedNormal, selectedOffers, replaceCart]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -443,7 +537,26 @@ export default function SingleDossierOrderPage() {
       <div className={`max-w-6xl mx-auto px-4 dark:text-gray-200 ${totalItems > 0 ? "pb-28" : "pb-14"}`}>
 
       {/* ── Selector de tipo + grid unificado ── */}
-      <section className="pt-8 mb-20">
+      <section ref={selectorRef} className="pt-8 mb-20 scroll-mt-24">
+
+        {/* Aviso: faltan ejemplares para el mínimo de la oferta */}
+        {offerMinWarning && selectedOffers.reduce((s, i) => s + i.qty, 0) < 3 && (
+          <div className="mb-6 flex items-start gap-3 rounded-2xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700 p-4">
+            <span className="text-2xl leading-none">🏷️</span>
+            <div className="text-sm">
+              <p className="font-bold text-amber-900 dark:text-amber-200">
+                {locale === "de"
+                  ? `Noch ${3 - selectedOffers.reduce((s, i) => s + i.qty, 0)} Heft(e) bis zum Sonderangebot`
+                  : `Faltan ${3 - selectedOffers.reduce((s, i) => s + i.qty, 0)} ejemplar(es) para la oferta`}
+              </p>
+              <p className="text-amber-800/80 dark:text-amber-300/80 mt-0.5">
+                {locale === "de"
+                  ? "Sonderangebote gelten ab 3 Heften (2,40 € pro Heft). Wähle unten weitere aus."
+                  : "Las ofertas especiales aplican a partir de 3 ejemplares (2,40 € c/u). Elegí más abajo."}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Type selector cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -639,7 +752,7 @@ export default function SingleDossierOrderPage() {
       </section>
       {/* 🔹 Carrito + Formulario */}
       <section className="mt-16">
-        <div id="cartSection" className="mb-10">
+        <div id="cartSection" className="mb-10 scroll-mt-24">
           {(selectedNormal.length > 0 || selectedOffers.length > 0) && (
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl overflow-hidden mb-8">
               {/* Cart header */}
@@ -1073,6 +1186,7 @@ export default function SingleDossierOrderPage() {
           );
         })()}
 
+        <div id="orderFormStart" className="scroll-mt-24" />
         <TypedOrderForm
           selectedNormal={selectedNormal}
           selectedOffers={selectedOffers}
@@ -1091,6 +1205,7 @@ export default function SingleDossierOrderPage() {
                 )
               : {}
           }
+          onOrderSuccess={clearCart}
         />
       </section>
 
@@ -1220,7 +1335,7 @@ export default function SingleDossierOrderPage() {
             <button
               onClick={() =>
                 document
-                  .getElementById("cartSection")
+                  .getElementById("orderFormStart")
                   ?.scrollIntoView({ behavior: "smooth", block: "start" })
               }
               className="flex items-center gap-2 bg-white text-[#BD0E0D] font-bold text-sm px-5 py-2 rounded-full hover:bg-gray-100 transition-colors whitespace-nowrap shrink-0"
@@ -1231,5 +1346,19 @@ export default function SingleDossierOrderPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SingleDossierOrderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center py-20">
+          <IlaLoader />
+        </div>
+      }
+    >
+      <SingleDossierOrderContent />
+    </Suspense>
   );
 }

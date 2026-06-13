@@ -57,6 +57,7 @@ model Article {
   subtitleES        String?
   needsReviewES     Boolean           @default(false)
   editedAfterReview Boolean           @default(false)
+  frontpagePriority Int               @default(0)
   legacyPath        String?           @unique
   reviewerId        String?
   translatorId      String?

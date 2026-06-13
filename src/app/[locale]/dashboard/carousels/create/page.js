@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
+import ArticleCarousel from "../../../components/Articles/ArticleCarousel/ArticleCarousel";
+import ArticleCarouselVer from "../../../components/Articles/ArticleCarouselVer/ArticleCarouselVer";
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
 
 export default function CreateCarouselPage() {
@@ -25,7 +27,6 @@ export default function CreateCarouselPage() {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
 
   const [limit, setLimit] = useState(6);
-  const [filteredArticles, setFilteredArticles] = useState([]);
   // 🆕 Estados para carrusel manual
   const [isManual, setIsManual] = useState(false);
   const [selectedDossierId, setSelectedDossierId] = useState("");
@@ -53,23 +54,6 @@ export default function CreateCarouselPage() {
         setDossiers(editionsArray.sort((a, b) => b.number - a.number));
       });
   }, []);
-
-  // Vista previa: filtra por region, tipo y categorías
-  useEffect(() => {
-    const query = new URLSearchParams();
-    if (regionId) query.append("regionId", regionId);
-    if (beitragstypId) query.append("beitragstypId", beitragstypId);
-    selectedCategoryIds.forEach((id) => query.append("categoryId", String(id)));
-
-    if (regionId || beitragstypId || selectedCategoryIds.length > 0) {
-      fetch(`/api/articles/filtered?${query.toString()}`)
-        .then((res) => res.json())
-        .then((data) => setFilteredArticles(data))
-        .catch(() => setFilteredArticles([]));
-    } else {
-      setFilteredArticles([]);
-    }
-  }, [regionId, beitragstypId, selectedCategoryIds]);
 
   // 🆕 Cargar artículos del dossier seleccionado con toda la info
   useEffect(() => {
@@ -245,11 +229,17 @@ export default function CreateCarouselPage() {
     }
   }
 
+  // Mismo criterio que el submit: tipo 2 => carrusel vertical (portadas)
+  const previewType = beitragstypId === "2" ? "vertical" : "horizontal";
+  const previewTitle = String(locale).toLowerCase().startsWith("de")
+    ? titleDE || titleES
+    : titleES || titleDE;
+
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-xl font-bold mb-4">{t("title")}</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 max-w-3xl">
         {/* Título (alemán) */}
         <div className="grid grid-cols-12 gap-3 items-center">
           <label
@@ -721,43 +711,38 @@ export default function CreateCarouselPage() {
         </div>
       </form>
 
-      {/* Vista previa - automático */}
-      {!isManual && filteredArticles.length > 0 && (
-        <div className="mt-8 border-t pt-4">
-          <h2 className="text-lg font-bold mb-3">{t("previewTitle")}</h2>
-          <ul className="space-y-2">
-            {filteredArticles.slice(0, limit).map((article) => (
-              <li
-                key={article.id}
-                className="p-3 border rounded shadow-sm bg-gray-50 dark:bg-gray-800 dark:text-white"
-              >
-                <strong>{article.title}</strong>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {article.summary || t("noSummary")}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Vista previa - manual */}
-      {isManual && selectedArticles.length > 0 && (
-        <div className="mt-8 border-t pt-4">
-          <h2 className="text-lg font-bold mb-3">
-            {t("previewManual") || "Vista previa (orden manual)"}
-          </h2>
-          <ul className="space-y-2">
-            {selectedArticles.map((article, i) => (
-              <li
-                key={article.id}
-                className="p-3 border rounded shadow-sm bg-gray-50 dark:bg-gray-800 dark:text-white"
-              >
-                <span className="font-bold text-red-600">#{i + 1}</span>{" "}
-                <strong>{article.title}</strong>
-              </li>
-            ))}
-          </ul>
+      {/* Vista previa WYSIWYG — se renderiza igual que en la landing */}
+      {((!isManual && (regionId || beitragstypId)) ||
+        (isManual && selectedArticles.length > 0)) && (
+        <div className="mt-8 border-t pt-6">
+          <h2 className="text-lg font-bold mb-1">{t("previewTitle")}</h2>
+          <p className="text-xs text-gray-500 mb-4">
+            {t("previewHint") ||
+              "Así se verá el carrusel en la página (vista real)."}
+          </p>
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            {previewType === "vertical" ? (
+              <ArticleCarouselVer
+                beitragstypId={beitragstypId ? parseInt(beitragstypId, 10) : null}
+                region={regionId ? parseInt(regionId, 10) : null}
+                title={previewTitle}
+                limit={isManual ? selectedArticles.length : limit}
+                slidesToShow={5}
+                isManual={isManual}
+                manualArticles={isManual ? selectedArticles : null}
+              />
+            ) : (
+              <ArticleCarousel
+                beitragstypId={beitragstypId ? parseInt(beitragstypId, 10) : null}
+                region={regionId ? parseInt(regionId, 10) : null}
+                title={previewTitle}
+                limit={isManual ? selectedArticles.length : limit}
+                slidesToShow={4}
+                isManual={isManual}
+                manualArticles={isManual ? selectedArticles : null}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>

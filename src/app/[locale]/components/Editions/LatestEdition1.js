@@ -7,7 +7,9 @@ import Link from "next/link";
 import Events from "../Events/Events";
 import AktuellesPreview from "../AktuellesPreview/AktuellesPreview";
 import EntityBadges from "../EntityBadges/EntityBadges";
+import MagazineMockup from "./MagazineMockup";
 import MiniArticleCardGrid from "../Articles/MiniArticleCardGrid";
+import { useCart } from "../Cart/CartContext";
 import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
@@ -47,7 +49,24 @@ export default function LatestEditionWithArticles() {
   const [hoverBlocked, setHoverBlocked] = useState(false);
   const [coverHover, setCoverHover] = useState(false);
   const [mobileSlideIndex, setMobileSlideIndex] = useState(0);
-  const [showSwipeHint, setShowSwipeHint] = useState(false);
+  const { addToCart, isInCart } = useCart();
+  const [justAdded, setJustAdded] = useState(false);
+  const addedTimerRef = useRef(null);
+
+  const handleAddToCart = () => {
+    if (!currentEdition) return;
+    const type = currentEdition.isSpecialOffer ? "offer" : "normal";
+    addToCart(currentEdition.id, type, 1);
+    setJustAdded(true);
+    if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    addedTimerRef.current = setTimeout(() => setJustAdded(false), 2200);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    };
+  }, []);
   // ✅ Función helper para actualizar la URL
   const updateEditionInURL = (index) => {
     if (editions[index]) {
@@ -68,12 +87,6 @@ export default function LatestEditionWithArticles() {
 
     setTimeout(() => setIsTransitioning(false), 800);
   };
-  useEffect(() => {
-    if (!localStorage.getItem("ila_mobile_swiped")) {
-      setShowSwipeHint(true);
-    }
-  }, []);
-
   useEffect(() => {
     async function fetchAllEditions() {
       try {
@@ -180,6 +193,12 @@ export default function LatestEditionWithArticles() {
     filteredArticles = articles;
   }
 
+  // ↕️ Prioridad de aparición (frontpagePriority): >0 primero (asc); el resto
+  // conserva el orden por fecha desc que ya trae el API. Sort estable.
+  const prioOf = (a) =>
+    Number(a?.frontpagePriority) > 0 ? Number(a.frontpagePriority) : Infinity;
+  filteredArticles = [...filteredArticles].sort((a, b) => prioOf(a) - prioOf(b));
+
   // 🖼️ Solo artículos con imagen válida
   const articlesWithImages = filteredArticles.filter((a) => {
     const img = a?.images?.[0] || a?.image;
@@ -231,11 +250,8 @@ export default function LatestEditionWithArticles() {
     swipe: true,
     swipeToSlide: true,
     adaptiveHeight: true,
-    afterChange: (idx) => {
-      setMobileSlideIndex(idx);
-      setShowSwipeHint(false);
-      localStorage.setItem("ila_mobile_swiped", "1");
-    },
+    dots: true,
+    afterChange: (idx) => setMobileSlideIndex(idx),
   };
 
   const editionsCarouselSettings = {
@@ -330,8 +346,8 @@ export default function LatestEditionWithArticles() {
           <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 items-start justify-between">
             <div className="relative w-full lg:w-auto flex items-start justify-end">
               <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
-                <div className="relative w-full order-2 lg:order-1">
-                  <div className="text-center flex flex-col items-center space-y-1">
+                <div className="relative w-full order-1">
+                  <div className="text-center flex flex-col items-center">
                     <div className="flex items-baseline justify-center gap-3 leading-none relative">
                       <button
                         type="button"
@@ -533,26 +549,54 @@ export default function LatestEditionWithArticles() {
                         </div>
                       )}
                     </div>
+                  </div>
+                </div>
 
-                    <div className="font-futura font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-2xl md:text-3xl leading-tight">
-                      {locale === "es" && currentEdition.titleES
-                        ? currentEdition.titleES
-                        : currentEdition.title}
-                    </div>
+                <div className="order-3 lg:order-2 w-full text-center px-2 lg:-mt-3">
+                  <div className="font-futura font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-[1.7rem] md:text-3xl leading-tight text-balance">
+                    {locale === "es" && currentEdition.titleES
+                      ? currentEdition.titleES
+                      : currentEdition.title}
                   </div>
                 </div>
 
                 <div
                   {...swipeHandlers}
-                  className="relative w-full h-auto flex items-start justify-center pt-0 order-1 lg:order-2"
+                  className="relative w-full h-auto flex items-start justify-center pt-2 pb-8 lg:pt-0 lg:pb-0 order-2 lg:order-3"
                   style={{ minHeight: "320px" }}
                   onMouseLeave={() => setHoverBlocked(false)}
                 >
-                  {/* Portada anterior (izquierda) */}
+                  {/* Navegación mobile — flechas limpias a los lados */}
+                  {currentEditionIndex < editions.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={() => changeEdition(currentEditionIndex + 1)}
+                      aria-label={`ila ${editions[currentEditionIndex + 1].number}`}
+                      className="lg:hidden absolute left-1 top-1/2 -translate-y-1/2 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 text-[#BD0E0D] active:scale-95 transition"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
+                  {currentEditionIndex > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => changeEdition(currentEditionIndex - 1)}
+                      aria-label={`ila ${editions[currentEditionIndex - 1].number}`}
+                      className="lg:hidden absolute right-1 top-1/2 -translate-y-1/2 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 text-[#BD0E0D] active:scale-95 transition"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Portada anterior (izquierda) — solo desktop */}
                   {currentEditionIndex < editions.length - 1 && (
                     <div
                       onClick={() => changeEdition(currentEditionIndex + 1)}
-                      className={`absolute left-0 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-left_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
+                      className={`hidden lg:block absolute left-0 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-left_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
                       style={{
                         transform: "translateY(-50%) rotate(-5deg)",
                         transformOrigin: "center",
@@ -589,10 +633,10 @@ export default function LatestEditionWithArticles() {
                     </div>
                   )}
 
-                  {/* Portada central (actual) */}
+                  {/* Portada central (actual) — desktop: plana con marco */}
                   <div
-                    key={currentEdition.id}
-                    className={`relative z-20 mx-auto transition-all duration-600 ease-in-out max-w-[240px] lg:max-w-[280px] ${
+                    key={`${currentEdition.id}-desktop`}
+                    className={`hidden lg:block relative z-20 mx-auto transition-all duration-600 ease-in-out max-w-[280px] ${
                       isTransitioning
                         ? "opacity-0 scale-95"
                         : "opacity-100 scale-100"
@@ -604,8 +648,7 @@ export default function LatestEditionWithArticles() {
                       onMouseEnter={() => setCoverHover(true)}
                       onMouseLeave={() => setCoverHover(false)}
                     >
-                      <div className="border-x-[5px] border-t-[5px] border-white">
-
+                      <div className="relative z-20 border-x-[5px] border-t-[5px] border-white">
                         <Image
                           src={currentEdition.coverImage}
                           alt={`Portada de ${currentEdition.title}`}
@@ -620,11 +663,39 @@ export default function LatestEditionWithArticles() {
                     </Link>
                   </div>
 
-                  {/* Portada siguiente (derecha) */}
+                  {/* Portada central (actual) — mobile: revista 3D */}
+                  <Link
+                    key={`${currentEdition.id}-mobile`}
+                    href={`/${locale}/editions/${currentEdition.id}`}
+                    className={`lg:hidden relative z-20 mx-auto block transition-all duration-600 ease-in-out ${
+                      isTransitioning
+                        ? "opacity-0 scale-95"
+                        : "opacity-100 scale-100"
+                    }`}
+                  >
+                    <MagazineMockup
+                      cover={currentEdition.coverImage}
+                      alt={`Portada de ${currentEdition.title}`}
+                      issue={`ila ${currentEdition.number}${
+                        currentEdition.datePublished
+                          ? ` · ${new Date(currentEdition.datePublished)
+                              .toLocaleDateString(
+                                locale === "es" ? "es-ES" : "de-DE",
+                                { month: "short", year: "numeric" },
+                              )
+                              .replace(".", "")
+                              .replace(/^\w/, (c) => c.toUpperCase())}`
+                          : ""
+                      }`}
+                      width={272}
+                    />
+                  </Link>
+
+                  {/* Portada siguiente (derecha) — solo desktop */}
                   {currentEditionIndex > 0 && (
                     <div
                       onClick={() => changeEdition(currentEditionIndex - 1)}
-                      className={`absolute right-0 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-right_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
+                      className={`hidden lg:block absolute right-0 top-1/2 z-10 cursor-pointer transition-all duration-300 animate-[float-right_3s_ease-in-out_infinite] ${isTransitioning || hoverBlocked ? "pointer-events-none opacity-60" : "opacity-60 hover:opacity-100 hover:z-30 hover:scale-110 hover:shadow-2xl group"}`}
                       style={{
                         transform: "translateY(-50%) rotate(5deg)",
                         transformOrigin: "center",
@@ -665,7 +736,7 @@ export default function LatestEditionWithArticles() {
 
                 {(currentEdition.regions?.length > 0 ||
                   currentEdition.topics?.length > 0) && (
-                  <div className="order-4 w-full max-w-[280px] mx-auto">
+                  <div className="order-6 w-full max-w-[280px] mx-auto">
                     <EntityBadges
                       regions={currentEdition.regions.map((region) => ({
                         ...region,
@@ -682,21 +753,57 @@ export default function LatestEditionWithArticles() {
                   </div>
                 )}
 
-                <Link
-                  href={`/${locale}/editions/${currentEdition.id}`}
-                  onMouseEnter={() => setCoverHover(true)}
-                  onMouseLeave={() => setCoverHover(false)}
-                  className={`relative z-10 order-3 w-full max-w-[230px] lg:max-w-[270px] mx-auto -mt-5 flex items-center justify-center gap-2 bg-[#BD0E0D] text-white font-bold px-6 py-3 transition-all duration-300 origin-top ${
+                <div
+                  className={`relative z-10 order-4 w-full max-w-[230px] lg:max-w-[270px] mx-auto mt-2 lg:-mt-5 flex items-stretch bg-[#BD0E0D] text-white font-bold transition-all duration-300 origin-top ${
                     coverHover ? "scale-[1.02]" : ""
                   }`}
                 >
-                  {t("editorialButton")}
-                  <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+                  <Link
+                    href={`/${locale}/editions/${currentEdition.id}`}
+                    onMouseEnter={() => setCoverHover(true)}
+                    onMouseLeave={() => setCoverHover(false)}
+                    className="flex flex-1 items-center justify-center gap-2 px-5 py-2.5 text-center leading-tight"
+                  >
+                    {t("editorialButton")}
+                    <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
 
-                <div className="hidden lg:flex flex-col gap-4 w-full order-5">
+                  {currentEdition.isAvailableToOrder && (
+                    <button
+                      type="button"
+                      onClick={handleAddToCart}
+                      title={t("orderButton")}
+                      aria-label={t("orderButton")}
+                      className="relative flex items-center justify-center px-4 py-2.5 border-l border-white/30 transition-colors hover:bg-black/15"
+                    >
+                      {justAdded ? (
+                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      )}
+                      {isInCart(currentEdition.id, currentEdition.isSpecialOffer ? "offer" : "normal") && !justAdded && (
+                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-white border border-[#BD0E0D]" />
+                      )}
+                    </button>
+                  )}
+
+                  {justAdded && (
+                    <span
+                      role="status"
+                      className="absolute left-1/2 -translate-x-1/2 -top-7 whitespace-nowrap bg-[#BD0E0D] text-white text-xs font-bold px-3 py-1.5 shadow-lg animate-in fade-in slide-in-from-bottom-1 duration-200"
+                    >
+                      {t("addedToCart")}
+                    </span>
+                  )}
+                </div>
+
+                <div className="hidden lg:flex flex-col gap-4 w-full order-7">
                   <AktuellesPreview />
                   <Events />
                   <SideBanner50 />
@@ -817,8 +924,8 @@ export default function LatestEditionWithArticles() {
                         {mobileSlideIndex + 1} / {mobileArticles.length}
                       </span>
                     </div>
-                    <div className="relative">
-                      <Slider {...mobileCarouselSettings}>
+                    <div className="relative [&_.slick-dots]:!static [&_.slick-dots]:!mt-4 [&_.slick-dots_li]:!mx-1 [&_.slick-dots_li_button:before]:!text-[10px] [&_.slick-dots_li_button:before]:!text-gray-300 [&_.slick-dots_li_button:before]:!opacity-100 dark:[&_.slick-dots_li_button:before]:!text-gray-600 [&_.slick-dots_.slick-active_button:before]:!text-[#BD0E0D]">
+                      <Slider key={currentEdition.id} {...mobileCarouselSettings}>
                         {mobileArticles.map((article) => (
                           <div key={article.id} className="w-full">
                             <MiniArticleCardGrid
@@ -828,18 +935,6 @@ export default function LatestEditionWithArticles() {
                           </div>
                         ))}
                       </Slider>
-
-                      {showSwipeHint && (
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 pointer-events-none flex flex-col items-center gap-1 animate-pulse">
-                          <div style={{
-                            width: 0,
-                            height: 0,
-                            borderTop: "36px solid transparent",
-                            borderBottom: "36px solid transparent",
-                            borderLeft: "14px solid rgba(189,14,13,0.55)",
-                          }} />
-                        </div>
-                      )}
                     </div>
                   </>
                 ) : (
