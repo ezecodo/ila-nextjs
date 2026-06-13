@@ -284,9 +284,6 @@ export default function Header() {
 
           {/* 3. CONTROLES (Derecha) */}
           <div className="bg-[#BD0E0D] h-full flex items-center justify-end gap-2 pr-2 z-20 flex-shrink-0">
-          <div className="flex items-center justify-center">
-            <CartButton locale={locale} variant="light" size={16} />
-          </div>
           <div className="w-10 h-full flex flex-col items-center justify-center">
             <div className="text-[10px] font-black text-white mb-0.5 leading-none">
               <button

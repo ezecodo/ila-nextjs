@@ -14,6 +14,7 @@ import "slick-carousel/slick/slick-theme.css";
 import LayoutShell from "../[locale]/components/LayoutShell/LayoutShell";
 import CookieConsent from "./components/CookieConsent/CookieConsent";
 import { CartProvider } from "./components/Cart/CartContext";
+import CartFab from "./components/Cart/CartFab";
 
 import { locales, type Locale } from "../../../i18n";
 
@@ -99,6 +100,7 @@ export default async function LocaleLayout({ children, params }: Props) {
             <NextIntlClientProvider locale={locale} messages={messages}>
               <CartProvider>
                 <LayoutShell>{children}</LayoutShell>
+                <CartFab />
                 <CookieConsent />
                 <MatomoAnalytics />
               </CartProvider>
