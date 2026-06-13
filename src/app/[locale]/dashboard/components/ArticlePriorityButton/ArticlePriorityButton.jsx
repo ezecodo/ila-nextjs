@@ -125,10 +125,25 @@ export default function ArticlePriorityButton({ edition }) {
                       .map((au) => au.name)
                       .filter(Boolean)
                       .join(", ");
+                    const pubDate = a.publicationDate
+                      ? new Date(a.publicationDate)
+                      : null;
+                    const endOfToday = new Date();
+                    endOfToday.setHours(23, 59, 59, 999);
+                    const scheduled = pubDate && pubDate > endOfToday;
+                    const noImage = !a.imageUrl;
+                    const pubDateLabel = pubDate
+                      ? pubDate.toLocaleDateString(
+                          locale === "es" ? "es-ES" : "de-DE",
+                          { day: "2-digit", month: "2-digit", year: "numeric" },
+                        )
+                      : null;
                     return (
                       <li
                         key={a.id}
-                        className="flex items-center gap-3 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800"
+                        className={`flex items-center gap-3 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-gray-50 dark:bg-gray-800 ${
+                          scheduled || noImage ? "opacity-70" : ""
+                        }`}
                       >
                         <span className="w-6 text-center text-base font-bold text-purple-600 dark:text-purple-400 shrink-0">
                           {i + 1}
@@ -153,6 +168,20 @@ export default function ArticlePriorityButton({ edition }) {
                             <p className="text-xs text-[#BD0E0D] mt-0.5 truncate">
                               {authorNames}
                             </p>
+                          )}
+                          {(scheduled || noImage) && (
+                            <div className="flex flex-wrap items-center gap-1 mt-1">
+                              {scheduled && (
+                                <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                  📅 {t("priorityScheduled", { date: pubDateLabel })}
+                                </span>
+                              )}
+                              {noImage && (
+                                <span className="inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                  🚫 {t("priorityNoImageBadge")}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
                         <div className="flex flex-col gap-1 shrink-0">

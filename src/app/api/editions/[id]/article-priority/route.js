@@ -23,6 +23,7 @@ export async function GET(_req, { params }) {
         titleES: true,
         beitragsId: true,
         frontpagePriority: true,
+        publicationDate: true,
         authors: { select: { id: true, name: true } },
       },
     });

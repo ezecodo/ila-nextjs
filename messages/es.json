@@ -129,6 +129,8 @@
     "priorityModalTitle": "Orden en la portada",
     "priorityHint": "El orden de arriba hacia abajo define qué artículos aparecen primero en la portada. Sin orden, se ordenan por fecha. Los artículos sin imagen no se muestran en la portada.",
     "priorityNoArticles": "Este dossier no tiene artículos publicados.",
+    "priorityScheduled": "Programado: {date}",
+    "priorityNoImageBadge": "Sin imagen",
     "priorityReset": "Restablecer (por fecha)",
     "prioritySave": "Guardar orden",
     "prioritySaving": "Guardando…",

@@ -129,6 +129,8 @@
     "priorityModalTitle": "Reihenfolge auf der Startseite",
     "priorityHint": "Die Reihenfolge von oben nach unten bestimmt, welche Artikel auf der Startseite zuerst erscheinen. Ohne Reihenfolge werden sie nach Datum sortiert. Artikel ohne Bild werden auf der Startseite nicht angezeigt.",
     "priorityNoArticles": "Dieses Dossier hat keine veröffentlichten Artikel.",
+    "priorityScheduled": "Geplant: {date}",
+    "priorityNoImageBadge": "Kein Bild",
     "priorityReset": "Zurücksetzen (nach Datum)",
     "prioritySave": "Reihenfolge speichern",
     "prioritySaving": "Wird gespeichert …",
