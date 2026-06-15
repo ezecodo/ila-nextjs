@@ -62,6 +62,18 @@ export async function POST(req) {
           redeemedBy: newUser.id,
         },
       });
+
+      // 📋 Registrar la activación en el log de actividad
+      await prisma.activityLog.create({
+        data: {
+          userId: newUser.id,
+          action: "ACTIVATE_PDF_ABO",
+          metadata: JSON.stringify({
+            subscriberName: name || null,
+            subscriberEmail: email,
+          }),
+        },
+      });
     }
 
     // ✅ Generar un token de verificación

@@ -406,6 +406,10 @@ export default function ActivityFeed() {
                         </span>{" "}
                         {t("SUBMIT_TRANSLATION_SUFFIX")}
                       </>
+                    ) : log.action === "ACTIVATE_PDF_ABO" ? (
+                      <>
+                        {t("activatedPdfAbo")}
+                      </>
                     ) : (
                       t("default")
                     )}
