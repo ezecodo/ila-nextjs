@@ -360,16 +360,16 @@ export default function LegacyArticlePage() {
               {article.images.map((image) => (
                 <div key={image.id} className="w-full max-w-3xl">
                   <div
-                    className="cursor-pointer rounded-lg shadow-md"
+                    className="cursor-pointer overflow-hidden shadow-md"
                     onClick={() => openPopup(image)}
                   >
-                    <div className="relative w-full max-w-[800px] mx-auto aspect-[4/3]">
+                    <div className="relative w-full aspect-[3/2]">
                       <Image
                         src={image.url}
                         alt={image.alt || "Imagen del artículo"}
                         fill
-                        className="object-contain rounded"
-                        sizes="(max-width: 800px) 100vw, 800px"
+                        className="object-cover"
+                        sizes="(max-width: 800px) 100vw, 768px"
                       />
                     </div>
                   </div>

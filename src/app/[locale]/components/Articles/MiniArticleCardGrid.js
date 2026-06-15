@@ -24,6 +24,11 @@ export default function MiniArticleCardGrid({
   article,
   delay = 0,
   isTransitioning = false,
+  selectionMode = false,
+  selected = false,
+  selectionIndex = null,
+  onToggleSelect = null,
+  onRemoveFavorite = null,
 }) {
   const locale = useLocale();
   const t = useTranslations("article");
@@ -94,6 +99,34 @@ export default function MiniArticleCardGrid({
 
   const poster = hasImage && orient === "portrait";
 
+  // Overlay de selección para armar el Paquete PDF (orden = orden de clic)
+  const selectionOverlay = selectionMode ? (
+    <>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleSelect?.(article.id);
+        }}
+        className="absolute inset-0 z-20 cursor-pointer"
+        aria-pressed={selected}
+        aria-label={title}
+      />
+      <div className="absolute top-2.5 left-2.5 z-30 pointer-events-none">
+        <div
+          className={`flex h-7 w-7 items-center justify-center border-2 text-sm font-bold tabular-nums shadow-md ${
+            selected
+              ? "border-[#BD0E0D] bg-[#BD0E0D] text-white"
+              : "border-white bg-white/85 text-transparent"
+          }`}
+        >
+          {selected ? selectionIndex : ""}
+        </div>
+      </div>
+    </>
+  ) : null;
+
   /* ============================ PÓSTER A SANGRE (vertical) ============================ */
   if (poster) {
     return (
@@ -102,12 +135,13 @@ export default function MiniArticleCardGrid({
           isTransitioning
             ? "opacity-0 translate-y-4"
             : "opacity-100 translate-y-0"
-        }`}
+        } ${selected ? "ring-2 ring-[#BD0E0D] ring-inset" : ""}`}
         style={{
           transitionDelay: isTransitioning ? "0ms" : `${delay + 600}ms`,
         }}
         data-orient="portrait"
       >
+        {selectionOverlay}
         {/* Link global: TODA la card es clickeable */}
         <ArticleLink article={article} className="absolute inset-0 z-[1]">
           <Image
@@ -130,7 +164,7 @@ export default function MiniArticleCardGrid({
         />
 
         {/* Chip de región más integrado */}
-        {region && (
+        {region && !selectionMode && (
           <span className="absolute top-3 left-3 z-[3] text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-[#BD0E0D] shadow-md">
             {region}
           </span>
@@ -206,10 +240,11 @@ export default function MiniArticleCardGrid({
         isTransitioning
           ? "opacity-0 translate-y-4"
           : "opacity-100 translate-y-0"
-      }`}
+      } ${selected ? "ring-2 ring-[#BD0E0D] ring-inset" : ""}`}
       style={{ transitionDelay: isTransitioning ? "0ms" : `${delay + 600}ms` }}
       data-orient={orient}
     >
+      {selectionOverlay}
       {/* Área de imagen más compacta y con ratio controlado */}
       {hasImage && (
         <div className="relative w-full aspect-[16/10] overflow-hidden shrink-0">
@@ -228,7 +263,11 @@ export default function MiniArticleCardGrid({
           {/* Favoritos integrado en esquina con fondo */}
           <div className="absolute top-2.5 right-2.5 z-10">
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full p-1 shadow-sm opacity-80 group-hover:opacity-100 transition-opacity">
-              <FavoriteButton articleId={article.id} variant="compact" />
+              <FavoriteButton
+                articleId={article.id}
+                variant="compact"
+                onRemoved={onRemoveFavorite}
+              />
             </div>
           </div>
         </div>
@@ -248,7 +287,11 @@ export default function MiniArticleCardGrid({
           />
           {!hasImage && (
             <div className="shrink-0">
-              <FavoriteButton articleId={article.id} variant="compact" />
+              <FavoriteButton
+                articleId={article.id}
+                variant="compact"
+                onRemoved={onRemoveFavorite}
+              />
             </div>
           )}
         </div>

@@ -6,7 +6,7 @@
     "tagline": "La revista de América Latina",
     "switch_light": "Cambiar a modo claro",
     "switch_dark": "Cambiar a modo oscuro",
-    "dashboard_access": "Ir al panel de control",
+    "dashboard_access": "Mi ila",
     "greeting": "Hola, {name}",
     "login": "Iniciar sesión",
     "signup": "Registrarse",
@@ -818,7 +818,11 @@
     "benefit2": "Recibe recomendaciones personalizadas",
     "benefit3": "Accede a contenido exclusivo",
     "registerButton": "Crear cuenta gratis",
-    "loginButton": "Ya tengo cuenta"
+    "loginButton": "Ya tengo cuenta",
+    "removeConfirmTitle": "¿Quitar de favoritos?",
+    "removeConfirmDescription": "Este artículo se eliminará de tus favoritos guardados.",
+    "removeConfirmYes": "Quitar",
+    "removeConfirmCancel": "Cancelar"
   },
   "donationPopup": {
     "title": "Independiente, crítica, solidaria",
@@ -1253,7 +1257,7 @@
     "loading": "Cargando datos..."
   },
   "user_dashboard": {
-    "title": "Dashboard",
+    "title": "Mi ila",
     "menu_open": "Abrir Menú ☰",
     "menu_close": "Cerrar Menú ☰",
     "tabs": {
@@ -1275,6 +1279,7 @@
       "cancel": "Cancelar",
       "select_all": "Seleccionar todo",
       "deselect_all": "Deseleccionar todo",
+      "hint": "Hacé clic en los artículos en el orden en que querés que aparezcan en el PDF. El número indica la posición.",
       "loading": "Cargando favoritos…",
       "empty": "No tienes artículos favoritos aún.",
       "selected_one": "{count} artículo seleccionado",
@@ -1285,6 +1290,10 @@
       "name_modal_description": "Dale un nombre a tu paquete (opcional).",
       "name_modal_placeholder": "ej: Selección Bolivia",
       "name_modal_confirm": "Descargar",
+      "include_images_label": "Incluir imágenes",
+      "include_images_hint": "Desactivá para ahorrar tinta al imprimir.",
+      "view_grid": "Vista en grilla",
+      "view_list": "Vista en lista",
       "cover_title": "Mis Artículos",
       "toc_label": "CONTENIDO",
       "online": "Online",

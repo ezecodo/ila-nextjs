@@ -11,8 +11,8 @@ import {
 } from "@react-pdf/renderer";
 
 // ── Fonts ─────────────────────────────────────────────────────────────────────
-// Times-Roman is built-in to @react-pdf/renderer — no registration needed.
-// Helvetica is also built-in.
+// Sans-serif para seguir la línea editorial de la web (Geist en pantalla).
+// Helvetica es built-in de @react-pdf/renderer — no requiere registro.
 
 // ── Pre-process: replicate article-page transforms on raw HTML ────────────────
 // These mirror the functions in ausgaben/[...legacyPath]/page.js so the PDF
@@ -305,7 +305,7 @@ const S = StyleSheet.create({
   },
   tocTitle: {
     fontSize: 9,
-    fontFamily: "Times-Roman",
+    fontFamily: "Helvetica",
     color: GRAY_700,
     lineHeight: 1.4,
   },
@@ -339,14 +339,14 @@ const S = StyleSheet.create({
   },
   articleTitle: {
     fontSize: 26,
-    fontFamily: "Times-Bold",
+    fontFamily: "Helvetica-Bold",
     color: GRAY_900,
     marginBottom: 8,
     lineHeight: 1.25,
   },
   articleSubtitle: {
     fontSize: 14,
-    fontFamily: "Times-Italic",
+    fontFamily: "Helvetica-Oblique",
     color: GRAY_700,
     marginBottom: 16,
     lineHeight: 1.4,
@@ -366,14 +366,14 @@ const S = StyleSheet.create({
   // ── Content blocks
   paragraph: {
     fontSize: 11,
-    fontFamily: "Times-Roman",
+    fontFamily: "Helvetica",
     color: GRAY_900,
     lineHeight: 1.75,
     marginBottom: 10,
   },
   h2: {
     fontSize: 18,
-    fontFamily: "Times-Bold",
+    fontFamily: "Helvetica-Bold",
     color: GRAY_900,
     marginTop: 18,
     marginBottom: 8,
@@ -381,7 +381,7 @@ const S = StyleSheet.create({
   },
   h3: {
     fontSize: 14,
-    fontFamily: "Times-Bold",
+    fontFamily: "Helvetica-Bold",
     color: GRAY_900,
     marginTop: 14,
     marginBottom: 6,
@@ -410,7 +410,7 @@ const S = StyleSheet.create({
   },
   quoteText: {
     fontSize: 11,
-    fontFamily: "Times-Italic",
+    fontFamily: "Helvetica-Oblique",
     color: GRAY_700,
     lineHeight: 1.7,
     flex: 1,
@@ -422,7 +422,7 @@ const S = StyleSheet.create({
   },
   listitem: {
     fontSize: 11,
-    fontFamily: "Times-Roman",
+    fontFamily: "Helvetica",
     color: GRAY_900,
     marginBottom: 4,
     paddingLeft: 6,
@@ -455,19 +455,19 @@ const S = StyleSheet.create({
   },
   richNormal: {
     fontSize: 11,
-    fontFamily: "Times-Roman",
+    fontFamily: "Helvetica",
     color: GRAY_900,
     lineHeight: 1.75,
   },
   richBold: {
     fontSize: 11,
-    fontFamily: "Times-Bold",
+    fontFamily: "Helvetica-Bold",
     color: GRAY_900,
     lineHeight: 1.75,
   },
   richItalic: {
     fontSize: 11,
-    fontFamily: "Times-Italic",
+    fontFamily: "Helvetica-Oblique",
     color: GRAY_900,
     lineHeight: 1.75,
   },
@@ -586,12 +586,15 @@ function CoverPage({ articles, locale, customTitle }) {
 }
 
 // ── Article page ──────────────────────────────────────────────────────────────
-function ArticlePage({ article, locale }) {
+function ArticlePage({ article, locale, includeImages = true }) {
   const str = PDF_STRINGS[locale] ?? PDF_STRINGS.de;
   const isInterview =
     article.beitragstyp?.name?.toLowerCase() === "interview" ||
     article.isInterview === true;
-  const blocks = htmlToBlocks(article.content || "", isInterview);
+  const allBlocks = htmlToBlocks(article.content || "", isInterview);
+  const blocks = includeImages
+    ? allBlocks
+    : allBlocks.filter((b) => b.type !== "image");
 
   const authors = article.authors?.map((a) => a.name).join(", ") || "";
   const edition = article.edition
@@ -606,7 +609,7 @@ function ArticlePage({ article, locale }) {
     : "";
   const meta = [authors, edition, date].filter(Boolean).join(" · ");
 
-  const coverImg = article.images?.[0] || null;
+  const coverImg = includeImages ? article.images?.[0] || null : null;
   const coverImage = coverImg?.url || null;
   const coverAlt = (coverImg?.displayAlt || "").trim();
   const coverTitle = (coverImg?.displayTitle || "").trim();
@@ -650,7 +653,12 @@ function ArticlePage({ article, locale }) {
 }
 
 // ── Document ──────────────────────────────────────────────────────────────────
-export function ArticleBundleDocument({ articles, locale = "de", customTitle }) {
+export function ArticleBundleDocument({
+  articles,
+  locale = "de",
+  customTitle,
+  includeImages = true,
+}) {
   const defaultTitle = PDF_STRINGS[locale]?.coverTitle ?? "Meine Artikel";
   const docTitle =
     (customTitle && customTitle.trim()) || defaultTitle;
@@ -661,7 +669,12 @@ export function ArticleBundleDocument({ articles, locale = "de", customTitle }) 
     >
       <CoverPage articles={articles} locale={locale} customTitle={customTitle} />
       {articles.map((article) => (
-        <ArticlePage key={article.id} article={article} locale={locale} />
+        <ArticlePage
+          key={article.id}
+          article={article}
+          locale={locale}
+          includeImages={includeImages}
+        />
       ))}
     </Document>
   );

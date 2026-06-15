@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocale } from "next-intl";
+import Link from "next/link";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import {
@@ -57,12 +59,86 @@ export default function GlobeMap() {
   const [isLoading, setIsLoading] = useState(true);
   const frameRef = useRef({ animationId: null });
 
-  const handleCountryClick = (countryCode) => {
+  // Panel lateral con la lista clickeable de artículos del país
+  const [panel, setPanel] = useState(null); // { code, name, regionId }
+  const [panelData, setPanelData] = useState({
+    loading: false,
+    articles: [],
+    total: 0,
+  });
+  const panelCacheRef = useRef({});
+  const panelContentRef = useRef(null);
+
+  // El portal necesita document.body, que no existe en el render del servidor.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // Portadas de dossiers para el fondo (mismo patrón que el popup de donación)
+  const [covers, setCovers] = useState([]);
+  useEffect(() => {
+    fetch("/api/editions?limit=20")
+      .then((r) => r.json())
+      .then((data) => {
+        const imgs = (data || [])
+          .map((d) => d.coverImage)
+          .filter(Boolean)
+          .sort(() => Math.random() - 0.5);
+        setCovers(imgs);
+      })
+      .catch((err) => console.error("Error cargando portadas:", err));
+  }, []);
+
+  const openPanel = async (countryCode) => {
     const regionId = countryToRegionId[countryCode];
-    if (regionId) {
-      window.open(`/${locale}/entities/regions/${regionId}`, "_blank");
+    if (!regionId) return;
+
+    const name =
+      countryNames[countryCode]?.[locale] ||
+      countryNames[countryCode]?.de ||
+      countryCode;
+    setPanel({ code: countryCode, name, regionId });
+
+    const cached = panelCacheRef.current[countryCode];
+    if (cached) {
+      setPanelData({ loading: false, ...cached });
+      return;
+    }
+
+    setPanelData({ loading: true, articles: [], total: 0 });
+    try {
+      const first = await fetch(
+        `/api/entities/regions/${regionId}?page=1`
+      ).then((r) => r.json());
+      let articles = first.articles || [];
+      const total = first.totalArticles ?? articles.length ?? 0;
+      const totalPages = first.totalPages ?? 1;
+
+      if (totalPages > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: totalPages - 1 }, (_, i) =>
+            fetch(`/api/entities/regions/${regionId}?page=${i + 2}`)
+              .then((r) => r.json())
+              .then((d) => d.articles || [])
+              .catch(() => [])
+          )
+        );
+        articles = articles.concat(...rest);
+      }
+
+      const payload = { articles, total };
+      panelCacheRef.current[countryCode] = payload;
+      setPanelData({ loading: false, ...payload });
+    } catch (err) {
+      console.error("Error cargando artículos de la región:", err);
+      setPanelData({ loading: false, articles: [], total: 0 });
     }
   };
+
+  // Ref para que el listener de Three.js (creado una sola vez) llame siempre
+  // a la versión más reciente del handler.
+  const openPanelRef = useRef(openPanel);
+  openPanelRef.current = openPanel;
+  const handleCountryClick = (countryCode) => openPanelRef.current?.(countryCode);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -72,7 +148,8 @@ export default function GlobeMap() {
 
     // --- ESCENA ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050505);
+    // Fondo transparente para dejar ver las portadas de revistas detrás (HTML)
+    scene.background = null;
     scene.fog = new THREE.FogExp2(0x050505, 0.02);
 
     const camera = new THREE.PerspectiveCamera(
@@ -81,7 +158,7 @@ export default function GlobeMap() {
       0.1,
       1000
     );
-    camera.position.z = 4.5;
+    camera.position.z = 3.8;
 
     // --- WEBGL RENDERER ---
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -139,7 +216,7 @@ export default function GlobeMap() {
     const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
     sunLight.position.set(5, 3, 5);
     scene.add(sunLight);
-    const rimLight = new THREE.SpotLight(0x4455ff, 5.0);
+    const rimLight = new THREE.SpotLight(0xbd0e0d, 5.0);
     rimLight.position.set(-5, 2, -5);
     rimLight.lookAt(0, 0, 0);
     scene.add(rimLight);
@@ -154,16 +231,10 @@ export default function GlobeMap() {
     const textureLoader = new THREE.TextureLoader();
     const globeGeometry = new THREE.SphereGeometry(0.8, 64, 64);
     const globeMaterial = new THREE.MeshPhongMaterial({
-      map: textureLoader.load(
-        "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg"
-      ),
-      bumpMap: textureLoader.load(
-        "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_normal_2048.jpg"
-      ),
+      map: textureLoader.load("/textures/earth_atmos_2048.jpg"),
+      bumpMap: textureLoader.load("/textures/earth_normal_2048.jpg"),
       bumpScale: 0.015,
-      specularMap: textureLoader.load(
-        "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_specular_2048.jpg"
-      ),
+      specularMap: textureLoader.load("/textures/earth_specular_2048.jpg"),
       specular: new THREE.Color("grey"),
       shininess: 15,
     });
@@ -172,9 +243,7 @@ export default function GlobeMap() {
 
     // --- NUBES ---
     const cloudsMaterial = new THREE.MeshPhongMaterial({
-      map: textureLoader.load(
-        "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_clouds_1024.png"
-      ),
+      map: textureLoader.load("/textures/earth_clouds_1024.png"),
       transparent: true,
       opacity: 0.4,
       blending: THREE.AdditiveBlending,
@@ -224,35 +293,37 @@ export default function GlobeMap() {
       `;
       div.innerHTML = `
         <div style="
-          background: rgba(17, 24, 39, 0.9);
+          background: rgba(10, 10, 10, 0.92);
           backdrop-filter: blur(8px);
-          border: 1px solid rgba(255,255,255,0.2);
+          border: 1px solid rgba(255,255,255,0.15);
+          border-top: 2px solid #BD0E0D;
           padding: 12px 16px;
-          border-radius: 12px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-          min-width: 160px;
+          border-radius: 0;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+          width: 250px;
+          font-family: 'Geist', system-ui, sans-serif;
         ">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
             <div style="
               background: white;
-              border-radius: 4px;
               width: 32px;
               height: 32px;
               display: flex;
               align-items: center;
               justify-content: center;
             ">
-              <span style="color: #dc2626; font-weight: bold; font-size: 14px; font-family: 'Futura', Arial, sans-serif;">ila</span>
+              <span style="color: #BD0E0D; font-weight: bold; font-size: 14px; font-family: 'Futura', Arial, sans-serif;">ila</span>
             </div>
             <span style="color: white; font-weight: bold; font-size: 16px;">${name}</span>
           </div>
-          <div style="height: 1px; background: rgba(255,255,255,0.2); margin: 8px 0;"></div>
-          <div style="color: #9ca3af; font-size: 12px;" class="article-count">
-            <span style="color: #22d3ee;">...</span> ${locale === "de" ? "Artikel" : "artículos"}
+          <div style="height: 1px; background: rgba(255,255,255,0.15); margin: 8px 0;"></div>
+          <div style="display: flex; align-items: baseline; gap: 6px;" class="article-count">
+            <span style="color: #ffffff; font-weight: bold; font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums;">…</span>
+            <span style="color: #9ca3af; font-size: 12px;">${locale === "de" ? "Artikel" : "artículos"}</span>
           </div>
-          <div style="color: #6b7280; font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 4px;">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #22d3ee;"></span>
-            ${locale === "de" ? "Klicken zum Erkunden" : "Click para explorar"}
+          <div class="article-more" style="color: #BD0E0D; font-size: 11px; margin-top: 8px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+            <span style="width: 6px; height: 6px; background: #BD0E0D;"></span>
+            ${locale === "de" ? "Antippen zum Erkunden" : "Tocá para explorar"}
           </div>
         </div>
       `;
@@ -307,30 +378,36 @@ export default function GlobeMap() {
     const mouse = new THREE.Vector2();
     let currentHoveredCode = null;
 
-    // --- FETCH ARTICLE COUNT ---
-    const fetchArticleCount = async (code, tooltipElement) => {
+    // --- FETCH CONTEO DE LA REGIÓN (solo el total para el tooltip de hover) ---
+    const countCache = {};
+
+    const fetchRegionPreview = async (code, tooltipElement) => {
       const regionId = countryToRegionId[code];
       if (!regionId) return;
 
       try {
-        const res = await fetch(
-          `/api/count/regions/${regionId}?context=articles`
-        );
-        const data = await res.json();
-        const countSpan = tooltipElement.querySelector(".article-count span");
-        if (countSpan) {
-          countSpan.textContent = data.count ?? 0;
+        let total = countCache[code];
+        if (total === undefined) {
+          const res = await fetch(`/api/entities/regions/${regionId}?page=1`);
+          const data = await res.json();
+          total = data.totalArticles ?? data.articles?.length ?? 0;
+          countCache[code] = total;
         }
+
+        const countSpan = tooltipElement.querySelector(".article-count span");
+        if (countSpan) countSpan.textContent = total;
       } catch (err) {
-        console.error("Error fetching count:", err);
+        console.error("Error fetching region count:", err);
       }
     };
 
     // --- EVENTOS ---
-    const onMouseMove = (e) => {
+    // Raycast en una posición de pantalla: marca el país bajo el cursor/dedo
+    // como "hovered" (muestra tooltip + pide el conteo). Devuelve el código.
+    const updateHoverAt = (clientX, clientY) => {
       const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObjects(markersData, false);
@@ -360,15 +437,22 @@ export default function GlobeMap() {
             (p) => p.userData.countryCode === hitCode
           );
           if (hoveredPoint) {
-            fetchArticleCount(hitCode, hoveredPoint.userData.tooltipElement);
+            fetchRegionPreview(hitCode, hoveredPoint.userData.tooltipElement);
           }
         }
       }
+
+      return hitCode;
     };
 
-    const onClick = () => {
-      if (currentHoveredCode) {
-        handleCountryClick(currentHoveredCode);
+    const onMouseMove = (e) => updateHoverAt(e.clientX, e.clientY);
+
+    // En desktop el hover ya marcó el país, así que el click navega directo.
+    // En touch no hay hover: el primer tap revela el tooltip y el segundo entra.
+    const onClick = (e) => {
+      const hitCode = updateHoverAt(e.clientX, e.clientY);
+      if (hitCode) {
+        handleCountryClick(hitCode);
       }
     };
 
@@ -444,25 +528,235 @@ export default function GlobeMap() {
   }, [locale]);
 
   return (
-    <div className="relative w-full h-[600px] overflow-hidden">
-      {/* Contenedor Canvas + HTML Overlay */}
-      <div ref={mountRef} className="w-full h-full bg-black">
+    <div className="relative w-full h-[100svh] min-h-[560px] overflow-hidden bg-black">
+      {/* Fondo: grilla de portadas de dossiers difuminadas */}
+      <div className="absolute inset-0 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+        {covers.length > 0 &&
+          [...Array(40)].map((_, i) => (
+            <div
+              key={i}
+              className="aspect-[3/4] overflow-hidden blur-[2px]"
+              style={{
+                transform: `rotate(${(i % 5) - 2}deg)`,
+                opacity: 0.45 + ((i * 7) % 35) / 100,
+              }}
+            >
+              <img
+                src={covers[i % covers.length]}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+      </div>
+      {/* Velo oscuro para que el planeta resalte sobre las portadas */}
+      <div className="absolute inset-0 bg-black/55" />
+
+      {/* Contenedor Canvas + HTML Overlay (transparente para ver el fondo) */}
+      <div ref={mountRef} className="absolute inset-0 z-10">
         {isLoading && (
           <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-            <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-[#BD0E0D] border-t-transparent rounded-full animate-spin"></div>
             <div className="text-white/80 text-sm tracking-widest uppercase">
-              Initializing Globe
+              {locale === "de" ? "Globus wird geladen" : "Cargando el globo"}
             </div>
           </div>
         )}
       </div>
 
       {/* Instrucciones */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/40 text-xs tracking-wider uppercase bg-black/20 px-4 py-1.5 rounded-full backdrop-blur-sm border border-white/5 pointer-events-none">
+      <div className="absolute z-20 bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-wider uppercase bg-black/30 px-4 py-1.5 rounded-none backdrop-blur-sm border-t-2 border-[#BD0E0D] pointer-events-none">
         {locale === "de"
-          ? "Interaktion: Drag • Scroll • Hover"
-          : "Interacción: Arrastra • Scroll • Hover"}
+          ? "Ziehen • Zoom • Land antippen"
+          : "Arrastrá • Zoom • Tocá un país"}
       </div>
+
+      {/* Popup centrado con artículos clickeables (portal a document.body para
+          quedar fuera del canvas/CSS2D de Three.js y poder scrollear/clickar) */}
+      {mounted &&
+        panel &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60"
+            onMouseDown={(e) => {
+              if (
+                panelContentRef.current &&
+                !panelContentRef.current.contains(e.target)
+              ) {
+                setPanel(null);
+              }
+            }}
+          >
+            <div
+              ref={panelContentRef}
+              className="w-full max-w-md max-h-[80vh] bg-[#0a0a0a] border-t-2 border-[#BD0E0D] shadow-2xl flex flex-col"
+            >
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-white text-[#BD0E0D] font-futura font-bold text-sm">
+                  ila
+                </span>
+                <div className="min-w-0">
+                  <h3 className="text-white font-bold text-base truncate">
+                    {panel.name}
+                  </h3>
+                  <p className="text-gray-400 text-xs">
+                    {panelData.total}{" "}
+                    {locale === "de" ? "Artikel" : "artículos"}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPanel(null)}
+                className="shrink-0 text-white/60 hover:text-white transition-colors"
+                aria-label={locale === "de" ? "Schließen" : "Cerrar"}
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Lista */}
+            <style>{`
+              .globe-articles-scroll::-webkit-scrollbar { width: 8px; }
+              .globe-articles-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); }
+              .globe-articles-scroll::-webkit-scrollbar-thumb { background: #BD0E0D; }
+              .globe-articles-scroll { scrollbar-width: thin; scrollbar-color: #BD0E0D rgba(255,255,255,0.06); }
+            `}</style>
+            <div className="globe-articles-scroll flex-1 min-h-0 overflow-y-auto overscroll-contain">
+              {panelData.loading ? (
+                <div className="flex items-center justify-center gap-2 py-10 text-gray-400 text-sm">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-[#BD0E0D] rounded-full animate-spin" />
+                  {locale === "de" ? "Lädt…" : "Cargando…"}
+                </div>
+              ) : panelData.articles.length === 0 ? (
+                <p className="px-5 py-10 text-center text-gray-500 text-sm">
+                  {locale === "de"
+                    ? "Keine Artikel gefunden."
+                    : "No hay artículos."}
+                </p>
+              ) : (
+                <ul className="divide-y divide-white/10">
+                  {panelData.articles.map((a) => {
+                    const title =
+                      locale === "es" && a.isTranslatedES && a.titleES
+                        ? a.titleES
+                        : a.title;
+                    const href = a.legacyPath
+                      ? `/${locale}${a.legacyPath}`
+                      : `/${locale}/articles/${a.id}`;
+                    const img = a.images?.[0]?.url;
+                    const author = a.authors?.[0]?.name;
+                    const topics = (a.topics || []).slice(0, 2);
+                    const isBookReview =
+                      a.beitragstyp?.name === "Buchbesprechung";
+                    const typeLabel = a.beitragstyp
+                      ? locale === "es" && a.beitragstyp.nameES
+                        ? a.beitragstyp.nameES
+                        : a.beitragstyp.name
+                      : null;
+                    const year = a.publicationDate
+                      ? new Date(a.publicationDate).getFullYear()
+                      : null;
+                    return (
+                      <li key={a.id}>
+                        <Link
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
+                        >
+                          {img && (
+                            <img
+                              src={img}
+                              alt=""
+                              loading="lazy"
+                              className="h-16 w-16 shrink-0 object-cover bg-white/5"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                              {typeLabel && (
+                                <span
+                                  className={`text-[10px] font-bold uppercase tracking-wide ${
+                                    isBookReview
+                                      ? "text-amber-400"
+                                      : "text-gray-400"
+                                  }`}
+                                >
+                                  {isBookReview ? "📖 " : ""}
+                                  {typeLabel}
+                                </span>
+                              )}
+                              {topics.map((tp) => (
+                                <span
+                                  key={tp.id}
+                                  className="text-[10px] font-bold uppercase tracking-wide text-[#BD0E0D]"
+                                >
+                                  {tp.name}
+                                </span>
+                              ))}
+                            </div>
+                            <span className="block text-sm font-semibold leading-snug text-gray-100 line-clamp-2 group-hover:text-white">
+                              {title}
+                            </span>
+                            {a.subtitle && (
+                              <span className="mt-0.5 block text-xs leading-snug text-gray-400 line-clamp-2">
+                                {a.subtitle}
+                              </span>
+                            )}
+                            <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-500">
+                              {author && (
+                                <span className="truncate">{author}</span>
+                              )}
+                              {a.edition?.number && (
+                                <span className="shrink-0 tabular-nums">
+                                  № {a.edition.number}
+                                  {year ? ` · ${year}` : ""}
+                                </span>
+                              )}
+                              {!a.edition?.number && year && (
+                                <span className="shrink-0 tabular-nums">
+                                  {year}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Footer: ver todos */}
+            {panelData.total > 0 && (
+              <Link
+                href={`/${locale}/entities/regions/${panel.regionId}`}
+                className="block border-t border-white/10 px-5 py-3 text-center text-sm font-bold text-[#BD0E0D] hover:bg-white/5 transition-colors"
+              >
+                {locale === "de"
+                  ? `Alle ${panelData.total} ansehen →`
+                  : `Ver todos (${panelData.total}) →`}
+              </Link>
+            )}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

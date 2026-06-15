@@ -8,7 +8,6 @@ import PdfDossiers from "./PdfDossiers/PdfDossiers";
 
 export default function UserDashboard() {
   const [selectedTab, setSelectedTab] = useState("favorites");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [hasPdfAbo, setHasPdfAbo] = useState(false);
   const locale = useLocale();
   const t = useTranslations("user_dashboard");
@@ -29,45 +28,37 @@ export default function UserDashboard() {
   ];
 
   return (
-    <div className="h-screen flex flex-col md:flex-row bg-gray-100">
-      {/* Botón menú móvil */}
-      <button
-        onClick={() => setMenuOpen(!menuOpen)}
-        className="md:hidden bg-blue-500 text-white p-3 text-center w-full"
-      >
-        {menuOpen ? t("menu_close") : t("menu_open")}
-      </button>
-
-      {/* Sidebar */}
-      <div
-        className={`w-full md:w-1/5 bg-white shadow-md p-6 md:block ${
-          menuOpen ? "block" : "hidden"
-        }`}
-      >
-        <h2 className="text-2xl font-bold mb-6">{t("title")}</h2>
-        <ul>
-          {menuItems.map((item) => (
-            <li key={item.key}>
-              <button
-                onClick={() => {
-                  setSelectedTab(item.key);
-                  setMenuOpen(false);
-                }}
-                className={`w-full text-left p-3 rounded-md mb-2 ${
-                  selectedTab === item.key
-                    ? "bg-blue-500 text-white"
-                    : "hover:bg-gray-200"
-                }`}
-              >
-                {item.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      {/* Encabezado + tabs horizontales */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <h1 className="text-2xl font-bold pt-6 pb-4 text-gray-900 dark:text-gray-100">
+            {t("title")}
+          </h1>
+          <nav className="flex gap-6 overflow-x-auto -mb-px">
+            {menuItems.map((item) => {
+              const active = selectedTab === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => setSelectedTab(item.key)}
+                  aria-current={active ? "page" : undefined}
+                  className={`relative whitespace-nowrap pb-3 pt-1 text-sm font-semibold border-b-2 transition-colors ${
+                    active
+                      ? "border-[#BD0E0D] text-[#BD0E0D]"
+                      : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 p-4 md:p-6 overflow-y-auto max-h-screen">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         {selectedTab === "account" && <AccountSettings />}
         {selectedTab === "favorites" && <FavoriteArticlesList />}
         {selectedTab === "pdf-dossiers" && hasPdfAbo && (

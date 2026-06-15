@@ -273,7 +273,7 @@ export default function LegacyArticlePage() {
         }}
       />
 
-      <main className="max-w-4xl lg:max-w-7xl mx-auto px-4 py-6 md:px-6">
+      <main className="max-w-4xl lg:max-w-7xl mx-auto lg:mr-0 px-4 py-6 md:px-6">
         {!isAdmin && <DonationPopUp articleId={article.id} />}
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 lg:items-start">
@@ -356,10 +356,10 @@ export default function LegacyArticlePage() {
               {article.images.map((image) => (
                 <div key={image.id} className="w-full max-w-3xl">
                   <div
-                    className="cursor-pointer rounded-lg shadow-md"
+                    className="cursor-pointer overflow-hidden shadow-md"
                     onClick={() => openPopup(image)}
                   >
-                    <div className="relative w-full max-w-[500px] mx-auto aspect-[4/3]">
+                    <div className="relative w-full aspect-[3/2]">
                       <Image
                         src={image.url}
                         alt={
@@ -368,8 +368,8 @@ export default function LegacyArticlePage() {
                           "Imagen del artículo"
                         }
                         fill
-                        className="object-contain rounded"
-                        sizes="(max-width: 800px) 100vw, 800px"
+                        className="object-cover"
+                        sizes="(max-width: 800px) 100vw, 768px"
                       />
                     </div>
                   </div>
@@ -708,7 +708,8 @@ export default function LegacyArticlePage() {
           articleId={article.id} // 👈 habilita el botón de favoritos
           anchorSelector="#article-start" // 👈 alinear con el inicio del contenido
           contentMaxWidth={1280} // max-w-7xl (grid con rail derecho)
-          gapFromContent={16}
+          gapFromContent={48}
+          align="right" // el bloque va pegado al margen derecho en desktop
         />
       </main>
     </>

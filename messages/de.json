@@ -6,7 +6,7 @@
     "tagline": "Das Lateinamerika-Magazin",
     "switch_light": "Zum hellen Modus wechseln",
     "switch_dark": "Zum dunklen Modus wechseln",
-    "dashboard_access": "Zum Dashboard",
+    "dashboard_access": "Mein ila",
     "greeting": "Hallo, {name}",
     "login": "Anmelden",
     "logout": "Ausloggen",
@@ -819,7 +819,11 @@
     "benefit2": "Personalisierte Empfehlungen erhalten",
     "benefit3": "Zugang zu exklusiven Inhalten",
     "registerButton": "Kostenloses Konto erstellen",
-    "loginButton": "Ich habe bereits ein Konto"
+    "loginButton": "Ich habe bereits ein Konto",
+    "removeConfirmTitle": "Aus Favoriten entfernen?",
+    "removeConfirmDescription": "Dieser Artikel wird aus deinen gespeicherten Favoriten entfernt.",
+    "removeConfirmYes": "Entfernen",
+    "removeConfirmCancel": "Abbrechen"
   },
   "donationPopup": {
     "title": "Unabhängig, kritisch, solidarisch",
@@ -1254,7 +1258,7 @@
     "loading": "Daten werden geladen..."
   },
   "user_dashboard": {
-    "title": "Dashboard",
+    "title": "Mein ila",
     "menu_open": "Menü öffnen ☰",
     "menu_close": "Menü schließen ☰",
     "tabs": {
@@ -1276,6 +1280,7 @@
       "cancel": "Abbrechen",
       "select_all": "Alle auswählen",
       "deselect_all": "Auswahl aufheben",
+      "hint": "Klicke die Artikel in der Reihenfolge an, in der sie im PDF erscheinen sollen. Die Nummer zeigt die Reihenfolge.",
       "loading": "Lade Favoriten…",
       "empty": "Keine Favoriten vorhanden.",
       "selected_one": "{count} Artikel ausgewählt",
@@ -1286,6 +1291,10 @@
       "name_modal_description": "Gib deinem Paket einen Namen (optional).",
       "name_modal_placeholder": "z.B. Bolivien-Auswahl",
       "name_modal_confirm": "Herunterladen",
+      "include_images_label": "Bilder einschließen",
+      "include_images_hint": "Ausschalten spart Tinte beim Ausdrucken.",
+      "view_grid": "Rasteransicht",
+      "view_list": "Listenansicht",
       "cover_title": "Meine Artikel",
       "toc_label": "INHALT",
       "online": "Online",

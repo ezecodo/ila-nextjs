@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import MiniArticleCardGrid from "./MiniArticleCardGrid";
+import MiniArticleCardList from "./MiniArticleCardList";
 
 import Pagination from "../Pagination/Pagination";
 import { useTranslations, useLocale } from "next-intl";
@@ -11,6 +12,11 @@ export default function ArticleList({
   authorId = null,
   entityType = null,
   entityId = null,
+  view = "grid",
+  selectionMode = false,
+  selectedIds = [],
+  onToggleSelect = null,
+  onRemoveFavorite = null,
 }) {
   const [articles, setArticles] = useState(articlesProp || []);
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,12 +73,31 @@ export default function ArticleList({
     return <p>{t("noArticles")}</p>;
   }
 
+  const CardComponent =
+    view === "list" ? MiniArticleCardList : MiniArticleCardGrid;
+
+  const containerClassName =
+    view === "list"
+      ? "flex flex-col gap-3"
+      : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-3";
+
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-3">
-        {filteredArticles.map((article) => (
-          <MiniArticleCardGrid key={article.id} article={article} />
-        ))}
+      <div className={containerClassName}>
+        {filteredArticles.map((article) => {
+          const selIndex = selectedIds.indexOf(article.id);
+          return (
+            <CardComponent
+              key={article.id}
+              article={article}
+              selectionMode={selectionMode}
+              selected={selIndex !== -1}
+              selectionIndex={selIndex !== -1 ? selIndex + 1 : null}
+              onToggleSelect={onToggleSelect}
+              onRemoveFavorite={onRemoveFavorite}
+            />
+          );
+        })}
       </div>
 
       {totalPages > 1 && !articlesProp && (

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { FaRegBookmark, FaBookmark } from "react-icons/fa";
 import { useTranslations } from "next-intl";
 
-const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
+const FavoriteButton = ({ articleId, variant = "shareBar", onRemoved }) => {
   const { data: session } = useSession();
   const router = useRouter();
   const t = useTranslations("favorites");
@@ -16,12 +16,15 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [clicked, setClicked] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const [mounted, setMounted] = useState(false);
   const modalRef = useRef(null);
+  const confirmRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
 
   // 🔥 DETECCIÓN DE ESTILO: Para saber si estamos en la barra roja nueva
   const isIconVariant = variant === "icon";
+  const iconSize = variant === "mini" ? 14 : 20;
 
   useEffect(() => {
     setMounted(true);
@@ -47,6 +50,26 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
     setShowModal(false);
   };
 
+  const applyFavorite = async (shouldFavorite) => {
+    const method = shouldFavorite ? "POST" : "DELETE";
+
+    const res = await fetch(`/api/articles/favorites`, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ articleId }),
+    });
+
+    if (res.ok) {
+      setFavorites((prev) => (shouldFavorite ? prev + 1 : prev - 1));
+      setIsFavorited(shouldFavorite);
+      setClicked(true);
+      setTimeout(() => setClicked(false), 300);
+    } else {
+      const errorData = await res.json();
+      console.error("Error en la API de favoritos:", errorData);
+    }
+  };
+
   const toggleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -56,23 +79,21 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
       return;
     }
 
-    const method = isFavorited ? "DELETE" : "POST";
-
-    const res = await fetch(`/api/articles/favorites`, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ articleId }),
-    });
-
-    if (res.ok) {
-      setFavorites((prev) => (isFavorited ? prev - 1 : prev + 1));
-      setIsFavorited(!isFavorited);
-      setClicked(true);
-      setTimeout(() => setClicked(false), 300);
-    } else {
-      const errorData = await res.json();
-      console.error("Error en la API de favoritos:", errorData);
+    // Confirmar antes de quitar de favoritos
+    if (isFavorited) {
+      setShowRemoveConfirm(true);
+      return;
     }
+
+    await applyFavorite(true);
+  };
+
+  const closeRemoveConfirm = () => setShowRemoveConfirm(false);
+
+  const confirmRemove = async () => {
+    setShowRemoveConfirm(false);
+    await applyFavorite(false);
+    onRemoved?.(articleId);
   };
 
   const buttonClass =
@@ -80,7 +101,9 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
       ? "bg-white border border-red-500 text-red-600 p-2 rounded hover:bg-red-50 transition flex items-center justify-center leading-none"
       : variant === "icon"
         ? "p-0 m-0 border-0 flex items-center justify-center leading-none text-white hover:text-white/70 transition-all duration-300"
-        : "text-red-600 p-1.5 flex items-center justify-center leading-none transition-all duration-300";
+        : variant === "mini"
+          ? "text-red-600 p-1 flex items-center justify-center leading-none transition-all duration-300"
+          : "text-red-600 p-1.5 flex items-center justify-center leading-none transition-all duration-300";
 
   const modalContent = (
     <div
@@ -191,6 +214,56 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
     </div>
   );
 
+  const removeConfirmContent = (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3"
+      onMouseDown={(e) => {
+        if (confirmRef.current && !confirmRef.current.contains(e.target)) {
+          closeRemoveConfirm();
+        }
+      }}
+    >
+      <div className="absolute inset-0 bg-black/60" />
+
+      <div
+        ref={confirmRef}
+        className="relative z-10 w-full max-w-xs bg-white dark:bg-gray-800 shadow-2xl overflow-hidden"
+      >
+        <div className="px-5 py-5 text-center">
+          <FaBookmark className="w-7 h-7 text-[#BD0E0D] mx-auto mb-3" />
+          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100">
+            {t("removeConfirmTitle")}
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1.5">
+            {t("removeConfirmDescription")}
+          </p>
+        </div>
+        <div className="flex border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              closeRemoveConfirm();
+            }}
+            className="flex-1 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+          >
+            {t("removeConfirmCancel")}
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              confirmRemove();
+            }}
+            className="flex-1 py-3 text-sm font-bold text-white bg-[#BD0E0D] hover:bg-[#a50c0b] transition-colors border-l border-gray-200 dark:border-gray-700"
+          >
+            {t("removeConfirmYes")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div
@@ -210,10 +283,13 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
           aria-pressed={isFavorited}
         >
           {isFavorited || isHovered ? (
-            <FaBookmark size={20} className="text-current transition-colors" />
+            <FaBookmark
+              size={iconSize}
+              className="text-current transition-colors"
+            />
           ) : (
             <FaRegBookmark
-              size={20}
+              size={iconSize}
               className="text-current transition-colors"
             />
           )}
@@ -235,6 +311,11 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
 
       {/* Modal con Portal */}
       {mounted && showModal && createPortal(modalContent, document.body)}
+
+      {/* Confirmación de quitar de favoritos */}
+      {mounted &&
+        showRemoveConfirm &&
+        createPortal(removeConfirmContent, document.body)}
     </>
   );
 };

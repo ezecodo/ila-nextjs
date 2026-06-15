@@ -14,6 +14,7 @@ export default function FavoriteArticlesList() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [viewMode, setViewMode] = useState("grid");
 
   // ── Bundle selection state ─────────────────────────────────────────────────
   const [selectionMode, setSelectionMode] = useState(false);
@@ -23,6 +24,7 @@ export default function FavoriteArticlesList() {
   const [generating, setGenerating] = useState(false);
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const [bundleName, setBundleName] = useState("");
+  const [includeImages, setIncludeImages] = useState(true);
 
   const fetchFavoriteArticles = async (page = 1) => {
     try {
@@ -47,6 +49,7 @@ export default function FavoriteArticlesList() {
 
   const handleRemoveFavorite = (articleId) => {
     setArticles((prev) => prev.filter((a) => a.id !== articleId));
+    setAllFavorites((prev) => prev.filter((a) => a.id !== articleId));
     if (articles.length === 1 && currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
@@ -138,24 +141,26 @@ export default function FavoriteArticlesList() {
         .map((id) => articlesWithContent.find((a) => a.id === id))
         .filter(Boolean);
 
-      // 3. Collect all image URLs to pre-fetch
-      const allUrls = new Set();
-      ordered.forEach((a) => {
-        if (a.images?.[0]?.url) allUrls.add(a.images[0].url);
-        // Inline images in the relevant content
-        const html = locale === "es" ? (a.contentES || a.content || "") : (a.content || "");
-        const matches = html.matchAll(/<img[^>]+src="([^"]+)"/g);
-        for (const m of matches) allUrls.add(m[1]);
-      });
-
-      // 4. Fetch all images as base64 in parallel
+      // 3. Collect all image URLs to pre-fetch (solo si se incluyen imágenes)
       const imageCache = {};
-      await Promise.all(
-        [...allUrls].map(async (url) => {
-          const b64 = await fetchBase64(url);
-          if (b64) imageCache[url] = b64;
-        })
-      );
+      if (includeImages) {
+        const allUrls = new Set();
+        ordered.forEach((a) => {
+          if (a.images?.[0]?.url) allUrls.add(a.images[0].url);
+          // Inline images in the relevant content
+          const html = locale === "es" ? (a.contentES || a.content || "") : (a.content || "");
+          const matches = html.matchAll(/<img[^>]+src="([^"]+)"/g);
+          for (const m of matches) allUrls.add(m[1]);
+        });
+
+        // 4. Fetch all images as base64 in parallel
+        await Promise.all(
+          [...allUrls].map(async (url) => {
+            const b64 = await fetchBase64(url);
+            if (b64) imageCache[url] = b64;
+          })
+        );
+      }
 
       // 5. Replace URLs with base64 + pick correct locale content
       const isES = locale === "es";
@@ -198,6 +203,7 @@ export default function FavoriteArticlesList() {
           articles={articlesReady}
           locale={locale}
           customTitle={trimmedName || undefined}
+          includeImages={includeImages}
         />
       ).toBlob();
 
@@ -212,6 +218,8 @@ export default function FavoriteArticlesList() {
       a.click();
       URL.revokeObjectURL(url);
       setNameModalOpen(false);
+      // Volver a la lista normal de favoritos tras generar el PDF
+      exitSelectionMode();
     } catch (err) {
       console.error("❌ Error generando PDF:", err);
     } finally {
@@ -225,21 +233,77 @@ export default function FavoriteArticlesList() {
       {/* Header row */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">{t("favorites_heading")}</h2>
-        {!selectionMode ? (
-          <button
-            onClick={enterSelectionMode}
-            className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:border-[#BD0E0D] hover:text-[#BD0E0D] transition-colors"
-          >
-            {tb("create_button")}
-          </button>
-        ) : (
-          <button
-            onClick={exitSelectionMode}
-            className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
-          >
-            {tb("cancel")}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Toggle grilla / lista */}
+          <div className="flex items-center border border-gray-300 rounded-none overflow-hidden">
+            <button
+              onClick={() => setViewMode("grid")}
+              aria-pressed={viewMode === "grid"}
+              aria-label={tb("view_grid")}
+              title={tb("view_grid")}
+              className={`flex items-center justify-center w-8 h-8 transition-colors ${
+                viewMode === "grid"
+                  ? "bg-[#BD0E0D] text-white"
+                  : "text-gray-500 hover:text-[#BD0E0D]"
+              }`}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 5h6v6H4V5zM14 5h6v6h-6V5zM4 15h6v4H4v-4zM14 13h6v6h-6v-6z"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              aria-pressed={viewMode === "list"}
+              aria-label={tb("view_list")}
+              title={tb("view_list")}
+              className={`flex items-center justify-center w-8 h-8 transition-colors ${
+                viewMode === "list"
+                  ? "bg-[#BD0E0D] text-white"
+                  : "text-gray-500 hover:text-[#BD0E0D]"
+              }`}
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {!selectionMode ? (
+            <button
+              onClick={enterSelectionMode}
+              className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:border-[#BD0E0D] hover:text-[#BD0E0D] transition-colors"
+            >
+              {tb("create_button")}
+            </button>
+          ) : (
+            <button
+              onClick={exitSelectionMode}
+              className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
+            >
+              {tb("cancel")}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Normal list mode */}
@@ -251,6 +315,7 @@ export default function FavoriteArticlesList() {
             <>
               <ArticleList
                 articlesProp={articles}
+                view={viewMode}
                 onRemoveFavorite={handleRemoveFavorite}
               />
               {totalPages > 1 && (
@@ -279,6 +344,14 @@ export default function FavoriteArticlesList() {
             <p className="text-gray-400 text-sm">{tb("empty")}</p>
           ) : (
             <>
+              {/* Banner de ayuda: cómo seleccionar y orden */}
+              <div className="flex items-start gap-3 mb-4 border-l-4 border-[#BD0E0D] bg-red-50 px-4 py-3">
+                <span className="shrink-0 flex h-7 w-7 items-center justify-center bg-[#BD0E0D] text-white text-xs font-bold tabular-nums shadow-sm">
+                  1·2
+                </span>
+                <p className="text-sm text-gray-700 leading-snug">{tb("hint")}</p>
+              </div>
+
               {/* Select all toggle */}
               <button
                 onClick={toggleSelectAll}
@@ -289,70 +362,14 @@ export default function FavoriteArticlesList() {
                   : tb("select_all")}
               </button>
 
-              {/* Article checkboxes */}
-              <div className="space-y-2">
-                {allFavorites.map((article) => {
-                  const selected = selectedIds.includes(article.id);
-                  const title =
-                    locale === "es"
-                      ? article.titleES || article.title
-                      : article.title;
-                  const authors =
-                    article.authors?.map((a) => a.name).join(", ") || "";
-                  const edition = article.edition
-                    ? `ila ${article.edition.number}`
-                    : tb("online");
-
-                  return (
-                    <label
-                      key={article.id}
-                      className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                        selected
-                          ? "border-[#BD0E0D] bg-red-50"
-                          : "border-gray-200 bg-white hover:border-gray-300"
-                      }`}
-                    >
-                      <div
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                          selected
-                            ? "bg-[#BD0E0D] border-[#BD0E0D]"
-                            : "border-gray-300"
-                        }`}
-                      >
-                        {selected && (
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={3}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
-                      </div>
-                      <input
-                        type="checkbox"
-                        className="sr-only"
-                        checked={selected}
-                        onChange={() => toggleSelect(article.id)}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2">
-                          {title}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {[authors, edition].filter(Boolean).join(" · ")}
-                        </p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
+              {/* Grilla de cards con selección activada */}
+              <ArticleList
+                articlesProp={allFavorites}
+                view={viewMode}
+                selectionMode
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
+              />
             </>
           )}
 
@@ -422,6 +439,24 @@ export default function FavoriteArticlesList() {
               disabled={generating}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#BD0E0D] focus:ring-1 focus:ring-[#BD0E0D] disabled:opacity-60"
             />
+
+            {/* Incluir imágenes (ahorra tinta al imprimir) */}
+            <label className="flex items-start gap-3 mt-4 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={includeImages}
+                onChange={(e) => setIncludeImages(e.target.checked)}
+                disabled={generating}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[#BD0E0D] cursor-pointer disabled:opacity-60"
+              />
+              <span className="text-sm text-gray-700 leading-snug">
+                <span className="font-semibold">{tb("include_images_label")}</span>
+                <span className="block text-xs text-gray-400">
+                  {tb("include_images_hint")}
+                </span>
+              </span>
+            </label>
+
             <div className="flex items-center justify-end gap-2 mt-5">
               <button
                 onClick={closeNameModal}

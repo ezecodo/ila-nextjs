@@ -33,8 +33,11 @@ import {
 export default function Header() {
   const pathname = usePathname();
   const isDashboard = pathname?.includes("/dashboard");
+  const isMap = pathname?.endsWith("/map");
+  // Páginas que arrancan (y se quedan) con el header comprimido
+  const forceCompact = isDashboard || isMap;
 
-  const [isCompact, setIsCompact] = useState(isDashboard);
+  const [isCompact, setIsCompact] = useState(forceCompact);
   const rafRef = useRef(null);
   const prevScrollYRef = useRef(0);
   const directionStartRef = useRef(0);
@@ -111,15 +114,15 @@ export default function Header() {
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (isDashboard) {
+    if (forceCompact) {
       setIsCompact(true);
     } else {
       setIsCompact(window.scrollY > 150);
     }
-  }, [isDashboard]);
+  }, [forceCompact]);
 
   useEffect(() => {
-    if (isDashboard) return;
+    if (forceCompact) return;
 
     const handleScroll = () => {
       if (rafRef.current) return;
@@ -159,7 +162,7 @@ export default function Header() {
       window.removeEventListener("scroll", handleScroll);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isDashboard]);
+  }, [forceCompact]);
 
   useEffect(() => {
     if (!mounted) return;

@@ -25,10 +25,9 @@ export async function GET() {
       return NextResponse.json({ error: "Sin acceso PDF-Abo" }, { status: 403 });
     }
 
-    // Ediciones publicadas desde el startDate del suscriptor, que tengan PDF cargado
+    // Todas las ediciones que tengan PDF cargado (sin límite por fecha de alta)
     const editions = await prisma.edition.findMany({
       where: {
-        datePublished: { gte: invitation.startDate },
         pdf: { isNot: null },
       },
       orderBy: { number: "desc" },

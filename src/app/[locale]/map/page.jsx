@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Image from "next/image";
 
 // Importar el NUEVO GlobeMap (con Three.js aislado)
 const GlobeMap = dynamic(() => import("../components/GlobeMap/GlobeMap"), {
@@ -10,24 +9,13 @@ const GlobeMap = dynamic(() => import("../components/GlobeMap/GlobeMap"), {
 
 export default function MapaPage() {
   return (
+    // Márgenes negativos para romper el padding horizontal del <main> del layout
+    // y que el globo ocupe todo el ancho (sin barras claras a los lados).
     <div
-      className="min-h-screen py-8 px-4"
+      className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 -mt-[80px] md:mt-0"
       style={{ backgroundColor: "#050505" }}
     >
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-center mb-8">
-          <Image
-            src="/logo/50_Schriftzug_weiss.png"
-            alt="ila 50"
-            width={199}
-            height={141}
-            priority
-          />
-        </div>
-
-        {/* Usar el NUEVO GlobeMap con Three.js aislado */}
-        <GlobeMap />
-      </div>
+      <GlobeMap />
     </div>
   );
 }
