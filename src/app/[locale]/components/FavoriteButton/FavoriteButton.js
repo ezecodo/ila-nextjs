@@ -96,7 +96,7 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
 
       <div
         ref={modalRef}
-        className="relative z-10 w-full max-w-xs bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden"
+        className="relative z-10 w-full max-w-xs bg-white dark:bg-gray-800 shadow-2xl overflow-hidden"
       >
         {/* Header compacto */}
         <div className="bg-gradient-to-r from-red-600 to-red-700 px-4 py-4 text-center relative">
@@ -131,7 +131,7 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
 
           {/* Beneficios inline */}
           <div className="flex flex-wrap justify-center gap-2 mb-4">
-            <span className="inline-flex items-center gap-1 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-2 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-2 py-1">
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -147,7 +147,7 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
               </svg>
               {t("benefit1")}
             </span>
-            <span className="inline-flex items-center gap-1 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-2 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1 text-xs bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 px-2 py-1">
               <svg
                 className="w-3 h-3"
                 fill="none"
@@ -172,7 +172,7 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
                 closeModal();
                 router.push("/auth/signup");
               }}
-              className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm"
+              className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold py-2 px-4 text-sm"
             >
               {t("registerButton")}
             </button>
@@ -181,7 +181,7 @@ const FavoriteButton = ({ articleId, variant = "shareBar" }) => {
                 closeModal();
                 router.push("/auth/signin");
               }}
-              className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-sm"
+              className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium py-2 px-4 text-sm"
             >
               {t("loginButton")}
             </button>

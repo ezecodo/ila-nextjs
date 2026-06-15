@@ -26,6 +26,8 @@ export async function GET(req) {
             title: true,
             titleES: true,
             coverImage: true,
+            isAvailableToOrder: true,
+            isSpecialOffer: true,
           },
         },
         authors: {

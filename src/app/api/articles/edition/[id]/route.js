@@ -47,6 +47,12 @@ export async function GET(req, context) {
         legacyPath: true,
         isPublished: true,
         publicationDate: true,
+        authors: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
       orderBy: {
         publicationDate: "asc",

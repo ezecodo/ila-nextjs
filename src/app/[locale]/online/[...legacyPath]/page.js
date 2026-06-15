@@ -11,6 +11,8 @@ import HoverInfo from "../../components/HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges";
 import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
 import DonationInlineBanner from "../../components/DonationInlineBanner/DonationInlineBanner";
+import ArticleDossierCTA from "../../components/ArticleDossierCTA/ArticleDossierCTA";
+import RelatedArticles from "../../components/RelatedArticles/RelatedArticles";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
@@ -272,11 +274,12 @@ export default function LegacyArticlePage() {
         }}
       />
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="max-w-4xl lg:max-w-7xl mx-auto p-6">
         {!isAdmin && <DonationPopUp articleId={article.id} />}
 
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 lg:items-start">
         <article itemScope itemType="https://schema.org/Article">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto lg:ml-auto lg:mr-0">
             <div id="article-start" />
             {/* FECHA */}
             <p className="text-sm text-gray-400 italic mb-2">
@@ -597,7 +600,17 @@ export default function LegacyArticlePage() {
               />
             </div>
           )}
+
+          {article.edition?.id && (
+            <ArticleDossierCTA
+              edition={article.edition}
+              currentArticleId={article.id}
+            />
+          )}
         </article>
+
+          <RelatedArticles articleId={article.id} />
+        </div>
 
         <ImageModal
           isOpen={isOpen}
@@ -632,7 +645,7 @@ export default function LegacyArticlePage() {
           title={isES ? article.titleES : article.title}
           articleId={article.id} // 👈 habilita el botón de favoritos
           anchorSelector="#article-start" // 👈 alinear con el inicio del contenido
-          contentMaxWidth={1024} // max-w-4xl
+          contentMaxWidth={1280} // max-w-7xl (grid con rail derecho)
           gapFromContent={16}
         />
       </main>

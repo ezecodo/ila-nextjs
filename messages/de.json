@@ -831,6 +831,18 @@
     "independent": "unabhängig",
     "trustMessage": "Jede Spende hilft uns, unabhängigen Journalismus zu ermöglichen."
   },
+  "articleDossierCta": {
+    "eyebrow": "Aus diesem Dossier",
+    "hook": "Dieser Artikel erschien in einem ila-Dossier. Lies das ganze Heft – auf Papier oder digital.",
+    "orderButton": "Dossier bestellen",
+    "orderMoreButton": "Noch eins bestellen",
+    "added": "Hinzugefügt",
+    "aboButton": "Digitales Abo",
+    "moreInDossier": "Weitere Beiträge aus diesem Dossier ({count})"
+  },
+  "relatedArticles": {
+    "title": "Das könnte dich auch interessieren"
+  },
   "donationInline": {
     "ariaLabel": "Spendenaufruf",
     "kicker": "Spendenaufruf",

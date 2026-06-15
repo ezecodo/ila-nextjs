@@ -830,6 +830,18 @@
     "independent": "independiente",
     "trustMessage": "Cada donación nos ayuda a posibilitar el periodismo independiente."
   },
+  "articleDossierCta": {
+    "eyebrow": "De este dossier",
+    "hook": "Este artículo apareció en un dossier de la ila. Leé el número completo, en papel o en digital.",
+    "orderButton": "Pedir el dossier",
+    "orderMoreButton": "Pedir otro",
+    "added": "Añadido",
+    "aboButton": "Abo digital",
+    "moreInDossier": "Más artículos de este dossier ({count})"
+  },
+  "relatedArticles": {
+    "title": "También te puede interesar"
+  },
   "donationInline": {
     "ariaLabel": "Llamada a donar",
     "kicker": "Llamada a donar",
