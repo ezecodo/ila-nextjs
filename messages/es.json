@@ -118,7 +118,15 @@
     "loading": "Cargando artículo...",
     "pdfDownload": "Descargar",
     "pdfBannerText": "Descargar este artículo en PDF",
-    "pdfSectionTitle": "Documentos PDF"
+    "pdfSectionTitle": "Documentos PDF",
+    "readingMode": "Modo lectura"
+  },
+  "readingMode": {
+    "ariaLabel": "Modo lectura",
+    "close": "Cerrar",
+    "decreaseFont": "Reducir texto",
+    "increaseFont": "Aumentar texto",
+    "toggleTheme": "Cambiar tema"
   },
   "dossiers": {
     "editionListTitle": "Liste der Dossiers",

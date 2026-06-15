@@ -118,7 +118,15 @@
     "loading": "Artikel wird geladen...",
     "pdfDownload": "Herunterladen",
     "pdfBannerText": "Diesen Artikel als PDF herunterladen",
-    "pdfSectionTitle": "PDF-Dokumente"
+    "pdfSectionTitle": "PDF-Dokumente",
+    "readingMode": "Lesemodus"
+  },
+  "readingMode": {
+    "ariaLabel": "Lesemodus",
+    "close": "Schließen",
+    "decreaseFont": "Schrift verkleinern",
+    "increaseFont": "Schrift vergrößern",
+    "toggleTheme": "Farbschema wechseln"
   },
   "dossiers": {
     "editionListTitle": "Dossier-Liste",

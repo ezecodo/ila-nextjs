@@ -13,6 +13,7 @@ import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
 import DonationInlineBanner from "../../components/DonationInlineBanner/DonationInlineBanner";
 import ArticleDossierCTA from "../../components/ArticleDossierCTA/ArticleDossierCTA";
 import RelatedArticles from "../../components/RelatedArticles/RelatedArticles";
+import ReadingMode from "../../components/ReadingMode/ReadingMode";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
@@ -56,6 +57,21 @@ export default function LegacyArticlePage() {
     alt: "",
     title: "",
   });
+  const [hasPdfAbo, setHasPdfAbo] = useState(false);
+  const [readerOpen, setReaderOpen] = useState(false);
+
+  useEffect(() => {
+    let aborted = false;
+    fetch("/api/user/pdf-abo")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!aborted) setHasPdfAbo(!!d?.hasPdfAbo);
+      })
+      .catch(() => {});
+    return () => {
+      aborted = true;
+    };
+  }, []);
 
   const openPopup = (image) => {
     setPopupImage({
@@ -209,6 +225,37 @@ export default function LegacyArticlePage() {
     };
   }
 
+  // HTML del artículo ya transformado (headings, imágenes, links).
+  // Se computa una vez y se reusa tanto en el render normal como en el Modo lectura.
+  const articleHtml = wrapInlineImagesWithCaption(
+    rewriteEditionLinksWithLocale(
+      autoDetectHeadings(
+        autoFormatHeadings(
+          normalizeContentForRender(
+            isES && article.contentES ? article.contentES : article.content,
+          ),
+        ),
+      ),
+      locale,
+    ),
+  );
+
+  const readerTitle =
+    isES && article.isTranslatedES ? article.titleES : article.title;
+  const readerSubtitle = isES ? article.subtitleES : article.subtitle;
+  const readerAuthor = article.authors?.map((a) => a.name).join(", ");
+  const readerMeta = article.edition?.number
+    ? `ila ${article.edition.number}`
+    : "";
+  const readerVorspann = (isES ? article.previewTextES : article.previewText)
+    ? rewriteEditionLinksWithLocale(
+        isES && article.previewTextES
+          ? article.previewTextES
+          : article.previewText,
+        locale,
+      )
+    : "";
+
   return (
     <>
       {/* JSON-LD structured data */}
@@ -321,6 +368,30 @@ export default function LegacyArticlePage() {
               <h2 className="text-lg md:text-xl font-light italic text-gray-600 dark:text-gray-300 mb-8">
                 {isES ? article.subtitleES : article.subtitle}
               </h2>
+            )}
+
+            {/* Modo lectura — solo para suscriptores con Digital ABO */}
+            {hasPdfAbo && (
+              <button
+                onClick={() => setReaderOpen(true)}
+                className="inline-flex items-center gap-2 mb-6 px-4 py-2 text-sm font-semibold text-[#BD0E0D] border border-[#BD0E0D] hover:bg-[#BD0E0D] hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+                {t("readingMode")}
+              </button>
             )}
           </div>
 
@@ -601,20 +672,7 @@ export default function LegacyArticlePage() {
             )}
           </div>
           {(() => {
-            const fullHtml = wrapInlineImagesWithCaption(
-              rewriteEditionLinksWithLocale(
-                autoDetectHeadings(
-                  autoFormatHeadings(
-                    normalizeContentForRender(
-                      isES && article.contentES
-                        ? article.contentES
-                        : article.content,
-                    ),
-                  ),
-                ),
-                locale,
-              ),
-            );
+            const fullHtml = articleHtml;
             const { firstHalf, secondHalf, splitWorked } =
               splitHtmlAtMiddleParagraph(fullHtml);
             if (!splitWorked) {
@@ -680,6 +738,17 @@ export default function LegacyArticlePage() {
           onClose={closePopup}
           alt={popupImage.alt}
           title={popupImage.title}
+        />
+
+        <ReadingMode
+          open={readerOpen}
+          onClose={() => setReaderOpen(false)}
+          html={articleHtml}
+          vorspann={readerVorspann}
+          title={readerTitle}
+          subtitle={readerSubtitle}
+          author={readerAuthor}
+          meta={readerMeta}
         />
         {hoveredEdition && (
           <div
