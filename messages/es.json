@@ -1308,9 +1308,17 @@
     "backToAdmin": "Volver al panel admin",
     "tabs": {
       "favorites": "Artículos Favoritos",
+      "latest_dossier": "📖 Dossier actual",
       "pdf_dossiers": "📰 Mis Dossiers (PDF)",
       "account": "Configuración de cuenta",
       "pdf_bundle": "Paquete PDF"
+    },
+    "latest_dossier": {
+      "heading": "Dossier actual",
+      "view_toc": "Editorial e índice",
+      "exclusive_badge": "Exclusivo",
+      "empty": "Este dossier todavía no tiene artículos.",
+      "no_current": "Por ahora no hay un dossier actual disponible."
     },
     "pdf_dossiers": {
       "heading": "Mis Dossiers",

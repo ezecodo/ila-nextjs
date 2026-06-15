@@ -72,6 +72,7 @@ export async function GET(req, context) {
       where,
       select: {
         id: true,
+        beitragsId: true,
         title: true,
         titleES: true,
         subtitle: true,
@@ -92,7 +93,33 @@ export async function GET(req, context) {
       },
     });
 
-    return new Response(JSON.stringify(articles), {
+    // 🖼️ Miniatura: las imágenes viven en tabla aparte, indexadas por
+    // contentId = beitragsId || id. Una sola query para todos los artículos.
+    const contentIds = articles.map((a) => a.beitragsId || a.id);
+    const images = contentIds.length
+      ? await prisma.image.findMany({
+          where: { contentType: "ARTICLE", contentId: { in: contentIds } },
+          select: { contentId: true, url: true, alt: true, altES: true },
+          orderBy: { id: "asc" },
+        })
+      : [];
+
+    const imageByContentId = new Map();
+    for (const img of images) {
+      if (!imageByContentId.has(img.contentId)) {
+        imageByContentId.set(img.contentId, img);
+      }
+    }
+
+    const articlesWithImage = articles.map(({ beitragsId, ...rest }) => {
+      const img = imageByContentId.get(beitragsId || rest.id) || null;
+      return {
+        ...rest,
+        image: img ? { url: img.url, alt: img.alt, altES: img.altES } : null,
+      };
+    });
+
+    return new Response(JSON.stringify(articlesWithImage), {
       status: 200,
     });
   } catch (error) {

@@ -8,6 +8,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import AccountSettings from "../components/AccountSettings/AccountSettings";
 import FavoriteArticlesList from "./FavoriteArticleList/FavoriteArticleList";
 import PdfDossiers from "./PdfDossiers/PdfDossiers";
+import LatestDossier from "./LatestDossier/LatestDossier";
 
 export default function UserDashboard() {
   const [selectedTab, setSelectedTab] = useState("favorites");
@@ -21,12 +22,19 @@ export default function UserDashboard() {
     fetch("/api/user/pdf-abo")
       .then((r) => r.json())
       .then((data) => {
-        if (data.hasPdfAbo) setHasPdfAbo(true);
+        if (data.hasPdfAbo) {
+          setHasPdfAbo(true);
+          // El ABO aterriza directo en el dossier actual
+          setSelectedTab("latest-dossier");
+        }
       })
       .catch(() => {});
   }, []);
 
   const menuItems = [
+    ...(hasPdfAbo
+      ? [{ key: "latest-dossier", label: t("tabs.latest_dossier") }]
+      : []),
     { key: "favorites", label: t("tabs.favorites") },
     ...(hasPdfAbo ? [{ key: "pdf-dossiers", label: t("tabs.pdf_dossiers") }] : []),
     { key: "account", label: t("tabs.account") },
@@ -80,6 +88,9 @@ export default function UserDashboard() {
       {/* Contenido */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
         {selectedTab === "account" && <AccountSettings />}
+        {selectedTab === "latest-dossier" && hasPdfAbo && (
+          <LatestDossier locale={locale} />
+        )}
         {selectedTab === "favorites" && <FavoriteArticlesList />}
         {selectedTab === "pdf-dossiers" && hasPdfAbo && (
           <PdfDossiers locale={locale} />

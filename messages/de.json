@@ -1309,9 +1309,17 @@
     "backToAdmin": "Zurück zum Admin-Dashboard",
     "tabs": {
       "favorites": "Lieblingsartikel",
+      "latest_dossier": "📖 Aktuelles Dossier",
       "pdf_dossiers": "📰 Meine Dossiers (PDF)",
       "account": "Kontoeinstellungen",
       "pdf_bundle": "PDF Paket"
+    },
+    "latest_dossier": {
+      "heading": "Aktuelles Dossier",
+      "view_toc": "Editorial und Inhalt",
+      "exclusive_badge": "Exklusiv",
+      "empty": "Dieses Dossier hat noch keine Artikel.",
+      "no_current": "Zurzeit ist kein aktuelles Dossier verfügbar."
     },
     "pdf_dossiers": {
       "heading": "Meine Dossiers",
