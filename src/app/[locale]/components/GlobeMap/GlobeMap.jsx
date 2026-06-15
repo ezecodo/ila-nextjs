@@ -368,37 +368,159 @@ export default function GlobeMap() {
     };
 
     // --- MARCADORES DE PAÍSES ---
-    const markerGeometry = new THREE.SphereGeometry(0.02, 16, 16);
+    // Esfera invisible = blanco del raycast · círculo "ila" (CSS2D) = visual
+    const markerGeometry = new THREE.SphereGeometry(0.03, 12, 12);
+
+    // Texto legible (negro/blanco) según la luminancia del color de fondo
+    const readableText = (hex) => {
+      const c = hex.replace("#", "");
+      const r = parseInt(c.slice(0, 2), 16);
+      const g = parseInt(c.slice(2, 4), 16);
+      const b = parseInt(c.slice(4, 6), 16);
+      const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return lum > 0.6 ? "#111111" : "#ffffff";
+    };
+
+    const createMarkerDiv = (colorHex) => {
+      const div = document.createElement("div");
+      div.style.cssText = `
+        position: relative;
+        width: 22px;
+        height: 22px;
+        border-radius: 9999px;
+        background: ${colorHex};
+        color: ${readableText(colorHex)};
+        box-shadow: 0 0 0 1.5px #ffffff, 0 1px 4px rgba(0,0,0,0.5);
+        transition: opacity 0.4s ease, box-shadow 0.25s ease;
+        pointer-events: none;
+        opacity: 0;
+        will-change: opacity;
+      `;
+      const label = document.createElement("span");
+      label.textContent = "ila";
+      // Centrado absoluto: no depende del flex ni del transform que el
+      // CSS2DRenderer reescribe en el div externo cada frame.
+      label.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, calc(-50% + 0.5px));
+        font-family: 'Futura Cyrillic', Arial, sans-serif;
+        font-weight: 800;
+        font-size: 11px;
+        line-height: 1;
+        letter-spacing: -0.3px;
+        white-space: nowrap;
+      `;
+      div.appendChild(label);
+      return div;
+    };
 
     Object.entries(countryCoordinates).forEach(([code, coords]) => {
       const position = latLonToVector3(coords.lat, coords.lon, 0.82);
-      const color = new THREE.Color(countryColors[code] || "#00ffcc");
+      const colorHex = countryColors[code] || "#00ffcc";
 
       const point = new THREE.Mesh(
         markerGeometry,
-        new THREE.MeshStandardMaterial({
-          color: color,
-          emissive: color,
-          emissiveIntensity: 0.3,
+        new THREE.MeshBasicMaterial({
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
         })
       );
       point.position.copy(position);
 
+      const markerDiv = createMarkerDiv(colorHex);
+      point.add(new CSS2DObject(markerDiv));
+
       const tooltipDiv = createTooltipDiv(code);
-      const cssObject = new CSS2DObject(tooltipDiv);
-      cssObject.position.set(-0.15, 0.1, 0);
-      point.add(cssObject);
+      const tooltipObject = new CSS2DObject(tooltipDiv);
+      tooltipObject.position.set(-0.15, 0.18, 0);
+      point.add(tooltipObject);
 
       point.userData = {
         countryCode: code,
-        targetScale: 1,
         isHovered: false,
         tooltipElement: tooltipDiv,
+        tooltipObject,
+        markerElement: markerDiv,
+        colorHex,
       };
 
       globeGroup.add(point);
       markersData.push(point);
     });
+
+    // --- RELLENOS DE PAÍSES (silueta proyectada sobre la esfera, en hover) ---
+    const countryFills = {}; // code -> { material }
+    let fillsDisposed = false;
+    const FILL_RADIUS = 0.803; // apenas por encima de la superficie (0.8)
+
+    // Triángulo lon/lat → se subdivide hasta abrazar la curvatura y se proyecta
+    const pushTriangle = (arr, a, b, c) => {
+      const maxEdge = Math.max(
+        a.distanceTo(b),
+        b.distanceTo(c),
+        c.distanceTo(a)
+      );
+      if (maxEdge > 4) {
+        const ab = new THREE.Vector2((a.x + b.x) / 2, (a.y + b.y) / 2);
+        const bc = new THREE.Vector2((b.x + c.x) / 2, (b.y + c.y) / 2);
+        const ca = new THREE.Vector2((c.x + a.x) / 2, (c.y + a.y) / 2);
+        pushTriangle(arr, a, ab, ca);
+        pushTriangle(arr, ab, b, bc);
+        pushTriangle(arr, ca, bc, c);
+        pushTriangle(arr, ab, bc, ca);
+        return;
+      }
+      for (const p of [a, b, c]) {
+        const v = latLonToVector3(p.y, p.x, FILL_RADIUS); // p = (lon, lat)
+        arr.push(v.x, v.y, v.z);
+      }
+    };
+
+    const buildCountryFills = (borders) => {
+      if (fillsDisposed) return;
+      Object.entries(borders).forEach(([code, rings]) => {
+        const colorHex = countryColors[code] || "#00ffcc";
+        const positions = [];
+        rings.forEach((ring) => {
+          const contour = ring.map(([lon, lat]) => new THREE.Vector2(lon, lat));
+          const first = contour[0];
+          const last = contour[contour.length - 1];
+          if (first && last && first.x === last.x && first.y === last.y) {
+            contour.pop();
+          }
+          if (contour.length < 3) return;
+          const faces = THREE.ShapeUtils.triangulateShape(contour, []);
+          faces.forEach(([i0, i1, i2]) => {
+            pushTriangle(positions, contour[i0], contour[i1], contour[i2]);
+          });
+        });
+        if (!positions.length) return;
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(positions, 3)
+        );
+        const mat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(colorHex),
+          transparent: true,
+          opacity: 0,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.renderOrder = 1;
+        globeGroup.add(mesh);
+        countryFills[code] = { mesh, material: mat };
+      });
+    };
+
+    fetch("/data/country-borders.json")
+      .then((r) => r.json())
+      .then(buildCountryFills)
+      .catch((err) => console.error("Error cargando fronteras:", err));
 
     // --- CONTROLES ---
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -460,14 +582,19 @@ export default function GlobeMap() {
 
       markersData.forEach((p) => {
         p.userData.isHovered = false;
-        p.userData.targetScale = 1;
       });
 
-      if (intersects.length > 0) {
-        const hit = intersects[0].object;
+      // Rechazar impactos sobre marcadores del hemisferio trasero (detrás del
+      // globo): un HTML CSS2D no se ocluye solo, así que lo filtramos a mano.
+      const camDir = camera.position.clone().normalize();
+      const hit = intersects.find((it) => {
+        const n = it.object.getWorldPosition(new THREE.Vector3()).normalize();
+        return n.dot(camDir) > 0.12;
+      })?.object;
+
+      if (hit) {
         hitCode = hit.userData.countryCode;
         hit.userData.isHovered = true;
-        hit.userData.targetScale = 2;
         renderer.domElement.style.cursor = "pointer";
       } else {
         renderer.domElement.style.cursor = "default";
@@ -504,6 +631,7 @@ export default function GlobeMap() {
     renderer.domElement.addEventListener("click", onClick);
 
     // --- ANIMACIÓN ---
+    const _markerWorldPos = new THREE.Vector3();
     // easeOutBack: crece con un leve rebote al llegar al tamaño final
     const easeOutBack = (x) => {
       const c1 = 1.70158;
@@ -529,19 +657,34 @@ export default function GlobeMap() {
       cloudsMesh.rotation.y += 0.0002;
       starField.rotation.y -= 0.0001;
 
+      const camDir = camera.position.clone().normalize();
       markersData.forEach((point) => {
-        const { targetScale, isHovered, tooltipElement } = point.userData;
+        const { isHovered, tooltipElement, tooltipObject, markerElement, colorHex } =
+          point.userData;
 
-        const newScale = THREE.MathUtils.lerp(point.scale.x, targetScale, 0.1);
-        point.scale.set(newScale, newScale, newScale);
+        // El tooltip activo se pone delante de todos los círculos (el
+        // CSS2DRenderer ordena el z-index por renderOrder y luego distancia)
+        tooltipObject.renderOrder = isHovered ? 1000 : 0;
 
-        point.material.emissiveIntensity = THREE.MathUtils.lerp(
-          point.material.emissiveIntensity,
-          isHovered ? 0.8 : 0.3,
-          0.1
-        );
+        // Hasta que el globo no terminó de crecer, marcadores ocultos
+        if (!growRef.current.done) {
+          markerElement.style.opacity = "0";
+          tooltipElement.style.opacity = "0";
+          return;
+        }
 
-        if (isHovered) {
+        // Oclusión: visible solo si el marcador mira hacia la cámara
+        const normal = point
+          .getWorldPosition(_markerWorldPos)
+          .normalize();
+        const onFront = normal.dot(camDir) > 0.12;
+
+        markerElement.style.opacity = onFront ? "1" : "0";
+        markerElement.style.boxShadow = isHovered
+          ? `0 0 0 2px #ffffff, 0 0 16px 4px ${colorHex}`
+          : `0 0 0 1.5px #ffffff, 0 1px 4px rgba(0,0,0,0.5)`;
+
+        if (isHovered && onFront) {
           tooltipElement.style.opacity = "1";
           tooltipElement.style.transform = "scale(1) translateY(0)";
         } else {
@@ -549,6 +692,13 @@ export default function GlobeMap() {
           tooltipElement.style.transform = "scale(0.8) translateY(10px)";
         }
       });
+
+      // Relleno del país bajo el cursor: fade-in/out suave
+      for (const code in countryFills) {
+        const target = code === currentHoveredCode ? 0.45 : 0;
+        const mat = countryFills[code].material;
+        mat.opacity += (target - mat.opacity) * 0.15;
+      }
 
       controls.update();
       renderer.render(scene, camera);
@@ -573,6 +723,13 @@ export default function GlobeMap() {
       renderer.domElement.removeEventListener("click", onClick);
       renderer.domElement.removeEventListener("wheel", markInteracted);
       controls.removeEventListener("start", markInteracted);
+
+      fillsDisposed = true;
+      Object.values(countryFills).forEach(({ mesh, material }) => {
+        globeGroup.remove(mesh);
+        mesh.geometry.dispose();
+        material.dispose();
+      });
 
       renderer.dispose();
       globeGeometry.dispose();
