@@ -419,7 +419,9 @@ export default function EditionDetails() {
           }
         }
 
-        const isExplicitlyUnpublished = matchedArticle?.isPublished === false;
+        // La API solo devuelve artículos que el visitante puede ver
+        // (admins: todos; ABO: programados incluidos). Si hay match, hay acceso.
+        const isExclusive = matchedArticle?.isPublished === false;
 
         currentArticle = {
           id: parsedArticles.length,
@@ -427,7 +429,8 @@ export default function EditionDetails() {
           title: titleWithoutPage,
           subtitle: subtitleToUse || null, // si usamos la línea siguiente como título real, la mostramos aquí
           author: null,
-          isLinked: Boolean(matchedArticle) && !isExplicitlyUnpublished,
+          isLinked: Boolean(matchedArticle),
+          isExclusive,
           matchedArticle: matchedArticle || null,
           isSection: false,
         };
@@ -633,15 +636,15 @@ export default function EditionDetails() {
           }
 
           if (matchedArticle) {
-            const isExplicitlyUnpublished =
-              matchedArticle.isPublished === false;
+            const isExclusive = matchedArticle.isPublished === false;
             parsedArticles.push({
               id: parsedArticles.length,
               pageNumber: null,
               title: line,
               subtitle: null,
               author: null,
-              isLinked: !isExplicitlyUnpublished,
+              isLinked: true,
+              isExclusive,
               matchedArticle,
               isSection: false,
             });
@@ -733,6 +736,11 @@ export default function EditionDetails() {
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 group-hover:text-red-700 dark:group-hover:text-red-300 leading-snug mb-1">
+                      {article.isExclusive && (
+                        <span className="mr-2 inline-block rounded-none bg-[#BD0E0D] px-1.5 py-0.5 align-middle text-[10px] font-semibold uppercase tracking-wide text-white">
+                          {t("tocExclusiveBadge")}
+                        </span>
+                      )}
                       {isES &&
                       article.matchedArticle?.isTranslatedES &&
                       article.matchedArticle?.titleES

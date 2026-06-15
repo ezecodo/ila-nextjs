@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/app/auth";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -62,6 +63,39 @@ export async function GET(req) {
       });
     }
 
+    // 🔒 Acceso anticipado: los artículos no publicados solo son visibles para
+    // admins y suscriptores Digital ABO (acceso exclusivo a contenido programado).
+    let exclusivePreview = false;
+    if (!article.isPublished) {
+      const session = await auth();
+      const role = session?.user?.role;
+      const email = session?.user?.email;
+
+      let allowed = false;
+      if (role === "admin") {
+        allowed = true;
+      } else if (email) {
+        const invitation = await prisma.pdfAboInvitation.findUnique({
+          where: { email: email.toLowerCase() },
+          select: { isRedeemed: true, endDate: true },
+        });
+        const hasPdfAbo =
+          !!invitation &&
+          invitation.isRedeemed &&
+          (!invitation.endDate || invitation.endDate > new Date());
+        // El ABO accede a artículos programados (con fecha de publicación fijada).
+        allowed = hasPdfAbo && !!article.publicationDate;
+      }
+
+      if (!allowed) {
+        return new Response(
+          JSON.stringify({ error: "Artículo no encontrado" }),
+          { status: 404, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      exclusivePreview = true;
+    }
+
     const contentIdToUse = article.beitragsId || article.id;
 
     const images = await prisma.image.findMany({
@@ -82,6 +116,7 @@ export async function GET(req) {
         images,
         pdfs,
         interviewees: article.interviewees || [],
+        exclusivePreview,
       }),
       {
         status: 200,

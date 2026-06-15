@@ -327,6 +327,19 @@ export default function LegacyArticlePage() {
         <article itemScope itemType="https://schema.org/Article">
           <div className="max-w-3xl mx-auto lg:ml-auto lg:mr-0">
             <div id="article-start" />
+            {/* Acceso anticipado Digital ABO */}
+            {article.exclusivePreview && (
+              <div className="mb-4 flex items-start gap-2 border-l-4 border-[#BD0E0D] bg-[#BD0E0D]/5 px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+                <span aria-hidden="true">📰</span>
+                <span>
+                  {article.publicationDate
+                    ? t("exclusivePreviewBadge", {
+                        date: formatDate(article.publicationDate, locale),
+                      })
+                    : t("exclusivePreviewBadgeNoDate")}
+                </span>
+              </div>
+            )}
             {/* FECHA */}
             <p className="text-sm text-gray-400 italic mb-2">
               {formatDate(article.publicationDate, locale)}

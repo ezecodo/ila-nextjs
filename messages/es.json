@@ -119,7 +119,9 @@
     "pdfDownload": "Descargar",
     "pdfBannerText": "Descargar este artículo en PDF",
     "pdfSectionTitle": "Documentos PDF",
-    "readingMode": "Modo lectura"
+    "readingMode": "Modo lectura",
+    "exclusivePreviewBadge": "Acceso anticipado exclusivo Digital Abo – este artículo se publica para todos el {date}.",
+    "exclusivePreviewBadgeNoDate": "Acceso anticipado exclusivo Digital Abo – todavía no disponible públicamente."
   },
   "readingMode": {
     "ariaLabel": "Modo lectura",
@@ -131,6 +133,7 @@
   "dossiers": {
     "editionListTitle": "Liste der Dossiers",
     "dossiers": "Dossiers",
+    "tocExclusiveBadge": "Exclusivo",
     "priorityColumn": "Portada",
     "priorityButton": "Orden",
     "priorityButtonTitle": "Orden de los artículos en la portada",

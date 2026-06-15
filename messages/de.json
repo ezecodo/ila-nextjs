@@ -119,7 +119,9 @@
     "pdfDownload": "Herunterladen",
     "pdfBannerText": "Diesen Artikel als PDF herunterladen",
     "pdfSectionTitle": "PDF-Dokumente",
-    "readingMode": "Lesemodus"
+    "readingMode": "Lesemodus",
+    "exclusivePreviewBadge": "Exklusiver Vorabzugriff für Digitalabo – öffentlich erscheint dieser Artikel am {date}.",
+    "exclusivePreviewBadgeNoDate": "Exklusiver Vorabzugriff für Digitalabo – noch nicht öffentlich verfügbar."
   },
   "readingMode": {
     "ariaLabel": "Lesemodus",
@@ -131,6 +133,7 @@
   "dossiers": {
     "editionListTitle": "Dossier-Liste",
     "dossiers": "Dossiers",
+    "tocExclusiveBadge": "Exklusiv",
     "priorityColumn": "Startseite",
     "priorityButton": "Reihenfolge",
     "priorityButtonTitle": "Reihenfolge der Artikel auf der Startseite",
