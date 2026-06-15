@@ -625,7 +625,10 @@
     "gestaltungLabel": "Gestaltung",
     "carousels": "Karussells",
     "links": "Links",
-    "redaktion": "Redaktion"
+    "redaktion": "Redaktion",
+    "digitalAbo": "Mein Digitalabo",
+    "digitalAboTooltip": "Wechselt in den Digitalabo-Modus: eigene Lieblingsartikel, PDFs erstellen und vor allem mir Feedback geben.",
+    "digitalAboTooltipSignoff": "Eine Umarmung, Eze"
   },
   "redaktion": {
     "title": "Redaktion",
@@ -1298,6 +1301,8 @@
     "title": "Mein ila",
     "menu_open": "Menü öffnen ☰",
     "menu_close": "Menü schließen ☰",
+    "adminPreviewNote": "Digitalabo-Vorschau (als Admin)",
+    "backToAdmin": "Zurück zum Admin-Dashboard",
     "tabs": {
       "favorites": "Lieblingsartikel",
       "pdf_dossiers": "📰 Meine Dossiers (PDF)",

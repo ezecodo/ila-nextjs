@@ -17,6 +17,7 @@ import {
   FaTimes,
   FaChartLine,
   FaChartBar,
+  FaBookOpen,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -229,6 +230,17 @@ const DashboardStats = () => {
           value=""
           href="/dashboard/account"
           pathname={pathname}
+        />
+
+        {/* Mein Digitalabo (vista de suscriptor) */}
+        <StatCard
+          icon={<FaBookOpen size={18} />}
+          label=""
+          value=""
+          href="/dashboard-users"
+          pathname={pathname}
+          tooltip={t("digitalAboTooltip")}
+          tooltipSignoff={t("digitalAboTooltipSignoff")}
         />
 
         {/* Redaktion */}
@@ -452,6 +464,15 @@ const DashboardStats = () => {
             {/* Cuenta / FAQ / Analytics */}
             <div className="border-t border-gray-100 mt-2 pt-2">
               <Link
+                href="/dashboard-users"
+                className={mobileLinkClass("/dashboard-users")}
+                onClick={closeMobile}
+              >
+                <span className="flex items-center gap-2">
+                  <FaBookOpen size={14} /> {t("digitalAbo")}
+                </span>
+              </Link>
+              <Link
                 href="/dashboard/redaktion"
                 className={mobileLinkClass("/dashboard/redaktion")}
                 onClick={closeMobile}
@@ -496,14 +517,24 @@ const DashboardStats = () => {
 };
 
 // 🧩 Componente reutilizable
-function StatCard({ label, value, color, icon, onClick, href, pathname }) {
+function StatCard({
+  label,
+  value,
+  color,
+  icon,
+  onClick,
+  href,
+  pathname,
+  tooltip,
+  tooltipSignoff,
+}) {
   const isCompact = !label && !value;
   const isActive = pathname?.startsWith(href);
 
   const content = (
     <div
       onClick={onClick}
-      className={`cursor-pointer flex-shrink-0 ${
+      className={`group relative cursor-pointer flex-shrink-0 ${
         isCompact ? "w-10 h-10 justify-center" : "min-w-[90px] px-3 py-2"
       } bg-white rounded-md shadow-sm border-2 ${
         isActive
@@ -527,6 +558,18 @@ function StatCard({ label, value, color, icon, onClick, href, pathname }) {
             {label}
           </span>
         </>
+      )}
+
+      {tooltip && (
+        <span className="pointer-events-none absolute top-full right-0 z-[9999] mt-2 block w-64 max-w-[80vw] whitespace-normal break-words rounded-none bg-gray-900 px-3.5 py-2.5 text-xs font-normal leading-snug text-white text-left opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+          <span className="absolute -top-1 right-4 h-2 w-2 rotate-45 bg-gray-900" />
+          {tooltip}
+          {tooltipSignoff && (
+            <span className="mt-1.5 block italic text-white/80">
+              {tooltipSignoff}
+            </span>
+          )}
+        </span>
       )}
     </div>
   );

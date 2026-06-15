@@ -560,11 +560,12 @@ export async function sendPdfAboInvitationEmail(email, name = "") {
   if (name) params.set("name", name);
   const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?${params.toString()}`;
   const donateUrl = `${process.env.NEXT_PUBLIC_APP_URL}/de/support/donations`;
+  const saludo = name ? `Hallo ${name},` : "Hallo,";
 
   const body = `
     <h1 style="margin:0 0 20px 0; font-size:26px; font-weight:700; color:#1a1a1a; letter-spacing:-0.01em;">Willkommen bei ila!</h1>
 
-    <p style="margin:0 0 16px 0;">Hallo,</p>
+    <p style="margin:0 0 16px 0;">${saludo}</p>
 
     <p style="margin:0 0 24px 0;">
       dein <strong>Digitalabo</strong> der Zeitschrift <strong>ila</strong> ist jetzt verfügbar! Um Zugang zu den Ausgaben zu erhalten, registriere dich bitte mit dieser E-Mail-Adresse:
@@ -604,6 +605,11 @@ export async function sendPdfAboInvitationEmail(email, name = "") {
     <p style="margin:0; color:#555;">
       Solidarische Grüße<br>
       <strong style="color:#1a1a1a;">von der ila-Redaktion</strong>
+    </p>
+
+    <p style="margin:28px 0 0 0; padding-top:18px; border-top:1px solid #eaeaea; font-size:13px; line-height:1.5; color:#999;">
+      Bitte antworte nicht auf diese E-Mail. Bei Fragen schreib uns gerne an
+      <a href="mailto:ila-bonn@t-online.de" style="color:#c21f2e; text-decoration:none; font-weight:600;">ila-bonn@t-online.de</a>.
     </p>
   `;
 

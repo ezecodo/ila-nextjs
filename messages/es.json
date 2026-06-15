@@ -625,7 +625,10 @@
     "gestaltungLabel": "Diseño web",
     "carousels": "Carruseles",
     "links": "Links",
-    "redaktion": "Redacción"
+    "redaktion": "Redacción",
+    "digitalAbo": "Mi Digitalabo",
+    "digitalAboTooltip": "Te lleva al modo Digitalabo: tus artículos favoritos, crear PDFs y, sobre todo, darme tu feedback.",
+    "digitalAboTooltipSignoff": "Un abrazo, Eze"
   },
   "redaktion": {
     "title": "Redacción",
@@ -1297,6 +1300,8 @@
     "title": "Mi ila",
     "menu_open": "Abrir Menú ☰",
     "menu_close": "Cerrar Menú ☰",
+    "adminPreviewNote": "Vista previa del Digitalabo (como admin)",
+    "backToAdmin": "Volver al panel admin",
     "tabs": {
       "favorites": "Artículos Favoritos",
       "pdf_dossiers": "📰 Mis Dossiers (PDF)",

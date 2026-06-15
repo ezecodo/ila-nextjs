@@ -11,6 +11,12 @@ export async function GET() {
       return NextResponse.json({ hasPdfAbo: false }, { status: 401 });
     }
 
+    // El equipo editorial (admin) accede al Digital ABO para conocer y probar
+    // el producto, sin necesidad de una invitación redimida.
+    if (session.user.role === "admin") {
+      return NextResponse.json({ hasPdfAbo: true });
+    }
+
     const invitation = await prisma.pdfAboInvitation.findUnique({
       where: { email: session.user.email.toLowerCase() },
       select: { isRedeemed: true, startDate: true, endDate: true },

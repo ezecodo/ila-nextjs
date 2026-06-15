@@ -21,6 +21,7 @@ function SignUpForm() {
   const [messageType, setMessageType] = useState("error");
   const [language, setLanguage] = useState("de");
   const [isLoading, setIsLoading] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,6 +54,7 @@ function SignUpForm() {
     if (res.ok) {
       setMessageType("success");
       setMessage(data.pdfAboActivated ? t("signup.successPdfAbo") : t("signup.successDefault"));
+      setSucceeded(true);
     } else {
       setMessageType("error");
       setMessage(data.error || t("signup.errorDefault"));
@@ -81,7 +83,7 @@ function SignUpForm() {
             {t("signup.title")}
           </h1>
 
-          {isPdfAbo && (
+          {isPdfAbo && !succeeded && (
             <div className="mb-5 border-l-4 border-[#d13120] bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
               📰 {t("signup.pdfAboNotice")}
             </div>
@@ -99,6 +101,7 @@ function SignUpForm() {
             </div>
           )}
 
+          {!succeeded && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
@@ -183,6 +186,7 @@ function SignUpForm() {
               {isLoading ? t("signup.loadingButton") : t("signup.submitButton")}
             </button>
           </form>
+          )}
 
           <div className="mt-5 text-sm text-center text-gray-400 dark:text-gray-500">
             <Link href="/auth/signin" className="text-[#d13120] hover:underline font-medium">
