@@ -16,6 +16,7 @@ import {
   FaBars,
   FaTimes,
   FaChartLine,
+  FaChartBar,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -230,6 +231,15 @@ const DashboardStats = () => {
           pathname={pathname}
         />
 
+        {/* Redaktion */}
+        <StatCard
+          icon={<FaChartBar size={18} />}
+          label=""
+          value=""
+          href="/dashboard/redaktion"
+          pathname={pathname}
+        />
+
         {/* Analytics */}
         <StatCard
           icon={<FaChartLine size={18} />}
@@ -441,6 +451,15 @@ const DashboardStats = () => {
 
             {/* Cuenta / FAQ / Analytics */}
             <div className="border-t border-gray-100 mt-2 pt-2">
+              <Link
+                href="/dashboard/redaktion"
+                className={mobileLinkClass("/dashboard/redaktion")}
+                onClick={closeMobile}
+              >
+                <span className="flex items-center gap-2">
+                  <FaChartBar size={14} /> {t("redaktion")}
+                </span>
+              </Link>
               <Link
                 href="/dashboard/analytics"
                 className={mobileLinkClass("/dashboard/analytics")}

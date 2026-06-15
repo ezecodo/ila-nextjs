@@ -624,7 +624,36 @@
     "aktuellesItem": "Aktuelles",
     "gestaltungLabel": "Gestaltung",
     "carousels": "Karussells",
-    "links": "Links"
+    "links": "Links",
+    "redaktion": "Redaktion"
+  },
+  "redaktion": {
+    "title": "Redaktion",
+    "subtitle": "Artikel pro Dossier und pro Monat",
+    "kpiDossiers": "Dossiers",
+    "kpiArticles": "Artikel",
+    "kpiEmpty": "Ohne Artikel",
+    "monthlyTitle": "Erfasste Artikel pro Monat",
+    "dossiersTitle": "Artikel pro Dossier",
+    "dossiersHint": "Scrollen, um alle Dossiers zu sehen",
+    "legendLoaded": "Mit Artikeln",
+    "legendEmpty": "Ohne Artikel",
+    "noData": "Keine Daten verfügbar",
+    "currentMonthNote": "Der laufende Monat (heller Balken) ist noch nicht abgeschlossen und zählt nicht in den Durchschnitt.",
+    "projectionTitle": "Prognose",
+    "viewDetail": "Details ansehen",
+    "targetNote": "Schätzung zur Fertigstellung (ca. {n} Artikel/Dossier).",
+    "remaining": "Fehlende Artikel",
+    "remainingHint": "Noch fehlende Artikel, damit jedes Dossier ca. {n} erreicht. {n} ist ein Richtwert — alle Angaben sind Schätzungen.",
+    "avgPerMonth": "Ø pro Monat",
+    "avgPerMonthHint": "Durchschnittlich erfasste Artikel pro Monat seit Beginn, ohne den laufenden (unvollständigen) Monat. Monate ohne Erfassung zählen als null.",
+    "recentPace": "Tempo (letzte 3 Monate)",
+    "recentPaceHint": "Tempo der letzten 3 abgeschlossenen Monate. Spiegelt das aktuelle Tempo wider.",
+    "estimatedFinish": "Voraussichtlich fertig",
+    "estimatedFinishHint": "Geschätztes Datum, um alle Dossiers beim aktuellen Tempo fertigzustellen. Nur ein Richtwert — ändert sich mit der tatsächlichen Erfassung.",
+    "estByRecent": "Beim aktuellen Tempo: noch {months} Monate (bis {date}).",
+    "estByAvg": "Beim historischen Durchschnitt: noch {months} Monate (bis {date}).",
+    "targetReached": "✓ Ziel erreicht — alle Dossiers haben genug Artikel."
   },
   "banners": {
     "dashboard": {

@@ -624,7 +624,36 @@
     "aktuellesItem": "Aktuelles",
     "gestaltungLabel": "Diseño web",
     "carousels": "Carruseles",
-    "links": "Links"
+    "links": "Links",
+    "redaktion": "Redacción"
+  },
+  "redaktion": {
+    "title": "Redacción",
+    "subtitle": "Artículos por dossier y por mes",
+    "kpiDossiers": "Dossiers",
+    "kpiArticles": "Artículos",
+    "kpiEmpty": "Sin artículos",
+    "monthlyTitle": "Artículos ingresados por mes",
+    "dossiersTitle": "Artículos por dossier",
+    "dossiersHint": "Desplazate para ver todos los dossiers",
+    "legendLoaded": "Con artículos",
+    "legendEmpty": "Sin artículos",
+    "noData": "Sin datos disponibles",
+    "currentMonthNote": "El mes en curso (barra clara) todavía no terminó y no cuenta en el promedio.",
+    "projectionTitle": "Proyección",
+    "viewDetail": "Ver detalle",
+    "targetNote": "Estimación basada en ~{n} artículos por dossier.",
+    "remaining": "Artículos faltantes",
+    "remainingHint": "Suma de los artículos que faltan para que cada dossier llegue a ~{n}. {n} es un valor de referencia — todo es estimativo.",
+    "avgPerMonth": "Promedio por mes",
+    "avgPerMonthHint": "Promedio de artículos cargados por mes desde el inicio, sin contar el mes en curso (incompleto). Los meses sin carga cuentan como cero.",
+    "recentPace": "Ritmo (últ. 3 meses)",
+    "recentPaceHint": "Promedio de los últimos 3 meses completos. Refleja el ritmo reciente del equipo.",
+    "estimatedFinish": "Fin estimado",
+    "estimatedFinishHint": "Fecha estimada para completar todos los dossiers al ritmo reciente. Es orientativo y cambia con la carga real.",
+    "estByRecent": "Al ritmo actual: faltan {months} meses (hasta {date}).",
+    "estByAvg": "Al promedio histórico: faltan {months} meses (hasta {date}).",
+    "targetReached": "✓ Objetivo alcanzado — todos los dossiers tienen suficientes artículos."
   },
   "banners": {
     "dashboard": {
