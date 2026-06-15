@@ -18,6 +18,7 @@ import {
   FaChartLine,
   FaChartBar,
   FaBookOpen,
+  FaGlobeAmericas,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -232,17 +233,6 @@ const DashboardStats = () => {
           pathname={pathname}
         />
 
-        {/* Mein Digitalabo (vista de suscriptor) */}
-        <StatCard
-          icon={<FaBookOpen size={18} />}
-          label=""
-          value=""
-          href="/dashboard-users"
-          pathname={pathname}
-          tooltip={t("digitalAboTooltip")}
-          tooltipSignoff={t("digitalAboTooltipSignoff")}
-        />
-
         {/* Redaktion */}
         <StatCard
           icon={<FaChartBar size={18} />}
@@ -260,6 +250,68 @@ const DashboardStats = () => {
           href="/dashboard/analytics"
           pathname={pathname}
         />
+
+        {/* Mein DIGIabo (vista de suscriptor) */}
+        <Link href="/dashboard-users" className="group relative flex-shrink-0">
+          <div
+            className={`relative flex items-center gap-1.5 rounded-md border-2 bg-white px-3 py-2 transition-all whitespace-nowrap shadow-[0_0_16px_3px_rgba(34,211,238,0.8)] ${
+              pathname?.startsWith("/dashboard-users")
+                ? "border-cyan-400 bg-cyan-50"
+                : "border-cyan-400 hover:bg-cyan-50"
+            }`}
+          >
+            {/* Anillo cyan pulsante (nuevo feature) */}
+            <span className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-cyan-400 animate-pulse" />
+
+            <FaBookOpen size={16} className="text-cyan-500" />
+            <span
+              className="text-lg font-extrabold leading-none tracking-tight"
+              style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+            >
+              <span className="text-gray-900">DIGI</span>
+              <span className="text-[#BD0E0D]">abo</span>
+            </span>
+
+            {/* Tooltip */}
+            <span className="pointer-events-none absolute top-full right-0 z-[9999] mt-2 block w-64 max-w-[80vw] whitespace-normal break-words rounded-none bg-gray-900 px-3.5 py-2.5 text-xs font-normal leading-snug text-white text-left opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+              <span className="absolute -top-1 right-4 h-2 w-2 rotate-45 bg-gray-900" />
+              {t("digitalAboTooltip")}
+              <span className="mt-1.5 block italic text-white/80">
+                {t("digitalAboTooltipSignoff")}
+              </span>
+            </span>
+          </div>
+        </Link>
+
+        {/* GLOBila (nuevo feature) */}
+        <Link href="/map" className="group relative flex-shrink-0">
+          <div
+            className={`relative flex items-center gap-1.5 rounded-md border-2 bg-white px-3 py-2 transition-all whitespace-nowrap shadow-[0_0_16px_3px_rgba(34,211,238,0.8)] ${
+              pathname?.startsWith("/map")
+                ? "border-cyan-400 bg-cyan-50"
+                : "border-cyan-400 hover:bg-cyan-50"
+            }`}
+          >
+            {/* Anillo cyan pulsante (nuevo feature) */}
+            <span className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-cyan-400 animate-pulse" />
+
+            <FaGlobeAmericas size={16} className="text-cyan-500" />
+            <span
+              className="text-lg font-extrabold leading-none tracking-tight"
+              style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+            >
+              <span className="text-gray-900">GLOB</span>
+              <span className="text-[#BD0E0D]">ila</span>
+            </span>
+
+            {/* Tooltip */}
+            <span className="pointer-events-none absolute top-full right-0 z-[9999] mt-2 block w-64 max-w-[80vw] whitespace-normal break-words rounded-none bg-gray-900 px-3.5 py-2.5 text-xs font-normal leading-snug text-white text-left opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+              <span className="absolute -top-1 right-4 h-2 w-2 rotate-45 bg-gray-900" />
+              <span className="block font-bold text-cyan-300">GLOBila</span>
+              <span className="mt-1 block">{t("mapTooltip")}</span>
+            </span>
+          </div>
+        </Link>
 
         {/* FAQ */}
         <StatCard
@@ -497,6 +549,25 @@ const DashboardStats = () => {
               >
                 <span className="flex items-center gap-2">
                   <FaCog size={14} /> Account
+                </span>
+              </Link>
+              <Link
+                href="/map"
+                className={mobileLinkClass("/map")}
+                onClick={closeMobile}
+              >
+                <span className="flex items-center gap-2">
+                  <FaGlobeAmericas size={14} className="text-cyan-500" />
+                  <span
+                    className="font-extrabold tracking-tight"
+                    style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+                  >
+                    <span className="text-gray-900">GLOB</span>
+                    <span className="text-[#BD0E0D]">ila</span>
+                  </span>
+                  <span className="rounded-full bg-cyan-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-cyan-700">
+                    Beta
+                  </span>
                 </span>
               </Link>
               <Link

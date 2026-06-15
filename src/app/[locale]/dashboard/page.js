@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import ActivityFeed from "../dashboard/components/ActivityFeed/ActivityFeed";
+import PrognoseSummary from "../dashboard/components/PrognoseSummary/PrognoseSummary";
 import { useSession } from "next-auth/react";
 
 export default function AdminDashboard() {
@@ -20,8 +21,15 @@ export default function AdminDashboard() {
         })}
       </h1>
 
-      {/* 👇 Solo admin ve el feed */}
-      {(role === "admin" || role === "k2") && <ActivityFeed />}
+      {/* 👇 Solo admin ve la prognose + el feed */}
+      {(role === "admin" || role === "k2") && (
+        <>
+          <div className="max-w-4xl mx-auto mt-8 text-left">
+            <PrognoseSummary />
+          </div>
+          <ActivityFeed />
+        </>
+      )}
     </div>
   );
 }

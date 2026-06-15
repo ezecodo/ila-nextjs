@@ -59,6 +59,40 @@ export default function GlobeMap() {
   const [isLoading, setIsLoading] = useState(true);
   const frameRef = useRef({ animationId: null });
 
+  // Intro dramática: barra de tensión → el globo nace minúsculo y crece.
+  // "progress" = barra avanzando · "growing" = el globo crece · "done"
+  const [introPhase, setIntroPhase] = useState("progress");
+  const [progress, setProgress] = useState(0);
+  const growRef = useRef({ active: false, t: 0 });
+  // El wordmark nace en el centro del planeta y, al primer gesto del usuario
+  // (arrastrar o zoom), se reubica en la esquina superior izquierda.
+  const [interacted, setInteracted] = useState(false);
+
+  // Driver de la barra de progreso (timed, para dar suspenso antes del globo)
+  useEffect(() => {
+    let raf;
+    const duration = 2200;
+    const start =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    const tick = () => {
+      const now =
+        typeof performance !== "undefined" ? performance.now() : Date.now();
+      const p = Math.min(100, ((now - start) / duration) * 100);
+      setProgress(p);
+      if (p < 100) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        // Beat de tensión antes de que el planeta empiece a crecer
+        setTimeout(() => {
+          growRef.current.active = true;
+          setIntroPhase("growing");
+        }, 280);
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   // Panel lateral con la lista clickeable de artículos del país
   const [panel, setPanel] = useState(null); // { code, name, regionId }
   const [panelData, setPanelData] = useState({
@@ -226,6 +260,8 @@ export default function GlobeMap() {
     globeGroup.rotation.z = Math.PI;
     globeGroup.rotation.x = 0.16;
     globeGroup.rotation.y = 0.5;
+    // Nace prácticamente invisible; la animación de intro lo hace crecer
+    globeGroup.scale.setScalar(growRef.current.active ? 1 : 0.0001);
     scene.add(globeGroup);
 
     const textureLoader = new THREE.TextureLoader();
@@ -276,7 +312,8 @@ export default function GlobeMap() {
       side: THREE.BackSide,
       transparent: true,
     });
-    scene.add(
+    // Dentro del grupo para que el halo crezca junto con el globo en la intro
+    globeGroup.add(
       new THREE.Mesh(new THREE.SphereGeometry(1.1, 64, 64), atmosphereMaterial)
     );
 
@@ -373,6 +410,13 @@ export default function GlobeMap() {
     controls.autoRotate = false;
     controls.autoRotateSpeed = 0.8;
 
+    // Primer gesto deliberado (arrastrar o zoom) → reubica el wordmark
+    const markInteracted = () => setInteracted(true);
+    controls.addEventListener("start", markInteracted);
+    renderer.domElement.addEventListener("wheel", markInteracted, {
+      passive: true,
+    });
+
     // --- RAYCASTER ---
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -460,8 +504,27 @@ export default function GlobeMap() {
     renderer.domElement.addEventListener("click", onClick);
 
     // --- ANIMACIÓN ---
+    // easeOutBack: crece con un leve rebote al llegar al tamaño final
+    const easeOutBack = (x) => {
+      const c1 = 1.70158;
+      const c3 = c1 + 1;
+      return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+    };
+
     const animate = () => {
       frameRef.current.animationId = requestAnimationFrame(animate);
+
+      // Crecimiento del globo desde minúsculo hasta tamaño completo
+      if (growRef.current.active && growRef.current.t < 1) {
+        growRef.current.t = Math.min(1, growRef.current.t + 0.011);
+        const s = 0.0001 + (1 - 0.0001) * easeOutBack(growRef.current.t);
+        globeGroup.scale.setScalar(s);
+        // Al terminar de crecer, recién ahí revelamos el wordmark
+        if (growRef.current.t >= 1 && !growRef.current.done) {
+          growRef.current.done = true;
+          setIntroPhase("done");
+        }
+      }
 
       cloudsMesh.rotation.y += 0.0002;
       starField.rotation.y -= 0.0001;
@@ -508,6 +571,8 @@ export default function GlobeMap() {
       window.removeEventListener("resize", onResize);
       renderer.domElement.removeEventListener("mousemove", onMouseMove);
       renderer.domElement.removeEventListener("click", onClick);
+      renderer.domElement.removeEventListener("wheel", markInteracted);
+      controls.removeEventListener("start", markInteracted);
 
       renderer.dispose();
       globeGeometry.dispose();
@@ -552,17 +617,54 @@ export default function GlobeMap() {
       {/* Velo oscuro para que el planeta resalte sobre las portadas */}
       <div className="absolute inset-0 bg-black/55" />
 
-      {/* Contenedor Canvas + HTML Overlay (transparente para ver el fondo) */}
-      <div ref={mountRef} className="absolute inset-0 z-10">
-        {isLoading && (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-4">
-            <div className="w-8 h-8 border-4 border-[#BD0E0D] border-t-transparent rounded-full animate-spin"></div>
-            <div className="text-white/80 text-sm tracking-widest uppercase">
-              {locale === "de" ? "Globus wird geladen" : "Cargando el globo"}
-            </div>
-          </div>
-        )}
+      {/* Wordmark GLOBila — nace en el centro del planeta (fade lento) y migra
+          a la esquina superior izquierda al primer gesto del usuario */}
+      <div
+        className={`absolute z-20 pointer-events-none select-none transition-all duration-[1400ms] ease-in-out ${
+          introPhase !== "done"
+            ? "opacity-0 blur-sm top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            : interacted
+              ? "opacity-100 blur-0 top-[90px] md:top-6 left-4 md:left-6 translate-x-0 translate-y-0"
+              : "opacity-100 blur-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        }`}
+      >
+        <span
+          className={`font-futura font-extrabold tracking-tight leading-none transition-all duration-[1400ms] ease-in-out ${
+            interacted ? "text-3xl md:text-4xl" : "text-5xl md:text-7xl"
+          }`}
+          style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+        >
+          <span className="text-white">GLOB</span>
+          <span className="text-[#BD0E0D]">ila</span>
+        </span>
       </div>
+
+      {/* Contenedor Canvas + HTML Overlay (transparente para ver el fondo) */}
+      <div ref={mountRef} className="absolute inset-0 z-10" />
+
+      {/* Intro: barra de tensión antes de que nazca el planeta */}
+      {introPhase === "progress" && (
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-5 px-8 pointer-events-none select-none">
+          <div className="text-white/70 text-xs md:text-sm tracking-[0.3em] uppercase animate-pulse">
+            {locale === "de"
+              ? "Globus wird vorbereitet"
+              : "Preparando el globo"}
+          </div>
+          <div className="relative h-[3px] w-64 max-w-[70vw] overflow-hidden bg-white/10">
+            <div
+              className="absolute inset-y-0 left-0 bg-[#BD0E0D] shadow-[0_0_12px_2px_rgba(189,14,13,0.7)] transition-[width] duration-100 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div
+            className="font-mono text-2xl md:text-3xl font-extrabold tabular-nums text-white"
+            style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+          >
+            {Math.round(progress)}
+            <span className="text-[#BD0E0D]">%</span>
+          </div>
+        </div>
+      )}
 
       {/* Instrucciones */}
       <div className="absolute z-20 bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-wider uppercase bg-black/30 px-4 py-1.5 rounded-none backdrop-blur-sm border-t-2 border-[#BD0E0D] pointer-events-none">
