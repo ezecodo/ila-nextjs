@@ -1057,6 +1057,8 @@ function PasteImportPanel({
   articleId,
   hasSpanishContent,
   contentES,
+  availableImages = [],
+  onInsertAvailable,
 }) {
   const [pastedHtml, setPastedHtml] = useState("");
   const [pastedText, setPastedText] = useState("");
@@ -1094,6 +1096,8 @@ function PasteImportPanel({
   const imageInputRef = useRef(null);
   const insertAtRef = useRef(null); // index after which to insert the image
   const [uploadingImage, setUploadingImage] = useState(false);
+  // Selector de imágenes recortadas (PDF). Abierto cuando hay availableImages.
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const analyse = (text, html) => setBlocks(parseToBlocks(text, html));
 
@@ -1229,6 +1233,51 @@ function PasteImportPanel({
 
   const triggerImageInsert = (afterIndex) => {
     insertAtRef.current = afterIndex;
+    // Si hay imágenes recortadas para ofrecer, abrir el selector; si no, ir
+    // directo al file-upload de siempre.
+    if (availableImages.length > 0 && onInsertAvailable) {
+      setPickerOpen(true);
+    } else {
+      imageInputRef.current?.click();
+    }
+  };
+
+  // Inserta un bloque de imagen ya con URL persistente en la posición guardada.
+  const insertImageBlock = ({ url, alt = "", title = "" }) => {
+    const newBlock = {
+      type: "image",
+      imageUrl: url,
+      imageAlt: alt,
+      imageTitle: title,
+      imageWidth: "100",
+    };
+    const insertAt = insertAtRef.current ?? (blocks ? blocks.length : 0);
+    setBlocks((prev) => {
+      const next = [...(prev || [])];
+      next.splice(insertAt, 0, newBlock);
+      return next;
+    });
+  };
+
+  // Elegir una imagen recortada del PDF: el padre la sube/persiste y devuelve la
+  // URL final; recién entonces se inserta inline.
+  const handlePickAvailable = async (img) => {
+    setUploadingImage(true);
+    try {
+      const url = await onInsertAvailable(img.id);
+      if (url) insertImageBlock({ url, alt: img.alt, title: img.title });
+    } catch (err) {
+      console.error("Insert available image error:", err);
+    } finally {
+      setUploadingImage(false);
+      setPickerOpen(false);
+      insertAtRef.current = null;
+    }
+  };
+
+  // "Neue Datei" dentro del selector → file-upload de siempre.
+  const pickNewFile = () => {
+    setPickerOpen(false);
     imageInputRef.current?.click();
   };
 
@@ -1483,6 +1532,71 @@ function PasteImportPanel({
           className="hidden"
           onChange={handlePanelImageUpload}
         />
+
+        {/* Selector de imágenes recortadas del PDF */}
+        {pickerOpen && (
+          <div
+            className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4"
+            onClick={() => !uploadingImage && setPickerOpen(false)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-800">
+                  Bild einfügen
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(false)}
+                  disabled={uploadingImage}
+                  className="text-gray-400 hover:text-gray-700 disabled:opacity-40"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Aus dem PDF ausgeschnittene Bilder — anklicken zum Einfügen.
+              </p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {availableImages.map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => handlePickAvailable(img)}
+                    disabled={uploadingImage}
+                    className="group relative border border-gray-200 hover:border-[#BD0E0D] rounded overflow-hidden aspect-square bg-gray-50 disabled:opacity-40"
+                    title={img.title || "Bild einfügen"}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.url}
+                      alt={img.alt || ""}
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={pickNewFile}
+                  disabled={uploadingImage}
+                  className="text-xs font-bold text-gray-500 hover:text-blue-600 px-3 py-1.5 border border-gray-300 hover:border-blue-300 rounded disabled:opacity-40"
+                >
+                  📁 Neue Datei hochladen
+                </button>
+                {uploadingImage && (
+                  <span className="text-xs text-gray-400 flex items-center gap-2">
+                    <span className="w-3 h-3 border border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                    wird eingefügt…
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Block editor */}
         {hasBlocks && (
@@ -2656,6 +2770,11 @@ export default function InterviewEditor({
   hasSpanishContent,
   contentES,
   onChangeES,
+  // Imágenes ya disponibles (p. ej. recortadas de un PDF) que se pueden insertar
+  // inline sin volver a subirlas. Cada una: { id, url, title, alt }.
+  // `onInsertAvailable(id)` debe subir/persistir y devolver la URL final (o null).
+  availableImages = [],
+  onInsertAvailable,
 }) {
   const [pairs, setPairs] = useState(() => htmlToQa(value));
   const [showPastePanel, setShowPastePanel] = useState(false);
@@ -2727,6 +2846,8 @@ export default function InterviewEditor({
           articleId={articleId}
           hasSpanishContent={hasSpanishContent}
           contentES={contentES}
+          availableImages={availableImages}
+          onInsertAvailable={onInsertAvailable}
         />
       )}
 
