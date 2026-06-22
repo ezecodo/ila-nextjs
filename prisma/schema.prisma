@@ -37,6 +37,7 @@ model Article {
   editionId         Int?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+  createdFromPdf    Boolean           @default(false)
   isInPrintEdition  Boolean           @default(false)
   endPage           Int?
   startPage         Int?

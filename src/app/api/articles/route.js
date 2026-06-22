@@ -199,6 +199,7 @@ export async function POST(request) {
           ? parseInt(formData.get("beitragssubtypId"), 10)
           : null,
         isInPrintEdition: isPrinted,
+        createdFromPdf: formData.get("createdFromPdf") === "true",
         mediaTitle: formData.get("mediaTitle") || null,
         editionId: isPrinted ? parseInt(editionId, 10) : null,
         isPublished: isPublished,

@@ -805,6 +805,60 @@ function trimEmptyParagraphs(html) {
     .trim();
 }
 
+// Fusiona dos fragmentos de answer uniendo el ÚLTIMO <p> del primero con el
+// PRIMER <p> del segundo (como hace el backspace nativo entre párrafos), en vez
+// de dejar dos <p> separados. Añade un espacio en la unión si hace falta.
+function mergeAnswerHtml(prevHtml, addHtml) {
+  if (typeof window === "undefined") return (prevHtml || "") + (addHtml || "");
+  const prev = document.createElement("div");
+  prev.innerHTML = prevHtml || "";
+  const add = document.createElement("div");
+  add.innerHTML = addHtml || "";
+  const lastPrev = prev.lastElementChild;
+  const firstAdd = add.firstElementChild;
+  if (
+    lastPrev &&
+    firstAdd &&
+    lastPrev.tagName === "P" &&
+    firstAdd.tagName === "P"
+  ) {
+    const needSpace =
+      /\S$/.test(lastPrev.textContent || "") &&
+      /^\S/.test(firstAdd.textContent || "");
+    if (needSpace) lastPrev.appendChild(document.createTextNode(" "));
+    while (firstAdd.firstChild) lastPrev.appendChild(firstAdd.firstChild);
+    firstAdd.remove();
+  }
+  while (add.firstChild) prev.appendChild(add.firstChild);
+  return prev.innerHTML;
+}
+
+// Coloca el caret en un offset de texto plano dentro de un contenteditable.
+function setCaretAtTextOffset(root, offset) {
+  const sel = window.getSelection();
+  if (!sel) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let remaining = offset;
+  let node;
+  while ((node = walker.nextNode())) {
+    const len = node.textContent.length;
+    if (remaining <= len) {
+      const r = document.createRange();
+      r.setStart(node, remaining);
+      r.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(r);
+      return;
+    }
+    remaining -= len;
+  }
+  const r = document.createRange();
+  r.selectNodeContents(root);
+  r.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(r);
+}
+
 function DarkAnswerBlock({
   value,
   onChange,
@@ -814,11 +868,66 @@ function DarkAnswerBlock({
   onMergeUp,
 }) {
   const divRef = useRef(null);
+  const wrapRef = useRef(null);
   const mountedRef = useRef(false);
   const savedRangeRef = useRef(null);
   const [showDossier, setShowDossier] = useState(false);
   const [editions, setEditions] = useState([]);
   const [loadingEditions, setLoadingEditions] = useState(false);
+  // Caret personalizado (más grueso que el nativo). Posición relativa al wrapper.
+  const [caret, setCaret] = useState(null);
+
+  const updateCaret = () => {
+    const div = divRef.current;
+    const wrap = wrapRef.current;
+    if (!div || !wrap || document.activeElement !== div) {
+      setCaret(null);
+      return;
+    }
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) {
+      setCaret(null);
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!div.contains(range.startContainer)) {
+      setCaret(null);
+      return;
+    }
+    let rect = range.getBoundingClientRect();
+    if (!rect || (rect.width === 0 && rect.height === 0)) {
+      const rects = range.getClientRects();
+      if (rects.length) rect = rects[0];
+    }
+    if (!rect || (rect.height === 0 && rect.top === 0)) {
+      const node =
+        range.startContainer.nodeType === 1
+          ? range.startContainer
+          : range.startContainer.parentElement;
+      if (node) rect = node.getBoundingClientRect();
+    }
+    if (!rect) {
+      setCaret(null);
+      return;
+    }
+    const wrapRect = wrap.getBoundingClientRect();
+    const lh = parseFloat(getComputedStyle(div).lineHeight);
+    setCaret({
+      left: rect.left - wrapRect.left,
+      top: rect.top - wrapRect.top,
+      height: rect.height || (Number.isFinite(lh) ? lh : 18),
+    });
+  };
+
+  useEffect(() => {
+    const handler = () => updateCaret();
+    document.addEventListener("selectionchange", handler);
+    window.addEventListener("resize", handler);
+    return () => {
+      document.removeEventListener("selectionchange", handler);
+      window.removeEventListener("resize", handler);
+    };
+  }, []);
 
   useEffect(() => {
     if (!mountedRef.current && divRef.current) {
@@ -959,6 +1068,7 @@ function DarkAnswerBlock({
         </button>
       </div>
       {/* Contenteditable */}
+      <div ref={wrapRef} className="relative">
       <div
         ref={(el) => {
           divRef.current = el;
@@ -966,8 +1076,15 @@ function DarkAnswerBlock({
         }}
         contentEditable
         suppressContentEditableWarning
-        onInput={() => onChange(normalizeAnswerHtml(divRef.current.innerHTML))}
+        onInput={() => {
+          onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+          updateCaret();
+        }}
+        onFocus={updateCaret}
+        onKeyUp={updateCaret}
+        onClick={updateCaret}
         onBlur={() => {
+          setCaret(null);
           const el = divRef.current;
           setTimeout(() => {
             if (el && !el.isConnected) return; // element was removed from DOM
@@ -1030,9 +1147,23 @@ function DarkAnswerBlock({
             onSplit(beforeHtml, afterHtml);
           }
         }}
-        className="text-gray-800 text-sm outline-none leading-relaxed [&_p]:mb-3 [&_p:last-child]:mb-0 [&_a]:text-blue-600 [&_a]:underline [&_a]:decoration-blue-400/60 [&_a.ila-dossier]:text-[#BD0E0D] [&_a.ila-dossier]:decoration-[#BD0E0D]/60"
-        style={{ minHeight: "48px" }}
+        className="text-gray-800 text-sm outline-none leading-relaxed caret-transparent [&_p]:mb-3 [&_p:last-child]:mb-0 [&_a]:text-blue-600 [&_a]:underline [&_a]:decoration-blue-400/60 [&_a.ila-dossier]:text-[#BD0E0D] [&_a.ila-dossier]:decoration-[#BD0E0D]/60"
+        style={{ minHeight: "48px", caretColor: "transparent" }}
       />
+        {caret && (
+          <span
+            className="ila-caret pointer-events-none absolute"
+            style={{
+              left: caret.left,
+              top: caret.top,
+              height: caret.height,
+              width: 3,
+              background: "#BD0E0D",
+              borderRadius: 1,
+            }}
+          />
+        )}
+      </div>
       {showDossier && (
         <DossierModal
           editions={editions}
@@ -1059,10 +1190,18 @@ function PasteImportPanel({
   contentES,
   availableImages = [],
   onInsertAvailable,
+  // Modo split: panel a la izquierda (p. ej. el PDF del módulo from-pdf) + editor
+  // de bloques a la derecha, con divisor móvil. `apiRef` recibe { appendText,
+  // appendHeading } para insertar la selección desde afuera (no usamos React ref
+  // porque next/dynamic no lo reenvía).
+  leftPanel = null,
+  apiRef = null,
 }) {
   const [pastedHtml, setPastedHtml] = useState("");
   const [pastedText, setPastedText] = useState("");
   const [blocks, setBlocks] = useState(initialBlocks);
+  // Ancho (%) del panel izquierdo en modo split; arrastrable con el divisor.
+  const [leftPct, setLeftPct] = useState(50);
   const [showPreview, setShowPreview] = useState(false);
   const [lang, setLang] = useState("de");
   const [langSplash, setLangSplash] = useState(false);
@@ -1093,6 +1232,17 @@ function PasteImportPanel({
   const blockRefsArr = useRef([]);
   const focusTargetRef = useRef(null);
   const focusEndRef = useRef(false);
+  // Contenedor scrollable del editor de bloques (lado derecho en modo split) y
+  // flag para hacer auto-scroll al final tras insertar texto desde el PDF.
+  const scrollRef = useRef(null);
+  const pendingScrollRef = useRef(false);
+  // Ancla del comienzo del último texto pegado desde el PDF: { blockIdx,
+  // caretOffset }. Se captura en el PRIMER append de un lote para luego dejar el
+  // caret en la 1ª letra de lo pegado (la unión con el texto previo).
+  const insertAnchorRef = useRef(null);
+  // Offset de texto plano donde dejar el caret en un bloque contenteditable
+  // (p. ej. el punto de unión tras un merge de párrafos). null = ignorar.
+  const focusCaretOffsetRef = useRef(null);
   const imageInputRef = useRef(null);
   const insertAtRef = useRef(null); // index after which to insert the image
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -1100,6 +1250,141 @@ function PasteImportPanel({
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const analyse = (text, html) => setBlocks(parseToBlocks(text, html));
+
+  // ── API de inserción para modo split (from-pdf) ──────────────────────────
+  // Inserta la selección del PDF como bloques. `appendText` añade un bloque de
+  // respuesta (Fließtext); `appendHeading` un Zwischentitel.
+  const appendText = (html) => {
+    if (!html || !html.trim()) return;
+    // Capturar el ancla solo en el primer append del lote (pre-batch state).
+    if (insertAnchorRef.current === null) {
+      const arr = blocks || [];
+      const last = arr[arr.length - 1];
+      if (last && last.type === "answer") {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = last.text || "";
+        insertAnchorRef.current = {
+          blockIdx: arr.length - 1,
+          caretOffset: tmp.textContent.length,
+        };
+      } else {
+        insertAnchorRef.current = { blockIdx: arr.length, caretOffset: 0 };
+      }
+    }
+    setBlocks((prev) => {
+      const arr = prev || [];
+      const last = arr[arr.length - 1];
+      // Acumular el cuerpo en UN solo bloque: así Enter (nuevo párrafo) y
+      // Backspace (unir párrafos) funcionan nativos dentro de un contenteditable.
+      // Un Zwischentitel/pregunta corta la corrida → el siguiente texto va a un
+      // bloque nuevo.
+      if (last && last.type === "answer") {
+        const next = [...arr];
+        next[next.length - 1] = { ...last, text: (last.text || "") + html };
+        return next;
+      }
+      return [...arr, { type: "answer", text: html }];
+    });
+    pendingScrollRef.current = true;
+  };
+  const appendHeading = (text, level = 3) => {
+    if (!text || !text.trim()) return;
+    if (insertAnchorRef.current === null) {
+      const arr = blocks || [];
+      insertAnchorRef.current = { blockIdx: arr.length, caretOffset: 0 };
+    }
+    setBlocks((prev) => [
+      ...(prev || []),
+      { type: "subtitle", text: text.trim(), headingLevel: level },
+    ]);
+    pendingScrollRef.current = true;
+  };
+  useEffect(() => {
+    if (apiRef) apiRef.current = { appendText, appendHeading };
+  });
+
+  // Tras insertar texto desde el PDF, llevar el scroll del editor al final para
+  // que se vea de inmediato lo recién añadido (doble rAF: esperar a que los
+  // textareas se auto-redimensionen antes de medir scrollHeight).
+  useEffect(() => {
+    if (!pendingScrollRef.current) return;
+    pendingScrollRef.current = false;
+    const anchor = insertAnchorRef.current;
+    insertAnchorRef.current = null;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const container = scrollRef.current;
+        if (anchor) {
+          const el = blockRefsArr.current[anchor.blockIdx];
+          if (el) {
+            // Caret en la 1ª letra de lo pegado (unión con el texto previo),
+            // para poder ajustar/borrar el salto de línea.
+            el.focus({ preventScroll: true });
+            // Posición Y de la UNIÓN. Como todo el cuerpo se acumula en un solo
+            // bloque, no sirve el top del bloque: hay que medir el caret real.
+            let junctionTop = null;
+            if (el.contentEditable === "true") {
+              setCaretAtTextOffset(el, anchor.caretOffset);
+              const sel = window.getSelection();
+              if (sel && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                let rect = range.getBoundingClientRect();
+                if (!rect || (rect.top === 0 && rect.height === 0)) {
+                  // Caret colapsado sin rect medible → marcador temporal.
+                  const marker = document.createElement("span");
+                  marker.textContent = "​";
+                  const r2 = range.cloneRange();
+                  r2.insertNode(marker);
+                  rect = marker.getBoundingClientRect();
+                  marker.parentNode.removeChild(marker);
+                  el.normalize();
+                  setCaretAtTextOffset(el, anchor.caretOffset);
+                }
+                if (rect) junctionTop = rect.top;
+              }
+            } else if (typeof el.setSelectionRange === "function") {
+              el.setSelectionRange(anchor.caretOffset, anchor.caretOffset);
+            }
+            // Llevar la unión cerca del borde superior visible.
+            if (container) {
+              const cRect = container.getBoundingClientRect();
+              const refTop =
+                junctionTop !== null
+                  ? junctionTop
+                  : el.getBoundingClientRect().top;
+              const target = container.scrollTop + (refTop - cRect.top) - 80;
+              container.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
+            } else {
+              el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+            return;
+          }
+        }
+        if (container)
+          container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      });
+    });
+  }, [blocks]);
+
+  // Arrastre del divisor móvil (modo split). Calcula el % en base al ancho del
+  // contenedor padre del divisor.
+  const dragSplit = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const container = e.currentTarget.parentElement;
+    const rect = container.getBoundingClientRect();
+    const move = (ev) => {
+      const x = ev.clientX - rect.left;
+      const pct = Math.min(80, Math.max(20, (x / rect.width) * 100));
+      setLeftPct(pct);
+    };
+    const up = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+    };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
 
   const handlePaste = (e) => {
     const text = e.clipboardData.getData("text/plain");
@@ -1231,6 +1516,63 @@ function PasteImportPanel({
     focusTargetRef.current = afterIdx + 1;
   };
 
+  // "+T": si hay texto seleccionado dentro de un bloque answer (contenteditable),
+  // extrae esa selección como Zwischentitel (subtitle), partiendo el bloque en
+  // [answer-antes, subtitle, answer-después]. Sin selección → añade subtitle
+  // vacío al final (comportamiento clásico).
+  const convertSelectionToSubtitle = () => {
+    const sel = typeof window !== "undefined" ? window.getSelection() : null;
+    const selText = sel ? sel.toString().trim() : "";
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !selText) {
+      addBlock("subtitle", blocks.length - 1);
+      return;
+    }
+    const anchor = sel.anchorNode;
+    const idx = blockRefsArr.current.findIndex(
+      (el) => el && anchor && el.contains?.(anchor),
+    );
+    if (idx < 0 || blocks[idx]?.type !== "answer") {
+      addBlock("subtitle", blocks.length - 1);
+      return;
+    }
+    const div = blockRefsArr.current[idx];
+    const range = sel.getRangeAt(0);
+
+    const beforeR = document.createRange();
+    beforeR.selectNodeContents(div);
+    beforeR.setEnd(range.startContainer, range.startOffset);
+    const beforeTmp = document.createElement("div");
+    beforeTmp.appendChild(beforeR.cloneContents());
+    const beforeHtml = trimEmptyParagraphs(
+      normalizeAnswerHtml(beforeTmp.innerHTML),
+    );
+
+    const afterR = document.createRange();
+    afterR.selectNodeContents(div);
+    afterR.setStart(range.endContainer, range.endOffset);
+    const afterTmp = document.createElement("div");
+    afterTmp.appendChild(afterR.cloneContents());
+    const afterHtml = trimEmptyParagraphs(
+      normalizeAnswerHtml(afterTmp.innerHTML),
+    );
+
+    // Importante: el contenteditable conserva el foco, y su efecto de sync sólo
+    // reescribe el innerHTML cuando NO es el activeElement. Sin este blur, el
+    // bloque original seguiría mostrando el texto completo (el seleccionado
+    // quedaría duplicado debajo del nuevo título). Lo extraído ya está calculado.
+    div.blur();
+    setBlocks((prev) => {
+      const next = [...prev];
+      const repl = [];
+      if (beforeHtml) repl.push({ type: "answer", text: beforeHtml });
+      repl.push({ type: "subtitle", text: selText, headingLevel: 3 });
+      if (afterHtml) repl.push({ type: "answer", text: afterHtml });
+      next.splice(idx, 1, ...repl);
+      return next;
+    });
+    focusTargetRef.current = idx + (beforeHtml ? 1 : 0);
+  };
+
   const triggerImageInsert = (afterIndex) => {
     insertAtRef.current = afterIndex;
     // Si hay imágenes recortadas para ofrecer, abrir el selector; si no, ir
@@ -1319,12 +1661,16 @@ function PasteImportPanel({
     if (focusTargetRef.current !== null) {
       const idx = focusTargetRef.current;
       const atEnd = focusEndRef.current;
+      const caretOffset = focusCaretOffsetRef.current;
       focusTargetRef.current = null;
       focusEndRef.current = false;
+      focusCaretOffsetRef.current = null;
       const el = blockRefsArr.current[idx];
       if (el) {
         el.focus();
-        if (atEnd) {
+        if (caretOffset !== null && el.contentEditable === "true") {
+          setCaretAtTextOffset(el, caretOffset);
+        } else if (atEnd) {
           if (typeof el.setSelectionRange === "function") {
             el.setSelectionRange(el.value.length, el.value.length);
           } else if (el.contentEditable === "true") {
@@ -1491,9 +1837,27 @@ function PasteImportPanel({
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-hidden flex">
-        {/* Paste area — only when no blocks at all */}
-        {!hasBlocks && (
+      <div className="flex-1 overflow-hidden flex min-h-0">
+        {/* Panel izquierdo (modo split: PDF del módulo from-pdf) + divisor móvil */}
+        {leftPanel && (
+          <>
+            <div
+              style={{ width: `${leftPct}%` }}
+              className="overflow-hidden shrink-0 flex flex-col min-h-0"
+            >
+              {leftPanel}
+            </div>
+            <div
+              onMouseDown={dragSplit}
+              className="w-1.5 shrink-0 cursor-col-resize bg-gray-200 hover:bg-[#BD0E0D] active:bg-[#BD0E0D] transition-colors"
+              title="Ziehen zum Verschieben"
+            />
+          </>
+        )}
+        {/* Lado derecho: editor de bloques (envuelto para convivir con el split) */}
+        <div className="flex-1 overflow-hidden flex min-w-0 min-h-0">
+        {/* Paste area — only when no blocks at all (no en modo split) */}
+        {!hasBlocks && !leftPanel && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
             <div className="text-center">
               <p className="text-gray-900 text-xl font-bold mb-2">
@@ -1599,8 +1963,11 @@ function PasteImportPanel({
         )}
 
         {/* Block editor */}
-        {hasBlocks && (
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 max-w-4xl mx-auto w-full">
+        {(hasBlocks || leftPanel) && (
+          <div
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 max-w-4xl mx-auto w-full"
+          >
             <p className="text-xs text-gray-400 mb-4">
               <span className="text-gray-600 font-semibold">Badge</span> = Typ
               wechseln (<span className="text-[#BD0E0D] font-bold">H3</span> →{" "}
@@ -1622,7 +1989,7 @@ function PasteImportPanel({
               uploading={uploadingImage}
             />
 
-            {blocks.map((block, i) => {
+            {(blocks || []).map((block, i) => {
               const s = BLOCK_STYLES[block.type] || BLOCK_STYLES.answer;
               const blockHl =
                 block.headingLevel || (block.type === "question" ? 3 : 3);
@@ -1811,9 +2178,10 @@ function PasteImportPanel({
                         placeholder={
                           "Verse eingeben…\n\nLeerzeile = neue Strophe"
                         }
-                        className="w-full bg-transparent text-purple-900 text-sm outline-none resize-none leading-relaxed placeholder:text-purple-300"
+                        className="w-full bg-transparent text-purple-900 text-sm outline-none resize-none leading-relaxed placeholder:text-purple-300 caret-[#BD0E0D]"
                         style={{
                           minHeight: "60px",
+                          caretColor: "#BD0E0D",
                           fontFamily: "Georgia, serif",
                         }}
                       />
@@ -1841,6 +2209,11 @@ function PasteImportPanel({
                           blockRefsArr.current[i] = el;
                         }}
                         onSplit={(beforeHtml, afterHtml) => {
+                          // Enter parte el bloque en el caret: el resto del texto
+                          // baja a un bloque nuevo (así aparece el InsertImageLine
+                          // entre ambos para insertar una imagen). Shift+Enter =
+                          // salto suave dentro del bloque; Backspace al inicio los
+                          // vuelve a unir (onMergeUp).
                           setBlocks((prev) => {
                             const next = [...prev];
                             next[i] = { ...next[i], text: beforeHtml };
@@ -1867,15 +2240,22 @@ function PasteImportPanel({
                                   const next = [...prev];
                                   next[i - 1] = {
                                     ...prevBlock,
-                                    text: (prevBlock.text || "") + html,
+                                    text: mergeAnswerHtml(
+                                      prevBlock.text || "",
+                                      html,
+                                    ),
                                   };
                                   next.splice(i, 1);
                                   return next;
                                 });
-                                // Focus at end of previous block AFTER React re-renders
-                                // (using focusTargetRef ensures sync effects run first)
+                                // Caret en el punto de unión (fin del texto que
+                                // ya tenía el bloque anterior), AFTER re-render.
+                                const tmp = document.createElement("div");
+                                tmp.innerHTML = blocks[i - 1]?.text || "";
                                 focusTargetRef.current = i - 1;
-                                focusEndRef.current = true;
+                                focusCaretOffsetRef.current = (
+                                  tmp.textContent || ""
+                                ).length;
                               }
                         }
                       />
@@ -1910,11 +2290,42 @@ function PasteImportPanel({
                             if (e.key === "Backspace" && block.text === "") {
                               e.preventDefault();
                               deleteBlock(i);
+                            } else if (
+                              e.key === "Backspace" &&
+                              block.type === "subtitle" &&
+                              e.target.selectionStart === 0 &&
+                              e.target.selectionEnd === 0 &&
+                              i > 0 &&
+                              blocks[i - 1]?.type === "answer"
+                            ) {
+                              // Caret al inicio de un Zwischentitel → revertir:
+                              // sumar su texto al bloque de respuesta anterior.
+                              e.preventDefault();
+                              const subtitleText = block.text;
+                              setBlocks((prev) => {
+                                const next = [...prev];
+                                const prevBlock = next[i - 1];
+                                next[i - 1] = {
+                                  ...prevBlock,
+                                  text: mergeAnswerHtml(
+                                    prevBlock.text || "",
+                                    `<p>${escapeHtml(subtitleText)}</p>`,
+                                  ),
+                                };
+                                next.splice(i, 1);
+                                return next;
+                              });
+                              const tmp = document.createElement("div");
+                              tmp.innerHTML = blocks[i - 1]?.text || "";
+                              focusTargetRef.current = i - 1;
+                              focusCaretOffsetRef.current = (
+                                tmp.textContent || ""
+                              ).length;
                             }
                           }}
                           rows={1}
-                          className={`w-full bg-transparent outline-none resize-none leading-relaxed overflow-hidden font-bold ${taSize} ${s.textClass}`}
-                          style={{ minHeight: "22px" }}
+                          className={`w-full bg-transparent outline-none resize-none leading-relaxed overflow-hidden font-bold caret-[#BD0E0D] ${taSize} ${s.textClass}`}
+                          style={{ minHeight: "22px", caretColor: "#BD0E0D" }}
                         />
                         <div className="flex items-center gap-1">
                           {[2, 3, 4].map((hl) => {
@@ -1974,8 +2385,22 @@ function PasteImportPanel({
               </button>
               <button
                 type="button"
-                onClick={() => addBlock("subtitle", blocks.length - 1)}
+                onMouseDown={(e) => {
+                  // Conservar la selección del contenteditable: el foco del botón
+                  // la colapsaría. Solo preventDefault si hay algo seleccionado.
+                  const sel = window.getSelection();
+                  if (
+                    sel &&
+                    sel.rangeCount > 0 &&
+                    !sel.isCollapsed &&
+                    sel.toString().trim()
+                  ) {
+                    e.preventDefault();
+                  }
+                }}
+                onClick={() => convertSelectionToSubtitle()}
                 className="border border-dashed border-amber-300 hover:border-amber-500 text-amber-600 hover:text-amber-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+                title="Markierten Text als Zwischentitel — oder leeren Zwischentitel anhängen"
               >
                 + T
               </button>
@@ -2004,6 +2429,7 @@ function PasteImportPanel({
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* ── Article preview modal ── */}
@@ -2348,8 +2774,8 @@ function RichAnswerField({ value, onChange }) {
           const text = e.clipboardData.getData("text/plain");
           document.execCommand("insertText", false, text);
         }}
-        className="text-gray-800 text-sm outline-none leading-relaxed prose prose-sm max-w-none"
-        style={{ minHeight: "72px" }}
+        className="text-gray-800 text-sm outline-none leading-relaxed prose prose-sm max-w-none caret-[#BD0E0D]"
+        style={{ minHeight: "72px", caretColor: "#BD0E0D" }}
       />
 
       {showDossier && (
@@ -2775,6 +3201,14 @@ export default function InterviewEditor({
   // `onInsertAvailable(id)` debe subir/persistir y devolver la URL final (o null).
   availableImages = [],
   onInsertAvailable,
+  // Modo split (from-pdf): abre el publilab a pantalla completa con un panel a la
+  // izquierda (`leftPanel`, p. ej. el PDF) y divisor móvil, sin la pantalla de
+  // bienvenida ni la card de preview. `apiRef.current` expone { appendText,
+  // appendHeading } para insertar la selección del PDF como bloques.
+  splitMode = false,
+  leftPanel = null,
+  apiRef = null,
+  onClose,
 }) {
   const [pairs, setPairs] = useState(() => htmlToQa(value));
   const [showPastePanel, setShowPastePanel] = useState(false);
@@ -2829,6 +3263,38 @@ export default function InterviewEditor({
     setTimeout(() => setShowPastePanel(true), 2400);
     setTimeout(() => setShowSplash(false), 3400);
   };
+
+  // Modo split: el publilab ES la pantalla completa (sin splash ni card).
+  if (splitMode) {
+    return (
+      <PasteImportPanel
+        onImport={(importedPairs, blocks, lang) => {
+          // Emitir el HTML de inmediato: onClose desmonta el editor antes de que
+          // el effect [pairs] dispare onChange, así que propagamos aquí de forma
+          // sincrónica para no perder el cuerpo recién compuesto.
+          if (lang === "es") {
+            onChangeES && onChangeES(qaToHtml(importedPairs));
+          } else {
+            onChange(qaToHtml(importedPairs));
+          }
+          handleImportFromPaste(importedPairs, blocks, lang);
+          onClose && onClose();
+        }}
+        onClose={() => onClose && onClose()}
+        initialBlocks={hasContent ? pairsToBlocks(pairs) : []}
+        articleTitle={title}
+        articleSubtitle={subtitle}
+        articleLegacyPath={articleLegacyPath}
+        articleId={articleId}
+        hasSpanishContent={hasSpanishContent}
+        contentES={contentES}
+        availableImages={availableImages}
+        onInsertAvailable={onInsertAvailable}
+        leftPanel={leftPanel}
+        apiRef={apiRef}
+      />
+    );
+  }
 
   return (
     <div className="space-y-2">

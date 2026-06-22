@@ -16,10 +16,11 @@ Der Text stammt aus PDF-Extraktion: Silbentrennung am Zeilenende, Spaltenumbrüc
 Deine Aufgabe: den Artikel in Felder zerlegen. Regeln:
 - Nichts erfinden, nichts übersetzen, nichts kürzen. Der vollständige Fließtext muss erhalten bleiben.
 - Silbentrennung am Zeilenende auflösen ("Wort-\nteil" -> "Wortteil").
+- Initialen/Drop-Caps (große Zierbuchstaben am Absatzanfang alter Dossiers): Ein einzelner großgeschriebener Buchstabe, der durch Leerzeichen oder Umbruch vom folgenden, klein beginnenden Wort getrennt ist, gehört zu diesem Wort und muss zusammengefügt werden ("A" + "utobiographische" -> "Autobiographische", "S" + "o wie" -> "So wie"). Der Initialbuchstabe kann durch die Spalten-/Bildanordnung auch versetzt oder vor/nach seinem Absatz auftauchen — ordne ihn dem inhaltlich passenden Absatzanfang zu.
 - Absätze durch eine Leerzeile trennen.
 - Zwischentitel (kurze Überschriften im Text) mit "## " am Zeilenanfang markieren.
 - Die Autorenzeile ("von …", "Text: …", "Interview: …") gehört NICHT in den Fließtext, sondern in das Feld author.
-- Titel, Untertitel und Vorspann (Lead/Intro vor dem ersten Absatz), wenn vorhanden, in ihre Felder; sonst leer lassen.
+- Titel, Untertitel und Vorspann/Lead NICHT in den Fließtext aufnehmen und NICHT zurückgeben — diese Felder werden separat manuell erfasst. Der Fließtext (body) beginnt beim ersten eigentlichen Textabsatz.
 - Bildunterschriften und reine Seitenzahlen weglassen.
 - Wenn ein Titel vorgegeben ist: NUR diesen Artikel extrahieren. Der Seitenbereich kann das Ende des vorherigen und/oder den Anfang des nächsten Artikels enthalten — diese Teile weglassen, sobald der Titel oder die Autorenzeile eines anderen Artikels beginnt.
 - In boundaryNote kurz vermerken, wo abgeschnitten wurde (z. B. "abgeschnitten vor: «Titel des nächsten Artikels»"); leer lassen, wenn der gesamte Text zum Artikel gehört.`;
@@ -30,12 +31,6 @@ const TOOL = {
   input_schema: {
     type: "object",
     properties: {
-      title: { type: "string", description: "Artikeltitel" },
-      subtitle: { type: "string", description: "Untertitel, sonst leerer String" },
-      previewText: {
-        type: "string",
-        description: "Vorspann/Lead vor dem ersten Absatz, sonst leerer String",
-      },
       author: {
         type: "string",
         description: "Name der Autor:in (ohne 'von'), sonst leerer String",
@@ -43,7 +38,7 @@ const TOOL = {
       body: {
         type: "string",
         description:
-          "Vollständiger Fließtext. Absätze durch eine Leerzeile getrennt, Zwischentitel mit '## ' am Zeilenanfang.",
+          "Vollständiger Fließtext OHNE Titel, Untertitel und Vorspann. Absätze durch eine Leerzeile getrennt, Zwischentitel mit '## ' am Zeilenanfang.",
       },
       boundaryNote: {
         type: "string",
@@ -51,7 +46,7 @@ const TOOL = {
           "Kurzer Hinweis, wo abgeschnitten wurde (Anfang des nächsten Artikels), sonst leerer String.",
       },
     },
-    required: ["title", "body"],
+    required: ["body"],
   },
 };
 
@@ -122,9 +117,6 @@ ${text}`
     const cost = (inTok / 1e6) * price.in + (outTok / 1e6) * price.out;
 
     return NextResponse.json({
-      title: out.title || "",
-      subtitle: out.subtitle || "",
-      previewText: out.previewText || "",
       author: out.author || "",
       body: out.body || "",
       boundaryNote: out.boundaryNote || "",
