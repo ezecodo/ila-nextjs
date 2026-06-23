@@ -115,6 +115,9 @@ export default function ArticleFormV2({ articleId }) {
 
   const [publicationDate, setPublicationDate] = useState(null);
   const [useCustomDate, setUseCustomDate] = useState(false);
+  // Estado de publicación real del artículo al cargarlo: al editar sin tocar la
+  // fecha se preserva (editar no debe publicar un borrador).
+  const [initialIsPublished, setInitialIsPublished] = useState(false);
 
   const [deceasedFirstName, setDeceasedFirstName] = useState("");
   const [deceasedLastName, setDeceasedLastName] = useState("");
@@ -348,6 +351,7 @@ export default function ArticleFormV2({ articleId }) {
         setPublicationDate(
           article.publicationDate ? new Date(article.publicationDate) : null
         );
+        setInitialIsPublished(article.isPublished || false);
         setPreviewText(article.previewText || "");
         setPreviewTextEnabled(!!article.previewText);
         setAdditionalInfo(article.additionalInfo || "");
@@ -572,7 +576,7 @@ export default function ArticleFormV2({ articleId }) {
         finalIsPublished = publicationDate <= new Date();
       } else {
         finalDate = publicationDate;
-        finalIsPublished = true;
+        finalIsPublished = initialIsPublished;
       }
       formData.append("useCustomDate", useCustomDate);
     } else {

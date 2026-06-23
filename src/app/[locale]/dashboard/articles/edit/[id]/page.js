@@ -62,6 +62,9 @@ export default function EditArticlePage() {
   const [schedulePublish, setSchedulePublish] = useState(false); // Toggle para "Programar Publicación"
   const [publicationDate, setPublicationDate] = useState(null); // Fecha programada
   const [useCustomDate, setUseCustomDate] = useState(false);
+  // Estado de publicación real al cargar: editar sin tocar la fecha lo preserva
+  // (editar no debe publicar un borrador).
+  const [initialIsPublished, setInitialIsPublished] = useState(false);
   const [deceasedFirstName, setDeceasedFirstName] = useState("");
   const [deceasedLastName, setDeceasedLastName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -318,6 +321,7 @@ export default function EditArticlePage() {
           article.publicationDate ? new Date(article.publicationDate) : null
         );
         setSchedulePublish(article.schedulePublish || false);
+        setInitialIsPublished(article.isPublished || false);
         setPublicationDate(
           article.publicationDate ? new Date(article.publicationDate) : null
         );
@@ -592,7 +596,7 @@ export default function EditArticlePage() {
     } else {
       // Si no se activó el modo personalizado, mantener la fecha existente
       finalDate = publicationDate; // viene del backend y se conserva
-      finalIsPublished = true; // no tocar estado de publicación
+      finalIsPublished = initialIsPublished; // preservar estado de publicación
     }
 
     // ⚡ Convertir fecha local a UTC correctamente
