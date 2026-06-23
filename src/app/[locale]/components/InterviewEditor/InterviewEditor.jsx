@@ -1522,6 +1522,20 @@ function PasteImportPanel({
     focusTargetRef.current = Math.max(0, i - 1);
   };
 
+  // Reordena un bloque hacia arriba (-1) o abajo (+1). Útil para posicionar una
+  // imagen antes del párrafo que debe envolverla (el float solo afecta al texto
+  // que viene DESPUÉS de la imagen).
+  const moveBlock = (i, dir) => {
+    setBlocks((prev) => {
+      if (!prev) return prev;
+      const j = i + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  };
+
   const addBlock = (type, afterIdx) => {
     const newBlock =
       type === "list"
@@ -2102,6 +2116,27 @@ function PasteImportPanel({
                           ))}
                         </div>
                       )}
+                      {/* Reordenar: subir la imagen antes del párrafo que debe envolverla */}
+                      <div className="flex gap-0.5 shrink-0 border-l border-blue-200 pl-1.5">
+                        <button
+                          type="button"
+                          title="Nach oben"
+                          disabled={i === 0}
+                          onClick={() => moveBlock(i, -1)}
+                          className="w-6 h-6 flex items-center justify-center rounded text-[11px] font-bold border border-blue-200 text-blue-600 hover:border-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          title="Nach unten"
+                          disabled={i === (blocks?.length ?? 1) - 1}
+                          onClick={() => moveBlock(i, 1)}
+                          className="w-6 h-6 flex items-center justify-center rounded text-[11px] font-bold border border-blue-200 text-blue-600 hover:border-blue-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          ↓
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => deleteBlock(i)}

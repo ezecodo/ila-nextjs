@@ -534,6 +534,12 @@ body {
 /* Imágenes flotadas con texto envolvente (efecto editorial) — solo desktop.
    El ancho viene en el style inline del <figure> (25%/50%); la imagen = 100%. */
 @media (min-width: 768px) {
+  /* Contener los floats dentro del cuerpo del artículo para que una imagen
+     flotada al final no se filtre y arrastre al costado el componente siguiente
+     (ej. el bloque "AUS DIESEM DOSSIER"). */
+  .article-content {
+    display: flow-root;
+  }
   /* El ancho lo define el tamaño elegido (S/M/L) vía style inline del <figure>.
      La imagen interna ocupa el 100% de esa figura (!important para ganarle al
      width inline que arrastra el <img>, que si no reduciría el tamaño dos veces). */
@@ -556,6 +562,14 @@ body {
   .article-content figure.inline-image-figure.inline-image-left img,
   .article-content figure.inline-image-figure.inline-image-right img {
     width: 100% !important;
+  }
+  /* Si la imagen flotada es lo último del artículo (no hay texto debajo que la
+     envuelva), flotarla no tiene sentido: la mostramos como bloque centrado. */
+  .article-content figure.inline-image-figure.inline-image-left:last-child,
+  .article-content figure.inline-image-figure.inline-image-right:last-child {
+    float: none;
+    margin-left: auto;
+    margin-right: auto;
   }
   /* Un título nunca queda envuelto a medias por una imagen flotada */
   .article-content h2,

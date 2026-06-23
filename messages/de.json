@@ -894,7 +894,21 @@
     "moreInDossier": "Weitere Beiträge aus diesem Dossier ({count})"
   },
   "relatedArticles": {
-    "title": "Das könnte dich auch interessieren"
+    "title": "Das könnte dich auch interessieren",
+    "seeAll": "Alle verwandten Artikel ansehen →",
+    "allTitle": "Verwandte Artikel",
+    "allSubtitle": "Alle Artikel aus dem Archiv, die thematisch mit diesem Beitrag verwandt sind.",
+    "backToArticle": "← Zurück zum Artikel",
+    "yearFilter": "Zeitraum",
+    "yearAll": "Alle Jahre",
+    "yearFrom": "Von",
+    "yearTo": "Bis",
+    "resultsCount": "{count, plural, one {# Artikel} other {# Artikel}}",
+    "noResults": "Keine verwandten Artikel in diesem Zeitraum.",
+    "loading": "Lädt …",
+    "prev": "Zurück",
+    "next": "Weiter",
+    "pageInfo": "Seite {page} von {totalPages}"
   },
   "donationInline": {
     "ariaLabel": "Spendenaufruf",

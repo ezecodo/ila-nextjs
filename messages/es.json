@@ -893,7 +893,21 @@
     "moreInDossier": "Más artículos de este dossier ({count})"
   },
   "relatedArticles": {
-    "title": "También te puede interesar"
+    "title": "También te puede interesar",
+    "seeAll": "Ver todos los artículos relacionados →",
+    "allTitle": "Artículos relacionados",
+    "allSubtitle": "Todos los artículos del archivo relacionados temáticamente con este.",
+    "backToArticle": "← Volver al artículo",
+    "yearFilter": "Período",
+    "yearAll": "Todos los años",
+    "yearFrom": "Desde",
+    "yearTo": "Hasta",
+    "resultsCount": "{count, plural, one {# artículo} other {# artículos}}",
+    "noResults": "No hay artículos relacionados en este período.",
+    "loading": "Cargando …",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "pageInfo": "Página {page} de {totalPages}"
   },
   "donationInline": {
     "ariaLabel": "Llamada a donar",

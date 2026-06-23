@@ -99,6 +99,13 @@ export default function RelatedArticles({ articleId }) {
             );
           })}
         </ul>
+
+        <Link
+          href={`/${locale}/related/${articleId}`}
+          className="group mt-4 inline-flex items-center text-[13px] font-bold text-[#BD0E0D] hover:underline"
+        >
+          {t("seeAll")}
+        </Link>
       </div>
     </aside>
   );
