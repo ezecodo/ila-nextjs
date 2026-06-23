@@ -531,6 +531,40 @@ body {
   color: #6b7280;
 }
 
+/* Imágenes flotadas con texto envolvente (efecto editorial) — solo desktop.
+   El ancho viene en el style inline del <figure> (25%/50%); la imagen = 100%. */
+@media (min-width: 768px) {
+  /* El ancho lo define el tamaño elegido (S/M/L) vía style inline del <figure>.
+     La imagen interna ocupa el 100% de esa figura (!important para ganarle al
+     width inline que arrastra el <img>, que si no reduciría el tamaño dos veces). */
+  .article-content figure.inline-image-figure.inline-image-left,
+  .article-content figure.inline-image-figure.inline-image-right {
+    max-width: 100%;
+    margin-top: 0.35rem;
+    margin-bottom: 1rem;
+  }
+  .article-content figure.inline-image-figure.inline-image-left {
+    float: left;
+    margin-right: 1.6rem;
+    margin-left: 0;
+  }
+  .article-content figure.inline-image-figure.inline-image-right {
+    float: right;
+    margin-left: 1.6rem;
+    margin-right: 0;
+  }
+  .article-content figure.inline-image-figure.inline-image-left img,
+  .article-content figure.inline-image-figure.inline-image-right img {
+    width: 100% !important;
+  }
+  /* Un título nunca queda envuelto a medias por una imagen flotada */
+  .article-content h2,
+  .article-content h3,
+  .article-content h4 {
+    clear: both;
+  }
+}
+
 .poem {
   font-family: inherit;
   line-height: 1.6;

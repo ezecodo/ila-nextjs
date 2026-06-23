@@ -165,13 +165,27 @@ export default function LegacyArticlePage() {
     return html.replace(/<img([^>]+)>/gi, (match, attrs) => {
       const altMatch   = attrs.match(/alt="([^"]*)"/);
       const titleMatch = attrs.match(/title="([^"]*)"/);
+      const alignMatch = attrs.match(/data-align="([^"]*)"/);
       const caption    = (altMatch?.[1]   || "").trim();
       const credit     = (titleMatch?.[1] || "").trim();
-      if (!caption && !credit) return match;
+      const align      = (alignMatch?.[1] || "").trim();
+      const floatClass =
+        align === "left"
+          ? " inline-image-left"
+          : align === "right"
+            ? " inline-image-right"
+            : "";
+      if (!caption && !credit && !floatClass) return match;
+      // En figura flotada el ancho va en el <figure> (la imagen interna = 100%).
+      const w = attrs.match(/width:\s*(\d+)%/)?.[1];
+      const figStyle = floatClass && w ? ` style="width:${w}%"` : "";
       const figcaptionContent = caption && credit
         ? `${caption}<span class="image-credit"> · ${credit}</span>`
         : caption || credit;
-      return `<figure class="inline-image-figure">${match}<figcaption>${figcaptionContent}</figcaption></figure>`;
+      const figcap = caption || credit
+        ? `<figcaption>${figcaptionContent}</figcaption>`
+        : "";
+      return `<figure class="inline-image-figure${floatClass}"${figStyle}>${match}${figcap}</figure>`;
     });
   }
   function rewriteEditionLinksWithLocale(html, locale) {

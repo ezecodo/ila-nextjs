@@ -45,6 +45,7 @@ export function qaToHtml(pairs) {
         imageAlt,
         imageTitle,
         imageWidth,
+        imageAlign,
         size,
         isListBlock,
         items,
@@ -60,7 +61,13 @@ export function qaToHtml(pairs) {
         const title = escapeHtml(imageTitle || "");
         const w = imageWidth || "100";
         const titleAttr = title ? ` title="${title}"` : "";
-        return `<p><img src="${imageUrl}" alt="${alt}"${titleAttr} style="width:${w}%" /></p>`;
+        // Float disponible en S/M/L; ■ (ancho completo) siempre bloque centrado.
+        const floatable = w === "25" || w === "50" || w === "75";
+        const align = floatable && (imageAlign === "left" || imageAlign === "right")
+          ? imageAlign
+          : null;
+        const alignAttr = align ? ` data-align="${align}"` : "";
+        return `<p><img src="${imageUrl}" alt="${alt}"${titleAttr}${alignAttr} style="width:${w}%" /></p>`;
       }
 
       // List block → <ul> or <ol>
@@ -237,6 +244,7 @@ export function htmlToQa(html) {
         imageAlt: img.getAttribute("alt") || "",
         imageTitle: img.getAttribute("title") || "",
         imageWidth: widthMatch ? widthMatch[1] : "100",
+        imageAlign: img.getAttribute("data-align") || "center",
       });
       currentPair = null;
       continue;
@@ -601,6 +609,7 @@ function blocksToQa(blocks) {
         imageAlt: block.imageAlt || "",
         imageTitle: block.imageTitle || "",
         imageWidth: block.imageWidth || "100",
+        imageAlign: block.imageAlign || "center",
       });
       currentPair = null;
     } else if (block.type === "subtitle") {
@@ -659,6 +668,7 @@ function pairsToBlocks(pairs) {
         imageAlt: pair.imageAlt || "",
         imageTitle: pair.imageTitle || "",
         imageWidth: pair.imageWidth || "100",
+        imageAlign: pair.imageAlign || "center",
       });
     } else if (pair.isListBlock) {
       blocks.push({
@@ -964,7 +974,16 @@ function DarkAnswerBlock({
   };
 
   const exec = (cmd, arg = null) => {
-    if (!restoreSelection()) divRef.current?.focus();
+    // Preferir la selección viva (preservada por el mousedown+preventDefault del
+    // botón). Solo restaurar un rango guardado si NO hay selección dentro del div,
+    // para no pisar lo que el usuario tiene seleccionado con un rango viejo de un
+    // link/dossier previo. Además styleWithCSS=false fuerza que bold/italic usen
+    // <b>/<i> (toggleables) en vez de <span style> que luego no se puede quitar.
+    const sel = window.getSelection();
+    const liveInDiv =
+      sel && sel.rangeCount > 0 && divRef.current?.contains(sel.anchorNode);
+    if (!liveInDiv && !restoreSelection()) divRef.current?.focus();
+    document.execCommand("styleWithCSS", false, false);
     document.execCommand(cmd, false, arg);
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
   };
@@ -1109,11 +1128,13 @@ function DarkAnswerBlock({
               const sel = window.getSelection();
               if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
                 const range = sel.getRangeAt(0);
-                // Check cursor is at start: range from div-start to cursor has no characters
+                // Cursor "al inicio del bloque": todo lo que hay entre el comienzo
+                // del div y el caret es solo espacios/saltos (tolerante al espacio
+                // residual que puede dejar un split y al caret invisible).
                 const testRange = document.createRange();
                 testRange.setStart(divRef.current, 0);
                 testRange.setEnd(range.startContainer, range.startOffset);
-                if (testRange.toString().length === 0) {
+                if (!testRange.toString().replace(/\s+/g, "")) {
                   e.preventDefault();
                   onMergeUp(normalizeAnswerHtml(divRef.current.innerHTML));
                 }
@@ -1591,7 +1612,8 @@ function PasteImportPanel({
       imageUrl: url,
       imageAlt: alt,
       imageTitle: title,
-      imageWidth: "100",
+      imageWidth: "50",
+      imageAlign: "center",
     };
     const insertAt = insertAtRef.current ?? (blocks ? blocks.length : 0);
     setBlocks((prev) => {
@@ -1638,7 +1660,8 @@ function PasteImportPanel({
           imageUrl: data.url,
           imageAlt: "",
           imageTitle: "",
-          imageWidth: "100",
+          imageWidth: "50",
+          imageAlign: "center",
         };
         const insertAt = insertAtRef.current ?? (blocks ? blocks.length : 0);
         setBlocks((prev) => {
@@ -2055,6 +2078,30 @@ function PasteImportPanel({
                           </button>
                         ))}
                       </div>
+                      {/* Alineación con texto envolvente — S/M/L (desktop) */}
+                      {(block.imageWidth === "25" ||
+                        block.imageWidth === "50" ||
+                        block.imageWidth === "75") && (
+                        <div className="flex gap-0.5 shrink-0 border-l border-blue-200 pl-1.5">
+                          {[
+                            { label: "⬅", value: "left", title: "Links — Text umfließt rechts" },
+                            { label: "⬛", value: "center", title: "Zentriert (Block)" },
+                            { label: "➡", value: "right", title: "Rechts — Text umfließt links" },
+                          ].map(({ label, value, title }) => (
+                            <button
+                              key={value}
+                              type="button"
+                              title={title}
+                              onClick={() =>
+                                updateBlockField(i, "imageAlign", value)
+                              }
+                              className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-colors ${(block.imageAlign || "center") === value ? "bg-blue-600 text-white" : "border border-blue-200 text-blue-600 hover:border-blue-400"}`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       <button
                         type="button"
                         onClick={() => deleteBlock(i)}
@@ -2486,12 +2533,25 @@ function PasteImportPanel({
             html = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
               const caption = attrs.match(/alt="([^"]*)"/)?.[1]?.trim() || "";
               const credit = attrs.match(/title="([^"]*)"/)?.[1]?.trim() || "";
-              if (!caption && !credit) return match;
-              const fig =
-                caption && credit
-                  ? `${caption}<span class="image-credit"> · ${credit}</span>`
-                  : caption || credit;
-              return `<figure class="inline-image-figure">${match}<figcaption>${fig}</figcaption></figure>`;
+              const align = attrs.match(/data-align="([^"]*)"/)?.[1]?.trim() || "";
+              const floatClass =
+                align === "left"
+                  ? " inline-image-left"
+                  : align === "right"
+                    ? " inline-image-right"
+                    : "";
+              if (!caption && !credit && !floatClass) return match;
+              const w = attrs.match(/width:\s*(\d+)%/)?.[1];
+              const figStyle = floatClass && w ? ` style="width:${w}%"` : "";
+              const figcap =
+                caption || credit
+                  ? `<figcaption>${
+                      caption && credit
+                        ? `${caption}<span class="image-credit"> · ${credit}</span>`
+                        : caption || credit
+                    }</figcaption>`
+                  : "";
+              return `<figure class="inline-image-figure${floatClass}"${figStyle}>${match}${figcap}</figure>`;
             });
             return html;
           };
@@ -2658,7 +2718,13 @@ function RichAnswerField({ value, onChange }) {
   };
 
   const exec = (cmd, arg = null) => {
-    if (!restoreSelection()) divRef.current?.focus();
+    // Ver comentario en el exec del bloque de respuesta: priorizar selección viva
+    // y forzar styleWithCSS=false para que bold/italic sean toggleables.
+    const sel = window.getSelection();
+    const liveInDiv =
+      sel && sel.rangeCount > 0 && divRef.current?.contains(sel.anchorNode);
+    if (!liveInDiv && !restoreSelection()) divRef.current?.focus();
+    document.execCommand("styleWithCSS", false, false);
     document.execCommand(cmd, false, arg);
     if (onChange) onChange(divRef.current.innerHTML);
   };

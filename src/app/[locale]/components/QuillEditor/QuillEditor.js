@@ -55,7 +55,22 @@ const icons = Quill.import("ui/icons");
 icons["poem"] = "📜"; // 👈 puede ser emoji o un SVG
 icons["dossier"] = "📕"; //
 
-const QuillEditor = ({ value = "", onChange, resetTrigger, onQuillReady }) => {
+const DEFAULT_TOOLBAR = [
+  [{ header: "1" }, { header: "2" }, { header: "3" }],
+  [{ list: "ordered" }, { list: "bullet" }],
+  ["bold", "italic"],
+  ["link"],
+  ["poem"],
+  ["dossier"],
+];
+
+const QuillEditor = ({
+  value = "",
+  onChange,
+  resetTrigger,
+  onQuillReady,
+  toolbar = DEFAULT_TOOLBAR,
+}) => {
   const t = useTranslations("quilleditor");
 
   const editorRef = useRef(null);
@@ -91,20 +106,13 @@ const QuillEditor = ({ value = "", onChange, resetTrigger, onQuillReady }) => {
       quillRef.current = new Quill(editorRef.current, {
         theme: "snow",
         modules: {
-          toolbar: [
-            [{ header: "1" }, { header: "2" }, { header: "3" }],
-            [{ list: "ordered" }, { list: "bullet" }],
-            ["bold", "italic"],
-            ["link"],
-            ["poem"],
-            ["dossier"],
-          ],
+          toolbar,
         },
         placeholder: t("writeHere"),
       });
       // Añadir handler para el botón "poem"
-      const toolbar = quillRef.current.getModule("toolbar");
-      toolbar.addHandler("poem", () => {
+      const toolbarModule = quillRef.current.getModule("toolbar");
+      toolbarModule.addHandler("poem", () => {
         const range = quillRef.current.getSelection();
         if (range && range.length > 0) {
           const selectedText = quillRef.current.getText(
@@ -144,7 +152,7 @@ const QuillEditor = ({ value = "", onChange, resetTrigger, onQuillReady }) => {
 
       // 👉 Handler para Dossier
 
-      toolbar.addHandler("dossier", () => {
+      toolbarModule.addHandler("dossier", () => {
         console.log("CLICK EN 📕"); // debería salir en consola
         const range = quillRef.current.getSelection();
         if (!range || range.length === 0) {

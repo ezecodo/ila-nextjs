@@ -14,6 +14,7 @@ import SubmitButton from "../../../components/Articles/NewArticle/SubmitButton";
 import Modal from "../../../components/Articles/NewArticle/Modal";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
 import ImageGalleryManager from "../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
+import SuccessCelebration from "../../../components/Articles/SuccessCelebration/SuccessCelebration";
 import styles from "../../../../styles/global.module.css";
 
 const AsyncSelect = dynamic(() => import("react-select/async"), { ssr: false });
@@ -103,6 +104,8 @@ export default function ArticleFormV2({ articleId }) {
   const [endPage, setEndPage] = useState("");
 
   const [message, setMessage] = useState("");
+  const [celebrateCount, setCelebrateCount] = useState(null);
+  const [createdTarget, setCreatedTarget] = useState(null);
   const [authors, setAuthors] = useState([]);
   const [selectedAuthors, setSelectedAuthors] = useState([]);
   const [selectedInterviewees, setSelectedInterviewees] = useState([]);
@@ -649,7 +652,19 @@ export default function ArticleFormV2({ articleId }) {
             router.push(`/de/articles/${updated.id}`);
           }
         } else {
-          setMessage("Artículo creado con éxito.");
+          let total = null;
+          try {
+            const created = await res.json();
+            total = created?.totalArticles ?? null;
+            if (created?.legacyPath) {
+              setCreatedTarget(`/${locale}${created.legacyPath}`);
+            } else if (created?.id) {
+              setCreatedTarget(`/${locale}/articles/${created.id}`);
+            }
+          } catch {
+            /* sin total: el modal igual celebra */
+          }
+          setCelebrateCount(typeof total === "number" ? total : -1);
           resetForm();
         }
       } else {
@@ -754,6 +769,23 @@ export default function ArticleFormV2({ articleId }) {
 
       {message && <FormMessage message={message} />}
 
+      <SuccessCelebration
+        open={celebrateCount !== null}
+        total={celebrateCount >= 0 ? celebrateCount : undefined}
+        title={t("successCelebrationTitle")}
+        countLabel={t("successCelebrationCount")}
+        praise={t("successCelebrationPraise")}
+        closeLabel={t("successCelebrationClose")}
+        onClose={() => {
+          setCelebrateCount(null);
+          if (createdTarget) {
+            const target = createdTarget;
+            setCreatedTarget(null);
+            router.push(target);
+          }
+        }}
+      />
+
       <form onSubmit={handleSubmit} className="space-y-5">
 
         {/* ── STEP 1: Tipo de artículo ─────────────────────────────── */}
@@ -791,9 +823,48 @@ export default function ArticleFormV2({ articleId }) {
           )}
         </Section>
 
-        {/* ── STEP 2: Título y subtítulo ───────────────────────────── */}
+        {/* ── STEP 2: Gedruckte Ausgabe ────────────────────────────── */}
         {selectedBeitragstyp && (
-          <Section step="2" title="Titel & Untertitel">
+          <Section
+            step="2"
+            title="Gedruckte Ausgabe"
+            subtitle="Gehört der Artikel zu einem gedruckten Heft?"
+          >
+            <ToggleSwitch
+              id="isPrinted"
+              label={t("printedToggle")}
+              checked={isPrinted}
+              onChange={(e) => setIsPrinted(e.target.checked)}
+            />
+            {isPrinted && (
+              <div className="space-y-3">
+                <SelectField
+                  id="edition"
+                  label={t("edition")}
+                  options={editions.map((edition) => ({
+                    id: edition.id,
+                    name: `${edition.number} - ${edition.title}`,
+                  }))}
+                  value={selectedEdition}
+                  onChange={(e) => setSelectedEdition(e.target.value)}
+                  placeholder={t("editionPlaceholder")}
+                />
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <InputField id="startPage" label={t("startPage")} value={startPage} onChange={(e) => setStartPage(e.target.value)} placeholder={t("startPagePlaceholder")} />
+                  </div>
+                  <div className="flex-1">
+                    <InputField id="endPage" label={t("endPage")} value={endPage} onChange={(e) => setEndPage(e.target.value)} placeholder={t("endPagePlaceholder")} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </Section>
+        )}
+
+        {/* ── STEP 3: Título y subtítulo ───────────────────────────── */}
+        {selectedBeitragstyp && (
+          <Section step="3" title="Titel & Untertitel">
             <InputField
               id="title"
               label={t("title")}
@@ -822,15 +893,16 @@ export default function ArticleFormV2({ articleId }) {
                 value={previewText}
                 onChange={setPreviewText}
                 resetTrigger={resetTrigger}
+                toolbar={[["link"], ["poem"], ["dossier"]]}
               />
             )}
           </Section>
         )}
 
-        {/* ── STEP 3: Contenido ────────────────────────────────────── */}
+        {/* ── STEP 4: Contenido ────────────────────────────────────── */}
         {selectedBeitragstyp && (
           <Section
-            step="3"
+            step="4"
             title={isInterview ? "Fragen & Antworten" : "Inhalt"}
             subtitle={
               isInterview
@@ -893,9 +965,9 @@ export default function ArticleFormV2({ articleId }) {
           </Section>
         )}
 
-        {/* ── STEP 4: Autores e imágenes ───────────────────────────── */}
+        {/* ── STEP 5: Autores e imágenes ───────────────────────────── */}
         {selectedBeitragstyp && (
-          <Section step="4" title="Autoren & Bilder">
+          <Section step="5" title="Autoren & Bilder">
             <div className={styles.authorSection}>
               <label className={styles.formLabel}>{t("author")}</label>
               <AsyncSelect
@@ -921,9 +993,9 @@ export default function ArticleFormV2({ articleId }) {
           </Section>
         )}
 
-        {/* ── STEP 5: Clasificación ────────────────────────────────── */}
+        {/* ── STEP 6: Clasificación ────────────────────────────────── */}
         {selectedBeitragstyp && (
-          <Section step="5" title="Klassifizierung" subtitle="Kategorien, Regionen, Themen">
+          <Section step="6" title="Klassifizierung" subtitle="Kategorien, Regionen, Themen">
             <div>
               <h3 className={styles.formLabel}>{t("categoryLabel")}</h3>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
@@ -975,9 +1047,9 @@ export default function ArticleFormV2({ articleId }) {
           </Section>
         )}
 
-        {/* ── STEP 6: Opciones adicionales ─────────────────────────── */}
+        {/* ── STEP 7: Opciones adicionales ─────────────────────────── */}
         {selectedBeitragstyp && (
-          <Section step="6" title="Weitere Optionen">
+          <Section step="7" title="Weitere Optionen">
             <ToggleSwitch
               id="additionalInfoToggle"
               label={t("additionalInfoToggle")}
@@ -991,6 +1063,7 @@ export default function ArticleFormV2({ articleId }) {
                   value={additionalInfo}
                   onChange={setAdditionalInfo}
                   resetTrigger={resetTrigger}
+                  toolbar={[["link"], ["poem"], ["dossier"]]}
                 />
               </div>
             )}
@@ -1088,39 +1161,9 @@ export default function ArticleFormV2({ articleId }) {
           </Section>
         )}
 
-        {/* ── STEP 7: Publicación ──────────────────────────────────── */}
+        {/* ── STEP 8: Publicación ──────────────────────────────────── */}
         {selectedBeitragstyp && (
-          <Section step="7" title="Veröffentlichung">
-            <ToggleSwitch
-              id="isPrinted"
-              label={t("printedToggle")}
-              checked={isPrinted}
-              onChange={(e) => setIsPrinted(e.target.checked)}
-            />
-            {isPrinted && (
-              <div className="space-y-3">
-                <SelectField
-                  id="edition"
-                  label={t("edition")}
-                  options={editions.map((edition) => ({
-                    id: edition.id,
-                    name: `${edition.number} - ${edition.title}`,
-                  }))}
-                  value={selectedEdition}
-                  onChange={(e) => setSelectedEdition(e.target.value)}
-                  placeholder={t("editionPlaceholder")}
-                />
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <InputField id="startPage" label={t("startPage")} value={startPage} onChange={(e) => setStartPage(e.target.value)} placeholder={t("startPagePlaceholder")} />
-                  </div>
-                  <div className="flex-1">
-                    <InputField id="endPage" label={t("endPage")} value={endPage} onChange={(e) => setEndPage(e.target.value)} placeholder={t("endPagePlaceholder")} />
-                  </div>
-                </div>
-              </div>
-            )}
-
+          <Section step="8" title="Veröffentlichung">
             <ToggleSwitch
               id="useCustomDate"
               label={t("useCustomDateToggle")}

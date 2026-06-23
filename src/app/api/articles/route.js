@@ -355,10 +355,13 @@ export async function POST(request) {
       where: { contentType: "ARTICLE", contentId: article.id },
     });
 
+    const totalArticles = await prisma.article.count();
+
     return new Response(
       JSON.stringify({
         ...article,
         images, // 👈 todas las imágenes subidas
+        totalArticles, // 👈 total acumulado en la BD (para el mensaje de éxito)
       }),
       { status: 201 }
     );

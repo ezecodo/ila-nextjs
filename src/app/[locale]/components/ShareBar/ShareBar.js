@@ -56,6 +56,10 @@ export default function ShareBar({
   const [computedTop, setComputedTop] = useState(stickyTop);
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  // El editor v2 (publilab) está restringido a Eze mientras se termina; el resto
+  // de admins van al clásico (la página edit-v2 igual redirige si no coincide).
+  const editBase =
+    session?.user?.email === "e.zeangeloni@gmail.com" ? "edit-v2" : "edit";
   const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
@@ -197,7 +201,7 @@ export default function ShareBar({
         {/* Editar artículo (solo admin) */}
         {isAdmin && articleId != null && (
           <Link
-            href={`/dashboard/articles/edit/${articleId}`}
+            href={`/dashboard/articles/${editBase}/${articleId}`}
             className="hidden md:block"
           >
             <ShareItem label={t("editLink")} title="Editar artículo">
@@ -285,7 +289,7 @@ export default function ShareBar({
 
           {isAdmin && articleId != null && (
             <Link
-              href={`/dashboard/articles/edit/${articleId}`}
+              href={`/dashboard/articles/${editBase}/${articleId}`}
               className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
               title="Editar artículo"
               aria-label="Editar artículo"

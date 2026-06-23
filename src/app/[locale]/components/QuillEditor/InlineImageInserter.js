@@ -165,6 +165,24 @@ export default function InlineImageInserter({
     applyAttrsToImg(quill, src, editValues[src] || {});
   };
 
+  const handleDeleteImage = (src) => {
+    const quill = quillInstanceRef.current;
+    if (!quill) return;
+    if (!window.confirm("Dieses Bild aus dem Text entfernen?")) return;
+    const imgs = quill.root.querySelectorAll(`img[src="${src}"]`);
+    const img = imgs[imgs.length - 1];
+    if (!img) return;
+    // Borrar vía API de Quill para mantener el modelo sincronizado
+    const blot = quill.constructor.find ? quill.constructor.find(img) : null;
+    if (blot && typeof blot.offset === "function") {
+      const index = blot.offset(quill.scroll);
+      quill.deleteText(index, 1, "user");
+    } else {
+      img.remove();
+    }
+    if (onContentChange) onContentChange(quill.root.innerHTML);
+  };
+
   const handleResizeImage = (src, widthValue) => {
     setEditValues((prev) => ({
       ...prev,
@@ -296,6 +314,14 @@ export default function InlineImageInserter({
                     onChange={(val) => handleResizeImage(img.src, val)}
                   />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteImage(img.src)}
+                  title="Bild aus dem Text entfernen"
+                  className="flex-shrink-0 mt-1 px-2 py-1 text-xs rounded border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-400 transition-colors"
+                >
+                  🗑️
+                </button>
               </div>
             ))}
           </div>
