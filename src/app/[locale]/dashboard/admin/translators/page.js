@@ -68,7 +68,7 @@ export default function TranslatorsAdminPage() {
       setFormMsg({
         type: "ok",
         text: data.promoted
-          ? "Usuario existente promovido a traductor/a."
+          ? "Usuario existente promovido a traductor/a. Verá las herramientas de traducción la próxima vez que inicie sesión."
           : "Traductor/a invitado/a. Se envió el email para definir contraseña.",
       });
       setNewName("");
@@ -173,7 +173,10 @@ export default function TranslatorsAdminPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "No se pudo quitar");
         setTranslators((prev) => prev.filter((u) => u.id !== user.id));
-        showNotice("ok", `${user.name || user.email} pasó a usuario normal.`);
+        showNotice(
+          "ok",
+          `${user.name || user.email} pasó a usuario normal. El cambio se aplica cuando vuelva a iniciar sesión.`
+        );
       },
     });
   };

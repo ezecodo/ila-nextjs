@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/app/auth";
+import { hasAboAccess } from "@/lib/aboAccess";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
@@ -69,23 +70,12 @@ export async function GET(req) {
     if (!article.isPublished) {
       const session = await auth();
       const role = session?.user?.role;
-      const email = session?.user?.email;
 
-      let allowed = false;
-      if (role === "admin") {
-        allowed = true;
-      } else if (email) {
-        const invitation = await prisma.pdfAboInvitation.findUnique({
-          where: { email: email.toLowerCase() },
-          select: { isRedeemed: true, endDate: true },
-        });
-        const hasPdfAbo =
-          !!invitation &&
-          invitation.isRedeemed &&
-          (!invitation.endDate || invitation.endDate > new Date());
-        // El ABO accede a artículos programados (con fecha de publicación fijada).
-        allowed = hasPdfAbo && !!article.publicationDate;
-      }
+      // Admin ve todo el contenido no publicado; los demás con acceso ABO
+      // (traductores y abonados) solo los artículos programados (con fecha fijada).
+      const allowed =
+        role === "admin" ||
+        ((await hasAboAccess(session)) && !!article.publicationDate);
 
       if (!allowed) {
         return new Response(

@@ -186,6 +186,87 @@ export async function sendTranslatorInvitationEmail(email, name = "", token) {
 }
 
 /**
+ * 📰 Avisar a un traductor/a que se le asignó un artículo nuevo.
+ * El botón lleva a su panel de asignaciones (requiere login).
+ */
+export async function sendTranslatorAssignmentEmail(
+  email,
+  name = "",
+  { articleTitle = "", editionNumber = null } = {}
+) {
+  const panelUrl = `${process.env.NEXT_PUBLIC_APP_URL}/de/dashboard/translators/assignments`;
+  const saludo = name ? `Hola ${name},` : "¡Hola!";
+
+  const dossierLine = editionNumber
+    ? `<p style="margin:0 0 8px 0; color:#555;">Dossier: <strong style="color:#1a1a1a;">ila ${editionNumber}</strong></p>`
+    : "";
+  const tituloLine = articleTitle
+    ? `<p style="margin:0 0 4px 0; color:#555;">Artículo: <strong style="color:#1a1a1a;">${articleTitle}</strong></p>`
+    : "";
+
+  const body = `
+    <h1 style="margin:0 0 20px 0; font-size:26px; font-weight:700; color:#1a1a1a; letter-spacing:-0.01em;">Tenés un artículo nuevo para traducir</h1>
+
+    <p style="margin:0 0 16px 0;">${saludo}</p>
+
+    <p style="margin:0 0 24px 0;">
+      Se te asignó un artículo en el sistema de ila. Podés verlo y empezar a
+      trabajar desde tu panel de asignaciones:
+    </p>
+
+    ${
+      tituloLine || dossierLine
+        ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px 0;">
+            <tr>
+              <td style="padding:16px 20px; background-color:#fafafa; border-left:4px solid #c21f2e; border-radius:4px;">
+                ${tituloLine}
+                ${dossierLine}
+              </td>
+            </tr>
+          </table>`
+        : ""
+    }
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 32px 0;">
+      <tr>
+        <td style="background-color:#c21f2e; border-radius:4px;">
+          <a href="${panelUrl}" target="_blank"
+             style="display:inline-block; padding:14px 32px; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; font-family:Arial,Helvetica,sans-serif;">
+            Ir a mi panel
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 24px 0; color:#555;">
+      Si todavía no iniciaste sesión, te pedirá hacerlo con tu correo
+      (<strong style="color:#1a1a1a;">${email}</strong>) antes de mostrarte tus asignaciones.
+    </p>
+
+    <p style="margin:32px 0 0 0; color:#555;">
+      Solidarische Grüße<br>
+      <strong style="color:#1a1a1a;">von der ila-Redaktion</strong>
+    </p>
+  `;
+
+  try {
+    const response = await resend.emails.send({
+      from: "no-reply@ila-web.de",
+      to: email,
+      subject: "ila – Se te asignó un artículo para traducir",
+      html: renderIlaEmail(body, "Tenés un artículo nuevo para traducir en ila"),
+    });
+
+    console.log("✅ Aviso de asignación de traducción enviado:", response);
+    return response;
+  } catch (error) {
+    Sentry.captureException(error);
+    console.error("❌ Error al enviar aviso de asignación:", error);
+    throw new Error("No se pudo enviar el aviso de asignación.");
+  }
+}
+
+/**
  * 📩 Enviar email de invitación de admin
  */
 export async function sendAdminInvitationEmail(email, token) {

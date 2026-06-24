@@ -16,6 +16,9 @@ export default function FavoriteArticlesList() {
   const [totalPages, setTotalPages] = useState(1);
   const [viewMode, setViewMode] = useState("grid");
 
+  // El "Paket PDF" es exclusivo de suscriptores Digital ABO (perk de pago).
+  const [hasAbo, setHasAbo] = useState(false);
+
   // ── Bundle selection state ─────────────────────────────────────────────────
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -46,6 +49,22 @@ export default function FavoriteArticlesList() {
   useEffect(() => {
     fetchFavoriteArticles(currentPage);
   }, [currentPage]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/user/pdf-abo");
+        const data = await res.json();
+        if (active) setHasAbo(!!data?.hasPdfAbo);
+      } catch {
+        if (active) setHasAbo(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleRemoveFavorite = (articleId) => {
     setArticles((prev) => prev.filter((a) => a.id !== articleId));
@@ -288,21 +307,21 @@ export default function FavoriteArticlesList() {
             </button>
           </div>
 
-          {!selectionMode ? (
-            <button
-              onClick={enterSelectionMode}
-              className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:border-[#BD0E0D] hover:text-[#BD0E0D] transition-colors"
-            >
-              {tb("create_button")}
-            </button>
-          ) : (
+          {selectionMode ? (
             <button
               onClick={exitSelectionMode}
               className="text-sm text-gray-400 hover:text-gray-700 transition-colors"
             >
               {tb("cancel")}
             </button>
-          )}
+          ) : hasAbo ? (
+            <button
+              onClick={enterSelectionMode}
+              className="text-sm px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:border-[#BD0E0D] hover:text-[#BD0E0D] transition-colors"
+            >
+              {tb("create_button")}
+            </button>
+          ) : null}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/app/auth";
 import { NextResponse } from "next/server";
+import { sendTranslatorAssignmentEmail } from "@/lib/email";
 
 export async function PUT(req, context) {
   const session = await auth();
@@ -13,6 +14,12 @@ export async function PUT(req, context) {
   const { translatorId } = await req.json(); // puede ser string o null
 
   try {
+    // 📌 Traductor actual: si se reasigna a la misma persona, no reenviamos email.
+    const previous = await prisma.article.findUnique({
+      where: { id: articleId },
+      select: { translatorId: true },
+    });
+
     let data = {
       assignedAt: translatorId ? new Date() : null,
       translationStatus: translatorId ? "in_progress" : null,
@@ -37,8 +44,28 @@ export async function PUT(req, context) {
       data,
       include: {
         translator: { select: { id: true, name: true, email: true } },
+        edition: { select: { number: true } },
       },
     });
+
+    // ✉️ Avisar al traductor solo si es una asignación nueva (persona distinta)
+    const isNewAssignment =
+      translatorId && translatorId !== previous?.translatorId;
+    if (isNewAssignment && article.translator?.email) {
+      try {
+        await sendTranslatorAssignmentEmail(
+          article.translator.email,
+          article.translator.name,
+          {
+            articleTitle: article.title,
+            editionNumber: article.edition?.number ?? null,
+          }
+        );
+      } catch (mailError) {
+        // El email no debe tumbar la asignación; ya quedó guardada.
+        console.error("⚠️ Asignación guardada pero falló el email:", mailError);
+      }
+    }
 
     return NextResponse.json(article);
   } catch (error) {

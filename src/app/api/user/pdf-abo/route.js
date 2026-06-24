@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
-import { prisma } from "@/lib/prisma";
+import { hasAboAccess } from "@/lib/aboAccess";
 
 // GET — comprueba si el usuario actual tiene PDF ABO activo
 export async function GET() {
@@ -11,22 +11,7 @@ export async function GET() {
       return NextResponse.json({ hasPdfAbo: false }, { status: 401 });
     }
 
-    // El equipo editorial (admin) accede al Digital ABO para conocer y probar
-    // el producto, sin necesidad de una invitación redimida.
-    if (session.user.role === "admin") {
-      return NextResponse.json({ hasPdfAbo: true });
-    }
-
-    const invitation = await prisma.pdfAboInvitation.findUnique({
-      where: { email: session.user.email.toLowerCase() },
-      select: { isRedeemed: true, startDate: true, endDate: true },
-    });
-
-    const hasPdfAbo =
-      !!invitation &&
-      invitation.isRedeemed &&
-      (!invitation.endDate || invitation.endDate > new Date());
-
+    const hasPdfAbo = await hasAboAccess(session);
     return NextResponse.json({ hasPdfAbo });
   } catch (error) {
     console.error("❌ Error checking PDF ABO:", error);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
 import { prisma } from "@/lib/prisma";
+import { hasAboAccess } from "@/lib/aboAccess";
 
 // GET — ediciones con PDF disponibles para el suscriptor actual
 export async function GET() {
@@ -11,27 +12,19 @@ export async function GET() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const isAdmin = session.user.role === "admin";
+    if (!(await hasAboAccess(session))) {
+      return NextResponse.json({ error: "Sin acceso PDF-Abo" }, { status: 403 });
+    }
 
-    // Los suscriptores acceden con su invitación redimida; el equipo editorial
-    // (admin) accede siempre, para conocer y probar el producto Digital ABO.
+    // El startDate solo aplica a abonados con invitación (admins y traductores
+    // acceden por su rol, sin fecha de alta del ABO).
+    const role = session.user.role;
     let invitation = null;
-    if (!isAdmin) {
+    if (role !== "admin" && role !== "translator") {
       invitation = await prisma.pdfAboInvitation.findUnique({
         where: { email: session.user.email.toLowerCase() },
-        select: { isRedeemed: true, startDate: true, endDate: true },
+        select: { startDate: true },
       });
-
-      if (
-        !invitation ||
-        !invitation.isRedeemed ||
-        (invitation.endDate && invitation.endDate < new Date())
-      ) {
-        return NextResponse.json(
-          { error: "Sin acceso PDF-Abo" },
-          { status: 403 }
-        );
-      }
     }
 
     // Todas las ediciones que tengan PDF cargado (sin límite por fecha de alta)

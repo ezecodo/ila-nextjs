@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/app/auth";
+import { hasAboAccess } from "@/lib/aboAccess";
 
 export async function GET(req, context) {
   const params = await context.params;
@@ -39,25 +40,14 @@ export async function GET(req, context) {
     // Digital ABO ven además los artículos programados (con fecha futura).
     const session = await auth();
     const role = session?.user?.role;
-    const email = session?.user?.email;
 
     let where;
     if (role === "admin") {
       where = { editionId: edition.id };
     } else {
-      let hasPdfAbo = false;
-      if (email) {
-        const invitation = await prisma.pdfAboInvitation.findUnique({
-          where: { email: email.toLowerCase() },
-          select: { isRedeemed: true, endDate: true },
-        });
-        hasPdfAbo =
-          !!invitation &&
-          invitation.isRedeemed &&
-          (!invitation.endDate || invitation.endDate > new Date());
-      }
-
-      where = hasPdfAbo
+      // Traductores y abonados (acceso ABO) ven además los artículos programados.
+      const allowed = await hasAboAccess(session);
+      where = allowed
         ? {
             editionId: edition.id,
             OR: [
