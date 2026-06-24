@@ -660,6 +660,10 @@
     "recentPaceHint": "Tempo der letzten 3 abgeschlossenen Monate. Spiegelt das aktuelle Tempo wider.",
     "estimatedFinish": "Voraussichtlich fertig",
     "estimatedFinishHint": "Geschätztes Datum, um alle Dossiers beim aktuellen Tempo fertigzustellen. Nur ein Richtwert — ändert sich mit der tatsächlichen Erfassung.",
+    "totalArticles": "Artikel gesamt",
+    "totalArticlesHint": "Alle bereits erfassten Artikel im Archiv (deutsche Grundlage).",
+    "translatedES": "Ins Spanische übersetzt",
+    "translatedESHint": "Bereits geprüfte und online veröffentlichte spanische Übersetzungen — Arbeit des ehrenamtlichen Übersetzungsteams.",
     "estByRecent": "Beim aktuellen Tempo: noch {months} Monate (bis {date}).",
     "estByAvg": "Beim historischen Durchschnitt: noch {months} Monate (bis {date}).",
     "targetReached": "✓ Ziel erreicht — alle Dossiers haben genug Artikel."

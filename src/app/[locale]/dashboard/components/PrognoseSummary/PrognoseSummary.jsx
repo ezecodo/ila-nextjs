@@ -51,7 +51,12 @@ export default function PrognoseSummary() {
           {t("viewDetail")} <FaArrowRight size={10} />
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <Stat
+          label={t("totalArticles")}
+          value={fmtNum(data.totalArticles ?? 0)}
+          hint={t("totalArticlesHint")}
+        />
         <Stat
           label={t("remaining")}
           value={fmtNum(remaining)}
@@ -73,17 +78,25 @@ export default function PrognoseSummary() {
                 : "—"
           }
         />
+        <Stat
+          label={t("translatedES")}
+          hint={t("translatedESHint")}
+          value={fmtNum(data.translatedES ?? 0)}
+          accent
+        />
       </div>
     </Link>
   );
 }
 
-function Stat({ label, value, hint }) {
+function Stat({ label, value, hint, accent }) {
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-100 p-3 ${
-        hint ? "cursor-help" : ""
-      }`}
+      className={`rounded-lg border p-3 ${
+        accent
+          ? "border-[#BD0E0D]/30 bg-[#BD0E0D]/5"
+          : "border-gray-100 bg-white"
+      } ${hint ? "cursor-help" : ""}`}
       title={hint || undefined}
     >
       <p className="text-[11px] text-gray-500 font-medium flex items-center gap-1">
@@ -96,7 +109,13 @@ function Stat({ label, value, hint }) {
           />
         )}
       </p>
-      <p className="text-lg sm:text-xl font-bold text-gray-900">{value}</p>
+      <p
+        className={`text-lg sm:text-xl font-bold ${
+          accent ? "text-[#BD0E0D]" : "text-gray-900"
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

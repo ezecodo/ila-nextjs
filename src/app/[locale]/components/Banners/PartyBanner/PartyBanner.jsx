@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
+import { FaRegCalendarAlt } from "react-icons/fa";
 import IlaLogo50 from "../../IlaLogo/ilaLogo50";
 
 function addToCalendar() {
@@ -31,11 +32,13 @@ export default function PartyBanner() {
 
   const content = {
     de: {
+      kicker: "50 Jahre ila · Einladung",
       title: "Geburtstagsparty",
       text: "Ihr seid alle herzlich eingeladen zu unserer großen Geburtstagsparty in diesem Herbst im Allerweltshaus in Köln",
       date: "Sa. 5. September · ab 18 Uhr",
     },
     es: {
+      kicker: "50 años de ila · Invitación",
       title: "Fiesta de cumpleaños",
       text: "Están todxs cordialmente invitadxs a nuestra gran fiesta de cumpleaños este otoño en el Allerweltshaus de Colonia",
       date: "Sáb. 5 de septiembre · 18 h",
@@ -43,71 +46,72 @@ export default function PartyBanner() {
   };
 
   const t = content[locale] || content.de;
+  const futura = { fontFamily: "Futura Cyrillic, Arial, sans-serif" };
 
   return (
-    <div
-      className="relative overflow-hidden text-white px-5 py-[34px] md:py-[38px] shadow-xl flex flex-col items-center justify-center text-center gap-2 -mx-4 sm:mx-0 flex-1 min-h-[356px]"
-      style={{
-        background: "radial-gradient(ellipse at top left, #d4150e 0%, #BD0E0D 45%, #8a0908 100%)",
-      }}
-    >
-      {/* Círculos decorativos de fondo */}
-      <div className="absolute -top-8 -left-8 w-36 h-36 rounded-full bg-white/5" />
-      <div className="absolute -bottom-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
-      <div className="absolute top-1/2 -right-6 w-20 h-20 rounded-full bg-black/10" />
-      <div className="absolute -top-4 right-1/3 w-12 h-12 rounded-full bg-white/5" />
-
-      <style jsx>{`
-        @keyframes glow-pulse {
-          0%,
-          100% {
-            text-shadow:
-              0 0 8px rgba(255, 255, 255, 0.4),
-              0 0 20px rgba(255, 255, 255, 0.2);
-          }
-          50% {
-            text-shadow:
-              0 0 16px rgba(255, 255, 255, 0.9),
-              0 0 40px rgba(255, 255, 255, 0.5);
-          }
-        }
-        .glow-text {
-          animation: glow-pulse 2.5s ease-in-out infinite;
-        }
-      `}</style>
-
-      {/* Logo ila 50 */}
-      <IlaLogo50
-        size="mini"
-        show50={true}
-        isLink={false}
-        animated={true}
-        animationType="fifty-pulse"
-        className="-translate-y-1 -my-3"
-      />
-
-      {/* Título con shimmer */}
-      <h3 className="glow-text text-3xl md:text-4xl font-black tracking-tight leading-none text-white">
-        {t.title}
-      </h3>
-
-      {/* Texto */}
-      <p className="text-lg md:text-xl leading-tight md:leading-snug font-medium text-white/95">
-        {t.text}
-      </p>
-
-      {/* Mobile: botón que guarda en calendario */}
-      <button
-        onClick={addToCalendar}
-        className="md:hidden mt-1 bg-white text-[#BD0E0D] font-black text-sm px-4 py-2 rounded-sm shadow-md tracking-wide active:scale-95 transition-all duration-150"
-        title={locale === "es" ? "Guardar en calendario" : "Im Kalender speichern"}
+    <div className="relative overflow-hidden bg-[#BD0E0D] text-white px-6 py-10 shadow-md flex flex-col items-center justify-center text-center -mx-4 sm:mx-0 flex-1 min-h-[356px]">
+      {/* "50" gigante de fondo, centrado */}
+      <span
+        className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 select-none text-[220px] font-extrabold leading-none text-white/20"
+        style={futura}
+        aria-hidden="true"
       >
-        🗓 {t.date}
-      </button>
+        50
+      </span>
 
-      {/* Desktop: solo texto, sin acción */}
-      <div className="hidden md:block mt-1 bg-white text-[#BD0E0D] font-black text-base px-4 py-2 rounded-sm shadow-md tracking-wide">
-        🗓 {t.date}
+      <div className="relative flex max-w-md flex-col items-center gap-3">
+        {/* Kicker */}
+        <p
+          className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70"
+          style={futura}
+        >
+          {t.kicker}
+        </p>
+
+        {/* Logo + título en la misma línea, alineados por baseline.
+            El "ila" del SVG tiene su baseline al 85% de la caja de 80px (≈68px),
+            así que recortamos el alto del wrapper a 68px para que su borde
+            inferior coincida con esa baseline y items-baseline haga el resto. */}
+        <div className="flex items-baseline justify-center gap-2 sm:gap-3">
+          <span
+            className="relative inline-block shrink-0 overflow-visible"
+            style={{ width: 80, height: 68 }}
+          >
+            <span className="absolute left-0 top-0">
+              <IlaLogo50
+                size="mini"
+                show50={false}
+                isLink={false}
+                animated={false}
+              />
+            </span>
+          </span>
+          <h3
+            className="text-2xl font-extrabold leading-none tracking-tight sm:text-3xl md:text-4xl"
+            style={futura}
+          >
+            {t.title}
+          </h3>
+        </div>
+
+        {/* Texto */}
+        <p className="text-base leading-snug text-white/90 md:text-lg">
+          {t.text}
+        </p>
+
+        {/* Mobile: botón que guarda en calendario */}
+        <button
+          onClick={addToCalendar}
+          className="mt-2 inline-flex items-center gap-2 rounded-none bg-white px-4 py-2 text-sm font-bold text-[#BD0E0D] shadow-sm transition-all duration-150 active:scale-95 md:hidden"
+          title={locale === "es" ? "Guardar en calendario" : "Im Kalender speichern"}
+        >
+          <FaRegCalendarAlt className="text-xs" /> {t.date}
+        </button>
+
+        {/* Desktop: solo texto, sin acción */}
+        <div className="mt-2 hidden items-center gap-2 rounded-none bg-white px-4 py-2 text-base font-bold text-[#BD0E0D] shadow-sm md:inline-flex">
+          <FaRegCalendarAlt className="text-sm" /> {t.date}
+        </div>
       </div>
     </div>
   );

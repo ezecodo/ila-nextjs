@@ -58,7 +58,20 @@ export async function GET() {
       .map(([month, count]) => ({ month, count }))
       .sort((a, b) => a.month.localeCompare(b.month));
 
-    return NextResponse.json({ dossiers, monthly, backlogRemaining });
+    // Total de artículos del archivo (base en alemán) + traducciones al
+    // español ya revisadas (approved) — motiva al equipo.
+    const [totalArticles, translatedES] = await Promise.all([
+      prisma.article.count(),
+      prisma.article.count({ where: { translationStatus: "approved" } }),
+    ]);
+
+    return NextResponse.json({
+      dossiers,
+      monthly,
+      backlogRemaining,
+      totalArticles,
+      translatedES,
+    });
   } catch (error) {
     console.error("❌ Error content-stats:", error);
     return NextResponse.json(

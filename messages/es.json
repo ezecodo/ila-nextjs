@@ -660,6 +660,10 @@
     "recentPaceHint": "Promedio de los últimos 3 meses completos. Refleja el ritmo reciente del equipo.",
     "estimatedFinish": "Fin estimado",
     "estimatedFinishHint": "Fecha estimada para completar todos los dossiers al ritmo reciente. Es orientativo y cambia con la carga real.",
+    "totalArticles": "Artículos totales",
+    "totalArticlesHint": "Todos los artículos ya cargados en el archivo (base en alemán).",
+    "translatedES": "Traducidos al español",
+    "translatedESHint": "Traducciones al español ya revisadas y publicadas online — trabajo del equipo de traducción ad honorem.",
     "estByRecent": "Al ritmo actual: faltan {months} meses (hasta {date}).",
     "estByAvg": "Al promedio histórico: faltan {months} meses (hasta {date}).",
     "targetReached": "✓ Objetivo alcanzado — todos los dossiers tienen suficientes artículos."

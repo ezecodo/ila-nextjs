@@ -217,6 +217,45 @@ export default function LatestEditionWithArticles() {
   // de portadas. A partir de 8 artículos la grilla llena sola y no se muestra.
   const editionsCarouselRows = desktopArticles.length <= 6 ? 2 : 1;
 
+  // Cuando el grid está lleno (sin carrusel de números anteriores) pero la
+  // columna izquierda es más alta, queda un hueco bajo la grilla. Ahí va la
+  // nube de temas/regiones/autorías.
+  const carouselShown =
+    desktopArticles.length > 0 &&
+    desktopArticles.length < 8 &&
+    previousEditions.length > 0;
+
+  // Nube de palabras: temas, regiones y autorías del dossier, dimensionadas
+  // por frecuencia (en cuántos artículos aparecen). overflow-hidden la oculta
+  // sola cuando no hay espacio libre que rellenar.
+  const cloudMap = new Map();
+  const bumpCloud = (type, id, name, nameES) => {
+    if (id == null) return;
+    const key = `${type}:${id}`;
+    const cur = cloudMap.get(key);
+    if (cur) cur.count += 1;
+    else cloudMap.set(key, { type, id, name, nameES, count: 1 });
+  };
+  for (const a of articles) {
+    (a.regions || []).forEach((r) => bumpCloud("regions", r.id, r.name, r.nameES));
+    (a.topics || []).forEach((tp) => bumpCloud("topics", tp.id, tp.name, tp.nameES));
+    (a.authors || []).forEach((au) => bumpCloud("authors", au.id, au.name, au.nameES));
+  }
+  const cloud = [...cloudMap.values()].sort((a, b) => b.count - a.count);
+  const cloudMax = cloud[0]?.count || 1;
+  const cloudName = (e) => (locale === "es" && e.nameES ? e.nameES : e.name);
+  const cloudHref = (e) =>
+    e.type === "authors"
+      ? `/${locale}/authors/${e.id}`
+      : `/${locale}/entities/${e.type}/${e.id}`;
+  const cloudSize = (count) => {
+    const r = count / cloudMax;
+    if (r > 0.66) return "text-2xl";
+    if (r > 0.4) return "text-xl";
+    if (r > 0.22) return "text-lg";
+    return "text-sm";
+  };
+
   const isVertical = (img) =>
     img?.width && img?.height && Number(img.height) > Number(img.width);
 
@@ -344,7 +383,7 @@ export default function LatestEditionWithArticles() {
         {currentEdition && (
           <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 items-start justify-between">
             <div className="relative w-full lg:w-auto flex items-start justify-end">
-              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
+              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md lg:self-stretch">
                 <div className="relative w-full order-1">
                   <div className="text-center flex flex-col items-center">
                     <div className="flex items-baseline justify-center gap-3 leading-none relative">
@@ -801,48 +840,113 @@ export default function LatestEditionWithArticles() {
                   )}
                 </div>
 
-                <div className="hidden lg:flex flex-col gap-4 w-full order-7">
+                <div className="hidden lg:flex flex-col gap-4 w-full order-7 lg:flex-1 lg:min-h-0">
                   <AktuellesPreview />
                   <Events />
                   <SideBanner50 />
-                  <PartyBanner />
+                  <div className="shrink-0">
+                    <PartyBanner />
+                  </div>
+
+                  {/* Nube de tags que fluye en el hueco bajo el PartyBanner.
+                      Spacer flex-1 con contenido en position:absolute para no
+                      aportar altura propia: solo crece para rellenar lo que
+                      sobra cuando el grid (columna derecha) es más alto que
+                      esta tarjeta. Si no hay hueco, queda en 0 y no se ve. */}
+                  {!loading && cloud.length > 0 && (
+                    <div className="relative hidden lg:block lg:flex-1 lg:min-h-0 overflow-hidden">
+                      <div className="absolute inset-0 overflow-y-auto pr-1 [scrollbar-width:thin]">
+                        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1.5 leading-tight">
+                          {cloud.map((e) => (
+                            <Link
+                              key={`side-${e.type}-${e.id}`}
+                              href={cloudHref(e)}
+                              title={cloudName(e)}
+                              className={`font-bold text-gray-700 dark:text-gray-300 hover:text-[#BD0E0D] dark:hover:text-[#BD0E0D] transition-colors ${cloudSize(
+                                e.count,
+                              )}`}
+                            >
+                              {cloudName(e)}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="w-full lg:flex-1 min-w-0 lg:self-stretch flex flex-col gap-6 mt-8 lg:mt-0">
 
-              {/* Articles section header */}
-              {!loading && filteredArticles.length > 0 && (
-                <div className="hidden lg:flex items-baseline justify-between">
-                  <div>
-                    <h2 className="font-bold text-lg dark:text-gray-100 leading-tight">
-                      {locale === "de"
-                        ? "Beiträge in dieser Ausgabe"
-                        : "Artículos en este número"}
-                    </h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                      {filteredArticles.length}{" "}
-                      {locale === "de"
-                        ? filteredArticles.length === 1
-                          ? "Beitrag"
-                          : "Beiträge"
-                        : filteredArticles.length === 1
-                          ? "artículo"
-                          : "artículos"}
-                    </p>
-                  </div>
-                  <Link
-                    href={`/${locale}/editions/${currentEdition.id}`}
-                    className="flex items-center gap-1 text-[#BD0E0D] font-semibold text-sm hover:underline shrink-0 ml-4"
-                  >
-                    {locale === "de" ? "Alle ansehen" : "Ver todos"}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </Link>
-                </div>
-              )}
+              {/* Stats del dossier — arriba del grid (reemplaza el header) */}
+              {!loading &&
+                articles.length > 0 &&
+                (() => {
+                  const esCount = articles.filter(
+                    (a) => a.translationStatus === "approved",
+                  ).length;
+                  const authorCount = new Set(
+                    articles.flatMap((a) => (a.authors || []).map((au) => au.id)),
+                  ).size;
+                  const regionCount = new Set(
+                    articles.flatMap((a) => (a.regions || []).map((r) => r.id)),
+                  ).size;
+                  const stats = [
+                    {
+                      value: articles.length,
+                      label: locale === "de" ? "Beiträge" : "Artículos",
+                    },
+                    {
+                      value: esCount,
+                      label: locale === "de" ? "auf Spanisch" : "en español",
+                      accent: true,
+                    },
+                    {
+                      value: authorCount,
+                      label: locale === "de" ? "Autor*innen" : "Autorías",
+                    },
+                    {
+                      value: regionCount,
+                      label: locale === "de" ? "Regionen" : "Regiones",
+                    },
+                  ];
+                  return (
+                    <div className="hidden lg:flex items-center justify-between gap-2 border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-800/50">
+                      {stats.map((s) => (
+                        <div
+                          key={s.label}
+                          className="flex flex-1 items-baseline gap-1.5"
+                        >
+                          <span
+                            className={`text-xl font-extrabold leading-none ${
+                              s.accent
+                                ? "text-[#BD0E0D]"
+                                : "text-gray-900 dark:text-gray-100"
+                            }`}
+                            style={{
+                              fontFamily: "Futura Cyrillic, Arial, sans-serif",
+                            }}
+                          >
+                            {s.value}
+                          </span>
+                          <span className="text-[11px] leading-tight text-gray-500 dark:text-gray-400">
+                            {s.label}
+                          </span>
+                        </div>
+                      ))}
+                      <Link
+                        href={`/${locale}/editions/${currentEdition.id}`}
+                        className="flex shrink-0 items-center gap-1 border-l border-gray-200 pl-3 text-[#BD0E0D] font-semibold text-sm hover:underline dark:border-gray-700"
+                      >
+                        {locale === "de" ? "Alle ansehen" : "Ver todos"}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
+                  );
+                })()}
 
               {/* Desktop */}
               {/* Desktop */}
@@ -869,12 +973,36 @@ export default function LatestEditionWithArticles() {
                 )}
               </div>
 
+              {/* Nube de temas/regiones/autorías — vive en un espaciador
+                  flex-1 cuyo contenido está en position:absolute, así NO
+                  aporta altura a la columna. Solo crece para rellenar el
+                  hueco que dejan el grid y las stats; dentro, los tags
+                  scrollean (overflow-y-auto) para verlos todos en ese
+                  espacio apretado. Si no hay hueco, queda en 0 y no se ve. */}
+              {!loading && !carouselShown && cloud.length > 0 && (
+                <div className="relative hidden lg:block lg:flex-1 lg:min-h-0 overflow-hidden">
+                  <div className="absolute inset-0 overflow-y-auto pr-1 [scrollbar-width:thin]">
+                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1.5 leading-tight">
+                      {cloud.map((e) => (
+                        <Link
+                          key={`${e.type}-${e.id}`}
+                          href={cloudHref(e)}
+                          title={cloudName(e)}
+                          className={`font-bold text-gray-700 dark:text-gray-300 hover:text-[#BD0E0D] dark:hover:text-[#BD0E0D] transition-colors ${cloudSize(
+                            e.count,
+                          )}`}
+                        >
+                          {cloudName(e)}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Rellena el hueco cuando el dossier todavía tiene pocos
                   artículos: carrusel de dossiers anteriores */}
-              {!loading &&
-                desktopArticles.length > 0 &&
-                desktopArticles.length < 8 &&
-                previousEditions.length > 0 && (
+              {!loading && carouselShown && (
                   <div className="hidden lg:flex lg:flex-col lg:flex-1 lg:min-h-0 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="shrink-0 font-bold text-lg dark:text-gray-100 leading-tight mb-3">
                       {locale === "de"
