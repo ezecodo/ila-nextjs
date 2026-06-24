@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Copy } from "lucide-react";
 // Render transforms — same logic as the public article page
 // wrapImages: true for read-only display, false for editable content (avoid double-wrapping on save)
@@ -311,6 +312,13 @@ function formatPastedHtml(plainText, clipboardHtml) {
 const TranslateArticlePage = () => {
   const { id } = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
+  // Tras guardar borrador volvemos a la pantalla de origen según el rol: el
+  // admin al home del dashboard, el traductor a su lista de asignaciones.
+  const afterDraftUrl =
+    session?.user?.role === "admin"
+      ? "/dashboard"
+      : "/dashboard/translators/assignments";
   const [article, setArticle] = useState(null);
   const [translations, setTranslations] = useState({
     titleES: "",
@@ -1790,32 +1798,8 @@ const TranslateArticlePage = () => {
             </button>
           ) : (
             <div className="flex gap-3">
-              {/* Guardar alt/title de imágenes — solo si el artículo tiene imágenes */}
-              {inlineImages.length > 0 && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const res = await fetch(`/api/articles/${id}`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        imageTranslationsOnly: true,
-                        imageTranslations,
-                      }),
-                    });
-
-                    if (res.ok) {
-                      alert("🖼️ Alt/title de imágenes guardados");
-                    } else {
-                      alert("❌ Error al guardar alt/title");
-                    }
-                  }}
-                  className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-                >
-                  🖼️ Guardar alt/title de imágenes
-                </button>
-              )}
-              {/* Guardar borrador */}
+              {/* Guardar borrador — guarda también alt/title de imágenes (el PUT
+                  procesa imageTranslations y parchea el contentES) */}
               <button
                 type="button"
                 onClick={async () => {
@@ -1831,6 +1815,7 @@ const TranslateArticlePage = () => {
 
                   if (res.ok) {
                     alert("💾 Traducción guardada como borrador");
+                    router.replace(afterDraftUrl);
                   } else {
                     alert("❌ Error al guardar borrador");
                   }

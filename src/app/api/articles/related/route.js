@@ -22,6 +22,19 @@ export async function GET(req) {
   const yearFrom = parseInt(searchParams.get("yearFrom") || "", 10);
   const yearTo = parseInt(searchParams.get("yearTo") || "", 10);
 
+  // Facetas activas (chips). Si `facets=1` el cliente manda una selección
+  // explícita (regions/topics/authors); si falta, se usan TODAS las del
+  // artículo origen (comportamiento por defecto, primera carga).
+  const facetsExplicit = searchParams.get("facets") === "1";
+  const parseIdList = (key) =>
+    (searchParams.get(key) || "")
+      .split(",")
+      .map((s) => parseInt(s, 10))
+      .filter((n) => !isNaN(n));
+  const reqRegionIds = parseIdList("regions");
+  const reqTopicIds = parseIdList("topics");
+  const reqAuthorIds = parseIdList("authors");
+
   if (!articleId || isNaN(articleId)) {
     return new Response(JSON.stringify({ error: "articleId inválido" }), {
       status: 400,
@@ -38,8 +51,9 @@ export async function GET(req) {
         titleES: true,
         isTranslatedES: true,
         legacyPath: true,
-        regions: { select: { id: true } },
-        topics: { select: { id: true } },
+        regions: { select: { id: true, name: true } },
+        topics: { select: { id: true, name: true } },
+        authors: { select: { id: true, name: true } },
       },
     });
 
@@ -52,6 +66,7 @@ export async function GET(req) {
 
     const regionIds = current.regions.map((r) => r.id);
     const topicIds = current.topics.map((t) => t.id);
+    const authorIds = current.authors.map((a) => a.id);
     const topicSet = new Set(topicIds);
 
     const source = {
@@ -60,7 +75,23 @@ export async function GET(req) {
       titleES: current.titleES,
       isTranslatedES: current.isTranslatedES,
       legacyPath: current.legacyPath,
+      regions: current.regions,
+      topics: current.topics,
+      authors: current.authors,
     };
+
+    // Facetas efectivas para el modo "all": las que el cliente marcó como
+    // activas, o todas las del origen si no mandó selección explícita.
+    // Se intersecan con las del origen para no aceptar IDs ajenos.
+    const activeRegionIds = facetsExplicit
+      ? reqRegionIds.filter((id) => regionIds.includes(id))
+      : regionIds;
+    const activeTopicIds = facetsExplicit
+      ? reqTopicIds.filter((id) => topicIds.includes(id))
+      : topicIds;
+    const activeAuthorIds = facetsExplicit
+      ? reqAuthorIds.filter((id) => authorIds.includes(id))
+      : authorIds;
 
     const now = new Date();
     const baseWhere = {
@@ -87,6 +118,23 @@ export async function GET(req) {
       edition: { select: { id: true, number: true, datePublished: true } },
     };
 
+    // Excerpt de respaldo para cards sin imagen (solo modo "all"): se arma del
+    // teaser o, si falta, del cuerpo del artículo; se limpia el HTML. Los campos
+    // de texto solo se piden en el modo "all", así que en el rail queda null.
+    const isES = locale === "es";
+    const makeExcerpt = (a) => {
+      const raw = isES
+        ? a.previewTextES || a.contentES || a.previewText || a.content
+        : a.previewText || a.content;
+      if (!raw) return null;
+      const text = raw
+        .replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      return text ? text.slice(0, 600) : null;
+    };
+
     const attachImage = async (a) => {
       const contentId = a.beitragsId || a.id;
       const image = await prisma.image.findFirst({
@@ -105,21 +153,26 @@ export async function GET(req) {
         authors: a.authors,
         edition: a.edition,
         image: image || null,
+        excerpt: makeExcerpt(a),
       };
     };
 
     // === Modo "all": todos los relacionados, cronológico, filtrable por año ===
     if (allMode) {
-      // Conjunto de relacionados = comparte al menos una región o un tema.
+      // Conjunto de relacionados = unión (OR) de las facetas activas:
+      // comparte alguna región activa, o algún tema activo, o es del autor activo.
       const relatedOr = [];
-      if (regionIds.length)
-        relatedOr.push({ regions: { some: { id: { in: regionIds } } } });
-      if (topicIds.length)
-        relatedOr.push({ topics: { some: { id: { in: topicIds } } } });
+      if (activeRegionIds.length)
+        relatedOr.push({ regions: { some: { id: { in: activeRegionIds } } } });
+      if (activeTopicIds.length)
+        relatedOr.push({ topics: { some: { id: { in: activeTopicIds } } } });
+      if (activeAuthorIds.length)
+        relatedOr.push({ authors: { some: { id: { in: activeAuthorIds } } } });
 
       if (relatedOr.length === 0) {
+        // Sin facetas activas no hay criterio → vacío (el cliente avisa).
         return new Response(
-          JSON.stringify({ items: [], total: 0, years: [], page, pageSize, source }),
+          JSON.stringify({ items: [], total: 0, years: [], yearCounts: [], page, pageSize, source }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         );
       }
@@ -146,6 +199,18 @@ export async function GET(req) {
         new Set(lightRows.map(yearOf).filter((y) => y !== null)),
       ).sort((a, b) => b - a);
 
+      // Distribución por año (set completo, sin filtrar) → histograma de la
+      // timeline. Ascendente (izq = más antiguo) y estable entre requests.
+      const countMap = {};
+      for (const row of lightRows) {
+        const y = yearOf(row);
+        if (y !== null) countMap[y] = (countMap[y] || 0) + 1;
+      }
+      const yearCounts = Object.keys(countMap)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .map((y) => ({ year: y, count: countMap[y] }));
+
       const filtered = lightRows.filter((row) => {
         const y = yearOf(row);
         if (!isNaN(yearFrom) && (y === null || y < yearFrom)) return false;
@@ -160,14 +225,20 @@ export async function GET(req) {
 
       const pageArticles = await prisma.article.findMany({
         where: { id: { in: pageIds } },
-        select: selectFields,
+        select: {
+          ...selectFields,
+          previewText: true,
+          previewTextES: true,
+          content: true,
+          contentES: true,
+        },
         orderBy: { publicationDate: "desc" },
       });
 
       const items = await Promise.all(pageArticles.map(attachImage));
 
       return new Response(
-        JSON.stringify({ items, total, years, page, pageSize, source }),
+        JSON.stringify({ items, total, years, yearCounts, page, pageSize, source }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
     }

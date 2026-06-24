@@ -206,26 +206,14 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
               >
                 Título ⬍
               </th>
-              {mode === "reviewer" && (
-                <>
-                  <th className="px-5 py-3 text-left">Autor</th>
-                  <th className="px-5 py-3 text-left">Edición</th>
-                </>
-              )}
-              {mode === "assign" && (
+              {(mode === "reviewer" || mode === "assign") && (
                 <>
                   <th className="px-5 py-3 text-left">Autor</th>
                   <th className="px-5 py-3 text-left">Edición</th>
                 </>
               )}
               {mode === "reviewer" && (
-                <>
-                  <th className="px-5 py-3 text-left">Autor</th>
-                  <th className="px-5 py-3 text-left">Edición</th>
-                </>
-              )}
-              {mode === "reviewer" && (
-                <th className="px-5 py-3 text-left">Traductor</th>
+                <th className="px-5 py-3 text-left">Traduce</th>
               )}
               {mode === "reviewer" && (
                 <th className="px-5 py-3 text-left">Estado</th>
@@ -334,43 +322,70 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
 
                 {mode === "reviewer" && (
                   <td className="px-5 py-3 text-center">
-                    {article.translator ? (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        {article.translator.name || article.translator.email}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 italic text-xs">
-                        Sin traductor
-                      </span>
-                    )}
+                    <div className="flex flex-col items-center gap-0.5">
+                      {article.translator ? (
+                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                          {article.translator.name || article.translator.email}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 italic text-xs">
+                          Sin traductor
+                        </span>
+                      )}
+                      {article.translationStartedAt && (
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                          Comenzó: {formatDateTime(article.translationStartedAt)}
+                        </span>
+                      )}
+                    </div>
                   </td>
                 )}
 
-                {mode === "reviewer" && (
-                  <td className="px-5 py-3 text-center">
-                    {article.translationStatus === "submitted" ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                        Enviado
-                      </span>
-                    ) : article.translationStatus === "approved" &&
-                      article.editedAfterReview ? (
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                        ✏️ Editado tras revisión
-                      </span>
-                    ) : article.translationStatus === "approved" ? (
-                      <span className="px-2 py-1 bg-green-200 text-green-900 rounded-full text-xs">
-                        Revisado
-                        {article.reviewedAt
-                          ? ` — ${formatDateTime(article.reviewedAt)}`
-                          : ""}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
-                        En progreso
-                      </span>
-                    )}
-                  </td>
-                )}
+                {mode === "reviewer" &&
+                  (() => {
+                    const statusCell =
+                      article.translationStatus === "submitted"
+                        ? {
+                            className:
+                              "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200",
+                            label: "Enviado",
+                          }
+                        : article.translationStatus === "approved" &&
+                            article.editedAfterReview
+                          ? {
+                              className:
+                                "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200",
+                              label: "✏️ Editado tras revisión",
+                            }
+                          : article.translationStatus === "approved"
+                            ? {
+                                className:
+                                  "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
+                                label: `Revisado${
+                                  article.reviewedAt
+                                    ? ` — ${formatDateTime(article.reviewedAt)}`
+                                    : ""
+                                }`,
+                              }
+                            : article.translationStartedAt
+                              ? {
+                                  className:
+                                    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200",
+                                  label: "✍️ En traducción",
+                                }
+                              : {
+                                  className:
+                                    "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-200",
+                                  label: "Asignado",
+                                };
+                    return (
+                      <td
+                        className={`px-5 py-3 text-center text-xs font-semibold rounded-none ${statusCell.className}`}
+                      >
+                        {statusCell.label}
+                      </td>
+                    );
+                  })()}
 
                 {mode === "assign" && (
                   <>
@@ -521,9 +536,13 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
                         <Link
                           href={`/dashboard/articles/translate/${article.id}?mode=review`}
                           className="px-3 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                          title="Revisar nuevamente"
+                          title={
+                            article.editedAfterReview
+                              ? "Editado tras revisión — conviene revisar de nuevo"
+                              : "Ver traducción aprobada"
+                          }
                         >
-                          🔁 Revisar
+                          {article.editedAfterReview ? "🔁 Volver a revisar" : "👁️ Ver"}
                         </Link>
                       </div>
                     ) : (
@@ -570,13 +589,35 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
                     </div>
                   ) : article.translationStatus === "in_progress" ? (
                     mode === "translator" || mode === "admin" ? (
-                      <Link
-                        href={`/dashboard/articles/translate/${article.id}`}
-                      >
-                        <button className="text-green-600 hover:underline text-sm">
-                          🌐 Traducir
-                        </button>
-                      </Link>
+                      <div className="flex flex-col items-center gap-1">
+                        {article.translationStartedAt ? (
+                          <>
+                            <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-semibold text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400">
+                              🟡 En proceso
+                            </span>
+                            <Link
+                              href={`/dashboard/articles/translate/${article.id}`}
+                            >
+                              <button className="text-green-600 hover:underline text-sm">
+                                ✍️ Continuar
+                              </button>
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-400">
+                              🟢 Asignado
+                            </span>
+                            <Link
+                              href={`/dashboard/articles/translate/${article.id}`}
+                            >
+                              <button className="text-green-600 hover:underline text-sm">
+                                🌐 Comenzar
+                              </button>
+                            </Link>
+                          </>
+                        )}
+                      </div>
                     ) : (
                       <span className="text-gray-400" title="En traducción">
                         🌐

@@ -909,7 +909,12 @@
     "loading": "Lädt …",
     "prev": "Zurück",
     "next": "Weiter",
-    "pageInfo": "Seite {page} von {totalPages}"
+    "pageInfo": "Seite {page} von {totalPages}",
+    "facetsTitle": "Filtern nach",
+    "groupRegions": "Regionen",
+    "groupTopics": "Themen",
+    "groupAuthors": "Autor*innen",
+    "facetsEmpty": "Aktiviere mindestens einen Filter, um Artikel zu sehen."
   },
   "donationInline": {
     "ariaLabel": "Spendenaufruf",

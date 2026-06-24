@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import FavoriteButton from "../../components/FavoriteButton/FavoriteButton";
+import YearTimeline from "../../components/RelatedArticles/YearTimeline";
 
 const PAGE_SIZE = 24;
 
@@ -19,13 +20,18 @@ export default function RelatedAllPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [yearFrom, setYearFrom] = useState("");
-  const [yearTo, setYearTo] = useState("");
+  // range = null → todos los años; { from, to } → rango acotado por la timeline.
+  const [range, setRange] = useState(null);
+  // Facetas activas (chips). null = sin inicializar → la API usa todas las del
+  // artículo. Una vez que llega `source`, se inicializan con todas activas.
+  const [activeRegions, setActiveRegions] = useState(null);
+  const [activeTopics, setActiveTopics] = useState(null);
+  const [activeAuthors, setActiveAuthors] = useState(null);
+  const initialized = activeRegions !== null;
 
   useEffect(() => {
     if (!articleId) return;
     let aborted = false;
-    setLoading(true);
     const qs = new URLSearchParams({
       articleId: String(articleId),
       locale,
@@ -33,44 +39,127 @@ export default function RelatedAllPage() {
       page: String(page),
       pageSize: String(PAGE_SIZE),
     });
-    if (yearFrom) qs.set("yearFrom", yearFrom);
-    if (yearTo) qs.set("yearTo", yearTo);
+    if (range) {
+      qs.set("yearFrom", String(range.from));
+      qs.set("yearTo", String(range.to));
+    }
+    if (initialized) {
+      qs.set("facets", "1");
+      qs.set("regions", [...activeRegions].join(","));
+      qs.set("topics", [...activeTopics].join(","));
+      qs.set("authors", [...activeAuthors].join(","));
+    }
 
-    fetch(`/api/articles/related?${qs.toString()}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((json) => {
-        if (!aborted) {
-          setData(json);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        if (!aborted) setLoading(false);
-      });
+    // Debounce: arrastrar la timeline dispara muchos cambios de range; esperamos
+    // a que el usuario suelte antes de pegarle a la API.
+    const timer = setTimeout(() => {
+      setLoading(true);
+      fetch(`/api/articles/related?${qs.toString()}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((json) => {
+          if (!aborted) {
+            setData(json);
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (!aborted) setLoading(false);
+        });
+    }, 300);
+
     return () => {
       aborted = true;
+      clearTimeout(timer);
     };
-  }, [articleId, locale, page, yearFrom, yearTo]);
+  }, [articleId, locale, page, range, initialized, activeRegions, activeTopics, activeAuthors]);
+
+  // Inicializar las facetas con todas activas cuando llega el artículo origen.
+  useEffect(() => {
+    if (activeRegions === null && data?.source) {
+      setActiveRegions(new Set(data.source.regions.map((r) => r.id)));
+      setActiveTopics(new Set(data.source.topics.map((tp) => tp.id)));
+      setActiveAuthors(new Set(data.source.authors.map((a) => a.id)));
+    }
+  }, [data, activeRegions]);
 
   const items = data?.items || [];
   const total = data?.total || 0;
-  const years = data?.years || [];
+  const yearCounts = data?.yearCounts || [];
   const source = data?.source || null;
   const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
+
+  const minYear = yearCounts[0]?.year;
+  const maxYear = yearCounts[yearCounts.length - 1]?.year;
+  const displayFrom = range?.from ?? minYear;
+  const displayTo = range?.to ?? maxYear;
+
+  // Al cambiar las facetas el conjunto de años disponibles puede achicarse.
+  // Mantenemos el segmento marcado, pero lo recortamos al nuevo rango; si ya no
+  // intersecta (p. ej. el autor era el único que aportaba esos años) lo limpiamos.
+  useEffect(() => {
+    if (!range || minYear == null || maxYear == null) return;
+    const from = Math.max(range.from, minYear);
+    const to = Math.min(range.to, maxYear);
+    if (from > to || (from <= minYear && to >= maxYear)) setRange(null);
+    else if (from !== range.from || to !== range.to) setRange({ from, to });
+  }, [minYear, maxYear, range]);
 
   const sourceTitle =
     source && isES && source.isTranslatedES && source.titleES
       ? source.titleES
       : source?.title;
 
-  const onYearFrom = (v) => {
-    setYearFrom(v);
+  const onTimelineChange = (from, to) => {
+    if (from <= minYear && to >= maxYear) setRange(null);
+    else setRange({ from, to });
     setPage(1);
   };
-  const onYearTo = (v) => {
-    setYearTo(v);
+
+  const resetRange = () => {
+    setRange(null);
     setPage(1);
   };
+
+  const toggleFacet = (setter) => (id) => {
+    setter((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+    // Conservamos el segmento de años marcado para comparar resultados con/sin
+    // una faceta. Si tras el cambio el segmento queda fuera del nuevo rango, el
+    // efecto de clamp de abajo lo ajusta.
+    setPage(1);
+  };
+  const toggleRegion = toggleFacet(setActiveRegions);
+  const toggleTopic = toggleFacet(setActiveTopics);
+  const toggleAuthor = toggleFacet(setActiveAuthors);
+
+  const noFacets =
+    initialized &&
+    activeRegions.size === 0 &&
+    activeTopics.size === 0 &&
+    activeAuthors.size === 0;
+
+  const renderChips = (list, activeSet, onToggle, activeColor) =>
+    list.map((item) => {
+      const on = activeSet?.has(item.id);
+      return (
+        <button
+          key={item.id}
+          onClick={() => onToggle(item.id)}
+          aria-pressed={on}
+          className={`rounded-none border px-2.5 py-1 text-[13px] transition-colors ${
+            on
+              ? activeColor
+              : "border-gray-300 text-gray-400 line-through dark:border-gray-600 dark:text-gray-500"
+          }`}
+        >
+          {item.name}
+        </button>
+      );
+    });
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -95,51 +184,90 @@ export default function RelatedAllPage() {
         {t("allSubtitle")}
       </p>
 
-      {/* Filtro de años */}
-      <div className="mt-6 flex flex-wrap items-end gap-4 border-b border-gray-200 pb-5 dark:border-gray-700">
-        <div className="flex flex-col">
-          <label className="mb-1 text-[12px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            {t("yearFrom")}
-          </label>
-          <select
-            value={yearFrom}
-            onChange={(e) => onYearFrom(e.target.value)}
-            className="rounded-none border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800"
-          >
-            <option value="">{t("yearAll")}</option>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 text-[12px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            {t("yearTo")}
-          </label>
-          <select
-            value={yearTo}
-            onChange={(e) => onYearTo(e.target.value)}
-            className="rounded-none border border-gray-300 bg-white px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800"
-          >
-            <option value="">{t("yearAll")}</option>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
-        {!loading && (
-          <span className="ml-auto text-[13px] text-gray-500 dark:text-gray-400">
-            {t("resultsCount", { count: total })}
+      {/* Facetas — chips activables (regiones / temas / autor) */}
+      {source && (
+        <div className="mt-6">
+          <span className="text-[12px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {t("facetsTitle")}
           </span>
-        )}
+          <div className="mt-2 space-y-2">
+            {source.regions?.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-20 shrink-0 text-[11px] uppercase tracking-wide text-gray-400">
+                  {t("groupRegions")}
+                </span>
+                {renderChips(
+                  source.regions,
+                  activeRegions,
+                  toggleRegion,
+                  "border-[#BD0E0D] bg-[#BD0E0D] text-white",
+                )}
+              </div>
+            )}
+            {source.topics?.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-20 shrink-0 text-[11px] uppercase tracking-wide text-gray-400">
+                  {t("groupTopics")}
+                </span>
+                {renderChips(
+                  source.topics,
+                  activeTopics,
+                  toggleTopic,
+                  "border-gray-800 bg-gray-800 text-white dark:border-gray-200 dark:bg-gray-200 dark:text-gray-900",
+                )}
+              </div>
+            )}
+            {source.authors?.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-20 shrink-0 text-[11px] uppercase tracking-wide text-gray-400">
+                  {t("groupAuthors")}
+                </span>
+                {renderChips(
+                  source.authors,
+                  activeAuthors,
+                  toggleAuthor,
+                  "border-[#BD0E0D] bg-white text-[#BD0E0D] dark:bg-transparent",
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Filtro de años — timeline con histograma */}
+      <div className="mt-6 border-b border-gray-200 pb-5 dark:border-gray-700">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-[12px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            {t("yearFilter")}
+          </span>
+          <div className="flex items-center gap-3">
+            {!loading && (
+              <span className="text-[13px] text-gray-500 dark:text-gray-400">
+                {t("resultsCount", { count: total })}
+              </span>
+            )}
+            {range && (
+              <button
+                onClick={resetRange}
+                className="text-[12px] font-bold text-[#BD0E0D] hover:underline"
+              >
+                {t("yearAll")}
+              </button>
+            )}
+          </div>
+        </div>
+        <YearTimeline
+          yearCounts={yearCounts}
+          from={displayFrom}
+          to={displayTo}
+          onChange={onTimelineChange}
+        />
       </div>
 
       {loading ? (
         <p className="py-16 text-center text-gray-500">{t("loading")}</p>
+      ) : noFacets ? (
+        <p className="py-16 text-center text-gray-500">{t("facetsEmpty")}</p>
       ) : items.length === 0 ? (
         <p className="py-16 text-center text-gray-500">{t("noResults")}</p>
       ) : (
@@ -185,6 +313,12 @@ export default function RelatedAllPage() {
                   {aSubtitle && (
                     <p className="mt-1.5 text-[13px] leading-snug text-gray-600 line-clamp-3 dark:text-gray-300">
                       {aSubtitle}
+                    </p>
+                  )}
+                  {!a.image?.url && a.excerpt && (
+                    <p className="relative mt-3 flex-1 overflow-hidden text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
+                      {a.excerpt}
+                      <span className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent dark:from-[#0a0a0a]" />
                     </p>
                   )}
                   {authorNames && (

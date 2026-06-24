@@ -63,6 +63,7 @@ model Article {
   reviewerId        String?
   translatorId      String?
   assignedAt        DateTime?
+  translationStartedAt DateTime?
   translationStatus String            @default("not_assigned")
   reviewedAt        DateTime?
   activityLogs      ActivityLog[]

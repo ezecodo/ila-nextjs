@@ -908,7 +908,12 @@
     "loading": "Cargando …",
     "prev": "Anterior",
     "next": "Siguiente",
-    "pageInfo": "Página {page} de {totalPages}"
+    "pageInfo": "Página {page} de {totalPages}",
+    "facetsTitle": "Filtrar por",
+    "groupRegions": "Regiones",
+    "groupTopics": "Temas",
+    "groupAuthors": "Autores",
+    "facetsEmpty": "Activá al menos un filtro para ver artículos."
   },
   "donationInline": {
     "ariaLabel": "Llamada a donar",

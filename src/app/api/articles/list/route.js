@@ -39,9 +39,14 @@ export async function GET(req) {
           status: 401,
         });
       }
+      // Los admins revisan cualquier traducción (el campo reviewerId nunca se
+      // asigna, así que filtrar por él dejaba la vista vacía para todos). Un
+      // revisor no-admin sigue viendo solo lo que tenga asignado.
       whereCondition = {
         ...whereCondition,
-        reviewerId: session.user.id,
+        ...(session.user.role === "admin"
+          ? {}
+          : { reviewerId: session.user.id }),
         translatorId: { not: null },
         translationStatus: { in: ["in_progress", "submitted", "approved"] },
       };

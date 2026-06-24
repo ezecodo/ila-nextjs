@@ -237,6 +237,7 @@ export async function PUT(req, context) {
         where: { id: parseInt(id, 10) },
         select: {
           translationStatus: true,
+          translationStartedAt: true,
           titleES: true,
           subtitleES: true,
           contentES: true,
@@ -276,6 +277,16 @@ export async function PUT(req, context) {
         // Enviado / En progreso ⇒ no hay revisión válida
         dataToUpdate.reviewedAt = null;
         // (si prefieres no tocar reviewedAt en estos estados, borra la línea anterior)
+      }
+
+      // 🕒 Inicio real de la traducción: se sella la primera vez que el artículo
+      // pasa a "in_progress" y nunca se vuelve a tocar (el reviewer ve cuándo
+      // arrancó el traductor, distinto de assignedAt = cuándo se asignó).
+      if (
+        body.translationStatus === "in_progress" &&
+        !currentArticle?.translationStartedAt
+      ) {
+        dataToUpdate.translationStartedAt = new Date();
       }
 
       // ✏️ Edición tras revisión: artículo ya estaba "approved" y cambió algún campo ES
