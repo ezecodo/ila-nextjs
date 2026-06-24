@@ -540,6 +540,14 @@ body {
   .article-content {
     display: flow-root;
   }
+  /* Excepción: el editorial de la edición (editions/[id]) tiene la portada del
+     dossier flotada FUERA del .article-content y quiere que el texto la envuelva
+     y baje a todo el ancho. flow-root lo bloquearía (lo deja en columna al lado),
+     así que volvemos a bloque normal. El float de la portada se contiene con el
+     <div class="clear-both"> que ya existe al final del bloque. */
+  .article-content.edition-editorial {
+    display: block;
+  }
   /* El ancho lo define el tamaño elegido (S/M/L) vía style inline del <figure>.
      La imagen interna ocupa el 100% de esa figura (!important para ganarle al
      width inline que arrastra el <img>, que si no reduciría el tamaño dos veces). */

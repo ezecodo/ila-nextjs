@@ -801,7 +801,7 @@ export default function EditionDetails() {
             >
               ila {edition.number}
             </span>{" "}
-            <span className="font-serif font-bold text-red-800 dark:text-red-400">
+            <span className="font-bold text-red-800 dark:text-red-400">
               {titleToShow}
             </span>
           </h1>
@@ -858,7 +858,7 @@ export default function EditionDetails() {
             </button>
           </div>
         </div>
-        <div className="article-content font-serif text-lg md:text-xlleading-normal text-gray-800 dark:text-gray-200">
+        <div className="article-content edition-editorial text-lg md:text-xl leading-normal text-gray-800 dark:text-gray-200">
           {summaryToShow ? (
             /<\/?[a-z][\s\S]*>/i.test(summaryToShow) ? (
               <div dangerouslySetInnerHTML={{ __html: summaryToShow }} />

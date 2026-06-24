@@ -128,7 +128,8 @@
     "close": "Cerrar",
     "decreaseFont": "Reducir texto",
     "increaseFont": "Aumentar texto",
-    "toggleTheme": "Cambiar tema"
+    "toggleTheme": "Cambiar tema",
+    "toggleWidth": "Cambiar ancho del texto"
   },
   "dossiers": {
     "editionListTitle": "Liste der Dossiers",

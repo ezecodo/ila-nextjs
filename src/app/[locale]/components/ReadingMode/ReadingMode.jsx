@@ -35,6 +35,8 @@ const THEMES = {
 
 const THEME_ORDER = ["light", "sepia", "dark"];
 const FONT_SIZES = [17, 19, 21, 24];
+// Ancho de la columna de lectura (en rem). El usuario lo cicla y se guarda.
+const WIDTHS = [44, 56, 68];
 
 export default function ReadingMode({
   open,
@@ -50,6 +52,7 @@ export default function ReadingMode({
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState("light");
   const [fontIdx, setFontIdx] = useState(1);
+  const [widthIdx, setWidthIdx] = useState(1);
   const scrollRef = useRef(null);
 
   useEffect(() => setMounted(true), []);
@@ -59,9 +62,12 @@ export default function ReadingMode({
     try {
       const savedTheme = localStorage.getItem("ila-reader-theme");
       const savedFont = localStorage.getItem("ila-reader-font");
+      const savedWidth = localStorage.getItem("ila-reader-width");
       if (savedTheme && THEMES[savedTheme]) setTheme(savedTheme);
       if (savedFont !== null && FONT_SIZES[Number(savedFont)] !== undefined)
         setFontIdx(Number(savedFont));
+      if (savedWidth !== null && WIDTHS[Number(savedWidth)] !== undefined)
+        setWidthIdx(Number(savedWidth));
     } catch {
       /* localStorage no disponible */
     }
@@ -106,10 +112,23 @@ export default function ReadingMode({
     });
   };
 
+  const cycleWidth = () => {
+    setWidthIdx((prev) => {
+      const next = (prev + 1) % WIDTHS.length;
+      try {
+        localStorage.setItem("ila-reader-width", String(next));
+      } catch {
+        /* noop */
+      }
+      return next;
+    });
+  };
+
   if (!mounted || !open) return null;
 
   const c = THEMES[theme];
   const baseFont = FONT_SIZES[fontIdx];
+  const maxWidth = `${WIDTHS[widthIdx]}rem`;
 
   return createPortal(
     <div
@@ -159,6 +178,21 @@ export default function ReadingMode({
             A+
           </button>
           <button
+            onClick={cycleWidth}
+            aria-label={t("toggleWidth")}
+            title={t("toggleWidth")}
+            className="hidden sm:inline-flex w-8 h-8 items-center justify-center hover:text-[#BD0E0D] transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7L4 12l4 5M16 7l4 5-4 5M4 12h16"
+              />
+            </svg>
+          </button>
+          <button
             onClick={cycleTheme}
             aria-label={t("toggleTheme")}
             title={t("toggleTheme")}
@@ -194,8 +228,8 @@ export default function ReadingMode({
       {/* Contenido */}
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
         <article
-          className="mx-auto px-5 sm:px-8 py-10 sm:py-14"
-          style={{ maxWidth: "44rem" }}
+          className="mx-auto px-5 sm:px-8 py-10 sm:py-14 transition-[max-width] duration-300"
+          style={{ maxWidth }}
         >
           <header className="mb-8">
             <h1

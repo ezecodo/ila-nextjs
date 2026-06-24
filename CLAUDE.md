@@ -249,6 +249,36 @@ export default function MiPaginaDashboard() {
 - **IMPORTANTE**: estas funciones están referenciadas en el render (línea ~560). Si se eliminan o se mueven sin actualizar el uso, la página rompe con `ReferenceError`
 - `src/lib/articleContentTransforms.js` existe pero está **huérfano** (no importado en ningún sitio) — no borrarlo sin revisar
 
+### Imágenes editoriales que fluyen con el texto (float)
+- Las imágenes inline pueden flotar (texto envolviéndolas, estilo revista impresa). El autor lo elige en el editor publilab por imagen: tamaño S/M/L (`25`/`50`/`75`) + alineación (`⬅` left / `⬛` center / `➡` right).
+- **Se guarda en el contenido** como `<p><img style="width:X%" data-align="left|right">…</p>`. El `data-align` solo se escribe si el ancho es S/M/L (los floatables); `center` no escribe atributo.
+- El **figure-wrapping** (caption + clase float) ocurre **solo en render**, no se guarda. La función `wrapInlineImagesWithCaption` lee `data-align`, arma `inline-image-left`/`inline-image-right` y mete el width en el `style` del `<figure>`.
+- **Esta función está duplicada** en 4 sitios y deben mantenerse idénticas: `ausgaben/[...legacyPath]/page.js`, `online/[...legacyPath]/page.js`, el Vorschau del `InterviewEditor.jsx`, y `dashboard/articles/translate/[id]/page.js`.
+- El CSS vive en `globals.css` dentro de un `@media (min-width: 768px)` (float **solo desktop**; en mobile las imágenes quedan apiladas full-width):
+  - `.article-content { display: flow-root; }` contiene el float para que el bloque "AUS DIESEM DOSSIER" del final no se meta al lado.
+  - `figure.inline-image-left/right img { width: 100% !important; }` — el width real va en el `<figure>`, no en el `<img>` (evita la doble reducción que achicaba la imagen).
+  - `figure.inline-image-left:last-child` / `right:last-child` → `float: none` + centrado (una imagen flotante sin texto debajo no tiene sentido, se renderiza como bloque centrado).
+  - `.article-content h2, h3, h4 { clear: both; }` — los títulos limpian el float (el texto que sigue al título envuelve, no el título).
+- **Opt-in y retrocompatible**: artículos viejos sin `data-align` no flotan. La feature no toca el archivo existente.
+- El PDF bundle (`ArticleBundlePdf.jsx`) **no** implementa float (react-pdf no soporta CSS float) — fallback a bloque, intencional.
+
+## Artículos relacionados
+
+### Rail (columna derecha)
+- `src/app/[locale]/components/RelatedArticles/RelatedArticles.jsx` — client component, sticky en desktop. Fetch a `/api/articles/related?articleId=X&locale=Y&limit=11`.
+- Relevancia (en la API): 1º región compartida, luego se rankea por nº de temas compartidos; si faltan, completa con artículos que comparten solo temas.
+- Al final del rail hay un link "Ver todos los relacionados →" (`t("seeAll")`) que lleva a `/[locale]/related/[articleId]`.
+
+### Página "ver todos" (`/[locale]/related/[articleId]`)
+- `src/app/[locale]/related/[articleId]/page.js` — client component. Grid de **todos** los relacionados (comparte región **o** tema), orden cronológico, con **filtro de rango de años** (dos `<select>` Desde/Hasta) y paginación (24/página).
+- Estética alineada al sistema de marca de la landing (sans, `#BD0E0D`, `rounded-none`, título con subrayado animado, `FavoriteButton variant="mini"`).
+
+### API `/api/articles/related/route.js`
+- **Modo rail (default)**: devuelve un **array** (no romper — el rail lo consume así). `limit` capado a 12.
+- **Modo `all=true`**: devuelve `{ items, total, years, page, pageSize, source }`. Params: `yearFrom`/`yearTo` (filtran por `edition.datePublished`), `page`, `pageSize` (default 24, cap 48). `years` = años disponibles para poblar los selects; `source` = título + `legacyPath` del artículo origen (para header y back-link).
+- El escaneo de años/total usa `take: 1000` como tope de seguridad — si una región muy grande del archivo lo supera, subir el tope o migrar a `count` + `groupBy` por año.
+- Helper `attachImage` adjunta la primera imagen (`contentType: "ARTICLE"`, `contentId = beitragsId || id`).
+
 ## Sistema de traducción ES
 
 ### Modelo de datos (campos en `Article`)

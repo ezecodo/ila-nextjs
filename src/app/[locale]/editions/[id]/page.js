@@ -1078,7 +1078,7 @@ export default function EditionDetails() {
           </button>
         </div>
 
-        <div className="article-content text-lg md:text-xl leading-normal text-gray-800 dark:text-gray-200">
+        <div className="article-content edition-editorial text-lg md:text-xl leading-normal text-gray-800 dark:text-gray-200">
           {summaryToShow ? (
             /<\/?[a-z][\s\S]*>/i.test(summaryToShow) ? (
               <div dangerouslySetInnerHTML={{ __html: summaryToShow }} />

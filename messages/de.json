@@ -128,7 +128,8 @@
     "close": "Schließen",
     "decreaseFont": "Schrift verkleinern",
     "increaseFont": "Schrift vergrößern",
-    "toggleTheme": "Farbschema wechseln"
+    "toggleTheme": "Farbschema wechseln",
+    "toggleWidth": "Textbreite ändern"
   },
   "dossiers": {
     "editionListTitle": "Dossier-Liste",
