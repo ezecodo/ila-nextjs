@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { useSwipeable } from "react-swipeable";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,9 +29,14 @@ export default function LatestEditionWithArticles() {
   const [loading, setLoading] = useState(true);
   const [editionsCount, setEditionsCount] = useState({});
 
+  // Filtro in-place del dossier: al clicar un tag (tema/región/autoría) el grid
+  // muestra solo los artículos del dossier que lo tienen. { type, id, name }
+  const [activeTag, setActiveTag] = useState(null);
+
   const [pickerValue, setPickerValue] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(null);
   const listRef = useRef(null);
+  const resultsRef = useRef(null);
 
   const locale = useLocale();
   const t = useTranslations("dossiers");
@@ -86,6 +91,12 @@ export default function LatestEditionWithArticles() {
 
     setTimeout(() => setIsTransitioning(false), 800);
   };
+
+  // Al cambiar de dossier, limpiar el filtro por tag
+  useEffect(() => {
+    setActiveTag(null);
+  }, [currentEditionIndex]);
+
   useEffect(() => {
     async function fetchAllEditions() {
       try {
@@ -236,7 +247,7 @@ export default function LatestEditionWithArticles() {
     if (cur) cur.count += 1;
     else cloudMap.set(key, { type, id, name, nameES, count: 1 });
   };
-  for (const a of articles) {
+  for (const a of filteredArticles) {
     (a.regions || []).forEach((r) => bumpCloud("regions", r.id, r.name, r.nameES));
     (a.topics || []).forEach((tp) => bumpCloud("topics", tp.id, tp.name, tp.nameES));
     (a.authors || []).forEach((au) => bumpCloud("authors", au.id, au.name, au.nameES));
@@ -244,16 +255,37 @@ export default function LatestEditionWithArticles() {
   const cloud = [...cloudMap.values()].sort((a, b) => b.count - a.count);
   const cloudMax = cloud[0]?.count || 1;
   const cloudName = (e) => (locale === "es" && e.nameES ? e.nameES : e.name);
-  const cloudHref = (e) =>
-    e.type === "authors"
-      ? `/${locale}/authors/${e.id}`
-      : `/${locale}/entities/${e.type}/${e.id}`;
   const cloudSize = (count) => {
     const r = count / cloudMax;
     if (r > 0.66) return "text-2xl";
     if (r > 0.4) return "text-xl";
     if (r > 0.22) return "text-lg";
     return "text-sm";
+  };
+
+  // Filtro in-place: como cloud.type coincide con el campo del artículo
+  // ("regions" | "topics" | "authors"), se filtra directo por a[type].
+  const articlesForTag = (tag) =>
+    filteredArticles.filter((a) =>
+      (a[tag.type] || []).some((x) => x.id === tag.id),
+    );
+  const tagFilteredArticles = activeTag ? articlesForTag(activeTag) : null;
+  const isTagActive = (e) =>
+    activeTag && activeTag.type === e.type && activeTag.id === e.id;
+  // Filtra el grid in-place (toggle). Vale también para tags de un solo
+  // artículo: muestra esa única card, que ya enlaza al artículo. No navegamos
+  // directo porque el path del artículo no siempre es construible (legacyPath
+  // puede ser null y no existe ruta /articles/[id]).
+  const handleTagClick = (e) => {
+    const willClear =
+      activeTag && activeTag.type === e.type && activeTag.id === e.id;
+    setActiveTag(
+      willClear ? null : { type: e.type, id: e.id, name: cloudName(e) },
+    );
+    // Al activar un filtro, subir al área de resultados (el tag está abajo).
+    if (!willClear) {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const isVertical = (img) =>
@@ -381,9 +413,9 @@ export default function LatestEditionWithArticles() {
     <>
       <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-6 lg:px-4 pb-16">
         {currentEdition && (
-          <div className="flex flex-col lg:flex-row gap-1 lg:gap-1 items-start justify-between">
-            <div className="relative w-full lg:w-auto flex items-start justify-end">
-              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md lg:self-stretch">
+          <div className="flex flex-col gap-1 items-start justify-between lg:block">
+            <div className="relative w-full lg:w-auto flex items-start justify-end lg:float-left lg:mr-1">
+              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
                 <div className="relative w-full order-1">
                   <div className="text-center flex flex-col items-center">
                     <div className="flex items-baseline justify-center gap-3 leading-none relative">
@@ -840,44 +872,19 @@ export default function LatestEditionWithArticles() {
                   )}
                 </div>
 
-                <div className="hidden lg:flex flex-col gap-4 w-full order-7 lg:flex-1 lg:min-h-0">
+                <div className="hidden lg:flex flex-col gap-4 w-full order-7">
                   <AktuellesPreview />
                   <Events />
                   <SideBanner50 />
-                  <div className="shrink-0">
-                    <PartyBanner />
-                  </div>
-
-                  {/* Nube de tags que fluye en el hueco bajo el PartyBanner.
-                      Spacer flex-1 con contenido en position:absolute para no
-                      aportar altura propia: solo crece para rellenar lo que
-                      sobra cuando el grid (columna derecha) es más alto que
-                      esta tarjeta. Si no hay hueco, queda en 0 y no se ve. */}
-                  {!loading && cloud.length > 0 && (
-                    <div className="relative hidden lg:block lg:flex-1 lg:min-h-0 overflow-hidden">
-                      <div className="absolute inset-0 overflow-y-auto pr-1 [scrollbar-width:thin]">
-                        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1.5 leading-tight">
-                          {cloud.map((e) => (
-                            <Link
-                              key={`side-${e.type}-${e.id}`}
-                              href={cloudHref(e)}
-                              title={cloudName(e)}
-                              className={`font-bold text-gray-700 dark:text-gray-300 hover:text-[#BD0E0D] dark:hover:text-[#BD0E0D] transition-colors ${cloudSize(
-                                e.count,
-                              )}`}
-                            >
-                              {cloudName(e)}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <PartyBanner />
                 </div>
               </div>
             </div>
 
-            <div className="w-full lg:flex-1 min-w-0 lg:self-stretch flex flex-col gap-6 mt-8 lg:mt-0">
+            <div
+              ref={resultsRef}
+              className="w-full lg:w-auto min-w-0 flex flex-col gap-6 mt-8 lg:mt-0 scroll-mt-24"
+            >
 
               {/* Stats del dossier — arriba del grid (reemplaza el header) */}
               {!loading &&
@@ -948,6 +955,35 @@ export default function LatestEditionWithArticles() {
                   );
                 })()}
 
+              {/* Chip de filtro activo por tag */}
+              {!loading && activeTag && (
+                <div className="hidden lg:flex items-center gap-2 text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {locale === "de" ? "Gefiltert nach:" : "Filtrando por:"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTag(null)}
+                    className="inline-flex items-center gap-1.5 bg-[#BD0E0D] text-white px-2.5 py-1 font-semibold hover:bg-[#a50c0b] transition-colors"
+                  >
+                    {activeTag.name}
+                    <span aria-hidden="true" className="text-base leading-none">
+                      ×
+                    </span>
+                  </button>
+                  <span className="text-gray-400 dark:text-gray-500">
+                    {tagFilteredArticles.length}{" "}
+                    {locale === "de"
+                      ? tagFilteredArticles.length === 1
+                        ? "Beitrag"
+                        : "Beiträge"
+                      : tagFilteredArticles.length === 1
+                        ? "artículo"
+                        : "artículos"}
+                  </span>
+                </div>
+              )}
+
               {/* Desktop */}
               {/* Desktop */}
               <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -955,15 +991,18 @@ export default function LatestEditionWithArticles() {
                   <div className="col-span-2 flex items-center justify-center min-h-[400px]">
                     <IlaLoader />
                   </div>
-                ) : desktopArticles.length > 0 ? (
-                  desktopArticles.map((article, idx) => (
-                    <MiniArticleCardGrid
-                      key={article.id}
-                      article={article}
-                      delay={idx * 200}
-                      isTransitioning={isTransitioning}
-                    />
-                  ))
+                ) : (activeTag ? tagFilteredArticles : desktopArticles).length >
+                  0 ? (
+                  (activeTag ? tagFilteredArticles : desktopArticles).map(
+                    (article, idx) => (
+                      <MiniArticleCardGrid
+                        key={article.id}
+                        article={article}
+                        delay={idx * 200}
+                        isTransitioning={isTransitioning}
+                      />
+                    ),
+                  )
                 ) : locale === "es" ? (
                   <NoArticlesAvailable edition={currentEdition} />
                 ) : (
@@ -972,33 +1011,6 @@ export default function LatestEditionWithArticles() {
                   </div>
                 )}
               </div>
-
-              {/* Nube de temas/regiones/autorías — vive en un espaciador
-                  flex-1 cuyo contenido está en position:absolute, así NO
-                  aporta altura a la columna. Solo crece para rellenar el
-                  hueco que dejan el grid y las stats; dentro, los tags
-                  scrollean (overflow-y-auto) para verlos todos en ese
-                  espacio apretado. Si no hay hueco, queda en 0 y no se ve. */}
-              {!loading && !carouselShown && cloud.length > 0 && (
-                <div className="relative hidden lg:block lg:flex-1 lg:min-h-0 overflow-hidden">
-                  <div className="absolute inset-0 overflow-y-auto pr-1 [scrollbar-width:thin]">
-                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1.5 leading-tight">
-                      {cloud.map((e) => (
-                        <Link
-                          key={`${e.type}-${e.id}`}
-                          href={cloudHref(e)}
-                          title={cloudName(e)}
-                          className={`font-bold text-gray-700 dark:text-gray-300 hover:text-[#BD0E0D] dark:hover:text-[#BD0E0D] transition-colors ${cloudSize(
-                            e.count,
-                          )}`}
-                        >
-                          {cloudName(e)}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Rellena el hueco cuando el dossier todavía tiene pocos
                   artículos: carrusel de dossiers anteriores */}
@@ -1144,6 +1156,36 @@ export default function LatestEditionWithArticles() {
                 </div>
               </div>
             </div>
+
+            {/* Tags del dossier (temas/regiones/autorías) que fluyen tras el
+                grid. Bloque normal con links inline-block: como la tarjeta de
+                la izquierda flota (lg:float-left), las líneas envuelven el
+                float — empiezan a su derecha, bajo el grid, y siguen a lo
+                ancho completo una vez superado el borde inferior del banner.
+                Solo desktop; oculto si el dossier muestra el carrusel. */}
+            {!loading && !carouselShown && cloud.length > 0 && (
+              <div className="hidden lg:block lg:mt-6 leading-loose text-justify">
+                {cloud.map((e) => (
+                  <Fragment key={`flow-${e.type}-${e.id}`}>
+                    <button
+                      type="button"
+                      onClick={() => handleTagClick(e)}
+                      title={cloudName(e)}
+                      className={`inline-block align-baseline font-bold transition-colors hover:text-[#BD0E0D] dark:hover:text-[#BD0E0D] ${
+                        isTagActive(e)
+                          ? "text-[#BD0E0D] underline decoration-2 underline-offset-2"
+                          : "text-gray-700 dark:text-gray-300"
+                      } ${cloudSize(e.count)}`}
+                    >
+                      {cloudName(e)}
+                    </button>{" "}
+                  </Fragment>
+                ))}
+              </div>
+            )}
+
+            {/* Clearfix: contiene el float aunque los tags sean pocos */}
+            <div className="hidden lg:block lg:clear-both" aria-hidden="true" />
           </div>
         )}
       </div>
