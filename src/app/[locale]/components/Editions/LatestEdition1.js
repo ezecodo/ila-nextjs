@@ -252,14 +252,38 @@ export default function LatestEditionWithArticles() {
     (a.topics || []).forEach((tp) => bumpCloud("topics", tp.id, tp.name, tp.nameES));
     (a.authors || []).forEach((au) => bumpCloud("authors", au.id, au.name, au.nameES));
   }
-  const cloud = [...cloudMap.values()].sort((a, b) => b.count - a.count);
-  const cloudMax = cloud[0]?.count || 1;
   const cloudName = (e) => (locale === "es" && e.nameES ? e.nameES : e.name);
-  const cloudSize = (count) => {
-    const r = count / cloudMax;
-    if (r > 0.66) return "text-2xl";
-    if (r > 0.4) return "text-xl";
-    if (r > 0.22) return "text-lg";
+  // Hash determinístico (FNV-1a) → 0..0.999. Estable entre renders, así el
+  // tamaño/orden no parpadea ni cambia al filtrar (mismo id ⇒ mismo valor).
+  const hashSeed = (s) => {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0) % 1000 / 1000;
+  };
+  const cloudRaw = [...cloudMap.values()];
+  const cloudMax = cloudRaw.reduce((m, e) => Math.max(m, e.count), 1);
+  // Híbrido: el peso del tag mezcla frecuencia (mantiene jerarquía) con un
+  // jitter por id (da variedad entre los de igual count). El orden se baraja
+  // por otro hash para que los grandes queden intercalados, no al principio.
+  const cloud = cloudRaw
+    .map((e) => {
+      const base = e.count / cloudMax;
+      const jitter = hashSeed(`${e.type}:${e.id}`);
+      return {
+        ...e,
+        weight: base * 0.6 + jitter * 0.4,
+        order: hashSeed(`o-${e.type}:${e.id}`),
+      };
+    })
+    .sort((a, b) => a.order - b.order);
+  const cloudSize = (w) => {
+    if (w > 0.78) return "text-2xl";
+    if (w > 0.58) return "text-xl";
+    if (w > 0.4) return "text-lg";
+    if (w > 0.24) return "text-base";
     return "text-sm";
   };
 
@@ -1165,17 +1189,19 @@ export default function LatestEditionWithArticles() {
                 Solo desktop; oculto si el dossier muestra el carrusel. */}
             {!loading && !carouselShown && cloud.length > 0 && (
               <div className="hidden lg:block lg:mt-6 leading-loose text-justify">
-                {cloud.map((e) => (
+                {cloud.map((e, i) => (
                   <Fragment key={`flow-${e.type}-${e.id}`}>
                     <button
                       type="button"
                       onClick={() => handleTagClick(e)}
                       title={cloudName(e)}
-                      className={`inline-block align-baseline font-bold transition-colors hover:text-[#BD0E0D] dark:hover:text-[#BD0E0D] ${
+                      className={`inline-block align-baseline font-bold transition-colors ${
                         isTagActive(e)
                           ? "text-[#BD0E0D] underline decoration-2 underline-offset-2"
-                          : "text-gray-700 dark:text-gray-300"
-                      } ${cloudSize(e.count)}`}
+                          : i % 2 === 0
+                            ? "text-[#BD0E0D] hover:text-gray-800 dark:hover:text-gray-200"
+                            : "text-gray-700 dark:text-gray-300 hover:text-[#BD0E0D] dark:hover:text-[#BD0E0D]"
+                      } ${cloudSize(e.weight)}`}
                     >
                       {cloudName(e)}
                     </button>{" "}
