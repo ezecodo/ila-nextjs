@@ -138,6 +138,76 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
     setSortField(field);
   };
 
+  // Estado de traducción (badge) para la vista de revisión. Se usa tanto en la
+  // tabla de escritorio como en las cards de mobile.
+  const getReviewerStatus = (article) => {
+    if (article.translationStatus === "submitted")
+      return {
+        className:
+          "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200",
+        label: "Enviado",
+      };
+    if (article.translationStatus === "approved" && article.editedAfterReview)
+      return {
+        className:
+          "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200",
+        label: "✏️ Editado tras revisión",
+      };
+    if (article.translationStatus === "approved")
+      return {
+        className:
+          "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
+        label: `Revisado${
+          article.reviewedAt ? ` — ${formatDateTime(article.reviewedAt)}` : ""
+        }`,
+      };
+    if (article.translationStartedAt)
+      return {
+        className:
+          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200",
+        label: "✍️ En traducción",
+      };
+    return {
+      className:
+        "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-200",
+      label: "Asignado",
+    };
+  };
+
+  // Acciones de revisión (link Revisar / Ver / En progreso). Compartido entre
+  // tabla de escritorio y cards de mobile.
+  const renderReviewerActions = (article) => {
+    if (article.translationStatus === "submitted")
+      return (
+        <Link
+          href={`/dashboard/articles/translate/${article.id}?mode=review`}
+          className="px-3 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+          title="Revisar traducción"
+        >
+          👁️ Revisar
+        </Link>
+      );
+    if (article.translationStatus === "approved")
+      return (
+        <Link
+          href={`/dashboard/articles/translate/${article.id}?mode=review`}
+          className="px-3 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+          title={
+            article.editedAfterReview
+              ? "Editado tras revisión — conviene revisar de nuevo"
+              : "Ver traducción aprobada"
+          }
+        >
+          {article.editedAfterReview ? "🔁 Volver a revisar" : "👁️ Ver"}
+        </Link>
+      );
+    return (
+      <span className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg">
+        En progreso
+      </span>
+    );
+  };
+
   return (
     <div className="w-full py-6">
       {mode !== "translator" && (
@@ -204,8 +274,12 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
         </div>
       )}
 
-      {/* Tabla con estética moderna */}
-      <div className="overflow-x-auto rounded-lg shadow-lg">
+      {/* Tabla con estética moderna (en reviewer se oculta en mobile) */}
+      <div
+        className={`overflow-x-auto rounded-lg shadow-lg ${
+          mode === "reviewer" ? "hidden md:block" : ""
+        }`}
+      >
         <table className="min-w-full border-collapse bg-white dark:bg-gray-900 text-sm">
           <thead>
             <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 uppercase text-xs tracking-wider">
@@ -365,41 +439,7 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
 
                 {mode === "reviewer" &&
                   (() => {
-                    const statusCell =
-                      article.translationStatus === "submitted"
-                        ? {
-                            className:
-                              "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200",
-                            label: "Enviado",
-                          }
-                        : article.translationStatus === "approved" &&
-                            article.editedAfterReview
-                          ? {
-                              className:
-                                "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200",
-                              label: "✏️ Editado tras revisión",
-                            }
-                          : article.translationStatus === "approved"
-                            ? {
-                                className:
-                                  "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200",
-                                label: `Revisado${
-                                  article.reviewedAt
-                                    ? ` — ${formatDateTime(article.reviewedAt)}`
-                                    : ""
-                                }`,
-                              }
-                            : article.translationStartedAt
-                              ? {
-                                  className:
-                                    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-200",
-                                  label: "✍️ En traducción",
-                                }
-                              : {
-                                  className:
-                                    "bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-200",
-                                  label: "Asignado",
-                                };
+                    const statusCell = getReviewerStatus(article);
                     return (
                       <td
                         className={`px-5 py-3 text-center text-xs font-semibold rounded-none ${statusCell.className}`}
@@ -543,35 +583,9 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
                       />
                     )
                   ) : mode === "reviewer" ? (
-                    article.translationStatus === "submitted" ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Link
-                          href={`/dashboard/articles/translate/${article.id}?mode=review`}
-                          className="px-3 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                          title="Revisar traducción"
-                        >
-                          👁️ Revisar
-                        </Link>
-                      </div>
-                    ) : article.translationStatus === "approved" ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <Link
-                          href={`/dashboard/articles/translate/${article.id}?mode=review`}
-                          className="px-3 py-1 text-xs border border-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                          title={
-                            article.editedAfterReview
-                              ? "Editado tras revisión — conviene revisar de nuevo"
-                              : "Ver traducción aprobada"
-                          }
-                        >
-                          {article.editedAfterReview ? "🔁 Volver a revisar" : "👁️ Ver"}
-                        </Link>
-                      </div>
-                    ) : (
-                      <span className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg">
-                        En progreso
-                      </span>
-                    )
+                    <div className="flex items-center justify-center gap-2">
+                      {renderReviewerActions(article)}
+                    </div>
                   ) : article.isTranslatedES ? (
                     <div className="flex flex-col items-center justify-center gap-1">
                       <Check
@@ -658,6 +672,77 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Vista mobile (solo reviewer): cards en vez de tabla */}
+      {mode === "reviewer" && (
+        <div className="space-y-3 md:hidden">
+          {articles.length === 0 && (
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-6">
+              No hay traducciones para mostrar.
+            </p>
+          )}
+          {articles.map((article) => {
+            const status = getReviewerStatus(article);
+            return (
+              <div
+                key={article.id}
+                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <Link
+                    href={
+                      article.legacyPath
+                        ? `/${locale}${article.legacyPath}`
+                        : `/${locale}/articles/${article.id}`
+                    }
+                    className="text-blue-600 hover:underline font-semibold leading-snug"
+                    target="_blank"
+                  >
+                    {locale === "es" && article.isTranslatedES
+                      ? article.titleES || article.title
+                      : article.title}
+                  </Link>
+                  <span
+                    className={`shrink-0 px-2 py-1 text-[10px] font-semibold rounded ${status.className}`}
+                  >
+                    {status.label}
+                  </span>
+                </div>
+
+                <div className="mt-2 space-y-1 text-xs text-gray-600 dark:text-gray-300">
+                  {article.authors?.length > 0 && (
+                    <p>
+                      <span className="font-semibold">Autor:</span>{" "}
+                      {article.authors.map((a) => a.name).join(", ")}
+                    </p>
+                  )}
+                  <p>
+                    <span className="font-semibold">Edición:</span>{" "}
+                    {article.edition
+                      ? `${article.edition.title} (N° ${article.edition.number})`
+                      : "Sin edición"}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Traduce:</span>{" "}
+                    {article.translator
+                      ? article.translator.name || article.translator.email
+                      : "Sin traductor"}
+                  </p>
+                  {article.translationStartedAt && (
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      Comenzó: {formatDateTime(article.translationStartedAt)}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-3 flex justify-end">
+                  {renderReviewerActions(article)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Paginación */}
       <div className="flex justify-between items-center mt-6">
