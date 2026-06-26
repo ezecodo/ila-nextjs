@@ -1840,7 +1840,12 @@ const TranslateArticlePage = () => {
                   });
 
                   if (res.ok) {
-                    alert("📤 Traducción enviada para revisión");
+                    const updated = await res.json().catch(() => null);
+                    if (updated?.translationStatus === "approved") {
+                      alert("✅ Traducción aprobada directamente");
+                    } else {
+                      alert("📤 Traducción enviada para revisión");
+                    }
                     router.replace("/dashboard/translators/assignments");
                   } else {
                     alert("❌ Error al enviar traducción");

@@ -238,6 +238,7 @@ export async function PUT(req, context) {
         select: {
           translationStatus: true,
           translationStartedAt: true,
+          translatorId: true,
           titleES: true,
           subtitleES: true,
           contentES: true,
@@ -245,6 +246,22 @@ export async function PUT(req, context) {
           additionalInfoES: true,
         },
       });
+
+      // 👤 Si quien envía la traducción es admin SIN rol de traductor acoplado
+      // (canTranslate=false), no pasa por revisión: se aprueba directo y se le
+      // acredita. Un admin con canTranslate=true es parte del equipo de
+      // traductores y sigue el flujo normal (submitted → revisión).
+      let autoApproveByAdmin = false;
+      if (body.translationStatus === "submitted") {
+        const actor = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { role: true, canTranslate: true },
+        });
+        if (actor?.role === "admin" && !actor.canTranslate) {
+          body.translationStatus = "approved";
+          autoApproveByAdmin = true;
+        }
+      }
 
       // 🧠 Construimos el objeto de actualización
       const dataToUpdate = {
@@ -315,6 +332,16 @@ export async function PUT(req, context) {
         dataToUpdate.editedAfterReview = true;
         // No tocamos reviewedAt: la fecha de la revisión original sigue siendo válida
         delete dataToUpdate.reviewedAt;
+      }
+
+      // 🖊️ Acreditación de la aprobación directa del admin-traductor: figura como
+      // revisor y, si el artículo no tenía traductor asignado, también como
+      // traductor (para que aparezca "editada por <nombre>" en el artículo).
+      if (autoApproveByAdmin) {
+        dataToUpdate.reviewerId = userId;
+        if (!currentArticle?.translatorId) {
+          dataToUpdate.translatorId = userId;
+        }
       }
 
       const updatedArticle = await prisma.article.update({

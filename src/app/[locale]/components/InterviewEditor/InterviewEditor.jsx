@@ -1266,6 +1266,15 @@ function PasteImportPanel({
   const focusCaretOffsetRef = useRef(null);
   const imageInputRef = useRef(null);
   const insertAtRef = useRef(null); // index after which to insert the image
+  // Último bloque editable que tuvo el foco (onFocus burbujea desde el
+  // contenteditable/textarea). Lo usa la inserción desde el PDF para meter el
+  // texto JUSTO DESPUÉS de ese bloque, no al final. Al seleccionar en el PDF el
+  // foco se va del editor, pero esta ref conserva el último bloque editado.
+  const lastFocusedBlockRef = useRef(null);
+  // Índice de inserción posicional en curso (lote desde el PDF). null = anexar
+  // al final (comportamiento clásico). Se fija al primer append del lote y
+  // avanza con cada bloque insertado para mantener el orden de lectura.
+  const batchInsertRef = useRef(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   // Selector de imágenes recortadas (PDF). Abierto cuando hay availableImages.
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -1275,9 +1284,28 @@ function PasteImportPanel({
   // ── API de inserción para modo split (from-pdf) ──────────────────────────
   // Inserta la selección del PDF como bloques. `appendText` añade un bloque de
   // respuesta (Fließtext); `appendHeading` un Zwischentitel.
+  // Al primer append de un lote, decide si insertar en una posición concreta
+  // (justo tras el bloque enfocado) o anexar al final. Devuelve true si el modo
+  // es posicional. Fija insertAnchorRef (caret destino) y batchInsertRef.
+  const beginBatchPlacement = () => {
+    if (insertAnchorRef.current !== null) return batchInsertRef.current !== null;
+    const arr = blocks || [];
+    const fi = lastFocusedBlockRef.current;
+    // Posicional solo si hay un bloque enfocado válido que NO sea el último
+    // (si es el último, anexar al final es equivalente y más simple).
+    if (fi != null && fi >= 0 && fi < arr.length - 1) {
+      batchInsertRef.current = fi + 1;
+      insertAnchorRef.current = { blockIdx: fi + 1, caretOffset: 0 };
+      return true;
+    }
+    batchInsertRef.current = null;
+    return false;
+  };
+
   const appendText = (html) => {
     if (!html || !html.trim()) return;
-    // Capturar el ancla solo en el primer append del lote (pre-batch state).
+    const positional = beginBatchPlacement();
+    // Captura el ancla del modo "anexar al final" si no se hizo en posicional.
     if (insertAnchorRef.current === null) {
       const arr = blocks || [];
       const last = arr[arr.length - 1];
@@ -1291,6 +1319,17 @@ function PasteImportPanel({
       } else {
         insertAnchorRef.current = { blockIdx: arr.length, caretOffset: 0 };
       }
+    }
+    if (positional) {
+      const at = batchInsertRef.current;
+      batchInsertRef.current = at + 1;
+      setBlocks((prev) => {
+        const next = [...(prev || [])];
+        next.splice(at, 0, { type: "answer", text: html });
+        return next;
+      });
+      pendingScrollRef.current = true;
+      return;
     }
     setBlocks((prev) => {
       const arr = prev || [];
@@ -1310,9 +1349,25 @@ function PasteImportPanel({
   };
   const appendHeading = (text, level = 3) => {
     if (!text || !text.trim()) return;
+    const positional = beginBatchPlacement();
     if (insertAnchorRef.current === null) {
       const arr = blocks || [];
       insertAnchorRef.current = { blockIdx: arr.length, caretOffset: 0 };
+    }
+    if (positional) {
+      const at = batchInsertRef.current;
+      batchInsertRef.current = at + 1;
+      setBlocks((prev) => {
+        const next = [...(prev || [])];
+        next.splice(at, 0, {
+          type: "subtitle",
+          text: text.trim(),
+          headingLevel: level,
+        });
+        return next;
+      });
+      pendingScrollRef.current = true;
+      return;
     }
     setBlocks((prev) => [
       ...(prev || []),
@@ -1332,6 +1387,7 @@ function PasteImportPanel({
     pendingScrollRef.current = false;
     const anchor = insertAnchorRef.current;
     insertAnchorRef.current = null;
+    batchInsertRef.current = null;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const container = scrollRef.current;
@@ -2040,7 +2096,13 @@ function PasteImportPanel({
                   : "text-sm";
 
               return (
-                <div key={`${lang}-${i}`} className="mb-0.5">
+                <div
+                  key={`${lang}-${i}`}
+                  className="mb-0.5"
+                  onFocus={() => {
+                    lastFocusedBlockRef.current = i;
+                  }}
+                >
                   {/* ── IMAGE block ── */}
                   {block.type === "image" && (
                     <div
@@ -3415,6 +3477,8 @@ export default function InterviewEditor({
           contentES={contentES}
           availableImages={availableImages}
           onInsertAvailable={onInsertAvailable}
+          leftPanel={leftPanel}
+          apiRef={apiRef}
         />
       )}
 

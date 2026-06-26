@@ -25,6 +25,9 @@ export async function GET(req) {
     const assigned = searchParams.get("assigned") === "true";
     const translated = searchParams.get("translated") === "true";
     const authorId = searchParams.get("authorId");
+    // Filtro de estado de traducción para la vista de revisión (enviado /
+    // asignado / revisado). "assigned" => in_progress (asignado o en curso).
+    const translationStatusFilter = searchParams.get("translationStatus");
 
     let whereCondition = {};
 
@@ -42,13 +45,18 @@ export async function GET(req) {
       // Los admins revisan cualquier traducción (el campo reviewerId nunca se
       // asigna, así que filtrar por él dejaba la vista vacía para todos). Un
       // revisor no-admin sigue viendo solo lo que tenga asignado.
+      const reviewerStatuses = ["in_progress", "submitted", "approved"];
       whereCondition = {
         ...whereCondition,
         ...(session.user.role === "admin"
           ? {}
           : { reviewerId: session.user.id }),
         translatorId: { not: null },
-        translationStatus: { in: ["in_progress", "submitted", "approved"] },
+        translationStatus:
+          translationStatusFilter &&
+          reviewerStatuses.includes(translationStatusFilter)
+            ? translationStatusFilter
+            : { in: reviewerStatuses },
       };
     }
 

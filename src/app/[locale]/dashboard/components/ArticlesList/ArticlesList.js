@@ -37,6 +37,8 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
   const [editions, setEditions] = useState([]);
   const [selectedBeitragstyp, setSelectedBeitragstyp] = useState("");
   const [beitragstypen, setBeitragstypen] = useState([]);
+  // Filtro de estado para la vista de revisión (enviado / asignado / revisado)
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   useEffect(() => {
     async function fetchEditions() {
@@ -90,6 +92,9 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
         // 👁️ Modo revisor (si lo usas)
         if (mode === "reviewer") {
           searchParams.append("reviewer", "true");
+          if (selectedStatus) {
+            searchParams.append("translationStatus", selectedStatus);
+          }
         }
 
         // Filtro por tipo de artículo
@@ -124,7 +129,7 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
 
     if (mode === "translator" && !session?.user?.id) return;
     fetchArticles();
-  }, [page, sortField, sortOrder, mode, session?.user?.id, selectedEdition, selectedBeitragstyp]);
+  }, [page, sortField, sortOrder, mode, session?.user?.id, selectedEdition, selectedBeitragstyp, selectedStatus]);
 
   const handleSort = (field) => {
     setSortOrder(
@@ -179,6 +184,23 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
               ))}
             </select>
           </div>
+          {mode === "reviewer" && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Estado:
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => { setSelectedStatus(e.target.value); setPage(1); }}
+                className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">-- Alle --</option>
+                <option value="submitted">📤 Enviado</option>
+                <option value="in_progress">🟢 Asignado</option>
+                <option value="approved">✅ Revisado</option>
+              </select>
+            </div>
+          )}
         </div>
       )}
 

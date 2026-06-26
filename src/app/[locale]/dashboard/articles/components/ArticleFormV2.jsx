@@ -26,6 +26,10 @@ const InterviewEditor = dynamic(
   () => import("../../../components/InterviewEditor/InterviewEditor"),
   { ssr: false }
 );
+const DossierPdfPanel = dynamic(
+  () => import("../../../components/DossierPdfPanel/DossierPdfPanel"),
+  { ssr: false }
+);
 
 // ── Section card wrapper ───────────────────────────────────────────────────
 function Section({ step, title, subtitle, children, highlight }) {
@@ -148,6 +152,47 @@ export default function ArticleFormV2({ articleId }) {
   const [newPdfs, setNewPdfs] = useState([]);
 
   const fileInputRef = useRef(null);
+
+  // Dossier (PDF privado de la edición) acoplado al publilab para completar
+  // texto que falte. API del editor para insertar la selección del PDF.
+  const dossierApiRef = useRef(null);
+  const [dossierPdfUrl, setDossierPdfUrl] = useState(null);
+  const [dossierMode, setDossierMode] = useState(false);
+
+  // Busca el PDF privado de la edición seleccionada (si tiene uno subido).
+  useEffect(() => {
+    if (!selectedEdition) {
+      setDossierPdfUrl(null);
+      setDossierMode(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/editions/${selectedEdition}/pdf-abo`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        if (!cancelled) setDossierPdfUrl(data?.pdfUrl || null);
+      } catch {
+        if (!cancelled) setDossierPdfUrl(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedEdition]);
+
+  // Panel del dossier que se acopla a la izquierda del publilab (solo si el
+  // usuario activó el modo y la edición tiene PDF). Mismo nodo para ambos
+  // editores del cuerpo (entrevista / artículo).
+  const dossierLeftPanel =
+    dossierMode && dossierPdfUrl ? (
+      <DossierPdfPanel
+        pdfUrl={dossierPdfUrl}
+        articleTitle={title}
+        apiRef={dossierApiRef}
+      />
+    ) : null;
 
   // ── Derived ────────────────────────────────────────────────────────────
   const selectedTypObj = beitragstypen.find(
@@ -911,6 +956,19 @@ export default function ArticleFormV2({ articleId }) {
             }
             highlight={isInterview}
           >
+            {dossierPdfUrl && (
+              <label className="mb-3 flex items-center gap-2 text-sm bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={dossierMode}
+                  onChange={(e) => setDossierMode(e.target.checked)}
+                />
+                <span>
+                  📄 Dossier-PDF im Editor anzeigen (zum fehlenden Text aus dem
+                  Dossier ergänzen)
+                </span>
+              </label>
+            )}
             {isInterview ? (
               <>
                 <InterviewEditor
@@ -924,6 +982,8 @@ export default function ArticleFormV2({ articleId }) {
                   hasSpanishContent={hasSpanishContent}
                   contentES={contentES}
                   onChangeES={setContentES}
+                  leftPanel={dossierLeftPanel}
+                  apiRef={dossierApiRef}
                 />
                 {/* Entrevistado */}
                 <div className="pt-2 border-t border-gray-100 space-y-2">
@@ -960,6 +1020,8 @@ export default function ArticleFormV2({ articleId }) {
                 hasSpanishContent={hasSpanishContent}
                 contentES={contentES}
                 onChangeES={setContentES}
+                leftPanel={dossierLeftPanel}
+                apiRef={dossierApiRef}
               />
             )}
           </Section>

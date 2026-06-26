@@ -95,6 +95,10 @@ export default function LegacyArticlePage() {
       </div>
     );
   }
+  // La traducción ES solo es pública cuando está APROBADA (revisada). Mientras
+  // está en revisión (submitted) la versión alemana es la única visible.
+  const esApproved = article.translationStatus === "approved";
+  const showES = isES && esApproved;
   // ✅ Función auxiliar para detectar títulos en párrafos normales
   function autoDetectHeadings(html) {
     if (!html) return "";
@@ -240,12 +244,10 @@ export default function LegacyArticlePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "NewsArticle",
-            headline:
-              isES && article.isTranslatedES ? article.titleES : article.title,
-            description:
-              isES && article.isTranslatedES
-                ? article.subtitleES || article.previewTextES || ""
-                : article.subtitle || article.previewText || "",
+            headline: showES ? article.titleES : article.title,
+            description: showES
+              ? article.subtitleES || article.previewTextES || ""
+              : article.subtitle || article.previewText || "",
             url: `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`, // 👈 URL principal
             // 👇 Aseguramos string + array de imágenes
             image: article.images?.length
@@ -280,10 +282,7 @@ export default function LegacyArticlePage() {
               "@id": `${process.env.NEXT_PUBLIC_APP_URL}${fullPath}`,
             },
             // 👇 BONUS: puedes incluir articleBody para más puntos SEO
-            articleBody:
-              isES && article.isTranslatedES
-                ? article.contentES
-                : article.content,
+            articleBody: showES ? article.contentES : article.content,
           }),
         }}
       />
@@ -318,25 +317,25 @@ export default function LegacyArticlePage() {
               className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 dark:text-white mb-4 break-words"
               itemProp="headline"
             >
-              {isES && article.isTranslatedES ? article.titleES : article.title}
+              {showES ? article.titleES : article.title}
             </h1>
 
             {/* SUBTITULO */}
-            {(isES ? article.subtitleES : article.subtitle) && (
+            {(showES ? article.subtitleES : article.subtitle) && (
               <h2 className="text-lg md:text-xl font-light italic text-gray-600 dark:text-gray-300 mb-8">
-                {isES ? article.subtitleES : article.subtitle}
+                {showES ? article.subtitleES : article.subtitle}
               </h2>
             )}
           </div>
 
           {/* VORSPANN / STANDFIRST */}
-          {(isES ? article.previewTextES : article.previewText) && (
+          {(showES ? article.previewTextES : article.previewText) && (
             <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
               <div
                 className="article-content text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
                 dangerouslySetInnerHTML={{
                   __html: rewriteEditionLinksWithLocale(
-                    isES && article.previewTextES
+                    showES && article.previewTextES
                       ? article.previewTextES
                       : article.previewText,
                     locale
@@ -372,7 +371,7 @@ export default function LegacyArticlePage() {
               ))}
             </div>
           )}
-          {isAdmin && isES && article.isTranslatedES && (
+          {isAdmin && showES && (
             <div className="text-center mb-6">
               <Link href={`/dashboard/articles/translate/${article.id}`}>
                 <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
@@ -581,7 +580,7 @@ export default function LegacyArticlePage() {
                 autoDetectHeadings(
                   autoFormatHeadings(
                     normalizeContentForRender(
-                      isES && article.contentES
+                      showES && article.contentES
                         ? article.contentES
                         : article.content
                     )
@@ -612,13 +611,13 @@ export default function LegacyArticlePage() {
               </div>
             );
           })()}
-          {((isES && article.additionalInfoES) || article.additionalInfo) && (
+          {((showES && article.additionalInfoES) || article.additionalInfo) && (
             <div className="mt-8 mb-6 p-5 bg-gray-50 dark:bg-gray-800 border-l-4 border-red-600 rounded-r-lg shadow-sm">
               <div
                 className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 [&_p]:mb-2 [&_a]:text-blue-600 [&_a]:hover:underline"
                 dangerouslySetInnerHTML={{
                   __html: rewriteEditionLinksWithLocale(
-                    isES && article.additionalInfoES
+                    showES && article.additionalInfoES
                       ? article.additionalInfoES
                       : article.additionalInfo,
                     locale
@@ -669,7 +668,7 @@ export default function LegacyArticlePage() {
         )}
 
         <ShareBar
-          title={isES ? article.titleES : article.title}
+          title={showES ? article.titleES : article.title}
           articleId={article.id} // 👈 habilita el botón de favoritos
           anchorSelector="#article-start" // 👈 alinear con el inicio del contenido
           contentMaxWidth={1280} // max-w-7xl (grid con rail derecho)

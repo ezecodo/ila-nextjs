@@ -100,7 +100,7 @@ export default function LatestDossier({ locale }) {
             {editionTitle}
           </h2>
           <Link
-            href={`/${locale}/editions/${edition.number}`}
+            href={`/${locale}/editions/${edition.id}`}
             className="mt-3 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-[#BD0E0D] hover:underline"
           >
             {t("view_toc")} →

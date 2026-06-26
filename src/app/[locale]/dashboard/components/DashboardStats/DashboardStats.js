@@ -79,6 +79,23 @@ const DashboardStats = () => {
     fetchSubscriptionsCount();
   }, []);
 
+  const [newReviews, setNewReviews] = useState(0);
+
+  useEffect(() => {
+    async function fetchReviewCount() {
+      try {
+        const res = await fetch("/api/articles/review-count", {
+          cache: "no-store",
+        });
+        const data = await res.json();
+        setNewReviews(data.reviewCount || 0);
+      } catch (err) {
+        console.error("Error cargando contador de revisiones:", err);
+      }
+    }
+    fetchReviewCount();
+  }, []);
+
   if (loading) return null;
   if (error) return <p className="text-center text-red-500">{t("error")}</p>;
 
@@ -155,7 +172,7 @@ const DashboardStats = () => {
               href: "/dashboard/reviewer/assign",
             },
             {
-              label: t("reviewTranslations"),
+              label: `${t("reviewTranslations")}${newReviews > 0 ? ` (${newReviews})` : ""}`,
               href: "/dashboard/reviewer/review",
             },
             {
@@ -168,6 +185,8 @@ const DashboardStats = () => {
             },
           ]}
           pathname={pathname}
+          badgeCount={newReviews}
+          badgeTitle={`${newReviews} Artikel zur Überprüfung`}
         />
 
         {/* Bestellungen */}
@@ -194,9 +213,8 @@ const DashboardStats = () => {
             { label: t("pdfAbo"), href: "/dashboard/admin/pdf-abo" },
           ]}
           pathname={pathname}
-          newOrders={newOrders}
-          newSubscriptions={newSubscriptions}
-          t={t}
+          badgeCount={newOrders + newSubscriptions}
+          badgeTitle={`${newOrders} neue Bestellung${newOrders !== 1 ? "en" : ""}`}
         />
 
         {/* Gestaltung */}
@@ -409,6 +427,11 @@ const DashboardStats = () => {
               onClick={closeMobile}
             >
               {t("reviewTranslations")}
+              {newReviews > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-green-600 text-white rounded-full">
+                  {newReviews}
+                </span>
+              )}
             </Link>
 
             {/* Bestellungen */}
@@ -654,12 +677,10 @@ export function StatCardDropdown({
   color,
   items,
   pathname,
-  newOrders = 0,
-  newSubscriptions = 0,
-  t,
+  badgeCount = 0,
+  badgeTitle,
 }) {
   const [open, setOpen] = useState(false);
-  const translate = t || ((key) => key);
   const isActive = items.some((item) => pathname?.startsWith(item.href));
 
   return (
@@ -686,13 +707,12 @@ export function StatCardDropdown({
           {label}
         </span>
 
-        {label === translate("orders") &&
-          (newOrders > 0 || newSubscriptions > 0) && (
-            <span
-              className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-green-600 border-2 border-white rounded-full animate-pulse shadow-sm"
-              title={`${newOrders} neue Bestellung${newOrders > 1 ? "en" : ""}`}
-            />
-          )}
+        {badgeCount > 0 && (
+          <span
+            className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-green-600 border-2 border-white rounded-full animate-pulse shadow-sm"
+            title={badgeTitle}
+          />
+        )}
       </div>
 
       {/* Dropdown */}

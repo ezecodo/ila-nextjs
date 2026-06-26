@@ -10,7 +10,7 @@ import {
   FaEdit,
 } from "react-icons/fa";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
@@ -50,6 +50,7 @@ export default function ShareBar({
   className = "",
 }) {
   const t = useTranslations("ShareBar");
+  const locale = useLocale();
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [left, setLeft] = useState("8px");
@@ -60,6 +61,12 @@ export default function ShareBar({
   // de admins van al clásico (la página edit-v2 igual redirige si no coincide).
   const editBase =
     session?.user?.email === "e.zeangeloni@gmail.com" ? "edit-v2" : "edit";
+  // En la versión ES del artículo, "editar" abre el editor de traducción; en la
+  // versión DE (default) abre el editor del artículo original.
+  const editHref =
+    locale === "es"
+      ? `/dashboard/articles/translate/${articleId}`
+      : `/dashboard/articles/${editBase}/${articleId}`;
   const [footerVisible, setFooterVisible] = useState(false);
 
   useEffect(() => {
@@ -201,7 +208,7 @@ export default function ShareBar({
         {/* Editar artículo (solo admin) */}
         {isAdmin && articleId != null && (
           <Link
-            href={`/dashboard/articles/${editBase}/${articleId}`}
+            href={editHref}
             className="hidden md:block"
           >
             <ShareItem label={t("editLink")} title="Editar artículo">
@@ -289,7 +296,7 @@ export default function ShareBar({
 
           {isAdmin && articleId != null && (
             <Link
-              href={`/dashboard/articles/${editBase}/${articleId}`}
+              href={editHref}
               className="hover:bg-white/10 p-1.5 rounded-full transition-colors"
               title="Editar artículo"
               aria-label="Editar artículo"
