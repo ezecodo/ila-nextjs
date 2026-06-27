@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale } from "next-intl";
 import { useSearchParams, useRouter } from "next/navigation";
-import SectionHeader from "../SectionsHeader/SetionHeader";
+import QuietSectionHeader from "../SectionsHeader/QuietSectionHeader";
 import IlaLoader from "../IlaLoader/IlaLoader";
 import Image from "next/image";
 
@@ -169,12 +169,13 @@ export default function AktuellesList() {
   return (
     <>
       <div
-        className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 z-40"
+        className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 z-40 bg-white dark:bg-gray-900"
         style={{ position: "sticky", top: headerHeight - 1 }}
       >
-        <SectionHeader
+        <QuietSectionHeader
+          variant="chip"
           title={locale === "es" ? "Actualidad" : "Aktuelles"}
-          className="mb-0"
+          className="px-4 sm:px-6 lg:px-8 pt-3 mb-0"
         />
       </div>
     <div className="max-w-6xl mx-auto pt-4 pb-16 px-1 sm:px-6">

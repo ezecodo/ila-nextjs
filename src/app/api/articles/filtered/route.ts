@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
     const locale = url.searchParams.get("locale");
     const limit = parseInt(url.searchParams.get("limit") || "10");
     const onlineOnly = url.searchParams.get("onlineOnly") === "true";
+    const editionId = url.searchParams.get("editionId");
 
     const baseWhere: Prisma.ArticleWhereInput[] = [
       { isPublished: true },
@@ -26,6 +27,10 @@ export async function GET(req: NextRequest) {
 
     if (onlineOnly) {
       baseWhere.push({ editionId: null });
+    }
+
+    if (editionId) {
+      baseWhere.push({ editionId: parseInt(editionId, 10) });
     }
 
     if (locale === "es") {

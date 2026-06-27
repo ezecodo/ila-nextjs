@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import Link from "next/link";
 
-import SectionHeader from "../SectionsHeader/SetionHeader";
+import QuietSectionHeader from "../SectionsHeader/QuietSectionHeader";
 
 interface Aktuelles {
   id: number;
@@ -62,14 +62,15 @@ export default function AktuellesPreview() {
 
   return (
     <div className="w-full">
-      <SectionHeader
+      <QuietSectionHeader
+        variant="chip"
         title={locale === "es" ? "Actualidad" : "Aktuelles"}
         rightElement={
           <Link
             href="/aktuell/aktuelles"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 hover:text-white transition-colors group"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#BD0E0D] hover:text-[#a50c0b] transition-colors group whitespace-nowrap"
           >
-            <span className="border-b border-transparent group-hover:border-white/70 transition-all">
+            <span className="border-b border-transparent group-hover:border-[#BD0E0D] transition-all">
               {locale === "es" ? "Ver archivo" : "Zum Archiv"}
             </span>
             <span className="group-hover:translate-x-1 transition-transform">
@@ -79,35 +80,27 @@ export default function AktuellesPreview() {
         }
       />
 
-      {/* --- Lista de Noticias --- */}
-      <div className="flex flex-col gap-4 mt-4">
+      {/* --- Lista de Noticias: filas sin caja, separadas por hairlines --- */}
+      <div className="flex flex-col">
         {items.map((item) => (
-          <div
+          <article
             key={item.id}
-            className="group flex gap-4 p-3 rounded-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300"
+            className="group py-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
           >
-            {/* Contenido Texto */}
-            <div className="flex flex-col justify-between flex-1 min-w-0">
-              <div>
-                {/* Fecha — rojo de marca, igual que el grid */}
-                <p className="text-xs font-semibold text-[#BD0E0D] mb-1 uppercase tracking-wider">
-                  {formatDate(item.date)}
-                </p>
+            {/* Fecha — rojo de marca */}
+            <p className="text-[11px] font-semibold text-[#BD0E0D] mb-1 uppercase tracking-wider">
+              {formatDate(item.date)}
+            </p>
 
-                {/* Título en sans con subrayado animado, alineado al grid */}
-                <Link
-                  href={`/aktuell/aktuelles?scrollTo=${item.id}`}
-                  className="block"
-                >
-                  <h4 className="text-[17px] font-bold leading-[1.25] text-gray-900 dark:text-gray-100 text-balance">
-                    <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
-                      {getTitle(item)}
-                    </span>
-                  </h4>
-                </Link>
-              </div>
-            </div>
-          </div>
+            {/* Título en sans con subrayado animado */}
+            <Link href={`/aktuell/aktuelles?scrollTo=${item.id}`} className="block">
+              <h4 className="text-[16px] font-bold leading-[1.3] text-gray-900 dark:text-gray-100 text-balance">
+                <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
+                  {getTitle(item)}
+                </span>
+              </h4>
+            </Link>
+          </article>
         ))}
       </div>
     </div>

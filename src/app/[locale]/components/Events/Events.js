@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import SectionHeader from "../../components/SectionsHeader/SetionHeader";
+import QuietSectionHeader from "../../components/SectionsHeader/QuietSectionHeader";
 
 export default function InfoBox() {
   const t = useTranslations("navMenu");
@@ -50,9 +50,9 @@ export default function InfoBox() {
   const calendarLink = (
     <Link
       href="/events"
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-white/90 hover:text-white transition-colors group"
+      className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#BD0E0D] hover:text-[#a50c0b] transition-colors group whitespace-nowrap"
     >
-      <span className="border-b border-transparent group-hover:border-white/70 transition-all">
+      <span className="border-b border-transparent group-hover:border-[#BD0E0D] transition-all">
         {locale === "es" ? "Ver calendario" : "Kalender ansehen"}
       </span>
       <span className="group-hover:translate-x-1 transition-transform">→</span>
@@ -62,28 +62,36 @@ export default function InfoBox() {
   if (events.length === 0) {
     return (
       <section className="w-full max-w-md mx-auto">
-        <SectionHeader title={t("events")} rightElement={calendarLink} />
-        <div className="bg-white dark:bg-gray-800 rounded-none border border-gray-200 dark:border-gray-700 shadow-sm p-6 text-center mt-4">
-          <p className="text-gray-500 dark:text-gray-400">{t("noEvents")}</p>
-        </div>
+        <QuietSectionHeader
+          variant="chip"
+          title={t("events")}
+          rightElement={calendarLink}
+        />
+        <p className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">
+          {t("noEvents")}
+        </p>
       </section>
     );
   }
 
   return (
     <section className="w-full max-w-md mx-auto">
-      <SectionHeader title={t("events")} rightElement={calendarLink} />
+      <QuietSectionHeader
+        variant="chip"
+        title={t("events")}
+        rightElement={calendarLink}
+      />
 
-      {/* Lista vertical estilo Aktuelles — sin carrusel */}
-      <div className="flex flex-col gap-4 mt-4">
+      {/* Lista vertical — filas sin caja, separadas por hairlines */}
+      <div className="flex flex-col">
         {events.slice(0, 3).map((ev) => {
           const eventTitle =
             locale === "es" ? ev.titleES || ev.title : ev.title;
 
           return (
-            <div
+            <article
               key={ev.id}
-              className="group flex flex-col p-3 rounded-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300"
+              className="group py-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
             >
               <Link href={`/events/${ev.id}`} className="block w-full">
                 <div className="flex flex-col gap-2">
@@ -115,8 +123,8 @@ export default function InfoBox() {
                     )}
                   </div>
 
-                  {/* Título — sans + subrayado animado, alineado al grid */}
-                  <h3 className="text-[17px] font-bold leading-[1.25] text-gray-900 dark:text-white text-balance">
+                  {/* Título — sans + subrayado animado */}
+                  <h3 className="text-[16px] font-bold leading-[1.3] text-gray-900 dark:text-white text-balance">
                     <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
                       {eventTitle}
                     </span>
@@ -138,7 +146,7 @@ export default function InfoBox() {
                   </div>
                 )}
               </Link>
-            </div>
+            </article>
           );
         })}
       </div>

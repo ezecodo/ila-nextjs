@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Slider from "../../SafeSlick/SafeSlick";
 import { useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../CustomArrows/CustomArrows";
-import SectionHeader from "../../SectionsHeader/SetionHeader";
+import QuietSectionHeader from "../../SectionsHeader/QuietSectionHeader";
 import MiniArticleCardGrid from "../MiniArticleCardGrid";
 
 import "slick-carousel/slick/slick.css";
@@ -113,8 +113,10 @@ export default function FilteredArticlesCarousel(props) {
   };
 
   return (
-    <section className="relative w-full md:px-8 py-1 md:py-0 [&_.slick-track]:!flex [&_.slick-slide]:!h-auto [&_.slick-slide>div]:h-full">
-      {title && <SectionHeader title={title} className="mb-4" />}
+    <section className="relative w-full md:px-8 pt-1 pb-10 md:pt-0 md:pb-12 [&_.slick-track]:!flex [&_.slick-slide]:!h-auto [&_.slick-slide>div]:h-full">
+      {title && (
+        <QuietSectionHeader title={title} variant="chip" className="mb-4" />
+      )}
       <div className="pb-1 md:pb-2">
         <Slider {...settings}>
           {articles.map((article) => (

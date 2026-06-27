@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Slider from "../../SafeSlick/SafeSlick";
 import { PrevArrow, NextArrow } from "../CustomArrows/CustomArrows";
-import SectionHeader from "../../SectionsHeader/SetionHeader";
+import QuietSectionHeader from "../../SectionsHeader/QuietSectionHeader";
 import SmartImage from "../../SmartImage/SmartImage";
 import ArticleLink from "../ArticleLink/ArticleLink";
 import FavoriteButton from "../../FavoriteButton/FavoriteButton";
@@ -121,7 +121,9 @@ export default function ArticleCarouselVer(props) {
 
   return (
     <section className="relative w-full px-2 md:px-8 py-1 md:py-8">
-      {title && <SectionHeader title={title} className="mb-4" />}
+      {title && (
+        <QuietSectionHeader title={title} variant="chip" className="mb-4" />
+      )}
 
       <div className="pb-1 md:pb-8">
         <Slider {...settings}>

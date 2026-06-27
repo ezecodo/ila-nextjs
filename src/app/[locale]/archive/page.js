@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import IlaLoader from "../components/IlaLoader/IlaLoader";
 import IlaLogo from "../components/IlaLogo/IlaLogo";
-import SectionHeader from "../components/SectionsHeader/SetionHeader";
+import QuietSectionHeader from "../components/SectionsHeader/QuietSectionHeader";
 
 export default function ArchivePage() {
   const locale = useLocale();
@@ -106,12 +106,13 @@ export default function ArchivePage() {
   return (
     <>
       <div
-        className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 z-40"
+        className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 z-40 bg-white dark:bg-gray-900"
         style={{ position: "sticky", top: headerHeight - 1 }}
       >
-        <SectionHeader
+        <QuietSectionHeader
+          variant="chip"
           title={isES ? "Ediciones / Registro Anual" : "Jahrgänge / Jahresregister"}
-          className="mb-0"
+          className="px-4 sm:px-6 lg:px-8 pt-3 mb-0"
         />
       </div>
 
