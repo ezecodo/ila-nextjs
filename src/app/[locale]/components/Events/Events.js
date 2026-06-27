@@ -131,15 +131,16 @@ export default function InfoBox() {
                   </h3>
                 </div>
 
-                {/* Imagen que se despliega en hover */}
+                {/* Imagen: siempre visible en mobile; en desktop se despliega en hover */}
                 {ev.image && (
-                  <div className="w-full overflow-hidden transition-all duration-500 ease-in-out h-0 opacity-0 group-hover:h-80 group-hover:opacity-100 group-hover:mt-3">
-                    <div className="relative w-full h-full bg-gray-100 dark:bg-gray-700">
+                  <div className="w-full overflow-hidden transition-all duration-500 ease-in-out h-80 opacity-100 mt-3 lg:h-0 lg:opacity-0 lg:mt-0 lg:group-hover:h-80 lg:group-hover:opacity-100 lg:group-hover:mt-3">
+                    <div className="relative w-full h-full bg-gray-50 dark:bg-gray-800">
                       <Image
                         src={ev.image}
                         alt={eventTitle}
                         fill
-                        className="object-cover object-center"
+                        quality={90}
+                        className="object-contain object-center"
                         sizes="(max-width: 768px) 100vw, 400px"
                       />
                     </div>

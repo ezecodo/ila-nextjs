@@ -62,7 +62,7 @@ export default function YearTimeline({ yearCounts, from, to, onChange }) {
   };
 
   return (
-    <div className="select-none">
+    <div className="select-none px-7 sm:px-2">
       {/* Histograma */}
       <div
         ref={trackRef}

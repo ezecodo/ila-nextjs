@@ -68,12 +68,10 @@ function RadioButton({ label, ...props }) {
   );
 }
 
-export default function AboForm({ gifts }) {
-  const t = useTranslations("abo");
-
-  const [form, setForm] = useState({
-    type: "NORMAL",
-    format: "PRINT",
+function buildInitialForm(digital) {
+  return {
+    type: digital ? "NORMAL_PDF" : "NORMAL",
+    format: digital ? "PDF" : "PRINT",
     salutation: "",
     institution: "",
     addressExtra: "",
@@ -95,6 +93,7 @@ export default function AboForm({ gifts }) {
     giftRecipientZip: "",
     giftRecipientCity: "",
     giftRecipientCountry: "Deutschland",
+    giftDelivery: "to_payer",
     giftSubscriptionDuration: "ONE_YEAR",
     termsAccepted: false,
     withdrawalAccepted: false,
@@ -106,7 +105,13 @@ export default function AboForm({ gifts }) {
     promoGiftRecipientZip: "",
     promoGiftRecipientCity: "",
     promoGiftRecipientCountry: "Deutschland",
-  });
+  };
+}
+
+export default function AboForm({ gifts, digital = false }) {
+  const t = useTranslations("abo");
+
+  const [form, setForm] = useState(() => buildInitialForm(digital));
   const [activeBanner, setActiveBanner] = useState(null);
 
   const [supporterOpen, setSupporterOpen] = useState(false);
@@ -225,42 +230,7 @@ export default function AboForm({ gifts }) {
     const data = await res.json();
     if (data.success) {
       alert("✅ Suscripción enviada correctamente!");
-      setForm({
-        type: "NORMAL",
-        format: "PRINT",
-        salutation: "",
-        institution: "",
-        addressExtra: "",
-        firstName: "",
-        lastName: "",
-        street: "",
-        zip: "",
-        city: "",
-        country: "Deutschland",
-        phone: "",
-        email: "",
-        giftId: null,
-        donationExtra: "",
-        trialVariant: "NORMAL",
-        isGift: false,
-        giftRecipientName: "",
-        giftRecipientEmail: "",
-        giftRecipientStreet: "",
-        giftRecipientZip: "",
-        giftRecipientCity: "",
-        giftRecipientCountry: "Deutschland",
-        giftDelivery: "to_payer",
-        termsAccepted: false,
-        withdrawalAccepted: false,
-        dataConsentAccepted: false,
-        promoGiftEnabled: false,
-        promoGiftRecipientName: "",
-        promoGiftRecipientEmail: "",
-        promoGiftRecipientStreet: "",
-        promoGiftRecipientZip: "",
-        promoGiftRecipientCity: "",
-        promoGiftRecipientCountry: "Deutschland",
-      });
+      setForm(buildInitialForm(digital));
       setSupporterOpen(false);
       setDonationError("");
     } else {
@@ -278,7 +248,8 @@ export default function AboForm({ gifts }) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6 pt-6">
-      {/* ── Tipo de Suscripción — Pricing cards ── */}
+      {/* ── Tipo de Suscripción — Pricing cards (oculto en modo digital) ── */}
+      {!digital && (
       <div>
         <p className="text-xs font-black uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">
           {t("type")}
@@ -323,6 +294,7 @@ export default function AboForm({ gifts }) {
           })}
         </div>
       </div>
+      )}
 
       {/* Info dinámica — justo debajo de las pricing cards */}
       {form.type === "NORMAL" && (
@@ -669,7 +641,7 @@ export default function AboForm({ gifts }) {
       </Card>
 
       {/* Regalo y Términos */}
-      {form.type !== "TRIAL" && (
+      {form.type !== "TRIAL" && !digital && (
         <GiftSelector
           gifts={gifts}
           selectedGiftId={form.giftId}

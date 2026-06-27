@@ -139,7 +139,7 @@ export default function TranslationSupportBanner({
           {/* Botones: Digital ABO (primario) + Spenden (secundario) */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             <Link
-              href={`${localePrefix}/order/abo`}
+              href={`${localePrefix}/order/digital-abo`}
               style={{ color: "#BD0E0D", backgroundColor: "#ffffff" }}
               className="group inline-flex items-center justify-center gap-2 hover:bg-gray-50 font-bold text-sm sm:text-base px-6 py-3.5 shadow-xl hover:shadow-2xl transition-all duration-200 hover:-translate-y-0.5 no-underline uppercase tracking-wide"
             >

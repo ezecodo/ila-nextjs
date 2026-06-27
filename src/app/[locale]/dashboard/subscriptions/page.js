@@ -530,7 +530,18 @@ export default function SubscriptionsPage() {
                               "Error al actualizar la suscripción"
                             );
 
-                          alert("✅ Suscripción marcada como procesada");
+                          const result = await res.json();
+                          let msg = "✅ Suscripción marcada como procesada";
+                          if (result.pdfAbo) {
+                            if (result.pdfAbo.isRedeemed) {
+                              msg += `\n📰 ${result.pdfAbo.email} ya tiene el Digital ABO activado.`;
+                            } else if (result.pdfAbo.emailSent) {
+                              msg += `\n📰 Alta en Digital ABO + invitación enviada a ${result.pdfAbo.email}`;
+                            } else {
+                              msg += `\n📰 Alta en Digital ABO creada para ${result.pdfAbo.email} (⚠️ no se pudo enviar el email, reenvialo desde PDF-Abo).`;
+                            }
+                          }
+                          alert(msg);
                           setShowModal(false);
 
                           const updatedRes = await fetch("/api/subscriptions");

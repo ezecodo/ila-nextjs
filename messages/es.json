@@ -1187,7 +1187,7 @@
         "info": "10 Dossiers al año – en formato impreso."
       },
       "normal_pdf": {
-        "text": "La ila 10 veces al año en formato PDF, completa, a color e interactiva. Para ver un ejemplo: <a href=\"/pdfs/ila-414.pdf\" target=\"_blank\" class=\"text-red-700 underline\">ila 414</a>."
+        "text": "<strong>La ila 10 veces al año en PDF</strong> – completa, a color e interactiva. Y toda la Suscripción Digital:<ul class=\"list-disc pl-5 mt-2 space-y-1\"><li>Organizá tus favoritos por temas</li><li>Creá tus propios paquetes PDF con tus artículos favoritos</li><li>Acceso anticipado exclusivo a los artículos del dossier actual</li><li>GlobIla: descubrí América Latina de forma visual</li><li>Descargá dossiers completos en PDF</li><li>Modo lectura a pantalla completa, sin distracciones</li></ul>"
       },
       "supporter": {
         "intro": "Con una suscripción de apoyo ayudas a la ila con una donación adicional de 10 € al año durante la vigencia de la suscripción.",
@@ -1384,5 +1384,31 @@
       "online": "Online",
       "footer": "www.ila-web.de · Informationsstelle Lateinamerika e.V."
     }
+  },
+  "digitalAbo": {
+    "badge": "Suscripción Digital",
+    "heroTitle": "50 años de ila en papel. Hoy también en digital.",
+    "heroSubtitle": "Sé parte del proceso y consigue tu DIGIabo: medio siglo de periodismo sobre América Latina, completo e interactivo, sin esperas.",
+    "heroCta": "Consigue tu",
+    "heroNote": "El mismo contenido que la suscripción impresa, a un costo mínimo – porque no se imprime ni se envía ninguna revista.",
+    "featuresTitle": "¿Lo sigues pensando?",
+    "featuresSubtitle": "Te damos seis razones por las que el DIGIabo va a ser tu forma favorita de leer ila.",
+    "feature1Title": "Organizá tus favoritos por temas",
+    "feature1Desc": "Guardá artículos y armá tu propia biblioteca por temas: tu archivo personal de América Latina.",
+    "feature2Title": "Creá tus propios paquetes PDF",
+    "feature2Desc": "Armá tu propio dossier con tus artículos favoritos y descargalo en PDF.",
+    "feature3Title": "Acceso anticipado exclusivo",
+    "feature3Desc": "Leé los artículos del dossier actual antes de que se publiquen oficialmente.",
+    "feature4Title": "GlobIla – descubrí América Latina",
+    "feature4Desc": "Navegá América Latina de forma visual y descubrí artículos por país y región.",
+    "feature5Title": "Descargá los dossiers en PDF",
+    "feature5Desc": "Descargá ediciones completas en PDF de alta calidad y leé sin conexión donde quieras.",
+    "feature6Title": "Modo lectura sin distracciones",
+    "feature6Desc": "Un modo de lectura a pantalla completa, sin distracciones: solo vos y el texto.",
+    "valueTitle": "Una financiación genuina e independiente",
+    "valueText": "ila es un medio independiente desde 1976, sin grandes patrocinadores. La Suscripción Digital hace posible un periodismo de calidad sobre América Latina de forma sostenible, a un costo mínimo.",
+    "formTitle": "Completá tu Suscripción Digital",
+    "formSubtitle": "Llená el formulario y nos encargamos del resto.",
+    "heroPrice": "Solo 52 € al año — apenas 5,20 € al mes."
   }
 }

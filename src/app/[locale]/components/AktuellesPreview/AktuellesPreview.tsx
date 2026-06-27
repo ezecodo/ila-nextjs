@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import Link from "next/link";
+import Image from "next/image";
 
 import QuietSectionHeader from "../SectionsHeader/QuietSectionHeader";
 
@@ -99,6 +100,22 @@ export default function AktuellesPreview() {
                   {getTitle(item)}
                 </span>
               </h4>
+
+              {/* Imagen: siempre visible en mobile; en desktop se despliega en hover */}
+              {item.images?.[0]?.url && (
+                <div className="w-full overflow-hidden transition-all duration-500 ease-in-out h-80 opacity-100 mt-3 lg:h-0 lg:opacity-0 lg:mt-0 lg:group-hover:h-80 lg:group-hover:opacity-100 lg:group-hover:mt-3">
+                  <div className="relative w-full h-full bg-gray-50 dark:bg-gray-800">
+                    <Image
+                      src={item.images[0].url}
+                      alt={item.images[0].alt || getTitle(item)}
+                      fill
+                      quality={90}
+                      className="object-contain object-center"
+                      sizes="(max-width: 768px) 100vw, 400px"
+                    />
+                  </div>
+                </div>
+              )}
             </Link>
           </article>
         ))}

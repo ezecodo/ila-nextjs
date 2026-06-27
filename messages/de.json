@@ -1188,7 +1188,7 @@
         "info": "10 Dossiers pro Jahr – als gedrucktes Heft."
       },
       "normal_pdf": {
-        "text": "Die ila 10 mal im Jahr als PDF, komplett, in Farbe, interaktiv. Zur Ansicht ein Beispiel: <a href=\"/pdfs/ila-414.pdf\" target=\"_blank\" class=\"text-red-700 underline\">ila 414</a>"
+        "text": "<strong>Die ila 10 × im Jahr als PDF</strong> – komplett, in Farbe, interaktiv. Und das gesamte Digital-Abo:<ul class=\"list-disc pl-5 mt-2 space-y-1\"><li>Favoriten nach Themen ordnen</li><li>Eigene PDF-Pakete aus Lieblingsartikeln erstellen</li><li>Exklusiver Vorab-Zugang zu Beiträgen der aktuellen Ausgabe</li><li>GlobIla: Lateinamerika visuell entdecken</li><li>Ganze Dossiers als PDF herunterladen</li><li>Ablenkungsfreier Vollbild-Lesemodus</li></ul>"
       },
       "supporter": {
         "intro": "Mit einem Förderabo unterstützen Sie die ila mit einer zusätzlichen Spende von 10 € pro Jahr des laufenden Abonnements.",
@@ -1385,5 +1385,31 @@
       "online": "Online",
       "footer": "www.ila-web.de · Informationsstelle Lateinamerika e.V."
     }
+  },
+  "digitalAbo": {
+    "badge": "Digital-Abo",
+    "heroTitle": "50 Jahre ila auf Papier. Jetzt auch digital.",
+    "heroSubtitle": "Werde Teil des Prozesses und hol dir dein DIGIabo: ein halbes Jahrhundert Journalismus über Lateinamerika – komplett, interaktiv, ohne Warten.",
+    "heroCta": "Hol dir dein",
+    "heroNote": "Gleicher Inhalt wie das Print-Abo, zu minimalen Kosten – weil kein Heft gedruckt und versendet wird.",
+    "featuresTitle": "Du überlegst noch?",
+    "featuresSubtitle": "Sechs Gründe, warum das DIGIabo deine liebste Art wird, ila zu lesen.",
+    "feature1Title": "Favoriten nach Themen ordnen",
+    "feature1Desc": "Speichere Artikel und organisiere deine eigene Bibliothek nach Themen – dein persönliches Lateinamerika-Archiv.",
+    "feature2Title": "Eigene PDF-Pakete erstellen",
+    "feature2Desc": "Stelle aus deinen Lieblingsartikeln ein eigenes Dossier zusammen und lade es als PDF herunter.",
+    "feature3Title": "Exklusiver Vorabzugang",
+    "feature3Desc": "Lies die Beiträge der aktuellen Ausgabe, bevor sie offiziell veröffentlicht werden.",
+    "feature4Title": "GlobIla – Lateinamerika entdecken",
+    "feature4Desc": "Navigiere visuell durch Lateinamerika und entdecke Beiträge nach Land und Region.",
+    "feature5Title": "Dossiers als PDF herunterladen",
+    "feature5Desc": "Lade ganze Ausgaben als hochwertiges PDF herunter und lies offline, wo immer du willst.",
+    "feature6Title": "Ablenkungsfreier Lesemodus",
+    "feature6Desc": "Ein Vollbild-Lesemodus ohne Ablenkung – nur du und der Text.",
+    "valueTitle": "Echte, unabhängige Finanzierung",
+    "valueText": "ila ist seit 1976 ein unabhängiges Medium – ohne Großsponsoren. Das Digital-Abo macht hochwertigen Journalismus über Lateinamerika nachhaltig möglich, zu minimalen Kosten.",
+    "formTitle": "Digital-Abo abschließen",
+    "formSubtitle": "Fülle das Formular aus – um den Rest kümmern wir uns.",
+    "heroPrice": "Nur 52 € im Jahr — gerade mal 5,20 € im Monat."
   }
 }

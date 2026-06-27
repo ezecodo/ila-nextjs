@@ -397,12 +397,12 @@ export default function LatestEditionWithArticles() {
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: false,
+    arrows: true,
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />,
     dots: false,
     swipe: true,
     swipeToSlide: true,
-    adaptiveHeight: true,
-    dots: true,
     afterChange: (idx) => setMobileSlideIndex(idx),
   };
 
@@ -510,7 +510,7 @@ export default function LatestEditionWithArticles() {
 
   return (
     <>
-      <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-6 lg:px-4 pb-16">
+      <div className="w-full max-w-[1800px] mx-auto px-0 sm:px-6 lg:px-4 pb-4 lg:pb-16">
         {currentEdition && (
           <div className="flex flex-col gap-1 items-start justify-between lg:block">
             <div className="flex items-start w-full mb-4">
@@ -549,18 +549,6 @@ export default function LatestEditionWithArticles() {
                         </svg>
                       </button>
                 </div>
-
-                {currentEdition.datePublished && !showNumberPicker && (
-                  <span className="font-bold text-xs md:text-sm text-black dark:text-gray-300 leading-none">
-                    {new Date(currentEdition.datePublished)
-                      .toLocaleDateString(locale === "es" ? "es-ES" : "de-DE", {
-                        month: "short",
-                        year: "numeric",
-                      })
-                      .replace(".", "")
-                      .replace(/^\w/, (c) => c.toUpperCase())}
-                  </span>
-                )}
 
                       {showNumberPicker && (
                         <div
@@ -688,6 +676,19 @@ export default function LatestEditionWithArticles() {
               <div className="flex-1 min-w-0 flex flex-col">
                 <div className="border-t-2 border-[#BD0E0D]" />
 
+                {/* Fecha (mobile): cuelga de la línea, a la derecha del chip */}
+                {currentEdition.datePublished && !showNumberPicker && (
+                  <span className="lg:hidden mt-2.5 pl-2 font-bold text-xs text-black dark:text-gray-300 leading-none">
+                    {new Date(currentEdition.datePublished)
+                      .toLocaleDateString(locale === "es" ? "es-ES" : "de-DE", {
+                        month: "short",
+                        year: "numeric",
+                      })
+                      .replace(".", "")
+                      .replace(/^\w/, (c) => c.toUpperCase())}
+                  </span>
+                )}
+
                 {/* Stats del dossier — colgando de la línea */}
                 {!loading &&
                   articles.length > 0 &&
@@ -740,6 +741,19 @@ export default function LatestEditionWithArticles() {
                     return (
                       <div className="hidden lg:flex items-center pt-1.5 pl-5">
                         <div className="flex items-center divide-x divide-gray-200 dark:divide-gray-700">
+                          {currentEdition.datePublished && (
+                            <div className="flex items-baseline px-4 first:pl-0">
+                              <span className="text-sm font-bold text-black dark:text-gray-300 leading-none whitespace-nowrap">
+                                {new Date(currentEdition.datePublished)
+                                  .toLocaleDateString(
+                                    locale === "es" ? "es-ES" : "de-DE",
+                                    { month: "short", year: "numeric" },
+                                  )
+                                  .replace(".", "")
+                                  .replace(/^\w/, (c) => c.toUpperCase())}
+                              </span>
+                            </div>
+                          )}
                           {stats.map((s) => {
                             const inner = (
                               <>
@@ -820,9 +834,9 @@ export default function LatestEditionWithArticles() {
               </div>
             </div>
 
-            <div className="relative w-full lg:w-auto flex items-start justify-end lg:float-left lg:mr-1">
-              <div className="bg-white dark:bg-gray-900 shadow-lg dark:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
-                <div className="order-3 lg:order-2 w-full text-center px-2 lg:-mt-3">
+            <div className="relative w-full lg:w-auto flex items-start justify-end -mt-2 lg:mt-6 lg:float-left lg:mr-1">
+              <div className="bg-white dark:bg-gray-900 lg:shadow-lg dark:lg:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
+                <div className="order-2 w-full text-center px-2 lg:-mt-3">
                   <div className="font-futura font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-[1.7rem] md:text-3xl leading-tight text-balance">
                     {locale === "es" && currentEdition.titleES
                       ? currentEdition.titleES
@@ -832,7 +846,7 @@ export default function LatestEditionWithArticles() {
 
                 <div
                   {...swipeHandlers}
-                  className="relative w-full h-auto flex items-start justify-center pt-2 pb-8 lg:pt-0 lg:pb-0 order-2 lg:order-3"
+                  className="relative w-full h-auto flex items-start justify-center pt-0 pb-0 -mt-1 lg:mt-0 lg:pt-0 lg:pb-0 order-3"
                   style={{ minHeight: "320px" }}
                   onMouseLeave={() => setHoverBlocked(false)}
                 >
@@ -842,7 +856,7 @@ export default function LatestEditionWithArticles() {
                       type="button"
                       onClick={() => changeEdition(currentEditionIndex + 1)}
                       aria-label={`ila ${editions[currentEditionIndex + 1].number}`}
-                      className="lg:hidden absolute left-1 top-1/2 -translate-y-1/2 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 text-[#BD0E0D] active:scale-95 transition"
+                      className={`lg:hidden absolute left-1 top-1/2 -translate-y-1/2 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 text-[#BD0E0D] active:scale-95 transition ${showNumberPicker ? "hidden" : ""}`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -854,7 +868,7 @@ export default function LatestEditionWithArticles() {
                       type="button"
                       onClick={() => changeEdition(currentEditionIndex - 1)}
                       aria-label={`ila ${editions[currentEditionIndex - 1].number}`}
-                      className="lg:hidden absolute right-1 top-1/2 -translate-y-1/2 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 text-[#BD0E0D] active:scale-95 transition"
+                      className={`lg:hidden absolute right-1 top-1/2 -translate-y-1/2 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 dark:bg-gray-800/90 shadow-md border border-gray-200 dark:border-gray-700 text-[#BD0E0D] active:scale-95 transition ${showNumberPicker ? "hidden" : ""}`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -897,7 +911,7 @@ export default function LatestEditionWithArticles() {
                           </svg>
                         </div>
                       </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-xs font-futura font-bold px-2 py-0.5 shadow">
                         ila {editions[currentEditionIndex + 1].number}
                       </div>
                     </div>
@@ -939,7 +953,7 @@ export default function LatestEditionWithArticles() {
                   <Link
                     key={`${currentEdition.id}-mobile`}
                     href={`/${locale}/editions/${currentEdition.id}`}
-                    className={`lg:hidden relative z-20 mx-auto block w-[230px] max-w-full transition-all duration-600 ease-in-out ${
+                    className={`lg:hidden relative z-20 mx-auto block w-[320px] max-w-full transition-all duration-600 ease-in-out ${
                       isTransitioning
                         ? "opacity-0 scale-95"
                         : "opacity-100 scale-100"
@@ -995,7 +1009,7 @@ export default function LatestEditionWithArticles() {
                           </svg>
                         </div>
                       </div>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow">
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-xs font-futura font-bold px-2 py-0.5 shadow">
                         ila {editions[currentEditionIndex - 1].number}
                       </div>
                     </div>
@@ -1023,7 +1037,7 @@ export default function LatestEditionWithArticles() {
                 )}
 
                 <div
-                  className={`relative z-10 order-4 w-full max-w-[230px] lg:max-w-[270px] mx-auto mt-2 lg:-mt-5 flex items-stretch bg-[#BD0E0D] text-white font-bold transition-all duration-300 origin-top ${
+                  className={`relative z-10 order-4 w-full max-w-[310px] lg:max-w-[270px] mx-auto -mt-4 lg:-mt-5 flex items-stretch bg-[#BD0E0D] text-white font-bold transition-all duration-300 origin-top ${
                     coverHover ? "scale-[1.02]" : ""
                   }`}
                 >
@@ -1182,21 +1196,39 @@ export default function LatestEditionWithArticles() {
 
               {/* Mobile */}
               {/* Mobile */}
-              <div className="block lg:hidden w-full mt-0">
+              <div className="block lg:hidden w-full -mt-6">
                 {mobileArticles.length > 0 ? (
                   <>
-                    <div className="flex items-center justify-between mb-2 px-1">
-                      <span className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                        {locale === "de" ? "Beiträge" : "Artículos"}
-                      </span>
-                      <span className="text-xs font-bold text-[#BD0E0D] tabular-nums">
-                        {mobileSlideIndex + 1} / {mobileArticles.length}
-                      </span>
+                    <div className="flex items-start mb-2">
+                      <div className="shrink-0 leading-none">
+                        <span className="inline-block bg-[#BD0E0D] text-white px-3 py-1 font-futura font-bold text-lg leading-none">
+                          ila {currentEdition.number}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <div className="border-t-2 border-[#BD0E0D]" />
+                        <div className="flex items-center justify-between mt-1 pl-2">
+                          {currentEdition.datePublished && (
+                            <span className="font-bold text-xs text-black dark:text-gray-300 leading-none">
+                              {new Date(currentEdition.datePublished)
+                                .toLocaleDateString(
+                                  locale === "es" ? "es-ES" : "de-DE",
+                                  { month: "short", year: "numeric" },
+                                )
+                                .replace(".", "")
+                                .replace(/^\w/, (c) => c.toUpperCase())}
+                            </span>
+                          )}
+                          <span className="text-xs font-bold text-[#BD0E0D] tabular-nums">
+                            {mobileSlideIndex + 1} / {mobileArticles.length}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="relative [&_.slick-dots]:!static [&_.slick-dots]:!mt-4 [&_.slick-dots_li]:!mx-1 [&_.slick-dots_li_button:before]:!text-[10px] [&_.slick-dots_li_button:before]:!text-gray-300 [&_.slick-dots_li_button:before]:!opacity-100 dark:[&_.slick-dots_li_button:before]:!text-gray-600 [&_.slick-dots_.slick-active_button:before]:!text-[#BD0E0D]">
+                    <div className="relative px-4 [&_.slick-track]:!flex [&_.slick-slide]:!h-auto [&_.slick-slide>div]:h-full">
                       <Slider key={currentEdition.id} {...mobileCarouselSettings}>
                         {mobileArticles.map((article) => (
-                          <div key={article.id} className="w-full">
+                          <div key={article.id} className="w-full h-full">
                             <MiniArticleCardGrid
                               article={article}
                               isTransitioning={isTransitioning}
@@ -1278,7 +1310,7 @@ export default function LatestEditionWithArticles() {
                 )}
               </div>
 
-              <div className="block lg:hidden w-full mt-6 space-y-4">
+              <div className="block lg:hidden w-full -mt-2 space-y-4">
                 <AktuellesPreview />
                 <Events />
                 <div className="flex flex-col">
