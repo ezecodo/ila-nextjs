@@ -66,6 +66,7 @@ model Article {
   translationStartedAt DateTime?
   translationStatus String            @default("not_assigned")
   reviewedAt        DateTime?
+  translationScrollES Int?
   activityLogs      ActivityLog[]
   pdfs              ArticlePdf[]
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])

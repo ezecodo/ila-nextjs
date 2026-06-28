@@ -6,6 +6,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import CartButton from "../../components/CartButton/CartButton";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
+import MiniArticleCardGrid from "../../components/Articles/MiniArticleCardGrid";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 
@@ -1095,6 +1096,58 @@ export default function EditionDetails() {
         </div>
         <div className="clear-both"></div>
       </div>
+
+      {articles.length > 0 && (
+        <div className="my-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 bg-red-100 dark:bg-red-900 rounded-lg">
+              <svg
+                className="w-6 h-6 text-red-600 dark:text-red-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 10h16M4 14h10M4 18h10"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {locale === "de"
+                ? "Verfügbare Beiträge"
+                : "Artículos disponibles"}
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+            {articles.map((a) => (
+              <MiniArticleCardGrid
+                key={a.id}
+                article={{
+                  ...a,
+                  images: a.image
+                    ? [
+                        {
+                          url: a.image.url,
+                          alt: isES
+                            ? a.image.altES || a.image.alt
+                            : a.image.alt,
+                        },
+                      ]
+                    : [],
+                  edition: {
+                    number: edition.number,
+                    datePublished: edition.datePublished,
+                  },
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {tableOfContentsToShow && (
         <div id="tableOfContents" className="my-8 scroll-mt-24">
           <div className="flex items-center gap-3 mb-6">

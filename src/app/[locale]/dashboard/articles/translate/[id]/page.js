@@ -333,6 +333,23 @@ const TranslateArticlePage = () => {
   const contentEditableRef = useRef(null);
   const contentEditableModalRef = useRef(null);
   const additionalInfoEditableRef = useRef(null);
+  // Índice del párrafo del contenido donde quedó la traducción (persistido en BD).
+  const savedScrollIndexRef = useRef(null);
+
+  // Devuelve el índice del bloque (párrafo) que está arriba del todo en la
+  // vista del editor de contenido del modal. Robusto a cambios de ancho/zoom.
+  const getTopVisibleBlockIndex = () => {
+    const editor = contentEditableModalRef.current;
+    if (!editor) return null;
+    const cTop = editor.getBoundingClientRect().top;
+    const blocks = Array.from(editor.children);
+    let idx = 0;
+    for (let i = 0; i < blocks.length; i++) {
+      if (blocks[i].getBoundingClientRect().top - cTop <= 8) idx = i;
+      else break;
+    }
+    return idx;
+  };
   const [deepl, setDeepl] = useState(null); // { titleES, subtitleES, previewTextES, contentES, additionalInfoES }
   const [deeplLoading, setDeeplLoading] = useState(false);
   const [deeplError, setDeeplError] = useState("");
@@ -376,6 +393,10 @@ const TranslateArticlePage = () => {
       const res = await fetch(`/api/articles/${id}`);
       const data = await res.json();
       setArticle(data);
+      savedScrollIndexRef.current =
+        typeof data.translationScrollES === "number"
+          ? data.translationScrollES
+          : null;
       setTranslations({
         titleES: data.titleES || "",
         subtitleES: data.subtitleES || "",
@@ -465,6 +486,19 @@ const TranslateArticlePage = () => {
           ),
           { wrapImages: true }
         );
+        // Restaurar el scroll al párrafo donde se dejó la traducción
+        // (índice persistido en la BD).
+        requestAnimationFrame(() => {
+          const editor = contentEditableModalRef.current;
+          if (!editor) return;
+          const saved = savedScrollIndexRef.current;
+          if (Number.isInteger(saved) && saved > 0 && editor.children[saved]) {
+            const target = editor.children[saved];
+            editor.scrollTop +=
+              target.getBoundingClientRect().top -
+              editor.getBoundingClientRect().top;
+          }
+        });
       }
     }, 0);
   }, [isContentModalOpen]);
@@ -1110,6 +1144,10 @@ const TranslateArticlePage = () => {
                   disabled={modalSaveState === "saving"}
                   onClick={async () => {
                     setModalSaveState("saving");
+                    // Párrafo del CONTENIDO que está arriba en la vista: se
+                    // persiste en la BD para restaurar el scroll al reabrir el
+                    // modal la próxima vez (en cualquier dispositivo).
+                    const scrollIndex = getTopVisibleBlockIndex();
                     try {
                       const res = await fetch(`/api/articles/${id}`, {
                         method: "PUT",
@@ -1118,9 +1156,11 @@ const TranslateArticlePage = () => {
                           ...translations,
                           translationStatus: "in_progress",
                           imageTranslations,
+                          translationScrollES: scrollIndex,
                         }),
                       });
                       setModalSaveState(res.ok ? "saved" : "error");
+                      if (res.ok) savedScrollIndexRef.current = scrollIndex;
                     } catch {
                       setModalSaveState("error");
                     }

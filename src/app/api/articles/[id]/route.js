@@ -280,6 +280,10 @@ export async function PUT(req, context) {
             : body.translationStatus === "approved"
               ? false
               : undefined,
+        // Posición de scroll del editor de contenido (metadata, no cuenta como
+        // cambio de traducción → no dispara editedAfterReview). undefined si no
+        // viene en el body, así otros guardados no lo tocan.
+        translationScrollES: body.translationScrollES,
       };
 
       // ✅ reviewedAt SOLO cuando se aprueba
