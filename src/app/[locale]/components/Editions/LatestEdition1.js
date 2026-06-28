@@ -715,6 +715,7 @@ export default function LatestEditionWithArticles() {
                       {
                         value: articles.length,
                         label: locale === "de" ? "Beiträge" : "Artículos",
+                        href: `/${locale}/editions/${currentEdition.id}`,
                       },
                       {
                         value: esCount,
@@ -739,21 +740,24 @@ export default function LatestEditionWithArticles() {
                       },
                     ];
                     return (
-                      <div className="hidden lg:flex items-center pt-1.5 pl-5">
-                        <div className="flex items-center divide-x divide-gray-200 dark:divide-gray-700">
-                          {currentEdition.datePublished && (
-                            <div className="flex items-baseline px-4 first:pl-0">
-                              <span className="text-sm font-bold text-black dark:text-gray-300 leading-none whitespace-nowrap">
-                                {new Date(currentEdition.datePublished)
-                                  .toLocaleDateString(
-                                    locale === "es" ? "es-ES" : "de-DE",
-                                    { month: "short", year: "numeric" },
-                                  )
-                                  .replace(".", "")
-                                  .replace(/^\w/, (c) => c.toUpperCase())}
-                              </span>
-                            </div>
-                          )}
+                      <div className="hidden lg:grid grid-cols-[300px_1fr_auto_1fr] items-center pt-1.5">
+                        {currentEdition.datePublished ? (
+                          <div className="flex items-baseline justify-self-start pl-5">
+                            <span className="text-sm font-bold text-black dark:text-gray-300 leading-none whitespace-nowrap">
+                              {new Date(currentEdition.datePublished)
+                                .toLocaleDateString(
+                                  locale === "es" ? "es-ES" : "de-DE",
+                                  { month: "short", year: "numeric" },
+                                )
+                                .replace(".", "")
+                                .replace(/^\w/, (c) => c.toUpperCase())}
+                            </span>
+                          </div>
+                        ) : (
+                          <div />
+                        )}
+                        <div />
+                        <div className="flex items-center justify-self-center divide-x divide-gray-200 dark:divide-gray-700">
                           {stats.map((s) => {
                             const inner = (
                               <>
@@ -817,17 +821,7 @@ export default function LatestEditionWithArticles() {
                             );
                           })}
                         </div>
-                        <Link
-                          href={`/${locale}/editions/${currentEdition.id}`}
-                          className="ml-auto inline-flex shrink-0 items-center gap-1.5 border-l border-gray-200 dark:border-gray-700 pl-4 text-xs font-semibold uppercase tracking-wider text-[#BD0E0D] hover:text-[#a50c0b] transition-colors group whitespace-nowrap"
-                        >
-                          <span className="border-b border-transparent group-hover:border-[#BD0E0D] transition-all">
-                            {locale === "de" ? "Alle ansehen" : "Ver todos"}
-                          </span>
-                          <span className="group-hover:translate-x-1 transition-transform">
-                            →
-                          </span>
-                        </Link>
+                        <div />
                       </div>
                     );
                   })()}
@@ -1313,7 +1307,7 @@ export default function LatestEditionWithArticles() {
               <div className="block lg:hidden w-full -mt-2 space-y-4">
                 <AktuellesPreview />
                 <Events />
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-4">
                   <SideBanner50 />
                   <PartyBanner />
                 </div>

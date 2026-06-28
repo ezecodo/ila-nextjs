@@ -132,7 +132,7 @@ export default function Banner50Compact() {
             <Link
               key={b.href}
               href={b.href}
-              className="group inline-flex items-center justify-center gap-1.5 rounded-none bg-white px-4 py-2.5 text-base md:text-lg font-bold text-[#4f7a49] shadow-sm transition-all hover:shadow-md"
+              className="group inline-flex items-center justify-center gap-1.5 rounded-none border-2 border-white bg-transparent px-4 py-2.5 text-base md:text-lg font-bold text-white transition-all hover:bg-white hover:text-[#4f7a49]"
             >
               {b.label}
               <FaArrowRight className="text-xs transition-transform group-hover:translate-x-0.5" />
