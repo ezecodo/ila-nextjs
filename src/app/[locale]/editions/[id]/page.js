@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import Image from "next/image";
@@ -19,6 +19,14 @@ export default function EditionDetails() {
   const [error, setError] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [manualMatches, setManualMatches] = useState({});
+  const [allEditions, setAllEditions] = useState([]);
+  // Edición que se muestra: se maneja en estado (no atado a la URL) para poder
+  // saltar entre dossiers sin recargar la página. La URL se sincroniza aparte.
+  const [activeId, setActiveId] = useState(id);
+  const [isSwapping, setIsSwapping] = useState(false);
+  // Cache en memoria de dossiers ya cargados (id → {edition, articles, matches}).
+  // Revisitar es instantáneo y el prefetch en hover llena este mapa por adelantado.
+  const editionCache = useRef(new Map());
   const t = useTranslations("dossiers");
 
   const { data: session } = useSession();
@@ -79,37 +87,104 @@ export default function EditionDetails() {
     }
   }, [searchParams, articles]);
 
-  useEffect(() => {
-    if (!id) return;
+  // Carga (o recupera de cache) los datos de un dossier. La edición se trae
+  // primero; luego artículos + matches en paralelo (ambos solo dependen de ella).
+  const loadEditionData = useCallback(async (targetId) => {
+    const key = String(targetId);
+    if (editionCache.current.has(key)) return editionCache.current.get(key);
 
-    async function fetchEditionAndArticles() {
-      try {
-        const res = await fetch(`/api/editions/${id}`);
-        if (!res.ok) throw new Error("Error al cargar la edición");
-        const data = await res.json();
-        setEdition(data);
+    const res = await fetch(`/api/editions/${targetId}`);
+    if (!res.ok) throw new Error("Error al cargar la edición");
+    const data = await res.json();
 
-        const articlesRes = await fetch(`/api/articles/edition/${data.number}`);
-        const articlesData = await articlesRes.json();
-        setArticles(articlesData);
+    const [articlesData, matchesData] = await Promise.all([
+      fetch(`/api/articles/edition/${data.number}`).then((r) => r.json()),
+      fetch(`/api/toc-match?editionId=${data.id}`).then((r) => r.json()),
+    ]);
 
-        // Cargar matches manuales
-        const matchesRes = await fetch(`/api/toc-match?editionId=${data.id}`);
-        const matchesData = await matchesRes.json();
-        const matchesMap = {};
-        if (Array.isArray(matchesData)) {
-          matchesData.forEach((m) => {
-            matchesMap[m.tocTitle] = m.article;
-          });
-        }
-        setManualMatches(matchesMap);
-      } catch (err) {
-        setError(err.message || "Error desconocido");
-      }
+    const matchesMap = {};
+    if (Array.isArray(matchesData)) {
+      matchesData.forEach((m) => {
+        matchesMap[m.tocTitle] = m.article;
+      });
     }
 
-    fetchEditionAndArticles();
-  }, [id, locale]);
+    const payload = {
+      edition: data,
+      articles: Array.isArray(articlesData) ? articlesData : [],
+      matches: matchesMap,
+    };
+    editionCache.current.set(key, payload);
+    return payload;
+  }, []);
+
+  useEffect(() => {
+    if (!activeId) return;
+    let cancelled = false;
+
+    loadEditionData(activeId)
+      .then((payload) => {
+        if (cancelled) return;
+        setEdition(payload.edition);
+        setArticles(payload.articles);
+        setManualMatches(payload.matches);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message || "Error desconocido");
+      })
+      .finally(() => {
+        if (!cancelled) setIsSwapping(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, locale, loadEditionData]);
+
+  // Prefetch en hover/focus de las portadas vecinas: llena la cache por
+  // adelantado para que el salto se sienta instantáneo.
+  const prefetchEdition = useCallback(
+    (targetId) => {
+      if (!targetId) return;
+      loadEditionData(targetId).catch(() => {});
+    },
+    [loadEditionData],
+  );
+
+  // Saltar a otro dossier sin recargar: fundido + re-fetch + URL sincronizada.
+  const goToEdition = (targetId) => {
+    if (!targetId || String(targetId) === String(activeId)) return;
+    setIsSwapping(true);
+    window.history.pushState(null, "", `/${locale}/editions/${targetId}`);
+    setActiveId(String(targetId));
+    if (typeof window !== "undefined")
+      window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Back/forward del navegador: leer el id de la URL y sincronizar el estado.
+  useEffect(() => {
+    const onPop = () => {
+      const m = window.location.pathname.match(/\/editions\/([^/?#]+)/);
+      if (m) setActiveId(decodeURIComponent(m[1]));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // Lista de ediciones (orden número desc) para navegar entre dossiers desde
+  // las portadas vecinas que asoman detrás de la portada activa.
+  useEffect(() => {
+    fetch("/api/editions?sort=desc")
+      .then((r) => r.json())
+      .then((d) =>
+        setAllEditions(
+          (Array.isArray(d) ? d : [])
+            .filter((e) => e?.coverImage)
+            .sort((a, b) => b.number - a.number),
+        ),
+      )
+      .catch(() => {});
+  }, []);
 
   // Función para eliminar un match manual
   async function handleRemoveMatch(tocTitle) {
@@ -972,6 +1047,15 @@ export default function EditionDetails() {
     );
   }
 
+  // Vecinas: número desc → la anterior (más vieja) es index+1, la siguiente
+  // (más nueva) es index-1. La anterior va a la izquierda, la siguiente a la
+  // derecha. Click en cualquiera renderiza su editorial+inhalt.
+  const curEdIndex = allEditions.findIndex(
+    (e) => String(e.id) === String(activeId),
+  );
+  const olderEdition = curEdIndex >= 0 ? allEditions[curEdIndex + 1] : null;
+  const newerEdition = curEdIndex > 0 ? allEditions[curEdIndex - 1] : null;
+
   if (error) return <p className="text-red-500">{error}</p>;
   if (!edition) {
     return (
@@ -985,13 +1069,83 @@ export default function EditionDetails() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <div className="float-left mr-6 mb-4 w-full md:w-1/3">
-          <Image
-            src={edition.coverImage}
-            alt={`Portada de ${edition.title}`}
-            width={400}
-            height={550}
-            className="rounded shadow-md w-full max-w-xs"
-          />
+          {/* Portada activa + vecinas (navegación entre dossiers) */}
+          <div className="relative mx-auto w-full max-w-xs">
+            {/* Anterior (más vieja) — asoma a la izquierda, detrás */}
+            {olderEdition && (
+              <button
+                type="button"
+                onClick={() => goToEdition(olderEdition.id)}
+                onMouseEnter={() => prefetchEdition(olderEdition.id)}
+                onFocus={() => prefetchEdition(olderEdition.id)}
+                aria-label={`ila ${olderEdition.number}`}
+                className="group absolute left-0 top-1/2 z-0 w-3/4 -translate-x-6 -translate-y-1/2"
+              >
+                <Image
+                  src={olderEdition.coverImage}
+                  alt={`ila ${olderEdition.number}`}
+                  width={200}
+                  height={267}
+                  className="block w-full h-auto rounded object-cover shadow-lg -rotate-3 transition-transform duration-300 group-hover:-translate-x-1.5"
+                />
+                <span className="absolute inset-0 flex items-center justify-start pl-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="rounded-full bg-white/90 dark:bg-gray-800/90 p-1.5 shadow-lg text-[#BD0E0D]">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </span>
+                </span>
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-[10px] font-futura font-bold px-1.5 py-0.5 shadow">
+                  ila {olderEdition.number}
+                </span>
+              </button>
+            )}
+
+            {/* Siguiente (más nueva) — asoma a la derecha, detrás */}
+            {newerEdition && (
+              <button
+                type="button"
+                onClick={() => goToEdition(newerEdition.id)}
+                onMouseEnter={() => prefetchEdition(newerEdition.id)}
+                onFocus={() => prefetchEdition(newerEdition.id)}
+                aria-label={`ila ${newerEdition.number}`}
+                className="group absolute right-0 top-1/2 z-0 w-3/4 translate-x-6 -translate-y-1/2"
+              >
+                <Image
+                  src={newerEdition.coverImage}
+                  alt={`ila ${newerEdition.number}`}
+                  width={200}
+                  height={267}
+                  className="block w-full h-auto rounded object-cover shadow-lg rotate-3 transition-transform duration-300 group-hover:translate-x-1.5"
+                />
+                <span className="absolute inset-0 flex items-center justify-end pr-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="rounded-full bg-white/90 dark:bg-gray-800/90 p-1.5 shadow-lg text-[#BD0E0D]">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </span>
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-[10px] font-futura font-bold px-1.5 py-0.5 shadow">
+                  ila {newerEdition.number}
+                </span>
+              </button>
+            )}
+
+            {/* Portada activa — adelante */}
+            <div
+              className={`relative z-10 transition-opacity duration-300 ${
+                isSwapping ? "opacity-0" : "opacity-100"
+              }`}
+            >
+              <Image
+                src={edition.coverImage}
+                alt={`Portada de ${edition.title}`}
+                width={400}
+                height={550}
+                className="rounded shadow-md w-full"
+              />
+            </div>
+          </div>
           {edition.regions.length > 0 && (
             <div className="badgesContainer mt-2">
               {edition.regions.map((region) => (
@@ -1017,7 +1171,11 @@ export default function EditionDetails() {
             />
           )}
         </div>
-        <div className="overflow-hidden">
+        <div
+          className={`overflow-hidden transition-opacity duration-300 ${
+            isSwapping ? "opacity-0" : "opacity-100"
+          }`}
+        >
           <h1 className="text-3xl md:text-4xl mb-4 leading-snug">
             <span className="font-futura font-bold text-gray-800 dark:text-gray-200">
               ila {edition.number}
@@ -1079,7 +1237,11 @@ export default function EditionDetails() {
           </button>
         </div>
 
-        <div className="article-content edition-editorial text-lg md:text-xl leading-normal text-gray-800 dark:text-gray-200">
+        <div
+          className={`article-content edition-editorial text-lg md:text-xl leading-normal text-gray-800 dark:text-gray-200 transition-opacity duration-300 ${
+            isSwapping ? "opacity-0" : "opacity-100"
+          }`}
+        >
           {summaryToShow ? (
             /<\/?[a-z][\s\S]*>/i.test(summaryToShow) ? (
               <div dangerouslySetInnerHTML={{ __html: summaryToShow }} />
