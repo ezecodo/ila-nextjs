@@ -17,13 +17,40 @@ const SUPER_ADMIN_EMAIL = "e.zeangeloni@gmail.com";
 const ArticleListenContext = createContext(null);
 export const useArticleListen = () => useContext(ArticleListenContext);
 
-// Algunas voces deletrean el nombre de la revista ("ila"/"ILA" → i-l-a) al
-// tratarlo como sigla. Como nombre propio "Ila" se pronuncia como palabra.
-// El reemplazo conserva el largo (3 chars) → no desalinea el resaltado, que
-// mapea offsets de la oración hablada sobre el texto del DOM.
-function speechFriendly(text) {
+// Ajusta SOLO el texto que se habla (no el del DOM). Los offsets del resaltado
+// se calculan sobre el texto original (ver `start` → `tts.play(blocks, fn)`),
+// así que estas sustituciones pueden cambiar el largo sin desalinear nada.
+//  - "ila"/"ILA" → "Ila": evita que se deletree i-l-a como sigla.
+//  - "y" suelta (alemán) → "i": nombres propios en español ("El perro y el
+//    gato") se leen "ee" en vez de "Ypsilon".
+//  - "1. Oktober" (alemán) → "erste Oktober": la voz lee el número como
+//    cardinal ("eins"); para fechas con mes lo pasamos a ordinal.
+const DE_ORDINALS = {
+  1: "erste", 2: "zweite", 3: "dritte", 4: "vierte", 5: "fünfte",
+  6: "sechste", 7: "siebte", 8: "achte", 9: "neunte", 10: "zehnte",
+  11: "elfte", 12: "zwölfte", 13: "dreizehnte", 14: "vierzehnte",
+  15: "fünfzehnte", 16: "sechzehnte", 17: "siebzehnte", 18: "achtzehnte",
+  19: "neunzehnte", 20: "zwanzigste", 21: "einundzwanzigste",
+  22: "zweiundzwanzigste", 23: "dreiundzwanzigste", 24: "vierundzwanzigste",
+  25: "fünfundzwanzigste", 26: "sechsundzwanzigste", 27: "siebenundzwanzigste",
+  28: "achtundzwanzigste", 29: "neunundzwanzigste", 30: "dreißigste",
+  31: "einunddreißigste",
+};
+const DE_MONTHS =
+  "Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember";
+const DE_DATE_RE = new RegExp(`\\b(\\d{1,2})\\.\\s+(${DE_MONTHS})\\b`, "g");
+
+function speechFriendly(text, lang) {
   if (!text) return text;
-  return text.replace(/\bila\b/gi, "Ila");
+  let out = text.replace(/\bila\b/gi, "Ila");
+  if (lang === "de") {
+    out = out.replace(/\by\b/g, "i");
+    out = out.replace(DE_DATE_RE, (m, d, month) => {
+      const ord = DE_ORDINALS[parseInt(d, 10)];
+      return ord ? `${ord} ${month}` : m;
+    });
+  }
+  return out;
 }
 
 // Recolecta del DOM los elementos legibles en orden: título, subtítulo,
@@ -211,12 +238,10 @@ export function ArticleListenProvider({
   const start = () => {
     const els = collectTargets();
     elsRef.current = els;
-    const blocks = (
-      els.length
-        ? els.map((el) => el.textContent)
-        : [title, subtitle, ...htmlToBlocks(content)].filter(Boolean)
-    ).map(speechFriendly);
-    tts.play(blocks);
+    const blocks = els.length
+      ? els.map((el) => el.textContent)
+      : [title, subtitle, ...htmlToBlocks(content)].filter(Boolean);
+    tts.play(blocks, (t) => speechFriendly(t, lang));
   };
 
   // Toggle desde la ShareBar: reproducir / pausar / reanudar.

@@ -61,7 +61,12 @@ const CHARS_PER_SEC = 14;
 function buildSegments(blocks) {
   const segs = [];
   blocks.forEach((b, bi) => {
-    const sentences = b.match(/[^.!?]+[.!?]+|\S[^.!?]*$/g) || [b];
+    // Cortar en . ! ? — salvo cuando el "." sigue a un dígito: en alemán "1."
+    // es un ordinal/fecha ("1. Oktober"), no fin de oración. Sin esto, la fecha
+    // se parte en dos segmentos y no se puede pronunciar como ordinal.
+    const sentences = b.match(
+      /(?:[^.!?]|(?<=\d)\.)+(?:[.!?]+|$)/g
+    ) || [b];
     let cursor = 0;
     sentences.forEach((s) => {
       const at = b.indexOf(s, cursor);
@@ -106,6 +111,10 @@ export function useArticleTTS(lang = "de") {
   }, []);
 
   const segmentsRef = useRef([]);
+  // Transforma el texto SOLO al hablarlo (ila/y/fechas). Los offsets del
+  // resaltado se calculan sobre el texto original, así que esta transformación
+  // puede cambiar el largo sin desalinear nada.
+  const speakRef = useRef(null);
   const cancelledRef = useRef(false);
   const segRef = useRef(null); // segmento que se está leyendo
   const segStartRef = useRef(0); // timestamp (wall-clock) en que arrancó
@@ -227,7 +236,8 @@ export function useArticleTTS(lang = "de") {
         return;
       }
       const seg = segs[i];
-      const u = new SpeechSynthesisUtterance(seg.text);
+      const spoken = speakRef.current ? speakRef.current(seg.text) : seg.text;
+      const u = new SpeechSynthesisUtterance(spoken);
       const voice = voices.find((v) => v.voiceURI === voiceURI);
       if (voice) u.voice = voice;
       u.lang = lang === "de" ? "de-DE" : "es-ES";
@@ -253,7 +263,7 @@ export function useArticleTTS(lang = "de") {
 
   // Arranca la lectura de `blocks` (string[]). Si estaba en pausa, reanuda.
   const play = useCallback(
-    (blocks) => {
+    (blocks, speak) => {
       if (isPaused) {
         // Compensar el tiempo en pausa para que el resaltado no salte adelante.
         if (pauseStartRef.current) {
@@ -265,6 +275,7 @@ export function useArticleTTS(lang = "de") {
         setIsPlaying(true);
         return;
       }
+      speakRef.current = typeof speak === "function" ? speak : null;
       const segs = buildSegments(blocks || []);
       segmentsRef.current = segs;
       setSegTotal(segs.length);
