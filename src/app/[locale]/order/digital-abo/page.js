@@ -11,7 +11,12 @@ export default function DigitalAboPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* ── Hero ── */}
-      <div className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 relative bg-[#BD0E0D] text-white overflow-hidden">
+      <div
+        className="-mx-2 sm:-mx-3 md:-mx-4 lg:-mx-6 relative text-white overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #46663f 0%, #2c4327 100%)",
+        }}
+      >
         <div
           className="absolute inset-0 opacity-[0.07] pointer-events-none"
           style={{
@@ -35,12 +40,15 @@ export default function DigitalAboPage() {
                     /^ila$/i.test(part) ? (
                       <span
                         key={i}
-                        className="lowercase"
+                        className="lowercase inline-block"
                         style={{
                           fontFamily:
                             "'Futura PT', Futura, 'Jost', var(--font-futura), sans-serif",
                           fontWeight: 600,
                           letterSpacing: "-0.03em",
+                          fontSize: "1.5em",
+                          lineHeight: 0,
+                          verticalAlign: "baseline",
                         }}
                       >
                         ila

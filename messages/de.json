@@ -898,8 +898,11 @@
     "orderButton": "Dossier bestellen",
     "orderMoreButton": "Noch eins bestellen",
     "added": "Hinzugefügt",
-    "aboButton": "Digitales Abo",
-    "moreInDossier": "Weitere Beiträge aus diesem Dossier ({count})"
+    "aboButton": "Digital-Abo",
+    "moreInDossier": "Weitere Beiträge aus diesem Dossier ({count})",
+    "dossierHook": "Dieses Dossier interessiert dich? Hol es dir einzeln – oder lies mit dem Digital-Abo alle Dossiers.",
+    "dossierBuyHint": "Dieses Heft einzeln, gedruckt nach Hause.",
+    "dossierAboHint": "Alle ila-Dossiers digital – mit Vorab-Zugang, PDF-Download und vielem mehr."
   },
   "relatedArticles": {
     "title": "Das könnte dich auch interessieren",
@@ -1111,7 +1114,7 @@
     "description": "Wählen Sie Ihr Abonnement und sichern Sie sich eine Prämie.",
     "type": "Abotyp",
     "normal": "Normalabo – 59 €/Jahr",
-    "normal_pdf": "Normalabo PDF – 52 €/Jahr",
+    "normal_pdf": "Digital-Abo – 52 €/Jahr",
     "supporter": "Förderabo – 59 € + 10 € Spende*/Jahr",
     "reduced": "Ermäßigtes Abo – 52 €/Jahr",
     "trial": "Probeabo (3 Ausgaben) – ab 9,50 €",
@@ -1134,6 +1137,13 @@
     "phone": "Telefonnummer",
     "email": "E-Mail",
     "submit": "Abo abschließen",
+    "submitting": "Wird gesendet …",
+    "successTitle": "Willkommen bei der ila!",
+    "successText": "Deine Bestellung ist bei uns angekommen. Du bekommst in Kürze eine Bestätigung per E-Mail – danke, dass du unabhängigen Journalismus über Lateinamerika unterstützt.",
+    "successCta": "Super!",
+    "errorTitle": "Da ist etwas schiefgelaufen",
+    "errorText": "Deine Bestellung konnte nicht gesendet werden. Bitte versuch es noch einmal oder schreib uns, falls das Problem bestehen bleibt.",
+    "errorCta": "Erneut versuchen",
     "giftQuestion": "Abo verschenken?",
     "giftYes": "Ja",
     "giftNo": "Nein",
@@ -1190,7 +1200,15 @@
         "info": "10 Dossiers pro Jahr – als gedrucktes Heft."
       },
       "normal_pdf": {
-        "text": "<strong>Die ila 10 × im Jahr als PDF</strong> – komplett, in Farbe, interaktiv. Und das gesamte Digital-Abo:<ul class=\"list-disc pl-5 mt-2 space-y-1\"><li>Favoriten nach Themen ordnen</li><li>Eigene PDF-Pakete aus Lieblingsartikeln erstellen</li><li>Exklusiver Vorab-Zugang zu Beiträgen der aktuellen Ausgabe</li><li>GlobIla: Lateinamerika visuell entdecken</li><li>Ganze Dossiers als PDF herunterladen</li><li>Ablenkungsfreier Vollbild-Lesemodus</li></ul>"
+        "lead": "<strong>Die ila 10 × im Jahr als PDF</strong> – komplett, in Farbe, interaktiv. Und das gesamte Digital-Abo:",
+        "benefits": [
+          "Favoriten nach Themen ordnen",
+          "Eigene PDF-Pakete aus Lieblingsartikeln erstellen",
+          "Exklusiver Vorab-Zugang zu Beiträgen der aktuellen Ausgabe",
+          "GlobIla: Lateinamerika visuell entdecken",
+          "Ganze Dossiers als PDF herunterladen",
+          "Ablenkungsfreier Vollbild-Lesemodus"
+        ]
       },
       "supporter": {
         "intro": "Mit einem Förderabo unterstützen Sie die ila mit einer zusätzlichen Spende von 10 € pro Jahr des laufenden Abonnements.",
@@ -1256,9 +1274,9 @@
     "normalName": "Normalabo",
     "normalPrice": "59 €/Jahr",
     "normalDesc": "Print, alle 10 Ausgaben im Jahr",
-    "normalPdfName": "Normalabo PDF",
+    "normalPdfName": "Digital-Abo",
     "normalPdfPrice": "52 €/Jahr",
-    "normalPdfDesc": "Alle Ausgaben bequem als digitales PDF",
+    "normalPdfDesc": "Alle Ausgaben digital – mit Vorab-Zugang & PDF-Download",
     "supporterName": "Förderabo",
     "supporterPrice": "ab 69 €/Jahr",
     "supporterDesc": "Für alle, die die ila aktiv fördern möchten",

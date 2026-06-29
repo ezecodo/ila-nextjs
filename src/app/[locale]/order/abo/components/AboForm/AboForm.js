@@ -7,8 +7,54 @@ import TermsCheckboxes from "./TermsCheckboxes";
 import PromoGiftForm, { PromoBanner } from "../PromoForm/PromoGiftSection";
 function InfoBox({ children }) {
   return (
-    <div className="rounded-xl border-l-4 border-red-500 bg-gradient-to-r from-red-50 to-red-50/50 dark:from-red-900/20 dark:to-red-900/10 p-5 text-red-900 dark:text-red-100 whitespace-pre-line text-sm sm:text-base shadow-sm">
+    <div className="border-l-4 border-red-500 bg-gradient-to-r from-red-50 to-red-50/50 dark:from-red-900/20 dark:to-red-900/10 p-5 text-red-900 dark:text-red-100 whitespace-pre-line text-sm sm:text-base shadow-sm">
       {children}
+    </div>
+  );
+}
+
+// Caja de beneficios del Digital-Abo con impronta ila: franja verde de marca con
+// trama diagonal + encabezado, y lista en rectángulos con marcadores verdes.
+function DigitalAboInfo({ lead, benefits }) {
+  return (
+    <div className="relative overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+      <div className="relative bg-[#89B881] px-5 py-4 overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.12] pointer-events-none"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(-55deg, #fff 0px, #fff 1px, transparent 1px, transparent 18px)",
+          }}
+        />
+        <p
+          className="relative text-white text-[15px] sm:text-base leading-snug"
+          dangerouslySetInnerHTML={{ __html: lead }}
+        />
+      </div>
+      <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+        {benefits.map((b, i) => (
+          <li key={i} className="flex items-start gap-3 px-5 py-3">
+            <span className="mt-0.5 shrink-0 w-5 h-5 bg-[#89B881] flex items-center justify-center">
+              <svg
+                className="w-3 h-3 text-white"
+                fill="none"
+                viewBox="0 0 12 12"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2 6l3 3 5-5"
+                />
+              </svg>
+            </span>
+            <span className="text-[14px] sm:text-[15px] text-gray-800 dark:text-gray-200 leading-snug">
+              {b}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -16,7 +62,7 @@ function InfoBox({ children }) {
 function Card({ children, className = "" }) {
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm ${className}`}
+      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6 shadow-sm ${className}`}
     >
       {children}
     </div>
@@ -25,7 +71,7 @@ function Card({ children, className = "" }) {
 function SectionTitle({ children }) {
   return (
     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-      <span className="w-1 h-6 bg-red-500 rounded-full"></span>
+      <span className="w-1 h-6 bg-[color:var(--abo-accent)] rounded-full"></span>
       {children}
     </h3>
   );
@@ -36,14 +82,16 @@ function InputField({ label, required, error, ...props }) {
     <div className="space-y-1.5">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && (
+          <span className="text-[color:var(--abo-accent)] ml-1">*</span>
+        )}
       </label>
       <input
         {...props}
-        className={`w-full px-4 py-2.5 rounded-lg border ${
+        className={`w-full px-4 py-2.5 border ${
           error
-            ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-            : "border-gray-300 dark:border-gray-600 focus:border-red-500 focus:ring-red-500"
+            ? "border-red-300 focus:border-[color:var(--abo-accent)] focus:ring-[color:var(--abo-accent)]"
+            : "border-gray-300 dark:border-gray-600 focus:border-[color:var(--abo-accent)] focus:ring-[color:var(--abo-accent)]"
         } bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-all`}
       />
       {error && (
@@ -55,11 +103,11 @@ function InputField({ label, required, error, ...props }) {
 
 function RadioButton({ label, ...props }) {
   return (
-    <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
+    <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
       <input
         type="radio"
         {...props}
-        className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500 focus:ring-2"
+        className="w-4 h-4 text-[color:var(--abo-accent)] border-gray-300 focus:ring-[color:var(--abo-accent)] focus:ring-2"
       />
       <span className="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100">
         {label}
@@ -116,6 +164,8 @@ export default function AboForm({ gifts, digital = false }) {
 
   const [supporterOpen, setSupporterOpen] = useState(false);
   const [donationError, setDonationError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState(null); // "success" | "error"
 
   const handleChange = (field, value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -220,21 +270,31 @@ export default function AboForm({ gifts, digital = false }) {
         : null,
     };
 
-    const res = await fetch("/api/subscriptions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      next: { revalidate: 0 },
-    });
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        next: { revalidate: 0 },
+      });
 
-    const data = await res.json();
-    if (data.success) {
-      alert("✅ Suscripción enviada correctamente!");
-      setForm(buildInitialForm(digital));
-      setSupporterOpen(false);
-      setDonationError("");
-    } else {
-      alert("❌ Error al enviar suscripción.");
+      const data = await res.json();
+      if (data.success) {
+        setSubmitResult("success");
+        setForm(buildInitialForm(digital));
+        setSupporterOpen(false);
+        setDonationError("");
+        if (typeof window !== "undefined")
+          window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        setSubmitResult("error");
+      }
+    } catch {
+      setSubmitResult("error");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -247,7 +307,11 @@ export default function AboForm({ gifts, digital = false }) {
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6 pt-6">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-4xl mx-auto space-y-6 pt-6"
+      style={{ "--abo-accent": digital ? "#89B881" : "#BD0E0D" }}
+    >
       {/* ── Tipo de Suscripción — Pricing cards (oculto en modo digital) ── */}
       {!digital && (
       <div>
@@ -262,7 +326,7 @@ export default function AboForm({ gifts, digital = false }) {
                 key={plan.type}
                 type="button"
                 onClick={() => handleChange("type", plan.type)}
-                className={`relative flex flex-col p-3 rounded-xl border-2 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#BD0E0D] ${
+                className={`relative flex flex-col p-3 border-2 text-left transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#BD0E0D] ${
                   active
                     ? "border-[#BD0E0D] bg-red-50 dark:bg-red-900/20 shadow-md"
                     : "border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-gray-800"
@@ -302,13 +366,10 @@ export default function AboForm({ gifts, digital = false }) {
       )}
 
       {form.type === "NORMAL_PDF" && (
-        <InfoBox>
-          <div
-            dangerouslySetInnerHTML={{
-              __html: t.raw("details.normal_pdf.text"),
-            }}
-          />
-        </InfoBox>
+        <DigitalAboInfo
+          lead={t.raw("details.normal_pdf.lead")}
+          benefits={t.raw("details.normal_pdf.benefits")}
+        />
       )}
 
       {form.type === "SUPPORTER" && (
@@ -324,7 +385,7 @@ export default function AboForm({ gifts, digital = false }) {
           </button>
 
           {supporterOpen && (
-            <div className="mt-4 space-y-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="mt-4 space-y-4 p-4 bg-gray-50 dark:bg-gray-900">
               <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                 {t("details.supporter.adjustText")}
               </p>
@@ -340,7 +401,7 @@ export default function AboForm({ gifts, digital = false }) {
                     value={form.donationExtra}
                     onChange={(e) => onDonationChange(e.target.value)}
                     placeholder="10"
-                    className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-32 text-right bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="border border-gray-300 dark:border-gray-600 p-2.5 w-32 text-right bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[color:var(--abo-accent)]"
                   />
                   <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
                     €
@@ -414,7 +475,7 @@ export default function AboForm({ gifts, digital = false }) {
           </div>
         </div>
         {form.isGift && (
-          <div className="mt-6 p-5 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900/30 transition-all duration-300 ease-in-out">
+          <div className="mt-6 p-5 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 transition-all duration-300 ease-in-out">
             <h4 className="text-md font-semibold mb-4 text-gray-800 dark:text-gray-200">
               {t("giftRecipientTitle")}
             </h4>
@@ -428,7 +489,7 @@ export default function AboForm({ gifts, digital = false }) {
                 onChange={(e) =>
                   handleChange("giftSubscriptionDuration", e.target.value)
                 }
-                className="border border-gray-300 dark:border-gray-600 p-2.5 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                className="border border-gray-300 dark:border-gray-600 p-2.5 w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               >
                 <option value="ONE_YEAR">{t("giftDurationOneYear")}</option>
                 <option value="UNTIL_CANCELLED">
@@ -530,7 +591,7 @@ export default function AboForm({ gifts, digital = false }) {
               <select
                 value={form.salutation}
                 onChange={(e) => handleChange("salutation", e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+                className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[color:var(--abo-accent)] transition-all"
               >
                 <option value="">{t("salutation_none")}</option>
                 <option value="Herr">{t("mr")}</option>
@@ -658,15 +719,140 @@ export default function AboForm({ gifts, digital = false }) {
       {/* Botón de envío */}
       <button
         type="submit"
-        disabled={!canSubmit}
-        className={`w-full py-4 rounded-xl font-semibold text-base transition-all transform ${
-          canSubmit
-            ? "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+        disabled={!canSubmit || submitting}
+        className={`w-full py-4 font-semibold text-base transition-all transform ${
+          canSubmit && !submitting
+            ? digital
+              ? "bg-gradient-to-r from-[#557a4c] to-[#46663f] text-white hover:from-[#46663f] hover:to-[#2c4327] hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+              : "bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
         }`}
       >
-        {t("submit")}
+        {submitting ? t("submitting") : t("submit")}
       </button>
+
+      {submitResult && (
+        <SubmitFeedback
+          status={submitResult}
+          t={t}
+          onClose={() => setSubmitResult(null)}
+        />
+      )}
     </form>
+  );
+}
+
+/* Modal de feedback post-envío (reemplaza el alert() nativo). Estética de
+   marca: banda de color con trama diagonal + onda blanca, check/cruz animado,
+   tipografía Futura. Verde para éxito, rojo para error. */
+function SubmitFeedback({ status, t, onClose }) {
+  const isSuccess = status === "success";
+  const accent = isSuccess ? "#89B881" : "#BD0E0D";
+
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.25s_ease]"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="relative w-full max-w-md bg-white dark:bg-gray-900 shadow-2xl overflow-hidden animate-[scaleIn_0.35s_cubic-bezier(0.16,1,0.3,1)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header con color de marca + trama + onda */}
+        <div
+          className="relative px-6 pt-9 pb-12 text-center"
+          style={{ backgroundColor: accent }}
+        >
+          <div
+            className="absolute inset-0 opacity-[0.12] pointer-events-none"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(-55deg, #fff 0px, #fff 1px, transparent 1px, transparent 22px)",
+            }}
+          />
+          <div className="relative flex justify-center">
+            <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg">
+              <svg
+                viewBox="0 0 52 52"
+                className="w-11 h-11"
+                fill="none"
+                stroke={accent}
+                strokeWidth={4}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle
+                  cx="26"
+                  cy="26"
+                  r="23"
+                  className="sf-circle"
+                  style={{ opacity: 0.25 }}
+                />
+                {isSuccess ? (
+                  <path d="M15 27l8 8 14-16" className="sf-mark" />
+                ) : (
+                  <path d="M18 18l16 16M34 18L18 34" className="sf-mark" />
+                )}
+              </svg>
+            </div>
+          </div>
+          {/* Onda blanca inferior */}
+          <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-[0] h-9">
+            <svg
+              viewBox="0 0 1200 120"
+              preserveAspectRatio="none"
+              className="relative block w-full h-full"
+            >
+              <path
+                d="M0,50 C150,20 300,80 450,50 C600,20 750,80 900,50 C1050,20 1150,50 1200,40 L1200,120 L0,120 Z"
+                className="fill-white dark:fill-gray-900"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Cuerpo */}
+        <div className="px-7 pt-2 pb-8 text-center">
+          <h3
+            className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+            style={{ fontFamily: "var(--font-futura), sans-serif" }}
+          >
+            {isSuccess ? t("successTitle") : t("errorTitle")}
+          </h3>
+          <p className="text-[15px] text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+            {isSuccess ? t("successText") : t("errorText")}
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center justify-center px-8 py-3 font-bold text-sm uppercase tracking-wide text-white shadow-lg transition-transform duration-200 hover:-translate-y-0.5"
+            style={{ backgroundColor: accent }}
+          >
+            {isSuccess ? t("successCta") : t("errorCta")}
+          </button>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .sf-mark {
+          stroke-dasharray: 60;
+          stroke-dashoffset: 60;
+          animation: sfdraw 0.5s 0.2s ease forwards;
+        }
+        @keyframes sfdraw {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+      `}</style>
+    </div>
   );
 }

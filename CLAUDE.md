@@ -609,6 +609,17 @@ FONT BODY    Geist Sans       (texto, UI)
 FONT MONO   Geist Mono        (código)
 ```
 
+### Digital-Abo = sub-marca verde
+
+Todo lo relacionado al **Digital-Abo** se distingue con verde como **sub-marca** (color-coding de línea de producto). El rojo `#BD0E0D` sigue siendo la **marca madre** (ila / impreso); el verde NO lo reemplaza globalmente, es acento. **Dentro de las superficies Digital-Abo el verde sí toma también el rol de CTA** (ver botón de envío abajo).
+
+- **Verde acento**: `#89B881` (el mismo verde "50 años" del panel derecho del showcase). Úsalo para íconos, bordes, glow, franjas, checks, textos de marca, foco de inputs, asteriscos de obligatorio y barras de título del Digital-Abo.
+- **Verde oscuro (fondos amplios y CTA)**: gradiente `linear-gradient(135deg, #46663f 0%, #2c4327 100%)` para superficies grandes (hero de `/order/digital-abo`, panel visual del showcase) donde el `#89B881` plano lavaría el texto blanco. Para botones CTA el gradiente es `from-[#557a4c] to-[#46663f]` (hover `from-[#46663f] to-[#2c4327]`), que da buen contraste con texto blanco.
+- **Reglas**: (1) verde = identidad del Digital-Abo; el rojo se mantiene como marca madre en el resto del sitio; (2) un color = un significado (verde solo para Digital-Abo — ojo que `#89B881` también es el verde de "éxito" del modal `SubmitFeedback`); (3) los **indicadores de error** (borde/texto de campo inválido) van **siempre en rojo**, es semántica universal, no de marca.
+- **Dónde ya está aplicado**: `DigiAboMark` (Wordmark.jsx, prop `accent="green"` + `rightColor="#89B881"`), `DigitalAboInfo` (caja de beneficios en `AboForm.js`), hero de `order/digital-abo/page.js`, paneles del `DigitalAboShowcase.jsx`, y todo el `AboForm` en modo `digital` (foco de inputs, checkboxes/links de términos, barra de título, asterisco, botón de envío).
+- **Acento por contexto del form**: el `AboForm` define la variable CSS `--abo-accent` en el `<form>` según el prop `digital` (`#89B881` digital / `#BD0E0D` impreso). Para que el color siga el contexto, nuevos elementos deben usar `…-[color:var(--abo-accent)]` (p. ej. `focus:ring-[color:var(--abo-accent)]`, `bg-[color:var(--abo-accent)]`, `text-[color:var(--abo-accent)]`) en vez de clases `red-*` hardcodeadas. El botón de envío usa directamente el ternario sobre `digital` (gradiente verde/rojo).
+- `GlobIlaMark` sigue en cian (mismo componente `IlaButtonMark`, prop `accent`); candidato a verde si se busca coherencia total.
+
 ## Sistema estético de la landing (home)
 
 Los componentes del home comparten un mismo lenguaje visual. **Nada de `font-serif` en la landing** (la serif era un fallback genérico de Tailwind, quedaba feo; el sistema de marca no la usa fuera del cuerpo del artículo). Reglas comunes:

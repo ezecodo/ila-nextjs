@@ -9,6 +9,7 @@ import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import MiniArticleCardGrid from "../../components/Articles/MiniArticleCardGrid";
 import ShareBar from "../../components/ShareBar/ShareBar";
 import RelatedDossiers from "../../components/Editions/RelatedDossiers";
+import ArticleDossierCTA from "../../components/ArticleDossierCTA/ArticleDossierCTA";
 import { ArticleListenProvider } from "../../components/ArticleListen/ArticleListenProvider";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -1391,6 +1392,8 @@ export default function EditionDetails() {
           {renderTableOfContents()}
         </div>
       )}
+
+      <ArticleDossierCTA edition={edition} compact />
 
       <RelatedDossiers
         editionId={edition.id}

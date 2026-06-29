@@ -898,7 +898,10 @@
     "orderMoreButton": "Pedir otro",
     "added": "Añadido",
     "aboButton": "Abo digital",
-    "moreInDossier": "Más artículos de este dossier ({count})"
+    "moreInDossier": "Más artículos de este dossier ({count})",
+    "dossierHook": "¿Te interesa este dossier? Pedilo suelto — o con el Abo digital accedé a todos.",
+    "dossierBuyHint": "Este número suelto, impreso en tu casa.",
+    "dossierAboHint": "Todos los dossiers de la ila en digital — con acceso anticipado, descarga en PDF y mucho más."
   },
   "relatedArticles": {
     "title": "También te puede interesar",
@@ -1110,7 +1113,7 @@
     "description": "Suscríbete a ila y recibe 10 números al año (impreso + online) por solo 48 € (dentro de Alemania).",
     "type": "Tipo de suscripción",
     "normal": "Suscripción normal (impreso + PDF) – 59 €/año",
-    "normal_pdf": "Suscripción normal (solo PDF) – 52 €/año",
+    "normal_pdf": "Abo digital – 52 €/año",
     "supporter": "Suscripción de apoyo – 59 € + 10 € de donación*/año",
     "reduced": "Suscripción reducida – 52 €/año",
     "trial": "Suscripción de prueba (3 números) – desde 9,50 €",
@@ -1133,6 +1136,13 @@
     "phone": "Teléfono",
     "email": "E-Mail",
     "submit": "Enviar pedido",
+    "submitting": "Enviando …",
+    "successTitle": "¡Bienvenida/o a la ila!",
+    "successText": "Tu pedido nos llegó correctamente. En breve recibirás una confirmación por correo — gracias por apoyar el periodismo independiente sobre América Latina.",
+    "successCta": "¡Genial!",
+    "errorTitle": "Algo salió mal",
+    "errorText": "No pudimos enviar tu pedido. Por favor intentá de nuevo o escribinos si el problema persiste.",
+    "errorCta": "Reintentar",
     "giftQuestion": "¿Es una suscripción regalo?",
     "giftYes": "Sí",
     "giftNo": "No",
@@ -1189,7 +1199,15 @@
         "info": "10 Dossiers al año – en formato impreso."
       },
       "normal_pdf": {
-        "text": "<strong>La ila 10 veces al año en PDF</strong> – completa, a color e interactiva. Y toda la Suscripción Digital:<ul class=\"list-disc pl-5 mt-2 space-y-1\"><li>Organizá tus favoritos por temas</li><li>Creá tus propios paquetes PDF con tus artículos favoritos</li><li>Acceso anticipado exclusivo a los artículos del dossier actual</li><li>GlobIla: descubrí América Latina de forma visual</li><li>Descargá dossiers completos en PDF</li><li>Modo lectura a pantalla completa, sin distracciones</li></ul>"
+        "lead": "<strong>La ila 10 veces al año en PDF</strong> – completa, a color e interactiva. Y toda la Suscripción Digital:",
+        "benefits": [
+          "Organizá tus favoritos por temas",
+          "Creá tus propios paquetes PDF con tus artículos favoritos",
+          "Acceso anticipado exclusivo a los artículos del dossier actual",
+          "GlobIla: descubrí América Latina de forma visual",
+          "Descargá dossiers completos en PDF",
+          "Modo lectura a pantalla completa, sin distracciones"
+        ]
       },
       "supporter": {
         "intro": "Con una suscripción de apoyo ayudas a la ila con una donación adicional de 10 € al año durante la vigencia de la suscripción.",
@@ -1255,9 +1273,9 @@
     "normalName": "Suscripción normal",
     "normalPrice": "59 €/año",
     "normalDesc": "Impreso, las 10 ediciones al año",
-    "normalPdfName": "Suscripción PDF",
+    "normalPdfName": "Abo digital",
     "normalPdfPrice": "52 €/año",
-    "normalPdfDesc": "Todas las ediciones en formato PDF digital",
+    "normalPdfDesc": "Todas las ediciones en digital – con acceso anticipado y descarga en PDF",
     "supporterName": "Suscripción de apoyo",
     "supporterPrice": "desde 69 €/año",
     "supporterDesc": "Para quienes quieren apoyar activamente a ila",

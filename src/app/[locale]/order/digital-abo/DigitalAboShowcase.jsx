@@ -72,7 +72,7 @@ function Cover({ src, label, className = "" }) {
         </div>
       )}
       {label && (
-        <span className="absolute bottom-0 inset-x-0 bg-black/55 text-white text-[8px] font-semibold px-1.5 py-1 leading-tight line-clamp-2">
+        <span className="absolute bottom-0 inset-x-0 bg-black/55 text-white text-[10px] sm:text-[11px] font-semibold px-2 py-1.5 leading-tight line-clamp-2">
           {label}
         </span>
       )}
@@ -87,8 +87,8 @@ function MockPdfPackage({ covers }) {
     { c: covers[2], t: "Lithium-Boom" },
   ];
   return (
-    <div className="relative w-full max-w-md">
-      <div className="grid grid-cols-3 gap-2 mb-5">
+    <div className="relative w-full max-w-2xl">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         {items.map((it, i) => (
           <Cover
             key={i}
@@ -99,15 +99,15 @@ function MockPdfPackage({ covers }) {
         ))}
       </div>
       <div className="flex justify-center text-[#BD0E0D]">
-        <svg viewBox="0 0 24 24" className="w-7 h-7" fill="currentColor">
+        <svg viewBox="0 0 24 24" className="w-9 h-9" fill="currentColor">
           <path d="M12 3a1 1 0 011 1v9.6l3.3-3.3 1.4 1.4L12 17.4l-5.7-5.7 1.4-1.4L11 13.6V4a1 1 0 011-1z" />
         </svg>
       </div>
-      <div className="mt-3 flex items-center gap-2 bg-[#BD0E0D] text-white px-3 py-2.5 shadow-lg">
-        <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="currentColor">
+      <div className="mt-3 flex items-center justify-center gap-2.5 bg-[#BD0E0D] text-white px-4 py-3.5 shadow-lg">
+        <svg viewBox="0 0 24 24" className="w-5 h-5 shrink-0" fill="currentColor">
           <path d="M7 3h7l5 5v13a1 1 0 01-1 1H7a1 1 0 01-1-1V4a1 1 0 011-1zm6 1.5V8h3.5L13 4.5z" />
         </svg>
-        <span className="text-[12px] font-bold uppercase tracking-wide">
+        <span className="text-[14px] sm:text-[15px] font-bold uppercase tracking-wide">
           mein-dossier.pdf
         </span>
       </div>
@@ -205,31 +205,31 @@ function MockDownload({ covers }) {
 
 function MockReader() {
   return (
-    <div className="w-full max-w-md bg-[#0a0a0a] border border-gray-800 shadow-2xl p-8 sm:p-9">
+    <div className="w-full max-w-md bg-white border border-gray-200 ring-1 ring-black/5 shadow-2xl p-8 sm:p-9">
       <div className="flex items-center justify-between mb-5">
-        <span className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
+        <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400">
           Lesemodus
         </span>
         <div className="flex gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-gray-700" />
-          <span className="w-2 h-2 rounded-full bg-gray-700" />
+          <span className="w-2 h-2 rounded-full bg-gray-300" />
+          <span className="w-2 h-2 rounded-full bg-gray-300" />
           <span className="w-2 h-2 rounded-full bg-[#BD0E0D]" />
         </div>
       </div>
       <h4
-        className="text-gray-100 text-lg sm:text-xl font-bold leading-snug mb-5"
+        className="text-gray-900 text-lg sm:text-xl font-bold leading-snug mb-5"
         style={{ fontFamily: "var(--font-futura), sans-serif" }}
       >
         Bolivien: Was nach den Wahlen kommt
       </h4>
       <div className="space-y-3">
-        <div className="h-2.5 w-full bg-gray-700/80" />
-        <div className="h-2.5 w-full bg-gray-700/80" />
-        <div className="h-2.5 w-5/6 bg-gray-700/80" />
-        <div className="h-2.5 w-full bg-gray-700/80" />
-        <div className="h-2.5 w-11/12 bg-gray-700/80" />
-        <div className="h-2.5 w-full bg-gray-700/80" />
-        <div className="h-2.5 w-2/3 bg-gray-700/80" />
+        <div className="h-2.5 w-full bg-gray-200" />
+        <div className="h-2.5 w-full bg-gray-200" />
+        <div className="h-2.5 w-5/6 bg-gray-200" />
+        <div className="h-2.5 w-full bg-gray-200" />
+        <div className="h-2.5 w-11/12 bg-gray-200" />
+        <div className="h-2.5 w-full bg-gray-200" />
+        <div className="h-2.5 w-2/3 bg-gray-200" />
       </div>
     </div>
   );
@@ -341,6 +341,19 @@ export default function DigitalAboShowcase() {
             width: 100%;
           }
         }
+        .da-anim {
+          animation: daslide 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes daslide {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
       `}</style>
 
       {/* Slide */}
@@ -348,65 +361,82 @@ export default function DigitalAboShowcase() {
         <div className="grid md:grid-cols-5 min-h-[460px] md:h-[500px]">
           {/* Visual */}
           <div
-            key={`v-${active}`}
-            className="relative order-2 md:order-1 md:col-span-3 flex items-center justify-center p-8 md:p-10 bg-gray-100 dark:bg-gray-900 overflow-hidden animate-[fadeIn_0.5s_ease]"
+            className="relative order-2 md:order-1 md:col-span-3 flex items-center justify-center p-8 md:p-10 overflow-hidden"
+            style={{
+              background: "linear-gradient(135deg, #46663f 0%, #2c4327 100%)",
+            }}
           >
             {/* trama diagonal */}
             <div
-              className="absolute inset-0 opacity-[0.06] pointer-events-none"
+              className="absolute inset-0 opacity-[0.08] pointer-events-none"
               style={{
                 backgroundImage:
-                  "repeating-linear-gradient(-55deg, #BD0E0D 0px, #BD0E0D 1px, transparent 1px, transparent 22px)",
+                  "repeating-linear-gradient(-55deg, #fff 0px, #fff 1px, transparent 1px, transparent 22px)",
               }}
             />
-            {/* glow rojo de foco */}
+            {/* spotlight claro de foco */}
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
                 background:
-                  "radial-gradient(circle at 50% 45%, rgba(189,14,13,0.10), transparent 62%)",
+                  "radial-gradient(circle at 50% 42%, rgba(255,255,255,0.12), transparent 60%)",
               }}
             />
-            <div className="relative drop-shadow-xl max-h-full">
+            {/* viñeta para profundidad */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ boxShadow: "inset 0 0 130px rgba(0,0,0,0.35)" }}
+            />
+            <div
+              key={`v-${active}`}
+              className="da-anim relative drop-shadow-xl w-full flex items-center justify-center max-h-full"
+            >
               <Mock covers={covers} />
             </div>
           </div>
 
           {/* Texto */}
-          <div
-            key={`t-${active}`}
-            className="relative order-1 md:order-2 md:col-span-2 flex flex-col justify-center p-8 md:p-10 bg-[#89B881] text-white overflow-hidden animate-[fadeIn_0.6s_ease]"
-          >
+          <div className="relative order-1 md:order-2 md:col-span-2 flex flex-col justify-center p-8 md:p-10 bg-[#89B881] text-white overflow-hidden">
             {/* barra de acento */}
-            <span className="absolute left-0 top-0 h-full w-1 bg-[#BD0E0D] md:block hidden" />
-            <div
-              className="flex items-baseline gap-2 mb-4"
-              style={{ fontFamily: "var(--font-futura), sans-serif" }}
-            >
-              <span className="text-white text-6xl md:text-7xl leading-none font-bold drop-shadow-sm">
-                {String(n).padStart(2, "0")}
-              </span>
-              <span className="text-white/50 text-xl md:text-2xl font-bold">
-                / {String(COUNT).padStart(2, "0")}
-              </span>
+            <span className="absolute left-0 top-0 h-full w-1 bg-[#BD0E0D] md:block hidden z-10" />
+            {/* mapa de Latinoamérica como decoración de fondo (completo, sin recortes) */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo/Lateinamerika_ohne_Grenzen_weiss.png"
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none select-none absolute inset-0 w-full h-full object-contain object-center opacity-[0.16] p-6"
+            />
+            <div key={`t-${active}`} className="da-anim relative z-10">
+              <div
+                className="flex items-baseline gap-2 mb-4"
+                style={{ fontFamily: "var(--font-futura), sans-serif" }}
+              >
+                <span className="text-white text-6xl md:text-7xl leading-none font-bold drop-shadow-sm">
+                  {String(n).padStart(2, "0")}
+                </span>
+                <span className="text-white/50 text-xl md:text-2xl font-bold">
+                  / {String(COUNT).padStart(2, "0")}
+                </span>
+              </div>
+              <h3
+                className="text-2xl md:text-3xl font-bold leading-tight text-white mb-3 text-balance"
+                style={{ fontFamily: "var(--font-futura), sans-serif" }}
+              >
+                {n === 4 ? (
+                  <>
+                    <span className="text-white">GLOB</span>
+                    <span className="text-[#BD0E0D]">ila</span>
+                    {t("feature4Title").replace(/^GlobIla/i, "")}
+                  </>
+                ) : (
+                  t(`feature${n}Title`)
+                )}
+              </h3>
+              <p className="text-[15px] md:text-base text-white/90 leading-relaxed">
+                {t(`feature${n}Desc`)}
+              </p>
             </div>
-            <h3
-              className="text-2xl md:text-3xl font-bold leading-tight text-white mb-3 text-balance"
-              style={{ fontFamily: "var(--font-futura), sans-serif" }}
-            >
-              {n === 4 ? (
-                <>
-                  <span className="text-white">GLOB</span>
-                  <span className="text-[#BD0E0D]">ila</span>
-                  {t("feature4Title").replace(/^GlobIla/i, "")}
-                </>
-              ) : (
-                t(`feature${n}Title`)
-              )}
-            </h3>
-            <p className="text-[15px] md:text-base text-white/90 leading-relaxed">
-              {t(`feature${n}Desc`)}
-            </p>
           </div>
         </div>
 

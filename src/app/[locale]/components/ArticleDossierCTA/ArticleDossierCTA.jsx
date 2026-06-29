@@ -11,7 +11,11 @@ import { useCart } from "../Cart/CartContext";
 // CTA al final del artículo: alude al Dossier donde aparece e invita a
 // comprarlo o a suscribirse al Abo digital. Estética del DonationPopUp
 // (header rojo con onda blanca + cuerpo blanco), pero inline (no modal).
-export default function ArticleDossierCTA({ edition, currentArticleId }) {
+export default function ArticleDossierCTA({
+  edition,
+  currentArticleId,
+  compact = false,
+}) {
   const locale = useLocale();
   const isES = locale === "es";
   const t = useTranslations("articleDossierCta");
@@ -21,7 +25,7 @@ export default function ArticleDossierCTA({ edition, currentArticleId }) {
   const [articles, setArticles] = useState([]);
 
   useEffect(() => {
-    if (!edition?.number) return;
+    if (compact || !edition?.number) return;
     let aborted = false;
     fetch(`/api/articles/edition/${edition.number}`)
       .then((r) => (r.ok ? r.json() : []))
@@ -32,7 +36,7 @@ export default function ArticleDossierCTA({ edition, currentArticleId }) {
     return () => {
       aborted = true;
     };
-  }, [edition?.number]);
+  }, [compact, edition?.number]);
 
   if (!edition?.id) return null;
 
@@ -49,6 +53,101 @@ export default function ArticleDossierCTA({ edition, currentArticleId }) {
       router.push(`/${locale}/order/single-dossier-order?focus=cart`);
     }, 450);
   };
+
+  // Cuerpo (gancho + dos botones), reutilizado en ambas variantes.
+  const body = (
+    <div className="bg-white dark:bg-gray-900 p-5 sm:p-7">
+      <p className="text-base sm:text-xl font-bold text-gray-900 dark:text-gray-100 text-center leading-snug mb-5 sm:mb-7">
+        {t("hook")}
+      </p>
+
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        {edition.isAvailableToOrder && (
+          <button
+            type="button"
+            onClick={handleBuy}
+            className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-600 text-white font-bold text-sm sm:text-base uppercase tracking-wide shadow-lg hover:bg-red-700 transition-all duration-200 hover:-translate-y-0.5"
+          >
+            {justAdded ? (
+              <>
+                <FaCheck className="w-4 h-4" />
+                {t("added")}
+              </>
+            ) : (
+              <>
+                <FaShoppingCart className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                {inCart ? t("orderMoreButton") : t("orderButton")}
+              </>
+            )}
+          </button>
+        )}
+
+        <Link
+          href={`/${locale}/order/digital-abo`}
+          className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 font-bold text-sm sm:text-base uppercase tracking-wide border-2 border-red-600 dark:border-red-400 shadow-sm hover:bg-red-50 dark:hover:bg-gray-700 transition-all duration-200 hover:-translate-y-0.5"
+        >
+          <FaTabletAlt className="w-4 h-4" />
+          {t("aboButton")}
+        </Link>
+      </div>
+    </div>
+  );
+
+  // Variante compacta para la página de Editorial & Inhalt del Dossier. No es
+  // marco "este artículo apareció en un dossier": acá se vende ESTE dossier
+  // directamente, y se contrasta con el Abo digital (acceso a TODOS). Cada
+  // opción lleva su propio contexto.
+  if (compact) {
+    return (
+      <section className="mt-12 mb-4 overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md">
+        <div className="bg-white dark:bg-gray-900 p-5 sm:p-7">
+          <p className="text-base sm:text-xl font-bold text-gray-900 dark:text-gray-100 text-center leading-snug mb-6">
+            {t("dossierHook")}
+          </p>
+
+          <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto">
+            {edition.isAvailableToOrder && (
+              <div className="flex flex-col items-center text-center gap-3 p-4 border border-gray-200 dark:border-gray-700">
+                <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-snug">
+                  {t("dossierBuyHint")}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleBuy}
+                  className="group mt-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 w-full bg-red-600 text-white font-bold text-sm sm:text-base uppercase tracking-wide shadow-lg hover:bg-red-700 transition-all duration-200 hover:-translate-y-0.5"
+                >
+                  {justAdded ? (
+                    <>
+                      <FaCheck className="w-4 h-4" />
+                      {t("added")}
+                    </>
+                  ) : (
+                    <>
+                      <FaShoppingCart className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      {inCart ? t("orderMoreButton") : t("orderButton")}
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-col items-center text-center gap-3 p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-[13px] text-gray-600 dark:text-gray-400 leading-snug">
+                {t("dossierAboHint")}
+              </p>
+              <Link
+                href={`/${locale}/order/digital-abo`}
+                className="mt-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 w-full bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 font-bold text-sm sm:text-base uppercase tracking-wide border-2 border-red-600 dark:border-red-400 shadow-sm hover:bg-red-50 dark:hover:bg-gray-700 transition-all duration-200 hover:-translate-y-0.5"
+              >
+                <FaTabletAlt className="w-4 h-4" />
+                {t("aboButton")}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-12 mb-4 overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md">
@@ -164,41 +263,7 @@ export default function ArticleDossierCTA({ edition, currentArticleId }) {
       </div>
 
       {/* Cuerpo blanco */}
-      <div className="bg-white dark:bg-gray-900 p-5 sm:p-7">
-        <p className="text-base sm:text-xl font-bold text-gray-900 dark:text-gray-100 text-center leading-snug mb-5 sm:mb-7">
-          {t("hook")}
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          {edition.isAvailableToOrder && (
-            <button
-              type="button"
-              onClick={handleBuy}
-              className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-red-600 text-white font-bold text-sm sm:text-base uppercase tracking-wide shadow-lg hover:bg-red-700 transition-all duration-200 hover:-translate-y-0.5"
-            >
-              {justAdded ? (
-                <>
-                  <FaCheck className="w-4 h-4" />
-                  {t("added")}
-                </>
-              ) : (
-                <>
-                  <FaShoppingCart className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  {inCart ? t("orderMoreButton") : t("orderButton")}
-                </>
-              )}
-            </button>
-          )}
-
-          <Link
-            href={`/${locale}/order/abo`}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 font-bold text-sm sm:text-base uppercase tracking-wide border-2 border-red-600 dark:border-red-400 shadow-sm hover:bg-red-50 dark:hover:bg-gray-700 transition-all duration-200 hover:-translate-y-0.5"
-          >
-            <FaTabletAlt className="w-4 h-4" />
-            {t("aboButton")}
-          </Link>
-        </div>
-      </div>
+      {body}
     </section>
   );
 }
