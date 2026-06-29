@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
-// Dossiers (editions) relacionados a uno dado. Espejo de /api/articles/related
-// (modo rail): 1º región compartida, luego ranking por nº de temas (topics)
-// compartidos; si faltan, se completa con dossiers que comparten solo temas.
-// Solo devuelve dossiers CON portada (la UI es un carrusel de portadas).
+// Dossiers (editions) relacionados a uno dado. Híbrido (opción B): el
+// etiquetado a nivel Edition es flojo, pero los ARTÍCULOS están muy bien
+// taggeados. Por eso la señal de regiones/temas se agrega de los artículos del
+// dossier (más las del propio Edition) de AMBOS lados — origen y candidatos.
+// Scoring: región pesa 2, tema pesa 1. Solo dossiers con portada.
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const editionId = parseInt(searchParams.get("editionId"), 10);
@@ -16,13 +17,31 @@ export async function GET(req) {
     });
   }
 
+  // Une las regiones/temas del propio Edition + las de todos sus artículos.
+  const aggregate = (edition) => {
+    const regionMap = new Map(); // id → name (para mostrar)
+    const topicSet = new Set();
+    edition.regions.forEach((r) => regionMap.set(r.id, r.name));
+    edition.topics.forEach((t) => topicSet.add(t.id));
+    (edition.articles || []).forEach((a) => {
+      a.regions.forEach((r) => regionMap.set(r.id, r.name));
+      a.topics.forEach((t) => topicSet.add(t.id));
+    });
+    return { regionMap, topicSet };
+  };
+
   try {
+    const tagSelect = {
+      regions: { select: { id: true, name: true } },
+      topics: { select: { id: true } },
+    };
+
     const current = await prisma.edition.findUnique({
       where: { id: editionId },
       select: {
         id: true,
-        regions: { select: { id: true } },
-        topics: { select: { id: true } },
+        ...tagSelect,
+        articles: { select: tagSelect },
       },
     });
 
@@ -33,86 +52,87 @@ export async function GET(req) {
       });
     }
 
-    const regionIds = current.regions.map((r) => r.id);
-    const topicIds = current.topics.map((t) => t.id);
-    const topicSet = new Set(topicIds);
+    const { regionMap: srcRegions, topicSet: srcTopics } = aggregate(current);
+    const regionIds = [...srcRegions.keys()];
+    const topicIds = [...srcTopics];
 
-    const baseWhere = {
-      id: { not: editionId },
-      coverImage: { not: null },
-    };
-
-    const selectFields = {
-      id: true,
-      number: true,
-      title: true,
-      titleES: true,
-      subtitle: true,
-      subtitleES: true,
-      isTranslatedES: true,
-      coverImage: true,
-      datePublished: true,
-      regions: { select: { id: true, name: true } },
-      topics: { select: { id: true } },
-    };
-
-    // Candidatos por región (relación primaria), rankeados por temas en común.
-    const regionPool = regionIds.length
-      ? await prisma.edition.findMany({
-          where: { ...baseWhere, regions: { some: { id: { in: regionIds } } } },
-          select: selectFields,
-          orderBy: { datePublished: "desc" },
-          take: 40,
-        })
-      : [];
-
-    const scored = regionPool
-      .map((e) => ({
-        edition: e,
-        sharedTopics: e.topics.filter((t) => topicSet.has(t.id)).length,
-      }))
-      .sort((x, y) => {
-        if (y.sharedTopics !== x.sharedTopics)
-          return y.sharedTopics - x.sharedTopics;
-        const dx = x.edition.datePublished
-          ? new Date(x.edition.datePublished).getTime()
-          : 0;
-        const dy = y.edition.datePublished
-          ? new Date(y.edition.datePublished).getTime()
-          : 0;
-        return dy - dx;
-      })
-      .map((s) => s.edition);
-
-    let selected = scored.slice(0, limit);
-
-    // Completar con dossiers que comparten solo temas, si faltan.
-    if (selected.length < limit && topicIds.length) {
-      const excludeIds = new Set([editionId, ...selected.map((e) => e.id)]);
-      const topicPool = await prisma.edition.findMany({
-        where: {
-          ...baseWhere,
-          id: { notIn: Array.from(excludeIds) },
-          topics: { some: { id: { in: topicIds } } },
-        },
-        select: selectFields,
-        orderBy: { datePublished: "desc" },
-        take: limit - selected.length,
+    if (!regionIds.length && !topicIds.length) {
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       });
-      selected = [...selected, ...topicPool];
     }
 
-    const result = selected.map((e) => ({
-      id: e.id,
-      number: e.number,
-      title: e.title,
-      titleES: e.titleES,
-      subtitle: e.subtitle,
-      subtitleES: e.subtitleES,
-      isTranslatedES: e.isTranslatedES,
-      coverImage: e.coverImage,
-      datePublished: e.datePublished,
-      regions: e.regions,
+    // Candidatos: dossiers (con portada) cuyas regiones/temas — propios o de sus
+    // artículos — intersecan con los del origen. Pool acotado y reciente.
+    const candidates = await prisma.edition.findMany({
+      where: {
+        id: { not: editionId },
+        coverImage: { not: null },
+        OR: [
+          { regions: { some: { id: { in: regionIds } } } },
+          { topics: { some: { id: { in: topicIds } } } },
+          { articles: { some: { regions: { some: { id: { in: regionIds } } } } } },
+          { articles: { some: { topics: { some: { id: { in: topicIds } } } } } },
+        ],
+      },
+      select: {
+        id: true,
+        number: true,
+        title: true,
+        titleES: true,
+        subtitle: true,
+        subtitleES: true,
+        isTranslatedES: true,
+        coverImage: true,
+        datePublished: true,
+        ...tagSelect,
+        articles: { select: tagSelect },
+      },
+      orderBy: { datePublished: "desc" },
+      take: 80,
+    });
+
+    const scored = candidates
+      .map((c) => {
+        const { regionMap, topicSet } = aggregate(c);
+        let sharedRegions = 0;
+        for (const id of regionMap.keys()) if (srcRegions.has(id)) sharedRegions++;
+        let sharedTopics = 0;
+        for (const id of topicSet) if (srcTopics.has(id)) sharedTopics++;
+        // Región para mostrar: una propia compartida, o la primera agregada.
+        const displayRegion =
+          [...regionMap.entries()].find(([id]) => srcRegions.has(id)) ||
+          [...regionMap.entries()][0] ||
+          null;
+        return {
+          c,
+          score: sharedRegions * 2 + sharedTopics,
+          displayRegion: displayRegion
+            ? { id: displayRegion[0], name: displayRegion[1] }
+            : null,
+        };
+      })
+      .filter((s) => s.score > 0)
+      .sort((x, y) => {
+        if (y.score !== x.score) return y.score - x.score;
+        const dx = x.c.datePublished ? new Date(x.c.datePublished).getTime() : 0;
+        const dy = y.c.datePublished ? new Date(y.c.datePublished).getTime() : 0;
+        return dy - dx;
+      })
+      .slice(0, limit);
+
+    const result = scored.map(({ c, displayRegion }) => ({
+      id: c.id,
+      number: c.number,
+      title: c.title,
+      titleES: c.titleES,
+      subtitle: c.subtitle,
+      subtitleES: c.subtitleES,
+      isTranslatedES: c.isTranslatedES,
+      coverImage: c.coverImage,
+      datePublished: c.datePublished,
+      regions: displayRegion ? [displayRegion] : [],
     }));
 
     return new Response(JSON.stringify(result), {

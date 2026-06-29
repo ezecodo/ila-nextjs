@@ -49,6 +49,13 @@ function speechFriendly(text, lang) {
       const ord = DE_ORDINALS[parseInt(d, 10)];
       return ord ? `${ord} ${month}` : m;
     });
+    // Lenguaje inclusivo: Gendersternchen / Doppelpunkt / Gender-Gap
+    // ("Migrant*innen", "Kolleg:innen", "Mitarbeiter_innen"). La voz lee el
+    // símbolo ("Stern"…). Al reemplazarlo por un espacio, el motor pronuncia
+    // el sufijo (vocal inicial) con su golpe de glotis → la pausa de género
+    // correcta. Exige letra antes y minúscula inmediatamente después, así no
+    // toca horas ("14:30") ni URLs ("http://").
+    out = out.replace(/(\p{L})[*:_](?=\p{Ll})/gu, "$1 ");
   }
   return out;
 }
