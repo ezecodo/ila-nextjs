@@ -319,6 +319,34 @@ export default function MiPaginaDashboard() {
 - Si el artículo estaba `approved` y cambian campos ES o `imageTranslations` sin re-aprobar → fuerza `approved` y marca `editedAfterReview: true`
 - Caso `imageTranslationsOnly: true` → solo actualiza `Image.titleES`/`altES` (no toca estado), pero también marca `editedAfterReview` si el artículo estaba aprobado
 
+## Open Graph / previews al compartir (WhatsApp, redes)
+
+Las páginas que renderizan contenido son **client components** (`"use client"`), por lo que **no pueden exportar `metadata`/`generateMetadata`**. Sin metadata, WhatsApp y redes scrapean la URL y no encuentran imagen → preview sin portada.
+
+**Patrón**: crear un `layout.js` server-component en el mismo segmento que reexporta un `generateMetadata` (en archivo aparte) y deja pasar `children`. Implementado en:
+- `ausgaben/[...legacyPath]/` — artículos de edición (ya existía)
+- `online/[...legacyPath]/` — artículos online → `og:image` = primera imagen del artículo, fallback a portada de la edición, luego `default-og.png`
+- `editions/[id]/` — página editorial/inhalt del dossier → `og:image` = `edition.coverImage`
+
+Notas:
+- `coverImage` y las imágenes ya se guardan como **URL absoluta** (`https://www.ila-web.de/api/media/...` o Cloudinary) → sirven directo para `og:image`.
+- Respetar locale: usar campos ES (`titleES`/`subtitleES`/`summaryES`) solo si `isTranslatedES`.
+- **No se ve en localhost** (WhatsApp no puede scrapearlo) y **WhatsApp cachea agresivo** el preview de una URL ya compartida — para testear, usar otra URL tras deployar.
+
+## Escuchar artículos (TTS) — `components/ArticleListen/`
+
+Motor de Text-to-Speech con la Web Speech API del navegador. Disparador en la ShareBar; corre en `ArticleListenProvider.jsx` + `useArticleTTS.js`. Resalta párrafo + palabra mientras lee. Gating: super-admin (`e.zeangeloni@gmail.com`) siempre; el resto según feature flags. Ver también el "Cuarto" (`/dashboard/cuarto`) como laboratorio del experimento.
+
+### Afinado de pronunciación (`speechFriendly`)
+La voz pronuncia mal ciertos fragmentos; se corrigen caso por caso en `speechFriendly(text, lang)` (en `ArticleListenProvider.jsx`). Casos resueltos:
+- `ila`/`ILA` → `Ila` (evita deletreo i-l-a)
+- "y" española suelta en texto alemán (`\by\b`) → `i` (nombres como "El perro y el gato" suenan "ee" en vez de "Ypsilon")
+- fechas alemanas `1. Oktober` → `erste Oktober` (mapa de ordinales 1–31 + meses; usa forma base `-e`)
+
+### Arquitectura clave (no romper)
+- El texto que se **habla** está separado del que mide el **resaltado**: `tts.play(blocks, transformFn)` recibe los bloques **originales del DOM** (para calcular offsets de palabra) y aplica `transformFn` **solo al crear el `SpeechSynthesisUtterance`**. Por eso las sustituciones pueden cambiar de largo sin desalinear el highlight — **no volver al diseño viejo length-preserving**.
+- La segmentación en oraciones (`buildSegments` en `useArticleTTS.js`) **no corta tras un `.` precedido por dígito** (ordinales/fechas `1.`, decimales `3.14`); sin esto la fecha se parte en dos segmentos y no se puede convertir a ordinal.
+
 ## ⚠️ Archivos que NUNCA se deben modificar
 
 - `src/middleware.js`
