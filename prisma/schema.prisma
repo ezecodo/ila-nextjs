@@ -694,3 +694,13 @@ enum ActivityAction {
   ASSIGN_TRANSLATOR
   ACTIVATE_PDF_ABO
 }
+
+// Tabla key-value genérica para settings/flags de la app (ej. flags de
+// experimentos del "Cuarto"). Cada feature guarda su propia `key` con un
+// `value` JSON libre — reutilizable sin volver a tocar el schema.
+model AppSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}

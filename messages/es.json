@@ -635,7 +635,8 @@
     "digitalAboTooltip": "Te lleva al modo Digitalabo: tus artículos favoritos, crear PDFs y, sobre todo, darme tu feedback.",
     "digitalAboTooltipSignoff": "Un abrazo, Eze",
     "mapItem": "GLOBila (beta)",
-    "mapTooltip": "Globo interactivo experimental con los artículos por país. Para probar — se agradece feedback."
+    "mapTooltip": "Globo interactivo experimental con los artículos por país. Para probar — se agradece feedback.",
+    "cuarto": "Cuarto"
   },
   "redaktion": {
     "title": "Redacción",

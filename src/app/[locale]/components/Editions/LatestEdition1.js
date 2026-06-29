@@ -1195,7 +1195,7 @@ export default function LatestEditionWithArticles() {
                   <>
                     <div className="flex items-start mb-2">
                       <div className="shrink-0 leading-none">
-                        <span className="inline-block bg-[#BD0E0D] text-white px-3 py-1 font-futura font-bold text-lg leading-none">
+                        <span className="inline-block bg-[#BD0E0D] text-white px-3 py-1.5 font-futura font-bold text-sm">
                           ila {currentEdition.number}
                         </span>
                       </div>

@@ -8,29 +8,36 @@ import {
   FaLink,
   FaPrint,
   FaEdit,
+  FaHeadphones,
+  FaPause,
+  FaBookOpen,
 } from "react-icons/fa";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
+import { useArticleListen } from "../ArticleListen/ArticleListenProvider";
 import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-/** Item con tooltip (solo desktop) - ESTILO ROJO SÓLIDO */
-function ShareItem({ children, label, title }) {
+/** Item con tooltip (solo desktop). tone: "red" (compartir) | "green" (lectura/escucha) */
+function ShareItem({ children, label, title, tone = "red" }) {
+  const green = tone === "green";
+  const circle = green
+    ? "bg-white text-[#89B881] border-2 border-[#89B881] hover:bg-[#89B881] hover:text-white"
+    : "bg-[#cc0000] text-white hover:bg-[#a30000]";
+  const tip = green ? "bg-[#89B881]" : "bg-[#cc0000]";
   return (
     <div className="relative group hidden md:block">
-      {/* 🎨 CAMBIO: Fondo rojo sólido, texto blanco y sombra para impacto visual */}
       <div
-        className="bg-[#cc0000] text-white p-2.5 rounded-full hover:bg-[#a30000] transition-all shadow-md hover:shadow-lg cursor-pointer"
+        className={`${circle} p-2.5 rounded-full transition-all shadow-md hover:shadow-lg cursor-pointer`}
         title={title}
         aria-label={label}
       >
         {children}
       </div>
-      {/* Tooltip mejorado */}
       <span
-        className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3
-                   whitespace-nowrap rounded bg-[#cc0000] text-white text-xs font-bold px-3 py-1.5
-                   opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-50"
+        className={`pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3
+                   whitespace-nowrap rounded ${tip} text-white text-xs font-bold px-3 py-1.5
+                   opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-50`}
         role="tooltip"
       >
         {label}
@@ -48,9 +55,24 @@ export default function ShareBar({
   articleId,
   align = "center",
   className = "",
+  onReadingMode,
+  showReadingMode = false,
+  readingModeLabel = "",
 }) {
   const t = useTranslations("ShareBar");
   const locale = useLocale();
+  const listen = useArticleListen();
+  const listenLabel = listen?.isPlaying
+    ? listen.isDE
+      ? "Pause"
+      : "Pausa"
+    : listen?.isPaused
+      ? listen.isDE
+        ? "Weiter"
+        : "Seguir"
+      : listen?.isDE
+        ? "Anhören"
+        : "Escuchar";
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [left, setLeft] = useState("8px");
@@ -147,6 +169,59 @@ export default function ShareBar({
         style={{ top: computedTop, left }}
         aria-label={t("ariaShare")}
       >
+        {/* Escuchar (TTS) — destacado en verde. Al activar la escucha, el hover
+            sobre el ícono abre el reproductor (velocidad, voz, progreso). */}
+        {listen?.canListen && (
+          <div className="relative group hidden md:block">
+            <button
+              onClick={listen.toggle}
+              className="bg-white text-[#89B881] border-2 border-[#89B881] hover:bg-[#89B881] hover:text-white p-2.5 rounded-full transition-all shadow-md hover:shadow-lg cursor-pointer"
+              title={listenLabel}
+              aria-label={listenLabel}
+            >
+              {listen.isPlaying ? (
+                <FaPause size={18} />
+              ) : (
+                <FaHeadphones size={20} />
+              )}
+            </button>
+
+            {/* Tooltip (cuando la escucha no está activa) */}
+            {!listen.active && (
+              <span
+                className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3
+                           whitespace-nowrap rounded bg-[#89B881] text-white text-xs font-bold px-3 py-1.5
+                           opacity-0 group-hover:opacity-100 transition-opacity shadow-md z-50"
+                role="tooltip"
+              >
+                {listenLabel}
+              </span>
+            )}
+
+            {/* Reproductor (hover, escucha activa) */}
+            {listen.active && listen.controls && (
+              <div className="absolute left-full top-1/2 -translate-y-1/2 pl-3 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                <div className="w-80 border border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur shadow-xl rounded-none px-4 py-3">
+                  {listen.controls}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Modo lectura — destacado en verde */}
+        {showReadingMode && onReadingMode && (
+          <button onClick={onReadingMode} className="hidden md:block">
+            <ShareItem
+              tone="green"
+              label={readingModeLabel}
+              title={readingModeLabel}
+            >
+              <FaBookOpen size={18} />
+            </ShareItem>
+          </button>
+        )}
+
         {/* Favorito */}
         {articleId != null && (
           <ShareItem label={t("favorite")} title={t("favorite")}>
@@ -234,6 +309,32 @@ export default function ShareBar({
       {/* Mobile */}
       <div className="fixed bottom-0 left-0 right-0 w-screen overflow-x-hidden bg-[#BD0E0D] text-white z-50 md:hidden print:hidden">
         <div className="flex justify-around items-center py-2">
+          {listen?.canListen && (
+            <button
+              onClick={listen.toggle}
+              className="bg-[#89B881] p-1.5 rounded-full transition-colors"
+              title={listenLabel}
+              aria-label={listenLabel}
+            >
+              {listen.isPlaying ? (
+                <FaPause size={18} />
+              ) : (
+                <FaHeadphones size={18} />
+              )}
+            </button>
+          )}
+
+          {showReadingMode && onReadingMode && (
+            <button
+              onClick={onReadingMode}
+              className="bg-[#89B881] p-1.5 rounded-full transition-colors"
+              title={readingModeLabel}
+              aria-label={readingModeLabel}
+            >
+              <FaBookOpen size={18} />
+            </button>
+          )}
+
           {articleId != null && (
             <div className="hover:bg-white/10 p-1.5 rounded-full transition-colors cursor-pointer">
               <FavoriteButton articleId={articleId} variant="icon" />

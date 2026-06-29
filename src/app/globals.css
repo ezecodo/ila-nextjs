@@ -356,6 +356,18 @@ body {
   white-space: pre-wrap;
 }
 
+/* Resaltado del bloque que está leyendo el TTS ("Escuchar"). */
+/* La regla ::highlight(tts-word) para la palabra exacta se inyecta en runtime
+   desde ArticleListenProvider (Turbopack no parsea ::highlight() en el CSS). */
+.tts-reading {
+  background-color: rgba(189, 14, 13, 0.08);
+  box-shadow: -4px 0 0 0 #bd0e0d;
+  border-radius: 2px;
+  padding-left: 0.75rem;
+  transition: background-color 0.25s ease;
+  scroll-margin-top: 6rem;
+}
+
 .article-content p {
   margin-bottom: 1rem;
 }

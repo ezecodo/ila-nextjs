@@ -2,7 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+
+// El "Cuarto" (laboratorio de experimentos) es privado: solo este email lo ve.
+const SUPER_ADMIN_EMAIL = "e.zeangeloni@gmail.com";
 
 import {
   FaFileAlt,
@@ -19,6 +23,7 @@ import {
   FaChartBar,
   FaBookOpen,
   FaGlobeAmericas,
+  FaDoorOpen,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -28,6 +33,8 @@ const DashboardStats = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const t = useTranslations("stats");
   const fullPathname = usePathname();
+  const { data: session } = useSession();
+  const isSuperAdmin = session?.user?.email === SUPER_ADMIN_EMAIL;
 
   const pathname = fullPathname?.replace(/^\/(de|es)/, "") || fullPathname;
 
@@ -331,6 +338,17 @@ const DashboardStats = () => {
           </div>
         </Link>
 
+        {/* Cuarto (experimentos) — privado, solo super admin */}
+        {isSuperAdmin && (
+          <StatCard
+            icon={<FaDoorOpen size={18} />}
+            label={t("cuarto")}
+            value=""
+            href="/dashboard/cuarto"
+            pathname={pathname}
+          />
+        )}
+
         {/* FAQ */}
         <StatCard
           icon={<FaQuestionCircle size={18} />}
@@ -593,6 +611,17 @@ const DashboardStats = () => {
                   </span>
                 </span>
               </Link>
+              {isSuperAdmin && (
+                <Link
+                  href="/dashboard/cuarto"
+                  className={mobileLinkClass("/dashboard/cuarto")}
+                  onClick={closeMobile}
+                >
+                  <span className="flex items-center gap-2">
+                    <FaDoorOpen size={14} /> {t("cuarto")}
+                  </span>
+                </Link>
+              )}
               <Link
                 href="/dashboard/faq"
                 className={mobileLinkClass("/dashboard/faq")}

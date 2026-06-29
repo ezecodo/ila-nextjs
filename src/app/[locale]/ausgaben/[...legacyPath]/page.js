@@ -14,6 +14,7 @@ import DonationInlineBanner from "../../components/DonationInlineBanner/Donation
 import ArticleDossierCTA from "../../components/ArticleDossierCTA/ArticleDossierCTA";
 import RelatedArticles from "../../components/RelatedArticles/RelatedArticles";
 import ReadingMode from "../../components/ReadingMode/ReadingMode";
+import { ArticleListenProvider } from "../../components/ArticleListen/ArticleListenProvider";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
@@ -335,8 +336,20 @@ export default function LegacyArticlePage() {
         }}
       />
 
-      <main className="max-w-4xl lg:max-w-7xl mx-auto lg:mr-0 px-4 py-6 md:px-6">
-        {!isAdmin && <DonationPopUp articleId={article.id} />}
+      <ArticleListenProvider
+        isAdmin={isAdmin}
+        hasPdfAbo={hasPdfAbo}
+        role={session?.user?.role}
+        email={session?.user?.email}
+        lang={showES ? "es" : "de"}
+        title={showES ? article.titleES : article.title}
+        subtitle={showES ? article.subtitleES : article.subtitle}
+        content={
+          showES && article.contentES ? article.contentES : article.content
+        }
+      >
+        <main className="max-w-4xl lg:max-w-7xl mx-auto lg:mr-0 px-4 py-6 md:px-6">
+          {!isAdmin && <DonationPopUp articleId={article.id} />}
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 lg:items-start">
         <article itemScope itemType="https://schema.org/Article">
@@ -364,6 +377,7 @@ export default function LegacyArticlePage() {
             <h1
               className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 dark:text-white mb-4 break-words"
               itemProp="headline"
+              data-tts="title"
             >
               {showES ? article.titleES : article.title}
             </h1>
@@ -392,34 +406,16 @@ export default function LegacyArticlePage() {
 
             {/* SUBTITULO */}
             {(showES ? article.subtitleES : article.subtitle) && (
-              <h2 className="text-lg md:text-xl font-light italic text-gray-600 dark:text-gray-300 mb-8">
+              <h2
+                className="text-lg md:text-xl font-light italic text-gray-600 dark:text-gray-300 mb-8"
+                data-tts="subtitle"
+              >
                 {showES ? article.subtitleES : article.subtitle}
               </h2>
             )}
 
-            {/* Modo lectura — solo para suscriptores con Digital ABO */}
-            {hasPdfAbo && (
-              <button
-                onClick={() => setReaderOpen(true)}
-                className="inline-flex items-center gap-2 mb-6 px-4 py-2 text-sm font-semibold text-[#BD0E0D] border border-[#BD0E0D] hover:bg-[#BD0E0D] hover:text-white transition-colors"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  />
-                </svg>
-                {t("readingMode")}
-              </button>
-            )}
+            {/* Modo lectura y Escucha (TTS) ahora viven en la ShareBar
+                izquierda — destacados en verde. */}
           </div>
 
           {/* VORSPANN / STANDFIRST */}
@@ -427,6 +423,7 @@ export default function LegacyArticlePage() {
             <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
               <div
                 className="article-content text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
+                data-tts="vorspann"
                 dangerouslySetInnerHTML={{
                   __html: rewriteEditionLinksWithLocale(
                     showES && article.previewTextES
@@ -806,8 +803,12 @@ export default function LegacyArticlePage() {
           contentMaxWidth={1280} // max-w-7xl (grid con rail derecho)
           gapFromContent={48}
           align="right" // el bloque va pegado al margen derecho en desktop
+          onReadingMode={() => setReaderOpen(true)}
+          showReadingMode={hasPdfAbo}
+          readingModeLabel={t("readingMode")}
         />
-      </main>
+        </main>
+      </ArticleListenProvider>
     </>
   );
 }

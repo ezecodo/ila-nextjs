@@ -13,6 +13,7 @@ import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
 import DonationInlineBanner from "../../components/DonationInlineBanner/DonationInlineBanner";
 import ArticleDossierCTA from "../../components/ArticleDossierCTA/ArticleDossierCTA";
 import RelatedArticles from "../../components/RelatedArticles/RelatedArticles";
+import { ArticleListenProvider } from "../../components/ArticleListen/ArticleListenProvider";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
@@ -287,8 +288,19 @@ export default function LegacyArticlePage() {
         }}
       />
 
-      <main className="max-w-4xl lg:max-w-7xl mx-auto p-6">
-        {!isAdmin && <DonationPopUp articleId={article.id} />}
+      <ArticleListenProvider
+        isAdmin={isAdmin}
+        role={session?.user?.role}
+        email={session?.user?.email}
+        lang={showES ? "es" : "de"}
+        title={showES ? article.titleES : article.title}
+        subtitle={showES ? article.subtitleES : article.subtitle}
+        content={
+          showES && article.contentES ? article.contentES : article.content
+        }
+      >
+        <main className="max-w-4xl lg:max-w-7xl mx-auto p-6">
+          {!isAdmin && <DonationPopUp articleId={article.id} />}
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 lg:items-start">
         <article itemScope itemType="https://schema.org/Article">
@@ -316,16 +328,22 @@ export default function LegacyArticlePage() {
             <h1
               className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 dark:text-white mb-4 break-words"
               itemProp="headline"
+              data-tts="title"
             >
               {showES ? article.titleES : article.title}
             </h1>
 
             {/* SUBTITULO */}
             {(showES ? article.subtitleES : article.subtitle) && (
-              <h2 className="text-lg md:text-xl font-light italic text-gray-600 dark:text-gray-300 mb-8">
+              <h2
+                className="text-lg md:text-xl font-light italic text-gray-600 dark:text-gray-300 mb-8"
+                data-tts="subtitle"
+              >
                 {showES ? article.subtitleES : article.subtitle}
               </h2>
             )}
+
+            {/* Escucha (TTS) ahora vive en la ShareBar izquierda. */}
           </div>
 
           {/* VORSPANN / STANDFIRST */}
@@ -333,6 +351,7 @@ export default function LegacyArticlePage() {
             <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
               <div
                 className="article-content text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
+                data-tts="vorspann"
                 dangerouslySetInnerHTML={{
                   __html: rewriteEditionLinksWithLocale(
                     showES && article.previewTextES
@@ -674,7 +693,8 @@ export default function LegacyArticlePage() {
           contentMaxWidth={1280} // max-w-7xl (grid con rail derecho)
           gapFromContent={16}
         />
-      </main>
+        </main>
+      </ArticleListenProvider>
     </>
   );
 }
