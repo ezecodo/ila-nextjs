@@ -110,6 +110,17 @@ export default function ShareBar({
     if (typeof window === "undefined") return;
     const computeLeft = () => {
       const barWidth = 52;
+      if (align === "rightOuter") {
+        // Contenedor centrado pero la barra va en el margen DERECHO (el margen
+        // izquierdo está ocupado por otro contenido, p. ej. portadas de dossiers).
+        const rightEdge = (window.innerWidth + contentMaxWidth) / 2;
+        const desired = Math.min(
+          window.innerWidth - barWidth - 8,
+          rightEdge + gapFromContent,
+        );
+        setLeft(`${desired}px`);
+        return;
+      }
       // Si el bloque está pegado a la derecha, todo el gutter queda a la izquierda;
       // si está centrado, el gutter se reparte en dos.
       const gutter =

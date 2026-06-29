@@ -7,6 +7,8 @@ import Image from "next/image";
 import CartButton from "../../components/CartButton/CartButton";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import MiniArticleCardGrid from "../../components/Articles/MiniArticleCardGrid";
+import ShareBar from "../../components/ShareBar/ShareBar";
+import { ArticleListenProvider } from "../../components/ArticleListen/ArticleListenProvider";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 
@@ -1066,11 +1068,32 @@ export default function EditionDetails() {
   }
 
   return (
+    <ArticleListenProvider
+      isAdmin={isAdmin}
+      role={session?.user?.role}
+      email={session?.user?.email}
+      lang={locale}
+      title={titleToShow}
+      subtitle={subtitleToShow}
+      content={summaryToShow}
+    >
     <div className="max-w-6xl mx-auto p-6">
+      <ShareBar
+        title={`ila ${edition.number} — ${titleToShow}`}
+        contentMaxWidth={1152}
+        gapFromContent={120}
+        align="center"
+        anchorSelector="#dossier-start"
+      />
+      <div id="dossier-start" />
       <div className="mb-8">
-        <div className="float-left mr-6 mb-4 w-full md:w-1/3">
-          {/* Portada activa + vecinas (navegación entre dossiers) */}
-          <div className="relative mx-auto w-full max-w-xs">
+        <div className="mx-auto mb-6 w-[380px] max-w-[96%] md:float-left md:mx-0 md:mr-24 md:w-[32%] md:max-w-none lg:w-[27%]">
+          {/* Componente de navegación entre dossiers. El bloque flotado mide
+              casi lo mismo que la portada activa, así el editorial se pega a su
+              borde. La vecina anterior sale al margen izquierdo (libre) y la
+              siguiente asoma como un "lomo" dentro del gutter (mr-8), sin pisar
+              el texto. En mobile las vecinas se ocultan (evita overflow). */}
+          <div className="relative w-full">
             {/* Anterior (más vieja) — asoma a la izquierda, detrás */}
             {olderEdition && (
               <button
@@ -1079,23 +1102,23 @@ export default function EditionDetails() {
                 onMouseEnter={() => prefetchEdition(olderEdition.id)}
                 onFocus={() => prefetchEdition(olderEdition.id)}
                 aria-label={`ila ${olderEdition.number}`}
-                className="group absolute left-0 top-1/2 z-0 w-3/4 -translate-x-6 -translate-y-1/2"
+                className="group absolute left-0 top-1/2 z-0 hidden w-[52%] -translate-x-[45%] -translate-y-1/2 hover:z-20 md:block"
               >
                 <Image
                   src={olderEdition.coverImage}
                   alt={`ila ${olderEdition.number}`}
-                  width={200}
-                  height={267}
-                  className="block w-full h-auto rounded object-cover shadow-lg -rotate-3 transition-transform duration-300 group-hover:-translate-x-1.5"
+                  width={240}
+                  height={320}
+                  className="block w-full h-auto rounded object-cover shadow-xl -rotate-3 opacity-50 grayscale-[0.45] transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0 group-hover:-rotate-6"
                 />
                 <span className="absolute inset-0 flex items-center justify-start pl-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <span className="rounded-full bg-white/90 dark:bg-gray-800/90 p-1.5 shadow-lg text-[#BD0E0D]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </span>
                 </span>
-                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-[10px] font-futura font-bold px-1.5 py-0.5 shadow">
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-[10px] font-futura font-bold px-1.5 py-0.5 shadow whitespace-nowrap">
                   ila {olderEdition.number}
                 </span>
               </button>
@@ -1109,23 +1132,23 @@ export default function EditionDetails() {
                 onMouseEnter={() => prefetchEdition(newerEdition.id)}
                 onFocus={() => prefetchEdition(newerEdition.id)}
                 aria-label={`ila ${newerEdition.number}`}
-                className="group absolute right-0 top-1/2 z-0 w-3/4 translate-x-6 -translate-y-1/2"
+                className="group absolute right-0 top-1/2 z-0 hidden w-[52%] translate-x-[45%] -translate-y-1/2 hover:z-20 md:block"
               >
                 <Image
                   src={newerEdition.coverImage}
                   alt={`ila ${newerEdition.number}`}
-                  width={200}
-                  height={267}
-                  className="block w-full h-auto rounded object-cover shadow-lg rotate-3 transition-transform duration-300 group-hover:translate-x-1.5"
+                  width={240}
+                  height={320}
+                  className="block w-full h-auto rounded object-cover shadow-xl rotate-3 opacity-50 grayscale-[0.45] transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0 group-hover:rotate-6"
                 />
                 <span className="absolute inset-0 flex items-center justify-end pr-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <span className="rounded-full bg-white/90 dark:bg-gray-800/90 p-1.5 shadow-lg text-[#BD0E0D]">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </span>
                 </span>
-                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-[10px] font-futura font-bold px-1.5 py-0.5 shadow">
+                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#BD0E0D] text-white text-[10px] font-futura font-bold px-1.5 py-0.5 shadow whitespace-nowrap">
                   ila {newerEdition.number}
                 </span>
               </button>
@@ -1145,6 +1168,33 @@ export default function EditionDetails() {
                 className="rounded shadow-md w-full"
               />
             </div>
+
+            {/* Navegación entre dossiers en mobile: flechas a los lados de la
+                portada (en desktop se usan las vecinas que asoman detrás). */}
+            {olderEdition && (
+              <button
+                type="button"
+                onClick={() => goToEdition(olderEdition.id)}
+                aria-label={`ila ${olderEdition.number}`}
+                className="md:hidden absolute left-0 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/90 dark:bg-gray-900/90 text-[#BD0E0D] shadow-lg active:scale-95 transition-transform"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
+            {newerEdition && (
+              <button
+                type="button"
+                onClick={() => goToEdition(newerEdition.id)}
+                aria-label={`ila ${newerEdition.number}`}
+                className="md:hidden absolute right-0 top-1/2 z-20 translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full bg-white/90 dark:bg-gray-900/90 text-[#BD0E0D] shadow-lg active:scale-95 transition-transform"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
           </div>
           {edition.regions.length > 0 && (
             <div className="badgesContainer mt-2">
@@ -1165,27 +1215,31 @@ export default function EditionDetails() {
             </div>
           )}
           {edition.isAvailableToOrder && (
-            <CartButton
-              onClick={() => {}}
-              className="mt-2"
-            />
+            <CartButton onClick={() => {}} className="mt-2" />
           )}
         </div>
+
         <div
           className={`overflow-hidden transition-opacity duration-300 ${
             isSwapping ? "opacity-0" : "opacity-100"
           }`}
         >
-          <h1 className="text-3xl md:text-4xl mb-4 leading-snug">
+          <h1 className="text-3xl md:text-4xl mb-4 leading-snug break-words">
             <span className="font-futura font-bold text-gray-800 dark:text-gray-200">
               ila {edition.number}
             </span>{" "}
-            <span className="font-bold text-red-800 dark:text-red-400">
+            <span
+              data-tts="title"
+              className="font-bold text-red-800 dark:text-red-400"
+            >
               {titleToShow}
             </span>
           </h1>
           {subtitleToShow && (
-            <p className="text-lg text-gray-600 dark:text-gray-400 italic mb-4">
+            <p
+              data-tts="subtitle"
+              className="text-lg text-gray-600 dark:text-gray-400 italic mb-4"
+            >
               {subtitleToShow}
             </p>
           )}
@@ -1238,6 +1292,7 @@ export default function EditionDetails() {
         </div>
 
         <div
+          itemProp="articleBody"
           className={`article-content edition-editorial text-lg md:text-xl leading-normal text-gray-800 dark:text-gray-200 transition-opacity duration-300 ${
             isSwapping ? "opacity-0" : "opacity-100"
           }`}
@@ -1336,5 +1391,6 @@ export default function EditionDetails() {
         </div>
       )}
     </div>
+    </ArticleListenProvider>
   );
 }

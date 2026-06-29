@@ -233,7 +233,97 @@ export default function MiniArticleCardGrid({
     );
   }
 
-  /* =================== HORIZONTAL / CUADRADA / SIN IMAGEN =================== */
+  /* =================== SIN IMAGEN — PORTADA DE TEXTO (rojo ila) =================== */
+  if (!hasImage) {
+    return (
+      <article
+        className={`group relative flex h-full min-h-[380px] flex-col overflow-hidden rounded-none border border-gray-200 dark:border-gray-700 bg-[#BD0E0D] text-white shadow-sm hover:shadow-xl transition-all duration-300 ${
+          isTransitioning
+            ? "opacity-0 translate-y-4"
+            : "opacity-100 translate-y-0"
+        } ${selected ? "ring-2 ring-white ring-inset" : ""}`}
+        style={{
+          transitionDelay: isTransitioning ? "0ms" : `${delay + 600}ms`,
+        }}
+        data-orient="text"
+      >
+        {selectionOverlay}
+        {/* Link global: toda la card es clickeable */}
+        <ArticleLink article={article} className="absolute inset-0 z-[1]">
+          <span className="sr-only">{title}</span>
+        </ArticleLink>
+
+        {/* Textura sutil de marca */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.13] bg-[radial-gradient(circle_at_22%_15%,white,transparent_60%)]" />
+
+        {/* Favorito */}
+        <div className="absolute top-3 right-3 z-[3]">
+          <div className="bg-black/20 backdrop-blur-sm rounded-full p-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+            <FavoriteButton
+              articleId={article.id}
+              variant="icon"
+              onRemoved={onRemoveFavorite}
+            />
+          </div>
+        </div>
+
+        {/* Contenido: título y subtítulo en grande ocupando la card */}
+        <div className="relative z-[2] flex flex-col h-full p-5 pointer-events-none">
+          {(region || category) && (
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/75 mb-3">
+              {[region, category].filter(Boolean).join(" · ")}
+            </div>
+          )}
+
+          <div className="flex-1 flex flex-col justify-center">
+            <h3 className="text-2xl md:text-3xl font-bold leading-[1.12] text-balance">
+              <span className="bg-gradient-to-r from-white/90 to-white/90 bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
+                {title}
+              </span>
+            </h3>
+            {subtitle && (
+              <p className="mt-3 text-base md:text-lg text-white/90 leading-snug line-clamp-4">
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between gap-2 pt-3 border-t border-white/20">
+            {article.authors?.length > 0 ? (
+              <span className="text-[12px] font-medium text-white/80 pointer-events-auto min-w-0">
+                {t("by")}{" "}
+                {article.authors.map((author, i) => (
+                  <span key={author.id}>
+                    <LocaleLink
+                      href={`/authors/${author.id}`}
+                      className="text-white hover:underline underline-offset-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <HoverInfo
+                        id={author.id}
+                        name={author.name}
+                        entityType="authors"
+                      />
+                    </LocaleLink>
+                    {i < article.authors.length - 1 && ", "}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <span />
+            )}
+            {article.edition?.number && editionYear && (
+              <span className="text-[11px] font-semibold text-white/70 whitespace-nowrap tracking-wide tabular-nums">
+                № {article.edition.number} · {editionYear}
+              </span>
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  /* =================== HORIZONTAL / CUADRADA (con imagen) =================== */
   return (
     <article
       className={`group relative flex flex-col h-full rounded-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 ${
@@ -246,32 +336,30 @@ export default function MiniArticleCardGrid({
     >
       {selectionOverlay}
       {/* Área de imagen más compacta y con ratio controlado */}
-      {hasImage && (
-        <div className="relative w-full aspect-[16/10] overflow-hidden shrink-0">
-          <div className="block w-full h-full">
-            <SmartImage
-              src={primaryImage.url}
-              alt={primaryImage.alt || "Imagen del artículo"}
-              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-              faceTopBias
+      <div className="relative w-full aspect-[16/10] overflow-hidden shrink-0">
+        <div className="block w-full h-full">
+          <SmartImage
+            src={primaryImage.url}
+            alt={primaryImage.alt || "Imagen del artículo"}
+            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+            faceTopBias
+          />
+        </div>
+
+        {/* Overlay sutil en hover para feedback táctil */}
+        <div className="absolute inset-0 bg-[#BD0E0D]/0 group-hover:bg-[#BD0E0D]/10 transition-colors duration-300 pointer-events-none" />
+
+        {/* Favoritos integrado en esquina con fondo */}
+        <div className="absolute top-2.5 right-2.5 z-10">
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full p-1 shadow-sm opacity-80 group-hover:opacity-100 transition-opacity">
+            <FavoriteButton
+              articleId={article.id}
+              variant="compact"
+              onRemoved={onRemoveFavorite}
             />
           </div>
-
-          {/* Overlay sutil en hover para feedback táctil */}
-          <div className="absolute inset-0 bg-[#BD0E0D]/0 group-hover:bg-[#BD0E0D]/10 transition-colors duration-300 pointer-events-none" />
-
-          {/* Favoritos integrado en esquina con fondo */}
-          <div className="absolute top-2.5 right-2.5 z-10">
-            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full p-1 shadow-sm opacity-80 group-hover:opacity-100 transition-opacity">
-              <FavoriteButton
-                articleId={article.id}
-                variant="compact"
-                onRemoved={onRemoveFavorite}
-              />
-            </div>
-          </div>
         </div>
-      )}
+      </div>
 
       {/* Contenido más denso, menos aire */}
       <div className="flex flex-col gap-1.5 p-3.5 flex-1">
@@ -285,15 +373,6 @@ export default function MiniArticleCardGrid({
             locale={locale}
             className="[&>a]:!text-[9px] [&>a]:!px-1.5 [&>a]:!py-0.5"
           />
-          {!hasImage && (
-            <div className="shrink-0">
-              <FavoriteButton
-                articleId={article.id}
-                variant="compact"
-                onRemoved={onRemoveFavorite}
-              />
-            </div>
-          )}
         </div>
 
         {/* Título: el link lo da el overlay de la card (un solo <a>) */}
@@ -310,13 +389,9 @@ export default function MiniArticleCardGrid({
           </p>
         )}
 
-        {/* Teaser: más líneas si no hay imagen, menos si la hay */}
+        {/* Teaser */}
         {teaser && (
-          <p
-            className={`text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed overflow-hidden ${
-              hasImage ? "line-clamp-2" : "line-clamp-5"
-            }`}
-          >
+          <p className="text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed overflow-hidden line-clamp-2">
             {teaser}
           </p>
         )}

@@ -17,6 +17,15 @@ const SUPER_ADMIN_EMAIL = "e.zeangeloni@gmail.com";
 const ArticleListenContext = createContext(null);
 export const useArticleListen = () => useContext(ArticleListenContext);
 
+// Algunas voces deletrean el nombre de la revista ("ila"/"ILA" → i-l-a) al
+// tratarlo como sigla. Como nombre propio "Ila" se pronuncia como palabra.
+// El reemplazo conserva el largo (3 chars) → no desalinea el resaltado, que
+// mapea offsets de la oración hablada sobre el texto del DOM.
+function speechFriendly(text) {
+  if (!text) return text;
+  return text.replace(/\bila\b/gi, "Ila");
+}
+
 // Recolecta del DOM los elementos legibles en orden: título, subtítulo,
 // Vorspann (standfirst) y cada bloque del cuerpo. Cada bloque hablado es un
 // elemento real → se puede resaltar mientras se lee.
@@ -99,6 +108,14 @@ export function ArticleListenProvider({
 }) {
   const tts = useArticleTTS(lang);
   const isDE = lang === "de";
+  const { stop: stopTts } = tts;
+
+  // Si el contenido cambia sin recargar la página (p. ej. saltar a otro dossier
+  // o artículo), cortar la lectura en curso. Sin esto, el motor conserva la cola
+  // del texto anterior y el próximo "Escuchar" reanuda ese, no el nuevo.
+  useEffect(() => {
+    stopTts();
+  }, [title, subtitle, content, lang, stopTts]);
 
   const [flags, setFlags] = useState(null);
   const isSuperAdmin = email === SUPER_ADMIN_EMAIL;
@@ -194,9 +211,11 @@ export function ArticleListenProvider({
   const start = () => {
     const els = collectTargets();
     elsRef.current = els;
-    const blocks = els.length
-      ? els.map((el) => el.textContent)
-      : [title, subtitle, ...htmlToBlocks(content)].filter(Boolean);
+    const blocks = (
+      els.length
+        ? els.map((el) => el.textContent)
+        : [title, subtitle, ...htmlToBlocks(content)].filter(Boolean)
+    ).map(speechFriendly);
     tts.play(blocks);
   };
 
