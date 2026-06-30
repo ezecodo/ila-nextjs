@@ -348,7 +348,7 @@ export default function LegacyArticlePage() {
           showES && article.contentES ? article.contentES : article.content
         }
       >
-        <main className="max-w-4xl lg:max-w-7xl mx-auto lg:mr-0 px-4 py-6 md:px-6">
+        <main className="max-w-4xl lg:max-w-7xl mx-auto px-4 py-6 md:px-6">
           {!isAdmin && <DonationPopUp articleId={article.id} />}
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-10 lg:items-start">
@@ -802,7 +802,7 @@ export default function LegacyArticlePage() {
           anchorSelector="#article-start" // 👈 alinear con el inicio del contenido
           contentMaxWidth={1280} // max-w-7xl (grid con rail derecho)
           gapFromContent={48}
-          align="right" // el bloque va pegado al margen derecho en desktop
+          align="center" // bloque centrado; la barra va en el margen izquierdo
           onReadingMode={() => setReaderOpen(true)}
           showReadingMode={hasPdfAbo}
           readingModeLabel={t("readingMode")}
