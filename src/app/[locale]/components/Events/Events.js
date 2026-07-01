@@ -124,7 +124,7 @@ export default function InfoBox() {
                   </div>
 
                   {/* Título — sans + subrayado animado */}
-                  <h3 className="text-[16px] font-bold leading-[1.3] text-gray-900 dark:text-white text-balance">
+                  <h3 className="font-oswald text-[17px] font-semibold leading-[1.2] text-[#2b2b2b] dark:text-white text-balance">
                     <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
                       {eventTitle}
                     </span>

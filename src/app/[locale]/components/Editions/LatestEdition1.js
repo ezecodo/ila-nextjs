@@ -41,6 +41,7 @@ export default function LatestEditionWithArticles() {
   const listRef = useRef(null);
   const resultsRef = useRef(null);
   const cloudRef = useRef(null);
+  const leftColRef = useRef(null);
   const clearHighlightRef = useRef(null);
 
   const locale = useLocale();
@@ -284,12 +285,17 @@ export default function LatestEditionWithArticles() {
       };
     })
     .sort((a, b) => a.order - b.order);
+  // Tamaños en `em` (relativos al font-size del contenedor de la nube) para
+  // que un único ajuste de fontSize en el padre escale toda la nube de forma
+  // proporcional. El auto-fit (useEffect más abajo) usa esto para rellenar el
+  // hueco vertical cuando la columna izquierda queda más alta en monitores
+  // grandes.
   const cloudSize = (w) => {
-    if (w > 0.78) return "text-2xl";
-    if (w > 0.58) return "text-xl";
-    if (w > 0.4) return "text-lg";
-    if (w > 0.24) return "text-base";
-    return "text-sm";
+    if (w > 0.78) return "text-[1.5em]";
+    if (w > 0.58) return "text-[1.25em]";
+    if (w > 0.4) return "text-[1.125em]";
+    if (w > 0.24) return "text-[1em]";
+    return "text-[0.875em]";
   };
 
   // Filtro in-place: como cloud.type coincide con el campo del artículo
@@ -316,6 +322,52 @@ export default function LatestEditionWithArticles() {
       resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
+
+  // Auto-fit de la nube de tags: en monitores grandes la columna izquierda
+  // (portada + banners) puede quedar más alta que la columna derecha, dejando
+  // un hueco blanco bajo la nube. Aquí escalamos el font-size del contenedor
+  // de la nube (los tamaños de los tags son `em`, así suben todos a la vez)
+  // hasta que su borde inferior alcanza el de la columna izquierda. Solo
+  // agranda (nunca achica por debajo de la base) y solo en desktop (lg+).
+  useEffect(() => {
+    if (loading || carouselShown) return;
+    const cloudEl = cloudRef.current;
+    const leftEl = leftColRef.current;
+    if (!cloudEl || !leftEl) return;
+
+    const fit = () => {
+      if (typeof window === "undefined") return;
+      if (window.innerWidth < 1024) {
+        cloudEl.style.fontSize = "";
+        return;
+      }
+      cloudEl.style.fontSize = "1rem";
+      const targetBottom = leftEl.getBoundingClientRect().bottom;
+      // Si la nube ya llega (o la sobrepasa), no hay hueco: dejar base.
+      if (cloudEl.getBoundingClientRect().bottom >= targetBottom - 4) return;
+      // Búsqueda binaria del mayor font-size cuyo borde inferior no pase el
+      // objetivo. El bottom crece de forma monótona con el font-size.
+      let lo = 1;
+      let hi = 2;
+      for (let i = 0; i < 14; i++) {
+        const mid = (lo + hi) / 2;
+        cloudEl.style.fontSize = `${mid}rem`;
+        if (cloudEl.getBoundingClientRect().bottom <= targetBottom) lo = mid;
+        else hi = mid;
+      }
+      cloudEl.style.fontSize = `${lo}rem`;
+    };
+
+    fit();
+    const ro = new ResizeObserver(() => fit());
+    ro.observe(leftEl);
+    if (resultsRef.current) ro.observe(resultsRef.current);
+    window.addEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [loading, carouselShown, cloud.length, activeTag, currentEditionIndex]);
 
   // Cancela cualquier seguimiento de scroll pendiente (timers + listeners).
   const cancelHighlightClear = () => {
@@ -828,7 +880,10 @@ export default function LatestEditionWithArticles() {
               </div>
             </div>
 
-            <div className="relative w-full lg:w-auto flex items-start justify-end -mt-2 lg:mt-6 lg:float-left lg:mr-1">
+            <div
+              ref={leftColRef}
+              className="relative w-full lg:w-auto flex items-start justify-end -mt-2 lg:mt-6 lg:float-left lg:mr-1"
+            >
               <div className="bg-white dark:bg-gray-900 lg:shadow-lg dark:lg:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
                 <div className="order-2 w-full text-center px-2 lg:-mt-3">
                   <div className="font-futura font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-[1.7rem] md:text-3xl leading-tight text-balance">
@@ -1124,10 +1179,9 @@ export default function LatestEditionWithArticles() {
               )}
 
               {/* Desktop */}
-              {/* Desktop */}
-              <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
                 {loading ? (
-                  <div className="col-span-2 flex items-center justify-center min-h-[400px]">
+                  <div className="col-span-full flex items-center justify-center min-h-[400px]">
                     <IlaLoader />
                   </div>
                 ) : (activeTag ? tagFilteredArticles : desktopArticles).length >
@@ -1145,7 +1199,7 @@ export default function LatestEditionWithArticles() {
                 ) : locale === "es" ? (
                   <NoArticlesAvailable edition={currentEdition} />
                 ) : (
-                  <div className="col-span-2 flex items-center justify-center min-h-[400px]">
+                  <div className="col-span-full flex items-center justify-center min-h-[400px]">
                     <IlaLoader />
                   </div>
                 )}
@@ -1325,13 +1379,31 @@ export default function LatestEditionWithArticles() {
                 ref={cloudRef}
                 className="hidden lg:block lg:mt-6 leading-loose text-justify scroll-mt-28"
               >
-                {/* Lead-in de la nube: "ila {número}" con la fuente del logo */}
+                {/* Lead-in de la nube: "ila {número}" con la fuente del logo.
+                    Si hay un filtro por tag activo, funciona como reset (vuelve
+                    a mostrar todos los artículos del dossier). */}
                 {currentEdition?.number && (
                   <>
-                    <span className="inline-block align-baseline font-bold text-[#BD0E0D] text-3xl leading-none mr-1">
+                    <button
+                      type="button"
+                      onClick={() => activeTag && setActiveTag(null)}
+                      disabled={!activeTag}
+                      title={
+                        activeTag
+                          ? locale === "de"
+                            ? "Filter zurücksetzen – alle Artikel anzeigen"
+                            : "Quitar filtro – ver todos los artículos"
+                          : undefined
+                      }
+                      className={`inline-block align-baseline font-bold text-[#BD0E0D] text-[1.875em] leading-none mr-1 ${
+                        activeTag
+                          ? "cursor-pointer hover:underline decoration-2 underline-offset-2"
+                          : "cursor-default"
+                      }`}
+                    >
                       <span className="font-futura">ila</span>{" "}
                       {currentEdition.number}
-                    </span>{" "}
+                    </button>{" "}
                   </>
                 )}
                 {cloud.map((e, i) => {

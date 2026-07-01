@@ -89,6 +89,7 @@ export default function CuartoPage() {
   };
 
   const listenNoneOn = LISTEN_AUDIENCES.every((a) => !flags?.listen?.[a.key]);
+  const globilaNoneOn = LISTEN_AUDIENCES.every((a) => !flags?.globila?.[a.key]);
 
   // ── Búsqueda ──────────────────────────────────────────────────────────
   const [query, setQuery] = useState("");
@@ -209,6 +210,52 @@ export default function CuartoPage() {
                 className={`rounded-none border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   on
                     ? "border-[#BD0E0D] bg-[#BD0E0D] text-white"
+                    : "border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+                } disabled:opacity-40`}
+              >
+                {on ? "✓ " : ""}
+                {isDE ? a.de : a.es}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Panel de audiencias: quién puede escuchar dentro de GLOBila */}
+      <div className="mb-6 border border-gray-200 bg-gray-50 px-4 py-3">
+        <p className="mb-3 text-sm font-semibold text-gray-700">
+          {isDE
+            ? "Wer kann Artikel in GLOBila anhören?"
+            : "¿Quién puede escuchar artículos dentro de GLOBila?"}
+          {savingFlags && (
+            <span className="ml-2 text-xs font-normal text-gray-400">
+              {isDE ? "speichert…" : "guardando…"}
+            </span>
+          )}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => clearAudiences("globila")}
+            disabled={!flags}
+            className={`rounded-none border px-3 py-1.5 text-xs font-semibold transition-colors ${
+              globilaNoneOn
+                ? "border-gray-900 bg-gray-900 text-white"
+                : "border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
+            } disabled:opacity-40`}
+          >
+            {globilaNoneOn ? "✓ " : ""}
+            {isDE ? "Niemand" : "Nadie"}
+          </button>
+          {LISTEN_AUDIENCES.map((a) => {
+            const on = !!flags?.globila?.[a.key];
+            return (
+              <button
+                key={a.key}
+                onClick={() => toggleFlag("globila", a.key)}
+                disabled={!flags}
+                className={`rounded-none border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  on
+                    ? "border-[#89B881] bg-[#89B881] text-white"
                     : "border-gray-300 bg-white text-gray-600 hover:bg-gray-100"
                 } disabled:opacity-40`}
               >

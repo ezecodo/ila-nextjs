@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 const GLOBILA_MAP_SRC = "/digital-abo/globila-map.png";
 
 const SLIDE_MS = 6000;
-const COUNT = 6;
+const COUNT = 7;
 
 /* ── Mockups CSS por feature (no screenshots: UI simulada on-brand) ── */
 
@@ -235,6 +235,66 @@ function MockReader() {
   );
 }
 
+function MockSurprise() {
+  return (
+    <div className="relative w-full max-w-sm">
+      {/* tarjeta "envuelta" — misterio, sin pistas concretas */}
+      <div className="relative bg-white border border-gray-200 ring-1 ring-black/5 shadow-2xl px-8 py-10 overflow-hidden">
+        {/* destellos */}
+        {[
+          [12, 14, 10],
+          [82, 20, 7],
+          [70, 78, 9],
+          [20, 80, 6],
+          [50, 8, 6],
+        ].map(([top, left, size], i) => (
+          <svg
+            key={i}
+            viewBox="0 0 24 24"
+            className="absolute text-[#BD0E0D]"
+            style={{
+              top: `${top}%`,
+              left: `${left}%`,
+              width: `${size}px`,
+              height: `${size}px`,
+              animation: `dasparkle 2.4s ease-in-out ${i * 0.3}s infinite`,
+            }}
+            fill="currentColor"
+          >
+            <path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5L12 0z" />
+          </svg>
+        ))}
+
+        {/* gran signo de interrogación */}
+        <div className="relative flex justify-center mb-7">
+          <div className="w-28 h-28 bg-[#BD0E0D] flex items-center justify-center shadow-xl">
+            <span
+              className="text-white text-7xl font-black leading-none"
+              style={{ fontFamily: "var(--font-futura), sans-serif" }}
+            >
+              ?
+            </span>
+          </div>
+        </div>
+
+        {/* sello "Demnächst" */}
+        <div className="flex justify-center mb-6">
+          <span className="border-2 border-[#BD0E0D] text-[#BD0E0D] text-[11px] font-black uppercase tracking-[0.25em] px-4 py-1.5 -rotate-3">
+            Demnächst
+          </span>
+        </div>
+
+        {/* líneas de texto difuminadas (shimmer) */}
+        <div className="space-y-3 blur-[3px] opacity-70 select-none">
+          <div className="h-2.5 w-full bg-gray-200" />
+          <div className="h-2.5 w-5/6 bg-gray-200 mx-auto" />
+          <div className="h-2.5 w-2/3 bg-gray-200 mx-auto" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const MOCKS = [
   MockFavorites,
   MockPdfPackage,
@@ -242,6 +302,7 @@ const MOCKS = [
   MockGlobe,
   MockDownload,
   MockReader,
+  MockSurprise,
 ];
 
 export default function DigitalAboShowcase() {
@@ -352,6 +413,17 @@ export default function DigitalAboShowcase() {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+        @keyframes dasparkle {
+          0%,
+          100% {
+            opacity: 0.25;
+            transform: scale(0.8);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.15);
           }
         }
       `}</style>

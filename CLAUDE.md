@@ -663,3 +663,38 @@ La portada del dossier actual y el botón **"Editorial und Inhalt"** (`t("editor
 - **Justificado de los tags**: el bloque usa `text-justify`. Como `text-align: justify` solo reparte espacio **entre** cajas inline y React no inserta whitespace entre elementos mapeados, cada tag va envuelto en `<Fragment>` con un `{" "}` explícito detrás. La última línea queda alineada a la izquierda (se quitó `text-align-last`).
 - **Filtrado in-place por tag**: click en un tag (región/tema/autor) filtra los artículos del dossier en el mismo lugar vía `setActiveTag` (no navega a la página global de la entidad). `articlesForTag(tag)` filtra `filteredArticles` por `a[tag.type].some(x => x.id === tag.id)`. Aparece un chip rojo "Gefiltert nach:"/"Filtrando por:" con la cuenta y una × para limpiar; el tag activo se resalta. Al activar un filtro hace `scrollIntoView` a `resultsRef` (la columna derecha tiene `scroll-mt-24`). El filtro se resetea al cambiar de dossier (`useEffect` sobre `currentEditionIndex`).
 - **Ojo — no usar `cloudHref` / router.push por tag**: los autores suelen tener 1 solo artículo en el dossier; un branch viejo que hacía `router.push` al `legacyPath` (nullable) o a `/[locale]/articles/[id]` (ruta **inexistente**) hacía que el click "no hiciera nada". Todos los clicks de tag filtran in-place; no reintroducir navegación por tag.
+
+## 🎯 Visión / Roadmap institucional
+
+> Sección de **visión y dirección**, no de arquitectura técnica. Sirve para que las decisiones de feature se tomen con el norte correcto: el tooling editorial de ila no es solo una web de revista, es un **producto ofrecible a instituciones** (universidades alemanas con carreras de **Lateinamerika-Studien**, bibliotecas, fundaciones, organismos públicos). Cuando dudes entre dos caminos, prioriza el que refuerce ese ángulo institucional.
+
+### Qué se ofrece como producto
+
+El **Digital-Abo** (gate técnico: `hasPdfAbo`, ver "Sistema PDF-Abo" y "Digital ABO — venta a universidades") es el envoltorio comercial. Dentro de él vive el conjunto de herramientas que dan valor diferencial:
+
+- **GLOBila** — el globo interactivo (`components/GlobeMap/GlobeMap.jsx`) para explorar la cobertura latinoamericana de ila geográficamente. Vive en el dashboard de suscriptores.
+- **Expediciones** — colecciones curadas de artículos que el suscriptor arma/recorre (`dashboard-users/Expeditions/`).
+- **Escuchar artículos (TTS)** — Web Speech API (`components/ArticleListen/`), disponible tanto en la página de artículo como dentro de GLOBila (artículo suelto) y en la vista de Expedición (cola multi-artículo, `QueuePlayer.jsx`). Antes de leer el cuerpo, anuncia preámbulo: título · Dossier (mes y año) · autores · tipo de Beitrag. **El TTS es también un argumento de accesibilidad** (lectura para personas con baja visión / dislexia), lo que abre vías de financiación específicas.
+- **PDF-Abo / Dossiers PDF** — acceso al archivo completo en PDF.
+- **Newsletter** (próximo) y **vertical de música latinoamericana emergente** (horizonte lejano) — ver memoria de roadmap.
+
+### Por qué tiene sentido como oferta institucional
+
+- En Alemania **no existe** un producto equivalente: una fuente periodística sobre América Latina, en alemán, con archivo histórico navegable + audio + traducción ES. Ser único = se crea categoría, no se compite por precio.
+- El público de Lateinamerika-Studien es exactamente el target: estudiantes y docentes que necesitan acceso a contenido curado y citable.
+- Canal de financiación a verificar antes de pitchear: **FID Lateinamerika** (Fachinformationsdienst, financiado por la DFG, alojado en el Ibero-Amerikanisches Institut Berlin). El ángulo de accesibilidad (TTS) puede sumar fondos aparte.
+- Pricing: **value-based**, no por comparables (no los hay). Empezar con un **piloto** con una o dos universidades antes de fijar tarifa.
+
+### La realidad de costos (no edulcorar al planificar)
+
+Ofrecerlo a instituciones implica tráfico y compromisos de servicio que el setup actual (un solo proceso PM2 en Hetzner, ver "Deploy") no aguanta sin inversión:
+
+- **Infraestructura**: tráfico institucional sostenido necesita servidores más potentes y, idealmente, la app dockerizada con balanceo / zero-downtime real (ver "Mejoras de infraestructura pendientes"). Hoy es un punto único de fallo.
+- **Personal**: mantener el código, atender incidencias, hacer onboarding de instituciones y dar soporte requiere **personas dedicadas**, no solo a Eze en sus ratos. Sin presupuesto, escalar es arriesgado.
+- **Conclusión operativa**: la oferta institucional **solo es viable con financiación** que cubra infra + mantenimiento. Mientras tanto, construir features pensando en que sean *demostrables en un piloto* (no para soportar miles de usuarios todavía), y mantener el código limpio para que un futuro fichaje pueda tomarlo.
+
+### Cómo aplicar esto al construir features
+
+- Feature nueva para suscriptor → preguntarse "¿esto hace valer el Digital-Abo ante una universidad?".
+- Mantener todo lo institucional **detrás del gate** `hasPdfAbo` (sub-marca verde `#89B881`, ver Brand Kit), con el bypass de super-admin para demos.
+- No sobre-construir para escala que aún no existe; sí dejar el camino a docker/escala documentado.

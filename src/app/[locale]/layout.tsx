@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import localFont from "next/font/local";
+import { Oswald } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import MatomoAnalytics from "./components/MatomoAnalytics/MatomoAnalytics";
 
@@ -14,7 +15,7 @@ import "slick-carousel/slick/slick-theme.css";
 import LayoutShell from "../[locale]/components/LayoutShell/LayoutShell";
 import CookieConsent from "./components/CookieConsent/CookieConsent";
 import { CartProvider } from "./components/Cart/CartContext";
-import CartFab from "./components/Cart/CartFab";
+import CartSelectionBar from "./components/Cart/CartSelectionBar";
 
 import { locales, type Locale } from "../../../i18n";
 
@@ -59,6 +60,12 @@ const futura = localFont({
   preload: true,
   display: "swap",
 });
+const oswald = Oswald({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-oswald",
+  display: "swap",
+});
 
 type Props = {
   children: ReactNode;
@@ -93,14 +100,14 @@ export default async function LocaleLayout({ children, params }: Props) {
         <meta name="color-scheme" content="light dark" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${futura.variable} antialiased flex flex-col min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
+        className={`${geistSans.variable} ${geistMono.variable} ${futura.variable} ${oswald.variable} antialiased flex flex-col min-h-screen bg-[var(--background)] text-[var(--foreground)]`}
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <SessionProvider>
             <NextIntlClientProvider locale={locale} messages={messages}>
               <CartProvider>
                 <LayoutShell>{children}</LayoutShell>
-                <CartFab />
+                <CartSelectionBar />
                 <CookieConsent />
                 <MatomoAnalytics />
               </CartProvider>

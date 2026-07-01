@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocale } from "next-intl";
 import Link from "next/link";
@@ -11,6 +11,8 @@ import {
   CSS2DObject,
 } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { countryToRegionId, countryColors, countryNames } from "./countryData";
+import QueuePlayer from "../ArticleListen/QueuePlayer";
+import { useCanListenGlobila } from "../ArticleListen/useCanListenGlobila";
 
 const countryCoordinates = {
   MEX: { lat: 23.6345, lon: -102.5528 },
@@ -122,17 +124,249 @@ export default function GlobeMap() {
       .catch((err) => console.error("Error cargando portadas:", err));
   }, []);
 
+  // --- MODO TEMA: un tema "enciende" los países donde tiene cobertura ---
+  // El globo es geográfico; al elegir un tema, en vez de listar por región,
+  // iluminamos los países (dimensionados por nº de artículos del tema) y el
+  // click filtra por tema + país.
+  const [topicList, setTopicList] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState(null); // { id, name, nameES }
+  const [topicInfo, setTopicInfo] = useState(null); // { loading, countriesLit, total }
+  const [topicSearch, setTopicSearch] = useState("");
+  const [topicPickerOpen, setTopicPickerOpen] = useState(false);
+  // Puente hacia el closure de Three.js (counts por regionId, creado una vez)
+  const topicModeRef = useRef({
+    active: false,
+    counts: new Map(),
+    max: 0,
+    topicId: null,
+  });
+
+  useEffect(() => {
+    fetch("/api/entities/topics")
+      .then((r) => r.json())
+      .then((data) => setTopicList(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("Error cargando temas:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedTopic) {
+      topicModeRef.current = {
+        active: false,
+        counts: new Map(),
+        max: 0,
+        topicId: null,
+      };
+      setTopicInfo(null);
+      return;
+    }
+    let cancelled = false;
+    setTopicInfo({ loading: true });
+    // Cambiar de tema invalida el cache del panel y cierra el panel abierto
+    panelCacheRef.current = {};
+    setPanel(null);
+
+    fetch(`/api/entities/topics/${selectedTopic.id}/regions`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        const counts = new Map();
+        for (const r of data.regions || []) counts.set(r.id, r.count);
+        // max sobre los países que de verdad están en el globo (para escalar
+        // la intensidad sin que regiones-continente lo distorsionen)
+        const globeRegionIds = new Set(Object.values(countryToRegionId));
+        let max = 0;
+        for (const [rid, c] of counts) {
+          if (globeRegionIds.has(rid) && c > max) max = c;
+        }
+        const litCountries = Object.keys(countryToRegionId).filter((code) =>
+          counts.has(countryToRegionId[code])
+        ).length;
+        topicModeRef.current = {
+          active: true,
+          counts,
+          max,
+          topicId: selectedTopic.id,
+        };
+        setTopicInfo({
+          loading: false,
+          countriesLit: litCountries,
+          total: data.total ?? 0,
+        });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Error cargando regiones del tema:", err);
+        topicModeRef.current = {
+          active: true,
+          counts: new Map(),
+          max: 0,
+          topicId: selectedTopic.id,
+        };
+        setTopicInfo({ loading: false, countriesLit: 0, total: 0 });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTopic]);
+
+  // --- EXPEDICIÓN: el suscriptor "pica" artículos que vuelan a la pila
+  // (esquina sup. derecha) y al cerrar los guarda como lista de lectura ---
+  const [collected, setCollected] = useState([]);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [expeditionName, setExpeditionName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState(null); // null | "ok" | "auth" | "error"
+  const pileRef = useRef(null);
+
+  // Escucha (TTS) dentro de GLOBila — gateada por el flag `globila`.
+  const canListen = useCanListenGlobila();
+  const [listenId, setListenId] = useState(null);
+  const collectedIds = useMemo(
+    () => new Set(collected.map((a) => a.id)),
+    [collected]
+  );
+
+  // Persistencia en sessionStorage: sobrevive recargas dentro de la sesión
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("globila_collected");
+      if (raw) setCollected(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("globila_collected", JSON.stringify(collected));
+    } catch {
+      /* ignore */
+    }
+  }, [collected]);
+
+  // Clon que vuela de la miniatura a la pila (Web Animations API, imperativo)
+  const flyToPile = (imgUrl, fromRect) => {
+    const pile = pileRef.current;
+    if (!pile || !fromRect || typeof document === "undefined") return;
+    const to = pile.getBoundingClientRect();
+    const clone = document.createElement("div");
+    clone.style.cssText = `position:fixed;left:${fromRect.left}px;top:${fromRect.top}px;width:${fromRect.width}px;height:${fromRect.height}px;z-index:10000;pointer-events:none;border:2px solid #89B881;background:#000 center/cover no-repeat;box-shadow:0 8px 24px rgba(0,0,0,.5);border-radius:0;`;
+    if (imgUrl) clone.style.backgroundImage = `url("${imgUrl}")`;
+    document.body.appendChild(clone);
+    const dx = to.left + to.width / 2 - (fromRect.left + fromRect.width / 2);
+    const dy = to.top + to.height / 2 - (fromRect.top + fromRect.height / 2);
+    const anim = clone.animate(
+      [
+        { transform: "translate(0,0) scale(1)", opacity: 1 },
+        {
+          transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 50}px) scale(0.6)`,
+          opacity: 0.95,
+          offset: 0.6,
+        },
+        {
+          transform: `translate(${dx}px, ${dy}px) scale(0.12)`,
+          opacity: 0.15,
+        },
+      ],
+      { duration: 700, easing: "cubic-bezier(0.5, -0.3, 0.3, 1)" }
+    );
+    anim.onfinish = () => {
+      clone.remove();
+      pile.animate(
+        [
+          { transform: "scale(1)" },
+          { transform: "scale(1.18)" },
+          { transform: "scale(1)" },
+        ],
+        { duration: 300, easing: "ease-out" }
+      );
+    };
+  };
+
+  // slim = { id, title, titleES, isTranslatedES, legacyPath, image, author, editionNumber }
+  const toggleCollect = (slim, ev) => {
+    if (collectedIds.has(slim.id)) {
+      setCollected((prev) => prev.filter((x) => x.id !== slim.id));
+      return;
+    }
+    let fromRect = null;
+    const li = ev?.currentTarget?.closest("li");
+    const img = li?.querySelector("img");
+    const srcEl = img || ev?.currentTarget;
+    if (srcEl) fromRect = srcEl.getBoundingClientRect();
+    const imgUrl = img?.getAttribute("src") || slim.image || null;
+    flyToPile(imgUrl, fromRect);
+    setCollected((prev) => [...prev, slim]);
+  };
+
+  const openFinish = () => {
+    if (!collected.length) return;
+    const d = new Date().toLocaleDateString(locale === "de" ? "de-DE" : "es-ES");
+    const base = selectedTopic
+      ? locale === "es" && selectedTopic.nameES
+        ? selectedTopic.nameES
+        : selectedTopic.name
+      : "GLOBila";
+    setExpeditionName(`${base} · ${d}`);
+    setSaveResult(null);
+    setFinishOpen(true);
+  };
+
+  const saveExpedition = async () => {
+    if (!collected.length || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/globila/collections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: expeditionName,
+          articleIds: collected.map((a) => a.id),
+        }),
+      });
+      if (res.status === 401) {
+        setSaveResult("auth");
+        return;
+      }
+      if (!res.ok) {
+        setSaveResult("error");
+        return;
+      }
+      setSaveResult("ok");
+      setCollected([]);
+      try {
+        sessionStorage.removeItem("globila_collected");
+      } catch {
+        /* ignore */
+      }
+    } catch {
+      setSaveResult("error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const openPanel = async (countryCode) => {
     const regionId = countryToRegionId[countryCode];
     if (!regionId) return;
+
+    const topic = topicModeRef.current.active ? topicModeRef.current : null;
+    // En modo tema, los países "apagados" (sin artículos del tema) no abren nada
+    if (topic && !topic.counts.has(regionId)) return;
 
     const name =
       countryNames[countryCode]?.[locale] ||
       countryNames[countryCode]?.de ||
       countryCode;
-    setPanel({ code: countryCode, name, regionId });
+    setPanel({
+      code: countryCode,
+      name,
+      regionId,
+      topicId: topic?.topicId || null,
+    });
 
-    const cached = panelCacheRef.current[countryCode];
+    const cacheKey = `${topic?.topicId || "region"}:${countryCode}`;
+    const cached = panelCacheRef.current[cacheKey];
     if (cached) {
       setPanelData({ loading: false, ...cached });
       return;
@@ -140,9 +374,12 @@ export default function GlobeMap() {
 
     setPanelData({ loading: true, articles: [], total: 0 });
     try {
-      const first = await fetch(
-        `/api/entities/regions/${regionId}?page=1`
-      ).then((r) => r.json());
+      const base = topic
+        ? `/api/entities/topics/${topic.topicId}?regionId=${regionId}`
+        : `/api/entities/regions/${regionId}`;
+      const sep = base.includes("?") ? "&" : "?";
+
+      const first = await fetch(`${base}${sep}page=1`).then((r) => r.json());
       let articles = first.articles || [];
       const total = first.totalArticles ?? articles.length ?? 0;
       const totalPages = first.totalPages ?? 1;
@@ -150,7 +387,7 @@ export default function GlobeMap() {
       if (totalPages > 1) {
         const rest = await Promise.all(
           Array.from({ length: totalPages - 1 }, (_, i) =>
-            fetch(`/api/entities/regions/${regionId}?page=${i + 2}`)
+            fetch(`${base}${sep}page=${i + 2}`)
               .then((r) => r.json())
               .then((d) => d.articles || [])
               .catch(() => [])
@@ -160,10 +397,10 @@ export default function GlobeMap() {
       }
 
       const payload = { articles, total };
-      panelCacheRef.current[countryCode] = payload;
+      panelCacheRef.current[cacheKey] = payload;
       setPanelData({ loading: false, ...payload });
     } catch (err) {
-      console.error("Error cargando artículos de la región:", err);
+      console.error("Error cargando artículos:", err);
       setPanelData({ loading: false, articles: [], total: 0 });
     }
   };
@@ -333,7 +570,7 @@ export default function GlobeMap() {
           background: rgba(10, 10, 10, 0.92);
           backdrop-filter: blur(8px);
           border: 1px solid rgba(255,255,255,0.15);
-          border-top: 2px solid #BD0E0D;
+          border-top: 2px solid #89B881;
           padding: 12px 16px;
           border-radius: 0;
           box-shadow: 0 10px 25px rgba(0,0,0,0.35);
@@ -349,7 +586,7 @@ export default function GlobeMap() {
               align-items: center;
               justify-content: center;
             ">
-              <span style="color: #BD0E0D; font-weight: bold; font-size: 14px; font-family: 'Futura', Arial, sans-serif;">ila</span>
+              <span style="color: #557a4c; font-weight: bold; font-size: 14px; font-family: 'Futura', Arial, sans-serif;">ila</span>
             </div>
             <span style="color: white; font-weight: bold; font-size: 16px;">${name}</span>
           </div>
@@ -358,8 +595,8 @@ export default function GlobeMap() {
             <span style="color: #ffffff; font-weight: bold; font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums;">…</span>
             <span style="color: #9ca3af; font-size: 12px;">${locale === "de" ? "Artikel" : "artículos"}</span>
           </div>
-          <div class="article-more" style="color: #BD0E0D; font-size: 11px; margin-top: 8px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
-            <span style="width: 6px; height: 6px; background: #BD0E0D;"></span>
+          <div class="article-more" style="color: #89B881; font-size: 11px; margin-top: 8px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+            <span style="width: 6px; height: 6px; background: #89B881;"></span>
             ${locale === "de" ? "Antippen zum Erkunden" : "Tocá para explorar"}
           </div>
         </div>
@@ -551,6 +788,16 @@ export default function GlobeMap() {
       const regionId = countryToRegionId[code];
       if (!regionId) return;
 
+      // En modo tema el conteo ya lo tenemos en memoria (artículos del tema en
+      // ese país), no hay que pedirlo: se lee del mapa cacheado.
+      const topic = topicModeRef.current;
+      if (topic.active) {
+        const total = topic.counts.get(regionId) ?? 0;
+        const countSpan = tooltipElement.querySelector(".article-count span");
+        if (countSpan) countSpan.textContent = total;
+        return;
+      }
+
       try {
         let total = countCache[code];
         if (total === undefined) {
@@ -587,10 +834,17 @@ export default function GlobeMap() {
       // Rechazar impactos sobre marcadores del hemisferio trasero (detrás del
       // globo): un HTML CSS2D no se ocluye solo, así que lo filtramos a mano.
       const camDir = camera.position.clone().normalize();
-      const hit = intersects.find((it) => {
+      let hit = intersects.find((it) => {
         const n = it.object.getWorldPosition(new THREE.Vector3()).normalize();
         return n.dot(camDir) > 0.12;
       })?.object;
+
+      // En modo tema, los países "apagados" no responden al hover ni al click
+      const topic = topicModeRef.current;
+      if (hit && topic.active) {
+        const rid = countryToRegionId[hit.userData.countryCode];
+        if (!topic.counts.has(rid)) hit = undefined;
+      }
 
       if (hit) {
         hitCode = hit.userData.countryCode;
@@ -658,9 +912,16 @@ export default function GlobeMap() {
       starField.rotation.y -= 0.0001;
 
       const camDir = camera.position.clone().normalize();
+      const topic = topicModeRef.current;
       markersData.forEach((point) => {
-        const { isHovered, tooltipElement, tooltipObject, markerElement, colorHex } =
-          point.userData;
+        const {
+          isHovered,
+          tooltipElement,
+          tooltipObject,
+          markerElement,
+          colorHex,
+          countryCode,
+        } = point.userData;
 
         // El tooltip activo se pone delante de todos los círculos (el
         // CSS2DRenderer ordena el z-index por renderOrder y luego distancia)
@@ -679,10 +940,31 @@ export default function GlobeMap() {
           .normalize();
         const onFront = normal.dot(camDir) > 0.12;
 
-        markerElement.style.opacity = onFront ? "1" : "0";
-        markerElement.style.boxShadow = isHovered
-          ? `0 0 0 2px #ffffff, 0 0 16px 4px ${colorHex}`
-          : `0 0 0 1.5px #ffffff, 0 1px 4px rgba(0,0,0,0.5)`;
+        // Modo tema: encendido/apagado de países según cobertura del tema
+        let lit = true;
+        let intensity = 1; // 0..1 según volumen del tema en ese país
+        if (topic.active) {
+          const rid = countryToRegionId[countryCode];
+          const c = topic.counts.get(rid);
+          lit = c !== undefined && c > 0;
+          intensity = lit && topic.max > 0 ? c / topic.max : 0;
+        }
+
+        if (!onFront) {
+          markerElement.style.opacity = "0";
+        } else if (topic.active && !lit) {
+          markerElement.style.opacity = "0.14"; // apagado pero presente
+        } else {
+          markerElement.style.opacity = "1";
+        }
+
+        const glowSize = topic.active && lit ? 6 + intensity * 14 : 16;
+        markerElement.style.boxShadow =
+          isHovered || (topic.active && lit)
+            ? `0 0 0 ${isHovered ? 2 : 1.5}px #ffffff, 0 0 ${glowSize}px ${
+                isHovered ? 4 : 3
+              }px ${colorHex}`
+            : `0 0 0 1.5px #ffffff, 0 1px 4px rgba(0,0,0,0.5)`;
 
         if (isHovered && onFront) {
           tooltipElement.style.opacity = "1";
@@ -693,9 +975,21 @@ export default function GlobeMap() {
         }
       });
 
-      // Relleno del país bajo el cursor: fade-in/out suave
+      // Rellenos de países: en modo tema los encendidos quedan teñidos según
+      // volumen; el del cursor se intensifica. Fuera de modo tema, solo hover.
       for (const code in countryFills) {
-        const target = code === currentHoveredCode ? 0.45 : 0;
+        let target = code === currentHoveredCode ? 0.45 : 0;
+        if (topic.active) {
+          const rid = countryToRegionId[code];
+          const c = topic.counts.get(rid);
+          if (c !== undefined && c > 0) {
+            const intensity = topic.max > 0 ? c / topic.max : 0;
+            const base = 0.16 + intensity * 0.34;
+            target = code === currentHoveredCode ? Math.min(0.6, base + 0.2) : base;
+          } else {
+            target = 0;
+          }
+        }
         const mat = countryFills[code].material;
         mat.opacity += (target - mat.opacity) * 0.15;
       }
@@ -749,6 +1043,18 @@ export default function GlobeMap() {
     };
   }, [locale]);
 
+  const filteredTopics = (() => {
+    const q = topicSearch.trim().toLowerCase();
+    const list = q
+      ? topicList.filter(
+          (t) =>
+            (t.name || "").toLowerCase().includes(q) ||
+            (t.nameES || "").toLowerCase().includes(q)
+        )
+      : topicList;
+    return list.slice(0, 60);
+  })();
+
   return (
     <div className="relative w-full h-[100svh] min-h-[560px] overflow-hidden bg-black">
       {/* Fondo: grilla de portadas de dossiers difuminadas */}
@@ -792,7 +1098,7 @@ export default function GlobeMap() {
           style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
         >
           <span className="text-white">GLOB</span>
-          <span className="text-[#BD0E0D]">ila</span>
+          <span className="text-[#89B881]">ila</span>
         </span>
       </div>
 
@@ -804,12 +1110,12 @@ export default function GlobeMap() {
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-5 px-8 pointer-events-none select-none">
           <div className="text-white/70 text-xs md:text-sm tracking-[0.3em] uppercase animate-pulse">
             {locale === "de"
-              ? "Globus wird vorbereitet"
-              : "Preparando el globo"}
+              ? "Unsere Erde erwacht"
+              : "Nuestra Tierra despierta"}
           </div>
           <div className="relative h-[3px] w-64 max-w-[70vw] overflow-hidden bg-white/10">
             <div
-              className="absolute inset-y-0 left-0 bg-[#BD0E0D] shadow-[0_0_12px_2px_rgba(189,14,13,0.7)] transition-[width] duration-100 ease-out"
+              className="absolute inset-y-0 left-0 bg-[#89B881] shadow-[0_0_12px_2px_rgba(137,184,129,0.7)] transition-[width] duration-100 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -818,17 +1124,415 @@ export default function GlobeMap() {
             style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
           >
             {Math.round(progress)}
-            <span className="text-[#BD0E0D]">%</span>
+            <span className="text-[#89B881]">%</span>
           </div>
         </div>
       )}
 
       {/* Instrucciones */}
-      <div className="absolute z-20 bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-wider uppercase bg-black/30 px-4 py-1.5 rounded-none backdrop-blur-sm border-t-2 border-[#BD0E0D] pointer-events-none">
+      <div className="absolute z-20 bottom-6 left-1/2 -translate-x-1/2 text-white/50 text-xs tracking-wider uppercase bg-black/30 px-4 py-1.5 rounded-none backdrop-blur-sm border-t-2 border-[#89B881] pointer-events-none">
         {locale === "de"
           ? "Ziehen • Zoom • Land antippen"
           : "Arrastrá • Zoom • Tocá un país"}
       </div>
+
+      {/* Selector de TEMA — enciende el globo por tema en vez de por región */}
+      <div className="absolute z-30 top-[84px] md:top-5 left-1/2 -translate-x-1/2 w-[min(92vw,460px)] flex flex-col items-center gap-2">
+        <div className="w-full flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setTopicPickerOpen((o) => !o)}
+            className="flex-1 flex items-center justify-between gap-2 bg-black/55 backdrop-blur-sm border-t-2 border-[#89B881] px-4 py-2.5 text-left hover:bg-black/70 transition-colors"
+          >
+            <span className="min-w-0 truncate text-sm font-bold text-white">
+              {selectedTopic
+                ? locale === "es" && selectedTopic.nameES
+                  ? selectedTopic.nameES
+                  : selectedTopic.name
+                : locale === "de"
+                  ? "Nach Thema erkunden"
+                  : "Explorar por tema"}
+            </span>
+            <svg
+              className={`h-4 w-4 shrink-0 text-[#89B881] transition-transform ${
+                topicPickerOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          {selectedTopic && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedTopic(null);
+                setTopicPickerOpen(false);
+              }}
+              className="shrink-0 bg-black/55 backdrop-blur-sm border-t-2 border-white/30 px-3 py-2.5 text-white/70 hover:text-white transition-colors"
+              aria-label={
+                locale === "de" ? "Thema entfernen" : "Quitar tema"
+              }
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* Leyenda del tema activo */}
+        {selectedTopic && topicInfo && !topicInfo.loading && (
+          <div className="w-full bg-black/45 backdrop-blur-sm px-3 py-1.5 text-[11px] text-gray-300 flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-[#89B881] shadow-[0_0_8px_2px_rgba(137,184,129,0.8)]" />
+            {locale === "de"
+              ? `${topicInfo.countriesLit} Länder · ${topicInfo.total} Artikel`
+              : `${topicInfo.countriesLit} países · ${topicInfo.total} artículos`}
+          </div>
+        )}
+
+        {/* Dropdown: buscador + chips de temas (ordenados por popularidad) */}
+        {topicPickerOpen && (
+          <div className="w-full bg-[#0a0a0a]/95 backdrop-blur-sm border border-white/10 max-h-[52vh] flex flex-col">
+            <div className="p-2 border-b border-white/10">
+              <input
+                value={topicSearch}
+                onChange={(e) => setTopicSearch(e.target.value)}
+                placeholder={
+                  locale === "de" ? "Thema suchen…" : "Buscar tema…"
+                }
+                className="w-full bg-white/5 px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:bg-white/10"
+              />
+            </div>
+            <div className="globe-articles-scroll overflow-y-auto p-2 flex flex-wrap gap-1.5 content-start">
+              {filteredTopics.length === 0 ? (
+                <p className="px-2 py-3 text-xs text-gray-500">
+                  {locale === "de"
+                    ? "Keine Themen gefunden."
+                    : "No hay temas."}
+                </p>
+              ) : (
+                filteredTopics.map((t) => {
+                  const label =
+                    locale === "es" && t.nameES ? t.nameES : t.name;
+                  const active = selectedTopic?.id === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTopic(
+                          active
+                            ? null
+                            : { id: t.id, name: t.name, nameES: t.nameES }
+                        );
+                        setTopicPickerOpen(false);
+                        setTopicSearch("");
+                      }}
+                      className={`px-2.5 py-1 text-xs font-medium transition-colors ${
+                        active
+                          ? "bg-[#557a4c] text-white"
+                          : "bg-white/[0.08] text-gray-200 hover:bg-white/15"
+                      }`}
+                    >
+                      {label}{" "}
+                      <span className="opacity-60 tabular-nums">{t.count}</span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Pila de la expedición — artículos pickeados, esquina superior derecha */}
+      {collected.length > 0 && (
+        <div className="absolute z-40 top-[84px] md:top-5 right-3 md:right-5 flex flex-col items-end gap-2">
+          <div ref={pileRef} className="relative">
+            <div className="flex -space-x-3">
+              {collected.slice(-4).map((a, i) => (
+                <div
+                  key={a.id}
+                  className="h-10 w-10 border-2 border-[#89B881] bg-black bg-cover bg-center shadow-lg"
+                  style={{
+                    backgroundImage: a.image ? `url("${a.image}")` : undefined,
+                    zIndex: i,
+                  }}
+                />
+              ))}
+            </div>
+            <span className="absolute -top-2 -right-2 flex h-5 min-w-[20px] items-center justify-center bg-[#557a4c] px-1 text-[11px] font-bold text-white tabular-nums">
+              {collected.length}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={openFinish}
+            className="bg-[#557a4c] hover:bg-[#46663f] text-white text-xs font-bold px-3 py-1.5 shadow-lg transition-colors"
+          >
+            {locale === "de"
+              ? `Expedition beenden (${collected.length})`
+              : `Finalizar expedición (${collected.length})`}
+          </button>
+        </div>
+      )}
+
+      {/* Reproductor TTS de un artículo desde el panel */}
+      {listenId && (
+        <QueuePlayer
+          ids={[listenId]}
+          initialLang={locale}
+          onClose={() => setListenId(null)}
+        />
+      )}
+
+      {/* Modal de cierre: nombrar y guardar la expedición */}
+      {mounted &&
+        finishOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/70"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget && !saving) setFinishOpen(false);
+            }}
+          >
+            <div className="w-full max-w-lg max-h-[85vh] bg-[#0a0a0a] border-t-2 border-[#89B881] shadow-2xl flex flex-col">
+              {saveResult === "ok" ? (
+                <div className="flex flex-col items-center gap-4 p-8 text-center">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#557a4c] text-white">
+                    <svg
+                      className="h-7 w-7"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-white">
+                    {locale === "de"
+                      ? "Expedition gespeichert"
+                      : "Expedición guardada"}
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    {locale === "de"
+                      ? "Du findest sie in deinem Dashboard."
+                      : "La encontrás en tu panel."}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Link
+                      href={`/${locale}/dashboard-users`}
+                      className="bg-[#557a4c] hover:bg-[#46663f] px-4 py-2 text-sm font-bold text-white transition-colors"
+                    >
+                      {locale === "de" ? "Zu Mein ila" : "A Mi ila"}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setFinishOpen(false)}
+                      className="px-4 py-2 text-sm font-bold text-white/70 hover:text-white transition-colors"
+                    >
+                      {locale === "de"
+                        ? "Weiter erkunden"
+                        : "Seguir explorando"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-3 border-b border-white/10 px-5 py-4">
+                    <div className="min-w-0">
+                      <h3 className="text-base font-bold text-white">
+                        {locale === "de"
+                          ? "Deine Expedition"
+                          : "Tu expedición"}
+                      </h3>
+                      <p className="text-xs text-gray-400">
+                        {collected.length}{" "}
+                        {locale === "de" ? "Artikel" : "artículos"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => !saving && setFinishOpen(false)}
+                      className="shrink-0 text-white/60 hover:text-white transition-colors"
+                      aria-label={locale === "de" ? "Schließen" : "Cerrar"}
+                    >
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="globe-articles-scroll min-h-0 flex-1 overflow-y-auto">
+                    <ul className="divide-y divide-white/10">
+                      {collected.map((a) => {
+                        const title =
+                          locale === "es" && a.isTranslatedES && a.titleES
+                            ? a.titleES
+                            : a.title;
+                        return (
+                          <li
+                            key={a.id}
+                            className="flex items-center gap-3 px-4 py-2.5"
+                          >
+                            {a.image ? (
+                              <img
+                                src={a.image}
+                                alt=""
+                                loading="lazy"
+                                className="h-11 w-11 shrink-0 object-cover bg-white/5"
+                              />
+                            ) : (
+                              <div className="h-11 w-11 shrink-0 bg-white/5" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <span className="block text-sm font-semibold leading-snug text-gray-100 line-clamp-2">
+                                {title}
+                              </span>
+                              {a.author && (
+                                <span className="text-[11px] text-gray-500">
+                                  {a.author}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCollected((prev) =>
+                                  prev.filter((x) => x.id !== a.id)
+                                )
+                              }
+                              className="shrink-0 text-white/40 hover:text-[#89B881] transition-colors"
+                              aria-label={
+                                locale === "de" ? "Entfernen" : "Quitar"
+                              }
+                            >
+                              <svg
+                                className="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+
+                  <div className="border-t border-white/10 p-4">
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-400">
+                      {locale === "de"
+                        ? "Name der Expedition"
+                        : "Nombre de la expedición"}
+                    </label>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={expeditionName}
+                      onChange={(e) => setExpeditionName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !saving) saveExpedition();
+                      }}
+                      maxLength={120}
+                      disabled={saving}
+                      placeholder={
+                        locale === "de"
+                          ? "z. B. Musik in Argentinien"
+                          : "p. ej. Música en Argentina"
+                      }
+                      className="w-full border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:border-[#89B881]"
+                    />
+
+                    {saveResult === "auth" && (
+                      <p className="mt-2 text-xs text-amber-400">
+                        {locale === "de"
+                          ? "Bitte melde dich an, um deine Expedition zu speichern."
+                          : "Iniciá sesión para guardar tu expedición."}
+                      </p>
+                    )}
+                    {saveResult === "error" && (
+                      <p className="mt-2 text-xs text-[#ff6b6b]">
+                        {locale === "de"
+                          ? "Etwas ist schiefgelaufen. Versuch es erneut."
+                          : "Algo salió mal. Probá de nuevo."}
+                      </p>
+                    )}
+
+                    <div className="mt-3 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => !saving && setFinishOpen(false)}
+                        disabled={saving}
+                        className="px-4 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-60 transition-colors"
+                      >
+                        {locale === "de" ? "Abbrechen" : "Cancelar"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={saveExpedition}
+                        disabled={saving || !expeditionName.trim()}
+                        className="flex items-center gap-2 bg-[#557a4c] hover:bg-[#46663f] px-4 py-2 text-sm font-bold text-white transition-colors disabled:opacity-60"
+                      >
+                        {saving ? (
+                          <>
+                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                            {locale === "de" ? "Speichert…" : "Guardando…"}
+                          </>
+                        ) : locale === "de" ? (
+                          "Expedition speichern"
+                        ) : (
+                          "Guardar expedición"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
 
       {/* Popup centrado con artículos clickeables (portal a document.body para
           quedar fuera del canvas/CSS2D de Three.js y poder scrollear/clickar) */}
@@ -848,18 +1552,25 @@ export default function GlobeMap() {
           >
             <div
               ref={panelContentRef}
-              className="w-full max-w-md max-h-[80vh] bg-[#0a0a0a] border-t-2 border-[#BD0E0D] shadow-2xl flex flex-col"
+              className="w-full max-w-md max-h-[80vh] bg-[#0a0a0a] border-t-2 border-[#89B881] shadow-2xl flex flex-col"
             >
             {/* Header */}
             <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10">
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-white text-[#BD0E0D] font-futura font-bold text-sm">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-white text-[#557a4c] font-futura font-bold text-sm">
                   ila
                 </span>
                 <div className="min-w-0">
                   <h3 className="text-white font-bold text-base truncate">
                     {panel.name}
                   </h3>
+                  {panel.topicId && selectedTopic && (
+                    <p className="truncate text-[11px] font-bold uppercase tracking-wide text-[#89B881]">
+                      {locale === "es" && selectedTopic.nameES
+                        ? selectedTopic.nameES
+                        : selectedTopic.name}
+                    </p>
+                  )}
                   <p className="text-gray-400 text-xs">
                     {panelData.total}{" "}
                     {locale === "de" ? "Artikel" : "artículos"}
@@ -891,13 +1602,13 @@ export default function GlobeMap() {
             <style>{`
               .globe-articles-scroll::-webkit-scrollbar { width: 8px; }
               .globe-articles-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); }
-              .globe-articles-scroll::-webkit-scrollbar-thumb { background: #BD0E0D; }
-              .globe-articles-scroll { scrollbar-width: thin; scrollbar-color: #BD0E0D rgba(255,255,255,0.06); }
+              .globe-articles-scroll::-webkit-scrollbar-thumb { background: #89B881; }
+              .globe-articles-scroll { scrollbar-width: thin; scrollbar-color: #89B881 rgba(255,255,255,0.06); }
             `}</style>
             <div className="globe-articles-scroll flex-1 min-h-0 overflow-y-auto overscroll-contain">
               {panelData.loading ? (
                 <div className="flex items-center justify-center gap-2 py-10 text-gray-400 text-sm">
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-[#BD0E0D] rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-[#89B881] rounded-full animate-spin" />
                   {locale === "de" ? "Lädt…" : "Cargando…"}
                 </div>
               ) : panelData.articles.length === 0 ? (
@@ -929,13 +1640,116 @@ export default function GlobeMap() {
                     const year = a.publicationDate
                       ? new Date(a.publicationDate).getFullYear()
                       : null;
+                    const inPile = collectedIds.has(a.id);
+                    const slim = {
+                      id: a.id,
+                      title: a.title,
+                      titleES: a.titleES,
+                      isTranslatedES: a.isTranslatedES,
+                      legacyPath: a.legacyPath,
+                      image: img || null,
+                      author: author || null,
+                      editionNumber: a.edition?.number || null,
+                    };
                     return (
-                      <li key={a.id}>
+                      <li key={a.id} className="relative">
+                        {canListen && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setListenId(a.id);
+                            }}
+                            aria-label={
+                              locale === "de" ? "Anhören" : "Escuchar"
+                            }
+                            title={locale === "de" ? "Anhören" : "Escuchar"}
+                            className="absolute right-11 top-2 z-10 flex h-7 w-7 items-center justify-center border border-white/25 bg-black/50 text-white/80 transition-colors hover:border-[#89B881] hover:text-white"
+                          >
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15.536 8.464a5 5 0 010 7.072M12 6.5L7.5 10H4v4h3.5L12 17.5v-11z"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleCollect(slim, e);
+                          }}
+                          aria-label={
+                            inPile
+                              ? locale === "de"
+                                ? "Aus der Expedition entfernen"
+                                : "Quitar de la expedición"
+                              : locale === "de"
+                                ? "Zur Expedition hinzufügen"
+                                : "Añadir a la expedición"
+                          }
+                          title={
+                            inPile
+                              ? locale === "de"
+                                ? "In der Expedition"
+                                : "En la expedición"
+                              : locale === "de"
+                                ? "Zur Expedition hinzufügen"
+                                : "Añadir a la expedición"
+                          }
+                          className={`absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center border transition-colors ${
+                            inPile
+                              ? "border-[#557a4c] bg-[#557a4c] text-white"
+                              : "border-white/25 bg-black/50 text-white/80 hover:border-[#89B881] hover:text-white"
+                          }`}
+                        >
+                          {inPile ? (
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.5}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="h-4 w-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2.5}
+                                d="M12 5v14M5 12h14"
+                              />
+                            </svg>
+                          )}
+                        </button>
                         <Link
                           href={href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group flex gap-3 px-4 py-3 hover:bg-white/5 transition-colors"
+                          className={`group flex gap-3 px-4 py-3 hover:bg-white/5 transition-colors ${
+                            canListen ? "pr-[4.75rem]" : "pr-11"
+                          }`}
                         >
                           {img && (
                             <img
@@ -962,7 +1776,7 @@ export default function GlobeMap() {
                               {topics.map((tp) => (
                                 <span
                                   key={tp.id}
-                                  className="text-[10px] font-bold uppercase tracking-wide text-[#BD0E0D]"
+                                  className="text-[10px] font-bold uppercase tracking-wide text-[#89B881]"
                                 >
                                   {tp.name}
                                 </span>
@@ -1004,8 +1818,12 @@ export default function GlobeMap() {
             {/* Footer: ver todos */}
             {panelData.total > 0 && (
               <Link
-                href={`/${locale}/entities/regions/${panel.regionId}`}
-                className="block border-t border-white/10 px-5 py-3 text-center text-sm font-bold text-[#BD0E0D] hover:bg-white/5 transition-colors"
+                href={
+                  panel.topicId
+                    ? `/${locale}/entities/topics/${panel.topicId}`
+                    : `/${locale}/entities/regions/${panel.regionId}`
+                }
+                className="block border-t border-white/10 px-5 py-3 text-center text-sm font-bold text-[#89B881] hover:bg-white/5 transition-colors"
               >
                 {locale === "de"
                   ? `Alle ${panelData.total} ansehen →`

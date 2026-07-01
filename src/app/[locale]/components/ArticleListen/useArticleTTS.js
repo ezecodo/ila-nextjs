@@ -20,6 +20,45 @@ export function htmlToBlocks(html) {
   return blocks;
 }
 
+// Range sobre los nodos de texto de `el` cubriendo [start, start+length).
+// Usado por el resaltado palabra-por-palabra (CSS Custom Highlight API).
+export function rangeForOffset(el, start, length) {
+  const end = start + length;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let node;
+  let pos = 0;
+  let startNode = null;
+  let startOff = 0;
+  let endNode = null;
+  let endOff = 0;
+  while ((node = walker.nextNode())) {
+    const len = node.nodeValue.length;
+    if (startNode === null && start < pos + len) {
+      startNode = node;
+      startOff = start - pos;
+    }
+    if (startNode !== null && end <= pos + len) {
+      endNode = node;
+      endOff = end - pos;
+      break;
+    }
+    pos += len;
+  }
+  if (!startNode) return null;
+  if (!endNode) {
+    endNode = startNode;
+    endOff = startNode.nodeValue.length;
+  }
+  try {
+    const r = document.createRange();
+    r.setStart(startNode, Math.max(0, startOff));
+    r.setEnd(endNode, Math.min(endNode.nodeValue.length, endOff));
+    return r;
+  } catch {
+    return null;
+  }
+}
+
 // Heurística de calidad de voz: las de red (no localService) y las que en el
 // nombre traen Google/Premium/Enhanced/Neural/Natural suenan claramente mejor
 // que las compactas del sistema.
@@ -52,7 +91,7 @@ export function voiceLabel(v) {
 // Aproximación de velocidad de lectura (caracteres por segundo a rate 1).
 // Las voces de red no emiten eventos de palabra, así que el resaltado
 // palabra-por-palabra se estima por tiempo con esta constante.
-const CHARS_PER_SEC = 14;
+export const CHARS_PER_SEC = 14;
 
 // Parte los bloques en segmentos cortos (oraciones). Chrome corta los
 // utterances largos (~15s), así que conviene leer oración por oración.
@@ -102,6 +141,9 @@ export function useArticleTTS(lang = "de") {
   const [segIndex, setSegIndex] = useState(0);
   const [segTotal, setSegTotal] = useState(0);
   const [segBlocks, setSegBlocks] = useState([]);
+  // Metadatos por segmento para mapear posición de caracteres → segmento
+  // (necesario para que una barra de progreso sea seekable por click).
+  const [segMeta, setSegMeta] = useState([]); // { blockIndex, offset, length }
   const [word, setWord] = useState(null); // { blockIndex, start, length }
 
   // Se resuelve tras el montaje para evitar mismatch de hidratación.
@@ -280,6 +322,13 @@ export function useArticleTTS(lang = "de") {
       segmentsRef.current = segs;
       setSegTotal(segs.length);
       setSegBlocks(segs.map((s) => s.blockIndex));
+      setSegMeta(
+        segs.map((s) => ({
+          blockIndex: s.blockIndex,
+          offset: s.offset,
+          length: s.text.length,
+        }))
+      );
       cancelledRef.current = false;
       setIsPlaying(true);
       setIsPaused(false);
@@ -382,6 +431,7 @@ export function useArticleTTS(lang = "de") {
     segIndex,
     segTotal,
     segBlocks,
+    segMeta,
     word,
     play,
     pause,

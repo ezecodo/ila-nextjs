@@ -185,7 +185,7 @@ export default function MiniArticleCardGrid({
             </div>
           )}
 
-          <h3 className="text-xl font-bold leading-[1.15] text-white text-balance mb-2">
+          <h3 className="font-oswald text-2xl font-semibold leading-[1.05] text-white text-balance mb-2">
             <span className="bg-gradient-to-r from-white/90 to-white/90 bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
               {title}
             </span>
@@ -276,7 +276,7 @@ export default function MiniArticleCardGrid({
           )}
 
           <div className="flex-1 flex flex-col justify-center">
-            <h3 className="text-2xl md:text-3xl font-bold leading-[1.12] text-balance">
+            <h3 className="font-oswald text-3xl md:text-4xl font-semibold leading-[1.02] text-balance">
               <span className="bg-gradient-to-r from-white/90 to-white/90 bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
                 {title}
               </span>
@@ -326,7 +326,7 @@ export default function MiniArticleCardGrid({
   /* =================== HORIZONTAL / CUADRADA (con imagen) =================== */
   return (
     <article
-      className={`group relative flex flex-col h-full rounded-none bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 ${
+      className={`group relative flex flex-col h-full rounded-none bg-transparent transition-all duration-300 ${
         isTransitioning
           ? "opacity-0 translate-y-4"
           : "opacity-100 translate-y-0"
@@ -361,8 +361,8 @@ export default function MiniArticleCardGrid({
         </div>
       </div>
 
-      {/* Contenido más denso, menos aire */}
-      <div className="flex flex-col gap-1.5 p-3.5 flex-1">
+      {/* Contenido: sin recuadro, alineado al borde de la imagen (editorial) */}
+      <div className="flex flex-col gap-1.5 pt-3 flex-1">
         {/* Badges más compactos — relative z-10 para quedar sobre el overlay */}
         <div className="relative z-10 flex items-start justify-between gap-2">
           <EntityBadges
@@ -376,28 +376,28 @@ export default function MiniArticleCardGrid({
         </div>
 
         {/* Título: el link lo da el overlay de la card (un solo <a>) */}
-        <h3 className="text-xl font-bold leading-[1.15] text-gray-900 dark:text-gray-100 text-balance">
+        <h3 className="font-oswald text-2xl font-semibold leading-[1.1] text-[#2b2b2b] dark:text-gray-100 text-balance">
           <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
             {title}
           </span>
         </h3>
 
-        {/* Subtítulo más integrado */}
+        {/* Subtítulo = deck bajo el titular (Geist, mismo cuerpo que el vorspann) */}
         {subtitle && (
-          <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-snug line-clamp-1">
+          <p className="text-[14px] text-gray-600 dark:text-gray-400 leading-normal line-clamp-2">
             {subtitle}
           </p>
         )}
 
-        {/* Teaser */}
+        {/* Teaser — más presencia (tamaño/color/interlineado tipo NACLA) */}
         {teaser && (
-          <p className="text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed overflow-hidden line-clamp-2">
+          <p className="text-[15px] text-gray-700 dark:text-gray-300 leading-relaxed overflow-hidden line-clamp-3">
             {teaser}
           </p>
         )}
 
         {/* Footer siempre al fondo — relative z-10 para que el autor sea clickeable sobre el overlay */}
-        <div className="relative z-10 mt-auto pt-2.5 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2">
+        <div className="relative z-10 mt-auto pt-2.5 flex items-center justify-between gap-2">
           {article.authors?.length > 0 ? (
             <span className="text-[12px] text-gray-500 dark:text-gray-400 min-w-0">
               {t("by")}{" "}

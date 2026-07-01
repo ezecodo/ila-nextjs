@@ -12,6 +12,12 @@ export const DEFAULT_FLAGS = {
     translator: false,
     user: false,
   },
+  globila: {
+    admin: true,
+    digitalabo: false,
+    translator: false,
+    user: false,
+  },
 };
 
 // Mezcla (1 nivel por feature) defaults + guardado, así nuevos flags añadidos

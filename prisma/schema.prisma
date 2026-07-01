@@ -76,6 +76,7 @@ model Article {
   translator        User?             @relation("ArticleTranslator", fields: [translatorId], references: [id])
   carouselArticles  CarouselArticle[]
   favorites         Favorite[]
+  globilaCollectionItems GlobilaCollectionItem[]
   obituaryDetails   ObituaryDetails?
   tocManualMatches  TocManualMatch[]
   authors           Author[]          @relation("ArticleAuthors")
@@ -419,6 +420,7 @@ model User {
   translationsAssigned Article[]        @relation("ArticleTranslator")
   editionsTranslated   Edition[]        @relation("EditionTranslator")
   favorites            Favorite[]
+  globilaCollections   GlobilaCollection[]
   sessions             Session[]
   tocManualMatches     TocManualMatch[]
 }
@@ -545,6 +547,31 @@ model Favorite {
 
   @@unique([userId, articleId])
   @@index([articleId], map: "Favorite_articleId_fkey")
+}
+
+// Expediciones de GLOBila: listas de lectura curadas que el suscriptor arma
+// navegando el globo por tema/país. Cada sesión guardada = una colección con nombre.
+model GlobilaCollection {
+  id        String                  @id @default(cuid())
+  userId    String
+  name      String
+  createdAt DateTime                @default(now())
+  user      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     GlobilaCollectionItem[]
+
+  @@index([userId], map: "GlobilaCollection_userId_fkey")
+}
+
+model GlobilaCollectionItem {
+  id           String            @id @default(cuid())
+  collectionId String
+  articleId    Int
+  addedAt      DateTime          @default(now())
+  collection   GlobilaCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  article      Article           @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, articleId])
+  @@index([articleId], map: "GlobilaCollectionItem_articleId_fkey")
 }
 model NetworkPartner {
   id          String   @id @default(cuid())

@@ -38,6 +38,12 @@ export async function GET(request) {
             name: true,
           },
         },
+        interviewees: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         categories: {
           select: {
             id: true,
@@ -63,6 +69,7 @@ export async function GET(request) {
           select: {
             id: true,
             number: true,
+            title: true,
             datePublished: true,
           },
         },

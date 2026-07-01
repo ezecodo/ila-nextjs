@@ -85,19 +85,42 @@ export default function ArticleCarouselVer(props) {
 
   const singleSlide = articles.length === 1;
 
+  // Escalonado por ancho: laptop/13" = base (4), monitor grande = +1 (5), ultra-wide = +2 (6)
+  const midSlides = effectiveSlidesToShow;
+  const largeSlides = effectiveSlidesToShow + 1;
+  const wideSlides = effectiveSlidesToShow + 2;
+
   const settings = {
     infinite: false,
     speed: 500,
-    slidesToShow: singleSlide ? 1 : effectiveSlidesToShow,
+    slidesToShow: singleSlide ? 1 : wideSlides,
     slidesToScroll: 1,
-    arrows: articles.length > effectiveSlidesToShow,
-    dots: articles.length > effectiveSlidesToShow,
+    arrows: articles.length > wideSlides,
+    dots: articles.length > wideSlides,
     swipe: true,
     swipeToSlide: true,
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
     dotsClass: "slick-dots !bottom-[-2rem]",
     responsive: [
+      {
+        breakpoint: 1920,
+        settings: {
+          slidesToShow: singleSlide ? 1 : largeSlides,
+          slidesToScroll: 1,
+          arrows: articles.length > largeSlides,
+          dots: articles.length > largeSlides,
+        },
+      },
+      {
+        breakpoint: 1536,
+        settings: {
+          slidesToShow: singleSlide ? 1 : midSlides,
+          slidesToScroll: 1,
+          arrows: articles.length > midSlides,
+          dots: articles.length > midSlides,
+        },
+      },
       {
         breakpoint: 1024,
         settings: {
@@ -223,7 +246,7 @@ export default function ArticleCarouselVer(props) {
                     )}
 
                     {/* Título */}
-                    <h3 className="text-[17px] font-bold leading-[1.25] text-gray-900 dark:text-gray-100 text-balance line-clamp-2 mb-1">
+                    <h3 className="font-oswald text-[19px] font-semibold leading-[1.15] text-[#2b2b2b] dark:text-gray-100 text-balance line-clamp-2 mb-1">
                       <ArticleLink article={article}>
                         <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
                           {articleTitle}
@@ -231,9 +254,9 @@ export default function ArticleCarouselVer(props) {
                       </ArticleLink>
                     </h3>
 
-                    {/* Subtítulo */}
+                    {/* Subtítulo = deck bajo el titular (Geist) */}
                     {subtitle && (
-                      <p className="text-[13px] text-gray-500 dark:text-gray-400 leading-snug line-clamp-2 mb-2">
+                      <p className="text-[14px] text-gray-600 dark:text-gray-400 leading-normal line-clamp-2 mb-2">
                         {subtitle}
                       </p>
                     )}

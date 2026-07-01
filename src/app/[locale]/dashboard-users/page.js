@@ -9,6 +9,7 @@ import AccountSettings from "../components/AccountSettings/AccountSettings";
 import FavoriteArticlesList from "./FavoriteArticleList/FavoriteArticleList";
 import PdfDossiers from "./PdfDossiers/PdfDossiers";
 import LatestDossier from "./LatestDossier/LatestDossier";
+import Expeditions from "./Expeditions/Expeditions";
 
 export default function UserDashboard() {
   const [selectedTab, setSelectedTab] = useState("favorites");
@@ -36,6 +37,7 @@ export default function UserDashboard() {
       ? [{ key: "latest-dossier", label: t("tabs.latest_dossier") }]
       : []),
     { key: "favorites", label: t("tabs.favorites") },
+    ...(hasPdfAbo ? [{ key: "expeditions", label: t("tabs.expeditions") }] : []),
     ...(hasPdfAbo ? [{ key: "pdf-dossiers", label: t("tabs.pdf_dossiers") }] : []),
     { key: "account", label: t("tabs.account") },
   ];
@@ -92,6 +94,9 @@ export default function UserDashboard() {
           <LatestDossier locale={locale} />
         )}
         {selectedTab === "favorites" && <FavoriteArticlesList />}
+        {selectedTab === "expeditions" && hasPdfAbo && (
+          <Expeditions locale={locale} />
+        )}
         {selectedTab === "pdf-dossiers" && hasPdfAbo && (
           <PdfDossiers locale={locale} />
         )}

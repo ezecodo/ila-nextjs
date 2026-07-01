@@ -13,6 +13,8 @@ export async function GET(req) {
         datePublished: true,
         summary: true, // 👈 Agregamos summary
         summaryES: true, // 👈 Agregamos summaryES
+        isAvailableToOrder: true,
+        isSpecialOffer: true,
         articles: {
           select: {
             isTranslatedES: true,
@@ -31,6 +33,8 @@ export async function GET(req) {
       datePublished: edition.datePublished,
       summary: edition.summary, // 👈
       summaryES: edition.summaryES, // 👈
+      isAvailableToOrder: edition.isAvailableToOrder,
+      isSpecialOffer: edition.isSpecialOffer,
       _count: {
         articles: edition.articles.length,
         translatedArticles: edition.articles.filter(

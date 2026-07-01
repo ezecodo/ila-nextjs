@@ -7,6 +7,7 @@ import Image from "next/image";
 import IlaLoader from "../components/IlaLoader/IlaLoader";
 import IlaLogo from "../components/IlaLogo/IlaLogo";
 import QuietSectionHeader from "../components/SectionsHeader/QuietSectionHeader";
+import DossierBuyButton from "../components/DossierBuyButton/DossierBuyButton";
 
 export default function ArchivePage() {
   const locale = useLocale();
@@ -148,12 +149,13 @@ export default function ArchivePage() {
                       </span>
 
                       {/* --- AQUÍ ESTÁ EL CAMBIO --- */}
-                      <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
+                      <span className="text-xs font-bold tracking-widest text-gray-400">
                         {editions.length > 0 && (
                           <>
+                            <span className="futura lowercase">ila</span>{" "}
                             {editions.length === 1
-                              ? `ila ${editions[0].number}`
-                              : `ila ${editions[editions.length - 1].number} – ${editions[0].number}`}
+                              ? editions[0].number
+                              : `${editions[editions.length - 1].number} – ${editions[0].number}`}
                           </>
                         )}
                         {registros.length > 0 && (
@@ -354,6 +356,13 @@ export default function ArchivePage() {
                               </div>
                             </div>
                           </Link>
+
+                          {edition.isAvailableToOrder && (
+                            <DossierBuyButton
+                              edition={edition}
+                              className="absolute bottom-4 right-4 z-20"
+                            />
+                          )}
                         </div>
                       );
                     })}

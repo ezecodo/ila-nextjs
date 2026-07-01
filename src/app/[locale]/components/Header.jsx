@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import React, { useState, useEffect, useRef } from "react";
@@ -10,6 +10,7 @@ import Link from "next/link";
 
 import IlaLogo50 from "../components/IlaLogo/ilaLogo50";
 import CartButton from "./Cart/CartButton";
+import LoginModal from "./LoginModal/LoginModal";
 
 import styles from "./Header.module.css";
 
@@ -53,6 +54,7 @@ export default function Header() {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const [darkMode, setDarkMode] = useState(() => {
@@ -484,7 +486,7 @@ export default function Header() {
               ) : (
                 <button
                   onClick={() => {
-                    signIn();
+                    setLoginOpen(true);
                     setMenuOpen(false);
                   }}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-[#BD0E0D] font-bold text-sm hover:bg-white/90 transition-colors"
@@ -704,7 +706,7 @@ export default function Header() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => signIn()}
+                      onClick={() => setLoginOpen(true)}
                       className="text-[10px] font-bold futura text-white/70 hover:text-white transition-colors flex items-center gap-1.5"
                     >
                       <FaSignInAlt size={11} />
@@ -774,7 +776,7 @@ export default function Header() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => signIn()}
+                      onClick={() => setLoginOpen(true)}
                       className="text-[10px] font-bold futura text-gray-500 dark:text-gray-400 hover:text-[#BD0E0D] dark:hover:text-red-400 transition-colors flex items-center gap-1.5"
                     >
                       <FaSignInAlt size={11} />
@@ -789,6 +791,8 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </header>
   );
 }

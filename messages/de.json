@@ -1,4 +1,9 @@
 {
+  "cart": {
+    "selected": "{count, plural, one {# Heft ausgewählt} other {# Hefte ausgewählt}}",
+    "toForm": "Zum Formular",
+    "keepBrowsing": "Weiter stöbern"
+  },
   "quilleditor": {
     "writeHere": "Hier schreiben..."
   },
@@ -1352,6 +1357,33 @@
     },
     "loading": "Daten werden geladen..."
   },
+  "expeditions": {
+    "title": "Meine Expeditionen",
+    "subtitle": "Deine in GLOBila gesammelten Artikelsammlungen.",
+    "empty_title": "Noch keine Expeditionen",
+    "empty_text": "Erkunde den Globus, sammle Artikel und speichere sie als benannte Expedition, um sie hier wiederzufinden.",
+    "empty_cta": "GLOBila öffnen",
+    "articles": "{count, plural, one {# Artikel} other {# Artikel}}",
+    "open": "Öffnen",
+    "back": "Zurück zu den Expeditionen",
+    "delete": "Löschen",
+    "delete_confirm": "Diese Expedition wirklich löschen?",
+    "rename": "Umbenennen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "loading": "Wird geladen…",
+    "detail_empty": "Diese Expedition enthält keine Artikel.",
+    "listen_title": "Wiedergabeliste zusammenstellen",
+    "listen_play": "Anhören ({count})",
+    "listen_play_aria": "Abspielen",
+    "listen_pool": "Verfügbare Artikel",
+    "listen_playlist": "Wiedergabeliste",
+    "listen_empty": "Tippe oben auf Artikel, um sie zur Wiedergabeliste hinzuzufügen.",
+    "listen_add": "Hinzufügen",
+    "listen_remove": "Entfernen",
+    "listen_up": "Nach oben",
+    "listen_down": "Nach unten"
+  },
   "user_dashboard": {
     "title": "Mein ila",
     "menu_open": "Menü öffnen ☰",
@@ -1362,6 +1394,7 @@
       "favorites": "Lieblingsartikel",
       "latest_dossier": "📖 Aktuelles Dossier",
       "pdf_dossiers": "📰 Meine Dossiers (PDF)",
+      "expeditions": "🧭 Meine Expeditionen",
       "account": "Kontoeinstellungen",
       "pdf_bundle": "PDF Paket"
     },
@@ -1409,11 +1442,11 @@
   "digitalAbo": {
     "badge": "Digital-Abo",
     "heroTitle": "50 Jahre ila auf Papier. Jetzt auch digital.",
-    "heroSubtitle": "Werde Teil des Prozesses und hol dir dein DIGIabo: ein halbes Jahrhundert Journalismus über Lateinamerika – komplett, interaktiv, ohne Warten.",
+    "heroSubtitle": "Sei von Anfang an dabei und hol dir dein DIGIabo: ein halbes Jahrhundert Journalismus über Lateinamerika – komplett, interaktiv, ohne Warten.",
     "heroCta": "Hol dir dein",
     "heroNote": "Gleicher Inhalt wie das Print-Abo, zu minimalen Kosten – weil kein Heft gedruckt und versendet wird.",
     "featuresTitle": "Du überlegst noch?",
-    "featuresSubtitle": "Sechs Gründe, warum das DIGIabo deine liebste Art wird, ila zu lesen.",
+    "featuresSubtitle": "Immer mehr Gründe, warum das DIGIabo deine liebste Art wird, ila zu lesen.",
     "feature1Title": "Favoriten nach Themen ordnen",
     "feature1Desc": "Speichere Artikel und organisiere deine eigene Bibliothek nach Themen – dein persönliches Lateinamerika-Archiv.",
     "feature2Title": "Eigene PDF-Pakete erstellen",
@@ -1426,6 +1459,8 @@
     "feature5Desc": "Lade ganze Ausgaben als hochwertiges PDF herunter und lies offline, wo immer du willst.",
     "feature6Title": "Ablenkungsfreier Lesemodus",
     "feature6Desc": "Ein Vollbild-Lesemodus ohne Ablenkung – nur du und der Text.",
+    "feature7Title": "Demnächst: eine Überraschung",
+    "feature7Desc": "Wir arbeiten an etwas, das die Art, wie du ila «liest», völlig verändern wird. Mehr verraten wir noch nicht – aber als Digital-Abonnent:in bist du von Anfang an dabei.",
     "valueTitle": "Echte, unabhängige Finanzierung",
     "valueText": "ila ist seit 1976 ein unabhängiges Medium – ohne Großsponsoren. Das Digital-Abo macht hochwertigen Journalismus über Lateinamerika nachhaltig möglich, zu minimalen Kosten.",
     "formTitle": "Digital-Abo abschließen",

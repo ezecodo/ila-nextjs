@@ -87,19 +87,42 @@ export default function FilteredArticlesCarousel(props) {
 
   const singleSlide = articles.length === 1;
 
+  // Escalonado por ancho: 13"/laptop = base (3), monitor grande = +1, ultra-wide = +2
+  const midSlides = effectiveSlidesToShow;
+  const largeSlides = effectiveSlidesToShow + 1;
+  const wideSlides = effectiveSlidesToShow + 2;
+
   const settings = {
     infinite: false,
     speed: 500,
-    slidesToShow: singleSlide ? 1 : effectiveSlidesToShow,
+    slidesToShow: singleSlide ? 1 : wideSlides,
     slidesToScroll: 1,
-    arrows: articles.length > effectiveSlidesToShow,
-    dots: articles.length > effectiveSlidesToShow,
+    arrows: articles.length > wideSlides,
+    dots: articles.length > wideSlides,
     swipe: true,
     swipeToSlide: true,
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
     dotsClass: "slick-dots !bottom-[-2rem]",
     responsive: [
+      {
+        breakpoint: 1920,
+        settings: {
+          slidesToShow: singleSlide ? 1 : largeSlides,
+          slidesToScroll: 1,
+          arrows: articles.length > largeSlides,
+          dots: articles.length > largeSlides,
+        },
+      },
+      {
+        breakpoint: 1536,
+        settings: {
+          slidesToShow: singleSlide ? 1 : midSlides,
+          slidesToScroll: 1,
+          arrows: articles.length > midSlides,
+          dots: articles.length > midSlides,
+        },
+      },
       {
         breakpoint: 1024,
         settings: {

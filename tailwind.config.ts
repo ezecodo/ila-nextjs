@@ -18,6 +18,7 @@ const config: Config = {
         futura: ["var(--font-futura)", "sans-serif"],
         geist: ["var(--font-geist-sans)", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
+        oswald: ["var(--font-oswald)", "sans-serif"],
       },
       keyframes: {
         "ping-once": {

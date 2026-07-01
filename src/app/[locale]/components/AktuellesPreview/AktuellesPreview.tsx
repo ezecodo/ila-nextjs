@@ -95,7 +95,7 @@ export default function AktuellesPreview() {
 
             {/* Título en sans con subrayado animado */}
             <Link href={`/aktuell/aktuelles?scrollTo=${item.id}`} className="block">
-              <h4 className="text-[16px] font-bold leading-[1.3] text-gray-900 dark:text-gray-100 text-balance">
+              <h4 className="font-oswald text-[17px] font-semibold leading-[1.2] text-[#2b2b2b] dark:text-gray-100 text-balance">
                 <span className="bg-gradient-to-r from-[#BD0E0D] to-[#BD0E0D] bg-[length:0%_2px] bg-left-bottom bg-no-repeat group-hover:bg-[length:100%_2px] transition-all duration-500">
                   {getTitle(item)}
                 </span>

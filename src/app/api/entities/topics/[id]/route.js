@@ -23,6 +23,15 @@ export async function GET(request, context) {
     const pageSize = 20;
     const skip = (page - 1) * pageSize;
 
+    // Filtro opcional por región: GLOBila lo usa para mostrar los artículos de
+    // un tema que además tocan un país/región concretos.
+    const regionIdRaw = searchParams.get("regionId");
+    const regionId = regionIdRaw ? parseInt(regionIdRaw, 10) : null;
+    const articleRegionWhere =
+      regionId && !isNaN(regionId)
+        ? { regions: { some: { id: regionId } } }
+        : undefined;
+
     console.log(`✅ Buscando topic con ID: ${topicId} - Página: ${page}`);
 
     // 🔥 Obtener el topic con artículos y ediciones
@@ -30,6 +39,7 @@ export async function GET(request, context) {
       where: { id: topicId },
       include: {
         articles: {
+          where: articleRegionWhere,
           orderBy: { publicationDate: "desc" },
           skip,
           take: pageSize,
@@ -37,9 +47,12 @@ export async function GET(request, context) {
             id: true,
             legacyPath: true,
             title: true,
+            titleES: true,
+            isTranslatedES: true,
             subtitle: true,
             publicationDate: true,
             beitragsId: true,
+            beitragstyp: { select: { id: true, name: true, nameES: true } },
             edition: { select: { id: true, number: true, title: true } },
             topics: { select: { id: true, name: true } },
             regions: { select: { id: true, name: true } },
@@ -71,9 +84,12 @@ export async function GET(request, context) {
       });
     }
 
-    // 🔥 Contar total de artículos en el topic
+    // 🔥 Contar total de artículos en el topic (respetando el filtro de región)
     const totalArticles = await prisma.article.count({
-      where: { topics: { some: { id: topicId } } },
+      where: {
+        topics: { some: { id: topicId } },
+        ...(articleRegionWhere || {}),
+      },
     });
 
     // 🔥 Contar total de ediciones en el topic
