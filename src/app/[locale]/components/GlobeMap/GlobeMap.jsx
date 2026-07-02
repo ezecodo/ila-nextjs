@@ -128,44 +128,93 @@ export default function GlobeMap() {
   // El globo es geográfico; al elegir un tema, en vez de listar por región,
   // iluminamos los países (dimensionados por nº de artículos del tema) y el
   // click filtra por tema + país.
+  // Exploración combinada: tema · tipo de artículo · autor (AND). Las tres
+  // dimensiones se acumulan y alimentan el mismo "heatmap" del globo.
   const [topicList, setTopicList] = useState([]);
-  const [selectedTopic, setSelectedTopic] = useState(null); // { id, name, nameES }
-  const [topicInfo, setTopicInfo] = useState(null); // { loading, countriesLit, total }
-  const [topicSearch, setTopicSearch] = useState("");
-  const [topicPickerOpen, setTopicPickerOpen] = useState(false);
-  // Puente hacia el closure de Three.js (counts por regionId, creado una vez)
+  const [typeList, setTypeList] = useState([]);
+  const [authorList, setAuthorList] = useState([]);
+  const [filterKind, setFilterKind] = useState("topic"); // pestaña visible del picker
+  // Selección independiente por dimensión — { id, name, nameES } o null
+  const [selTopic, setSelTopic] = useState(null);
+  const [selType, setSelType] = useState(null);
+  const [selAuthor, setSelAuthor] = useState(null);
+  const [filterInfo, setFilterInfo] = useState(null); // { loading, countriesLit, total }
+  const [filterSearch, setFilterSearch] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const activeFilters = [
+    selTopic ? { kind: "topic", ...selTopic } : null,
+    selType ? { kind: "beitragstyp", ...selType } : null,
+    selAuthor ? { kind: "author", ...selAuthor } : null,
+  ].filter(Boolean);
+  const hasAnyFilter = activeFilters.length > 0;
+
+  // Query string común para los endpoints /explore (topicId/typeId/authorId)
+  const buildFilterQuery = () => {
+    const p = new URLSearchParams();
+    if (selTopic) p.set("topicId", selTopic.id);
+    if (selType) p.set("typeId", selType.id);
+    if (selAuthor) p.set("authorId", selAuthor.id);
+    return p;
+  };
+
+  // Puente hacia el closure de Three.js (counts por regionId, creado una vez).
+  // Se mantiene el nombre topicModeRef para no tocar el render del globo.
   const topicModeRef = useRef({
     active: false,
     counts: new Map(),
     max: 0,
-    topicId: null,
+    sig: "",
   });
 
+  // Listas de tema y tipo: se cargan una vez (son acotadas)
   useEffect(() => {
     fetch("/api/entities/topics")
       .then((r) => r.json())
       .then((data) => setTopicList(Array.isArray(data) ? data : []))
       .catch((err) => console.error("Error cargando temas:", err));
+    fetch("/api/entities/beitragstypen")
+      .then((r) => r.json())
+      .then((data) => setTypeList(Array.isArray(data) ? data : []))
+      .catch((err) => console.error("Error cargando tipos:", err));
   }, []);
 
+  // Lista de autores: hay muchos, se busca en el servidor (?q=)
   useEffect(() => {
-    if (!selectedTopic) {
-      topicModeRef.current = {
-        active: false,
-        counts: new Map(),
-        max: 0,
-        topicId: null,
-      };
-      setTopicInfo(null);
+    if (filterKind !== "author") return;
+    const q = filterSearch.trim();
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/entities/authors${q ? `?q=${encodeURIComponent(q)}` : ""}`, {
+        signal: ctrl.signal,
+      })
+        .then((r) => r.json())
+        .then((data) => setAuthorList(Array.isArray(data) ? data : []))
+        .catch((err) => {
+          if (err.name !== "AbortError")
+            console.error("Error cargando autores:", err);
+        });
+    }, 200);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [filterKind, filterSearch]);
+
+  useEffect(() => {
+    const sig = `${selTopic?.id || ""}|${selType?.id || ""}|${selAuthor?.id || ""}`;
+    if (!hasAnyFilter) {
+      topicModeRef.current = { active: false, counts: new Map(), max: 0, sig: "" };
+      setFilterInfo(null);
       return;
     }
     let cancelled = false;
-    setTopicInfo({ loading: true });
-    // Cambiar de tema invalida el cache del panel y cierra el panel abierto
+    setFilterInfo({ loading: true });
+    // Cambiar de filtro invalida el cache del panel y cierra el panel abierto
     panelCacheRef.current = {};
     setPanel(null);
 
-    fetch(`/api/entities/topics/${selectedTopic.id}/regions`)
+    fetch(`/api/entities/explore/regions?${buildFilterQuery().toString()}`)
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -181,13 +230,8 @@ export default function GlobeMap() {
         const litCountries = Object.keys(countryToRegionId).filter((code) =>
           counts.has(countryToRegionId[code])
         ).length;
-        topicModeRef.current = {
-          active: true,
-          counts,
-          max,
-          topicId: selectedTopic.id,
-        };
-        setTopicInfo({
+        topicModeRef.current = { active: true, counts, max, sig };
+        setFilterInfo({
           loading: false,
           countriesLit: litCountries,
           total: data.total ?? 0,
@@ -195,20 +239,16 @@ export default function GlobeMap() {
       })
       .catch((err) => {
         if (cancelled) return;
-        console.error("Error cargando regiones del tema:", err);
-        topicModeRef.current = {
-          active: true,
-          counts: new Map(),
-          max: 0,
-          topicId: selectedTopic.id,
-        };
-        setTopicInfo({ loading: false, countriesLit: 0, total: 0 });
+        console.error("Error cargando regiones del filtro:", err);
+        topicModeRef.current = { active: true, counts: new Map(), max: 0, sig };
+        setFilterInfo({ loading: false, countriesLit: 0, total: 0 });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [selectedTopic]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selTopic, selType, selAuthor]);
 
   // --- EXPEDICIÓN: el suscriptor "pica" artículos que vuelan a la pila
   // (esquina sup. derecha) y al cerrar los guarda como lista de lectura ---
@@ -302,10 +342,10 @@ export default function GlobeMap() {
   const openFinish = () => {
     if (!collected.length) return;
     const d = new Date().toLocaleDateString(locale === "de" ? "de-DE" : "es-ES");
-    const base = selectedTopic
-      ? locale === "es" && selectedTopic.nameES
-        ? selectedTopic.nameES
-        : selectedTopic.name
+    const base = hasAnyFilter
+      ? activeFilters
+          .map((f) => (locale === "es" && f.nameES ? f.nameES : f.name))
+          .join(" · ")
       : "GLOBila";
     setExpeditionName(`${base} · ${d}`);
     setSaveResult(null);
@@ -350,9 +390,9 @@ export default function GlobeMap() {
     const regionId = countryToRegionId[countryCode];
     if (!regionId) return;
 
-    const topic = topicModeRef.current.active ? topicModeRef.current : null;
-    // En modo tema, los países "apagados" (sin artículos del tema) no abren nada
-    if (topic && !topic.counts.has(regionId)) return;
+    const flt = topicModeRef.current.active ? topicModeRef.current : null;
+    // Con filtro activo, los países "apagados" (sin artículos) no abren nada
+    if (flt && !flt.counts.has(regionId)) return;
 
     const name =
       countryNames[countryCode]?.[locale] ||
@@ -362,10 +402,10 @@ export default function GlobeMap() {
       code: countryCode,
       name,
       regionId,
-      topicId: topic?.topicId || null,
+      filtered: !!flt,
     });
 
-    const cacheKey = `${topic?.topicId || "region"}:${countryCode}`;
+    const cacheKey = `${flt ? flt.sig : "region"}:${countryCode}`;
     const cached = panelCacheRef.current[cacheKey];
     if (cached) {
       setPanelData({ loading: false, ...cached });
@@ -374,8 +414,8 @@ export default function GlobeMap() {
 
     setPanelData({ loading: true, articles: [], total: 0 });
     try {
-      const base = topic
-        ? `/api/entities/topics/${topic.topicId}?regionId=${regionId}`
+      const base = flt
+        ? `/api/entities/explore?${buildFilterQuery().toString()}&regionId=${regionId}`
         : `/api/entities/regions/${regionId}`;
       const sep = base.includes("?") ? "&" : "?";
 
@@ -1043,16 +1083,28 @@ export default function GlobeMap() {
     };
   }, [locale]);
 
-  const filteredTopics = (() => {
-    const q = topicSearch.trim().toLowerCase();
+  // Lista de la dimensión activa (tema / tipo / autor).
+  const activeList =
+    filterKind === "beitragstyp"
+      ? typeList
+      : filterKind === "author"
+        ? authorList
+        : topicList;
+
+  const filteredOptions = (() => {
+    // Autor: el servidor ya filtró por ?q=, mostramos tal cual.
+    if (filterKind === "author") return authorList;
+    const q = filterSearch.trim().toLowerCase();
     const list = q
-      ? topicList.filter(
+      ? activeList.filter(
           (t) =>
             (t.name || "").toLowerCase().includes(q) ||
             (t.nameES || "").toLowerCase().includes(q)
         )
-      : topicList;
-    return list.slice(0, 60);
+      : activeList;
+    // Con búsqueda mostramos todo lo que matchee; sin búsqueda un tope alto
+    // para no renderizar cientos de golpe (la lista está ordenada por nº de artículos).
+    return q ? list : list.slice(0, 300);
   })();
 
   return (
@@ -1136,26 +1188,26 @@ export default function GlobeMap() {
           : "Arrastrá • Zoom • Tocá un país"}
       </div>
 
-      {/* Selector de TEMA — enciende el globo por tema en vez de por región */}
+      {/* Selector de exploración — enciende el globo por tema, tipo o autor */}
       <div className="absolute z-30 top-[84px] md:top-5 left-1/2 -translate-x-1/2 w-[min(92vw,460px)] flex flex-col items-center gap-2">
         <div className="w-full flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setTopicPickerOpen((o) => !o)}
+            onClick={() => setPickerOpen((o) => !o)}
             className="flex-1 flex items-center justify-between gap-2 bg-black/55 backdrop-blur-sm border-t-2 border-[#89B881] px-4 py-2.5 text-left hover:bg-black/70 transition-colors"
           >
             <span className="min-w-0 truncate text-sm font-bold text-white">
-              {selectedTopic
-                ? locale === "es" && selectedTopic.nameES
-                  ? selectedTopic.nameES
-                  : selectedTopic.name
+              {hasAnyFilter
+                ? activeFilters
+                    .map((f) => (locale === "es" && f.nameES ? f.nameES : f.name))
+                    .join(" · ")
                 : locale === "de"
-                  ? "Nach Thema erkunden"
-                  : "Explorar por tema"}
+                  ? "Erkunden nach…"
+                  : "Explorar por…"}
             </span>
             <svg
               className={`h-4 w-4 shrink-0 text-[#89B881] transition-transform ${
-                topicPickerOpen ? "rotate-180" : ""
+                pickerOpen ? "rotate-180" : ""
               }`}
               fill="none"
               stroke="currentColor"
@@ -1169,16 +1221,18 @@ export default function GlobeMap() {
               />
             </svg>
           </button>
-          {selectedTopic && (
+          {hasAnyFilter && (
             <button
               type="button"
               onClick={() => {
-                setSelectedTopic(null);
-                setTopicPickerOpen(false);
+                setSelTopic(null);
+                setSelType(null);
+                setSelAuthor(null);
+                setPickerOpen(false);
               }}
               className="shrink-0 bg-black/55 backdrop-blur-sm border-t-2 border-white/30 px-3 py-2.5 text-white/70 hover:text-white transition-colors"
               aria-label={
-                locale === "de" ? "Thema entfernen" : "Quitar tema"
+                locale === "de" ? "Filter entfernen" : "Quitar filtros"
               }
             >
               <svg
@@ -1198,53 +1252,132 @@ export default function GlobeMap() {
           )}
         </div>
 
-        {/* Leyenda del tema activo */}
-        {selectedTopic && topicInfo && !topicInfo.loading && (
-          <div className="w-full bg-black/45 backdrop-blur-sm px-3 py-1.5 text-[11px] text-gray-300 flex items-center gap-2">
-            <span className="inline-block h-2 w-2 rounded-full bg-[#89B881] shadow-[0_0_8px_2px_rgba(137,184,129,0.8)]" />
-            {locale === "de"
-              ? `${topicInfo.countriesLit} Länder · ${topicInfo.total} Artikel`
-              : `${topicInfo.countriesLit} países · ${topicInfo.total} artículos`}
+        {/* Chips de filtros activos (removibles uno a uno) */}
+        {hasAnyFilter && (
+          <div className="w-full flex flex-wrap gap-1.5">
+            {activeFilters.map((f) => (
+              <span
+                key={f.kind}
+                className="inline-flex items-center gap-1 bg-[#557a4c] px-2 py-1 text-[11px] font-bold text-white"
+              >
+                {locale === "es" && f.nameES ? f.nameES : f.name}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (f.kind === "topic") setSelTopic(null);
+                    else if (f.kind === "beitragstyp") setSelType(null);
+                    else setSelAuthor(null);
+                  }}
+                  className="text-white/70 hover:text-white"
+                  aria-label={locale === "de" ? "Entfernen" : "Quitar"}
+                >
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </span>
+            ))}
           </div>
         )}
 
-        {/* Dropdown: buscador + chips de temas (ordenados por popularidad) */}
-        {topicPickerOpen && (
-          <div className="w-full bg-[#0a0a0a]/95 backdrop-blur-sm border border-white/10 max-h-[52vh] flex flex-col">
+        {/* Leyenda combinada de los filtros activos */}
+        {hasAnyFilter && filterInfo && !filterInfo.loading && (
+          <div className="w-full bg-black/45 backdrop-blur-sm px-3 py-1.5 text-[11px] text-gray-300 flex items-center gap-2">
+            <span className="inline-block h-2 w-2 rounded-full bg-[#89B881] shadow-[0_0_8px_2px_rgba(137,184,129,0.8)]" />
+            {filterInfo.total === 0
+              ? locale === "de"
+                ? "Keine Treffer — Filter lockern"
+                : "Sin resultados — quitá algún filtro"
+              : locale === "de"
+                ? `${filterInfo.countriesLit} Länder · ${filterInfo.total} Artikel`
+                : `${filterInfo.countriesLit} países · ${filterInfo.total} artículos`}
+          </div>
+        )}
+
+        {/* Dropdown: pestañas de dimensión + buscador + chips */}
+        {pickerOpen && (
+          <div className="w-full bg-[#0a0a0a]/95 backdrop-blur-sm border border-white/10 max-h-[56vh] flex flex-col">
+            {/* Pestañas: Tema / Tipo / Autor */}
+            <div className="flex border-b border-white/10">
+              {[
+                { kind: "topic", de: "Thema", es: "Tema" },
+                { kind: "beitragstyp", de: "Typ", es: "Tipo" },
+                { kind: "author", de: "Autor:in", es: "Autor" },
+              ].map((tab) => (
+                <button
+                  key={tab.kind}
+                  type="button"
+                  onClick={() => {
+                    setFilterKind(tab.kind);
+                    setFilterSearch("");
+                  }}
+                  className={`flex-1 px-2 py-2 text-xs font-bold transition-colors ${
+                    filterKind === tab.kind
+                      ? "bg-[#557a4c] text-white"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  {locale === "de" ? tab.de : tab.es}
+                </button>
+              ))}
+            </div>
             <div className="p-2 border-b border-white/10">
               <input
-                value={topicSearch}
-                onChange={(e) => setTopicSearch(e.target.value)}
+                value={filterSearch}
+                onChange={(e) => setFilterSearch(e.target.value)}
                 placeholder={
-                  locale === "de" ? "Thema suchen…" : "Buscar tema…"
+                  filterKind === "author"
+                    ? locale === "de"
+                      ? "Autor:in suchen…"
+                      : "Buscar autor…"
+                    : filterKind === "beitragstyp"
+                      ? locale === "de"
+                        ? "Typ suchen…"
+                        : "Buscar tipo…"
+                      : locale === "de"
+                        ? "Thema suchen…"
+                        : "Buscar tema…"
                 }
                 className="w-full bg-white/5 px-3 py-2 text-sm text-white placeholder:text-gray-500 outline-none focus:bg-white/10"
               />
             </div>
             <div className="globe-articles-scroll overflow-y-auto p-2 flex flex-wrap gap-1.5 content-start">
-              {filteredTopics.length === 0 ? (
+              {filteredOptions.length === 0 ? (
                 <p className="px-2 py-3 text-xs text-gray-500">
                   {locale === "de"
-                    ? "Keine Themen gefunden."
-                    : "No hay temas."}
+                    ? "Nichts gefunden."
+                    : "Sin resultados."}
                 </p>
               ) : (
-                filteredTopics.map((t) => {
+                filteredOptions.map((t) => {
                   const label =
                     locale === "es" && t.nameES ? t.nameES : t.name;
-                  const active = selectedTopic?.id === t.id;
+                  const active =
+                    (filterKind === "topic" && selTopic?.id === t.id) ||
+                    (filterKind === "beitragstyp" && selType?.id === t.id) ||
+                    (filterKind === "author" && selAuthor?.id === t.id);
                   return (
                     <button
                       key={t.id}
                       type="button"
                       onClick={() => {
-                        setSelectedTopic(
-                          active
-                            ? null
-                            : { id: t.id, name: t.name, nameES: t.nameES }
-                        );
-                        setTopicPickerOpen(false);
-                        setTopicSearch("");
+                        const val = active
+                          ? null
+                          : { id: t.id, name: t.name, nameES: t.nameES };
+                        if (filterKind === "topic") setSelTopic(val);
+                        else if (filterKind === "beitragstyp") setSelType(val);
+                        else setSelAuthor(val);
+                        setFilterSearch("");
                       }}
                       className={`px-2.5 py-1 text-xs font-medium transition-colors ${
                         active
@@ -1263,30 +1396,117 @@ export default function GlobeMap() {
         )}
       </div>
 
-      {/* Pila de la expedición — artículos pickeados, esquina superior derecha */}
+      {/* Pila de la expedición — cards apiladas, esquina superior derecha */}
       {collected.length > 0 && (
-        <div className="absolute z-40 top-[84px] md:top-5 right-3 md:right-5 flex flex-col items-end gap-2">
-          <div ref={pileRef} className="relative">
-            <div className="flex -space-x-3">
-              {collected.slice(-4).map((a, i) => (
-                <div
-                  key={a.id}
-                  className="h-10 w-10 border-2 border-[#89B881] bg-black bg-cover bg-center shadow-lg"
-                  style={{
-                    backgroundImage: a.image ? `url("${a.image}")` : undefined,
-                    zIndex: i,
-                  }}
-                />
-              ))}
-            </div>
-            <span className="absolute -top-2 -right-2 flex h-5 min-w-[20px] items-center justify-center bg-[#557a4c] px-1 text-[11px] font-bold text-white tabular-nums">
+        <div className="absolute z-40 top-[84px] md:top-5 right-3 md:right-5 flex w-[300px] max-w-[85vw] flex-col items-stretch gap-2">
+          {/* Encabezado */}
+          <div className="flex items-center justify-between border border-[#89B881]/40 bg-black/70 px-3 py-2 backdrop-blur">
+            <span className="text-xs font-bold uppercase tracking-wide text-[#89B881]">
+              {locale === "de" ? "Expedition" : "Expedición"}
+            </span>
+            <span className="flex h-5 min-w-[20px] items-center justify-center bg-[#557a4c] px-1 text-[11px] font-bold text-white tabular-nums">
               {collected.length}
             </span>
           </div>
+
+          {/* Cards apiladas (misma estética del panel de país) */}
+          <div
+            ref={pileRef}
+            className="flex max-h-[52vh] flex-col gap-1.5 overflow-y-auto pr-0.5"
+          >
+            {collected.map((a) => {
+              const title =
+                locale === "es" && a.isTranslatedES && a.titleES
+                  ? a.titleES
+                  : a.title;
+              return (
+                <div
+                  key={a.id}
+                  className="relative border border-white/10 bg-black/70 backdrop-blur"
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCollected((prev) =>
+                        prev.filter((x) => x.id !== a.id)
+                      )
+                    }
+                    aria-label={locale === "de" ? "Entfernen" : "Quitar"}
+                    title={locale === "de" ? "Entfernen" : "Quitar"}
+                    className="absolute right-1.5 top-1.5 z-10 flex h-6 w-6 items-center justify-center border border-white/25 bg-black/60 text-white/70 transition-colors hover:border-red-400 hover:text-red-300"
+                  >
+                    <svg
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2.5}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                  <div className="flex gap-2.5 p-2 pr-8">
+                    {a.image && (
+                      <img
+                        src={a.image}
+                        alt=""
+                        loading="lazy"
+                        className="h-14 w-14 shrink-0 bg-white/5 object-cover"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                        {a.typeLabel && (
+                          <span
+                            className={`text-[9px] font-bold uppercase tracking-wide ${
+                              a.isBookReview ? "text-amber-400" : "text-gray-400"
+                            }`}
+                          >
+                            {a.isBookReview ? "📖 " : ""}
+                            {a.typeLabel}
+                          </span>
+                        )}
+                        {(a.topics || []).map((tp) => (
+                          <span
+                            key={tp.id}
+                            className="text-[9px] font-bold uppercase tracking-wide text-[#89B881]"
+                          >
+                            {tp.name}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="block text-[13px] font-semibold leading-snug text-gray-100 line-clamp-2">
+                        {title}
+                      </span>
+                      <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-gray-500">
+                        {a.author && (
+                          <span className="truncate">{a.author}</span>
+                        )}
+                        {a.editionNumber && (
+                          <span className="shrink-0 tabular-nums">
+                            № {a.editionNumber}
+                            {a.year ? ` · ${a.year}` : ""}
+                          </span>
+                        )}
+                        {!a.editionNumber && a.year && (
+                          <span className="shrink-0 tabular-nums">{a.year}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           <button
             type="button"
             onClick={openFinish}
-            className="bg-[#557a4c] hover:bg-[#46663f] text-white text-xs font-bold px-3 py-1.5 shadow-lg transition-colors"
+            className="bg-[#557a4c] px-3 py-2 text-xs font-bold text-white shadow-lg transition-colors hover:bg-[#46663f]"
           >
             {locale === "de"
               ? `Expedition beenden (${collected.length})`
@@ -1564,11 +1784,13 @@ export default function GlobeMap() {
                   <h3 className="text-white font-bold text-base truncate">
                     {panel.name}
                   </h3>
-                  {panel.topicId && selectedTopic && (
+                  {panel.filtered && hasAnyFilter && (
                     <p className="truncate text-[11px] font-bold uppercase tracking-wide text-[#89B881]">
-                      {locale === "es" && selectedTopic.nameES
-                        ? selectedTopic.nameES
-                        : selectedTopic.name}
+                      {activeFilters
+                        .map((f) =>
+                          locale === "es" && f.nameES ? f.nameES : f.name
+                        )
+                        .join(" · ")}
                     </p>
                   )}
                   <p className="text-gray-400 text-xs">
@@ -1650,6 +1872,10 @@ export default function GlobeMap() {
                       image: img || null,
                       author: author || null,
                       editionNumber: a.edition?.number || null,
+                      topics: topics.map((tp) => ({ id: tp.id, name: tp.name })),
+                      typeLabel: typeLabel || null,
+                      isBookReview,
+                      year: year || null,
                     };
                     return (
                       <li key={a.id} className="relative">
@@ -1819,8 +2045,9 @@ export default function GlobeMap() {
             {panelData.total > 0 && (
               <Link
                 href={
-                  panel.topicId
-                    ? `/${locale}/entities/topics/${panel.topicId}`
+                  activeFilters.length === 1 &&
+                  activeFilters[0].kind === "topic"
+                    ? `/${locale}/entities/topics/${activeFilters[0].id}`
                     : `/${locale}/entities/regions/${panel.regionId}`
                 }
                 className="block border-t border-white/10 px-5 py-3 text-center text-sm font-bold text-[#89B881] hover:bg-white/5 transition-colors"
