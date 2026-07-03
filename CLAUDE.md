@@ -664,6 +664,32 @@ La portada del dossier actual y el botón **"Editorial und Inhalt"** (`t("editor
 - **Filtrado in-place por tag**: click en un tag (región/tema/autor) filtra los artículos del dossier en el mismo lugar vía `setActiveTag` (no navega a la página global de la entidad). `articlesForTag(tag)` filtra `filteredArticles` por `a[tag.type].some(x => x.id === tag.id)`. Aparece un chip rojo "Gefiltert nach:"/"Filtrando por:" con la cuenta y una × para limpiar; el tag activo se resalta. Al activar un filtro hace `scrollIntoView` a `resultsRef` (la columna derecha tiene `scroll-mt-24`). El filtro se resetea al cambiar de dossier (`useEffect` sobre `currentEditionIndex`).
 - **Ojo — no usar `cloudHref` / router.push por tag**: los autores suelen tener 1 solo artículo en el dossier; un branch viejo que hacía `router.push` al `legacyPath` (nullable) o a `/[locale]/articles/[id]` (ruta **inexistente**) hacía que el click "no hiciera nada". Todos los clicks de tag filtran in-place; no reintroducir navegación por tag.
 
+## GLOBila — globo interactivo (`components/GlobeMap/GlobeMap.jsx`)
+
+Globo 3D en el dashboard de suscriptores para explorar la cobertura latinoamericana de ila geográficamente. Enciende países según los filtros activos y abre un panel de país con los artículos que los cumplen. Feature detrás del gate `hasPdfAbo` (Digital-Abo). Ver también TTS integrado (artículo suelto dentro del globo).
+
+### Filtro multi-dimensión combinable (AND)
+
+El picker tiene tres pestañas (`filterKind`): **tema** (`topic`), **tipo de artículo** (`beitragstyp`) y **autor** (`author`). Se pueden combinar los tres a la vez y el resultado es un **AND**: solo se encienden países (y se listan artículos) que cumplen todos los filtros activos.
+
+- Estado en el componente: `selTopic` / `selType` / `selAuthor` (selección por pestaña), `activeFilters` (los seleccionados no-nulos), `filterInfo` (`{ loading, countriesLit, total }`), `pickerOpen`, `filterSearch`.
+- `buildFilterQuery()` arma el querystring común (`topicId`/`typeId`/`authorId`) que consumen los endpoints `/explore` y `/explore/regions`.
+- **`topicModeRef` se reusa (no se renombró)** para no tocar el render del globo; ahora lo alimenta la combinación de filtros, no solo el tema. Guarda `{ active, counts, max, sig }` donde `sig = "${topicId}|${typeId}|${authorId}"`.
+- Cache del panel de país por `${sig}:${countryCode}` (o `region:${code}` sin filtros).
+- **Autores son muchos** → la pestaña autor es **search-driven**: fetch a `/api/entities/authors?q=` con debounce + `AbortController`; el resto de las listas se cargan enteras.
+
+### Endpoints (`src/app/api/entities/`)
+
+Listas para poblar el picker (cada una: entidades con ≥1 artículo, orden por `_count` desc):
+- `GET /entities/topics` · `GET /entities/beitragstypen` · `GET /entities/authors?q=` (capado, search-driven) · `GET /entities/categories`
+
+Heatmap por entidad individual (qué región toca y cuántos artículos → encender países):
+- `GET /entities/{topics|beitragstypen|authors|categories|regions}/[id]/regions` → `{ <entidad>, regions: [{ id, name, nameES, count }], total }`
+
+Modo combinado (varios filtros a la vez):
+- `GET /entities/explore/regions?topicId=&typeId=&authorId=` → heatmap AND de los países que se encienden (`{ regions, total }`; sin ningún filtro devuelve vacío)
+- `GET /entities/explore?topicId=&typeId=&authorId=&regionId=&page=` → artículos que cumplen los filtros AND acotados a una región, paginado (20/pág), con primera imagen adjunta (`{ articles, totalArticles, totalPages, currentPage }`)
+
 ## 🎯 Visión / Roadmap institucional
 
 > Sección de **visión y dirección**, no de arquitectura técnica. Sirve para que las decisiones de feature se tomen con el norte correcto: el tooling editorial de ila no es solo una web de revista, es un **producto ofrecible a instituciones** (universidades alemanas con carreras de **Lateinamerika-Studien**, bibliotecas, fundaciones, organismos públicos). Cuando dudes entre dos caminos, prioriza el que refuerce ese ángulo institucional.

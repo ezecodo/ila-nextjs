@@ -29,11 +29,11 @@ export default function CookieConsent() {
   if (!showPopup) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md text-center">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
         <h2 className="text-lg font-bold">{t("title")}</h2>
         <p className="text-sm text-gray-700 mt-2">{t("message")}</p>
-        <div className="flex justify-center gap-4 mt-4">
+        <div className="flex flex-wrap justify-center gap-4 mt-4">
           <button
             onClick={acceptCookies}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"

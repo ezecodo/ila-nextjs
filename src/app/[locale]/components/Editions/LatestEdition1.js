@@ -886,7 +886,11 @@ export default function LatestEditionWithArticles() {
             >
               <div className="bg-white dark:bg-gray-900 lg:shadow-lg dark:lg:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
                 <div className="order-2 w-full text-center px-2 lg:-mt-3">
-                  <div className="font-futura font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-[1.7rem] md:text-3xl leading-tight text-balance">
+                  {/* break-words + hyphens-auto: títulos de una sola palabra larga (p. ej. "Versicherheitlichung") no deben desbordar el viewport con fuente del sistema agrandada */}
+                  <div
+                    lang={locale}
+                    className="font-futura font-bold text-[#BD0E0D] dark:text-[#BD0E0D]/80 text-[1.7rem] md:text-3xl leading-tight text-balance break-words hyphens-auto"
+                  >
                     {locale === "es" && currentEdition.titleES
                       ? currentEdition.titleES
                       : currentEdition.title}

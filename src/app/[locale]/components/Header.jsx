@@ -229,9 +229,12 @@ export default function Header() {
     // 🔴 CAMBIO AQUÍ: Added 'fixed top-0 left-0 w-full z-50' and 'md:relative'
     <header
       className={`${styles.header} fixed top-0 left-0 w-full z-50 md:sticky md:top-0 shadow-md ${isCompact ? styles.compact : ""}`}
+      /* con el menú mobile abierto, el header debe quedar por encima de la ShareBar del artículo (fixed z-50, fuera de este stacking context) */
+      style={menuOpen ? { zIndex: 70 } : undefined}
     >
       {/* Mobile top */}
-      <div className="w-full flex md:hidden items-center bg-[#BD0E0D] text-white relative overflow-hidden h-14">
+      {/* Geometría de la barra en px (no rem): el contenido (logo SVG, ES 10px, íconos 18px) es px, así la escala de fuente del sistema (accesibilidad Android) no desalinea contenedores vs. contenido */}
+      <div className="w-full flex md:hidden items-center bg-[#BD0E0D] text-white relative overflow-hidden h-[56px]">
         <LatinAmericaBackground variant="mobile" />
 
         {/* Contenedor relativo para que el tagline absoluto se base en este ancho */}
@@ -239,7 +242,7 @@ export default function Header() {
           {/* 1. LOGO (Izquierda) - Cambiado fondo a rojo */}
           <Link
             href="/"
-            className="bg-[#BD0E0D] w-16 h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
+            className="bg-[#BD0E0D] w-[64px] h-full flex items-center justify-center shadow-sm z-20 flex-shrink-0"
           >
             <IlaLogo50
               size="mobile"
@@ -252,10 +255,11 @@ export default function Header() {
           </Link>
 
           {/* 2. TAGLINE */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-16 z-30">
+          {/* px en el clamp (no rem): el tamaño del sistema (accesibilidad Android) no debe agrandar el tagline; left/right + overflow-hidden recortan antes de pisar logo y controles */}
+          <div className="absolute inset-y-0 left-[64px] right-[48px] flex items-center justify-center pointer-events-none z-30 overflow-hidden">
             <span
-              className="futura text-[clamp(1.1rem,5.5vw,1.6rem)] font-bold text-white whitespace-nowrap leading-none tracking-tight text-center pointer-events-auto"
-              style={{ transform: "translateY(1px) translateX(13px)" }}
+              className="futura text-[clamp(17px,5.5vw,26px)] font-bold text-white whitespace-nowrap leading-none tracking-tight text-center pointer-events-auto"
+              style={{ transform: "translateY(1px)" }}
             >
               {locale === "es" ? (
                 <>
@@ -288,8 +292,8 @@ export default function Header() {
           </div>
 
           {/* 3. CONTROLES (Derecha) */}
-          <div className="bg-[#BD0E0D] h-full flex items-center justify-end gap-2 pr-2 z-20 flex-shrink-0">
-          <div className="w-10 h-full flex flex-col items-center justify-center">
+          <div className="bg-[#BD0E0D] h-full flex items-center justify-end gap-2 pr-[8px] z-20 flex-shrink-0">
+          <div className="w-[40px] h-full flex flex-col items-center justify-center">
             <div className="text-[10px] font-black text-white mb-0.5 leading-none">
               <button
                 onClick={(e) => {
@@ -319,7 +323,7 @@ export default function Header() {
       {menuOpen && (
         <div
           className="fixed left-0 right-0 bottom-0 z-[60] md:hidden flex flex-col bg-[#BD0E0D] animate-in slide-in-from-top-1 duration-200"
-          style={{ top: "3.5rem" }}
+          style={{ top: "56px" }}
         >
           {/* ── Navegación ── */}
           <nav className="overflow-y-auto">
@@ -416,11 +420,8 @@ export default function Header() {
             />
           </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
-
-          {/* ── Barra inferior ── */}
-          <div className="flex-shrink-0 border-t border-white/20 px-5 py-4 flex items-center justify-between">
+          {/* ── Cuenta y ajustes (bajo el buscador, en el espacio libre del menú) ── */}
+          <div className="flex-shrink-0 border-t border-white/15 px-5 py-4 flex items-center justify-between">
             {/* Social */}
             <div className="flex gap-3">
               <a
@@ -497,6 +498,9 @@ export default function Header() {
               )}
             </div>
           </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
         </div>
       )}
 

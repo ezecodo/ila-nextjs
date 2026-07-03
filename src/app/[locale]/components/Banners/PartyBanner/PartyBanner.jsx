@@ -49,7 +49,7 @@ export default function PartyBanner() {
   const futura = { fontFamily: "Futura Cyrillic, Arial, sans-serif" };
 
   return (
-    <div className="relative overflow-hidden bg-[#BD0E0D] text-white px-6 py-10 shadow-md flex flex-col items-center justify-center text-center -mx-4 sm:mx-0 flex-1 min-h-[356px]">
+    <div className="relative overflow-hidden bg-[#BD0E0D] text-white px-6 py-10 shadow-md flex flex-col items-center justify-center text-center -mx-2 sm:mx-0 flex-1 min-h-[356px]">
       {/* "50" gigante de fondo, centrado */}
       <span
         className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 select-none text-[220px] font-extrabold leading-none text-white/20"

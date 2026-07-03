@@ -106,7 +106,7 @@ export default function Banner50Compact() {
   return (
     <div
       ref={bannerRef}
-      className="relative overflow-hidden bg-[#89B881] text-white p-3 md:p-5 shadow-md flex flex-col items-center text-center gap-5 -mx-4 sm:mx-0"
+      className="relative overflow-hidden bg-[#89B881] text-white p-3 md:p-5 shadow-md flex flex-col items-center text-center gap-5 -mx-2 sm:mx-0"
     >
       <div className="relative z-10 flex items-center w-full justify-center gap-2">
         <div className="text-center flex-1 min-w-0">
