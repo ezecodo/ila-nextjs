@@ -161,7 +161,8 @@ export default function ActivityFeed() {
                     {log.user?.name || "Usuario"}
                   </span>{" "}
                   <span className="text-gray-700">
-                    {log.action === "ASSIGN_TRANSLATOR" && log.metadata ? (
+                    {log.action === "ASSIGN_TRANSLATOR" &&
+                    log.metadata?.editionNumber ? (
                       <>
                         {t("assignedDossier")}{" "}
                         <span className="font-semibold text-gray-800">
@@ -169,6 +170,31 @@ export default function ActivityFeed() {
                           {log.metadata.editionTitle &&
                             ` - ${log.metadata.editionTitle}`}
                         </span>{" "}
+                        {t("to")}{" "}
+                        <span className="font-semibold text-gray-800">
+                          {log.metadata.translatorName}
+                        </span>{" "}
+                        {t("forTranslation")}
+                      </>
+                    ) : log.action === "ASSIGN_TRANSLATOR" && log.metadata ? (
+                      <>
+                        {t("assignedArticle")}{" "}
+                        {log.metadata.legacyPath ? (
+                          <Link
+                            href={log.metadata.legacyPath}
+                            className="text-red-700 hover:text-red-800 font-medium hover:underline"
+                          >
+                            {log.metadata.title ||
+                              log.article?.title ||
+                              t("untitled")}
+                          </Link>
+                        ) : (
+                          <span className="italic text-gray-500">
+                            {log.metadata.title ||
+                              log.article?.title ||
+                              t("untitled")}
+                          </span>
+                        )}{" "}
                         {t("to")}{" "}
                         <span className="font-semibold text-gray-800">
                           {log.metadata.translatorName}
@@ -316,7 +342,7 @@ export default function ActivityFeed() {
                         </Link>
                       </>
                     ) : log.action === "REVIEW_TRANSLATION" ? (
-                      log.metadata ? (
+                      log.metadata?.editionNumber ? (
                         // 📚 Es un dossier (edition)
                         <>
                           {t("REVIEW_TRANSLATION_PREFIX")}{" "}
@@ -396,7 +422,8 @@ export default function ActivityFeed() {
                           </span>
                         )}
                       </>
-                    ) : log.action === "SUBMIT_TRANSLATION" ? (
+                    ) : log.action === "SUBMIT_TRANSLATION" &&
+                      log.metadata?.editionNumber ? (
                       <>
                         {t("SUBMIT_TRANSLATION_PREFIX")}{" "}
                         <span className="font-semibold text-gray-800">
@@ -405,6 +432,29 @@ export default function ActivityFeed() {
                             ` - ${log.metadata.editionTitle}`}
                         </span>{" "}
                         {t("SUBMIT_TRANSLATION_SUFFIX")}
+                      </>
+                    ) : log.action === "SUBMIT_TRANSLATION" ? (
+                      <>
+                        {t("submittedTranslationArticle")}{" "}
+                        {log.metadata?.legacyPath || log.article?.legacyPath ? (
+                          <Link
+                            href={
+                              log.metadata?.legacyPath ||
+                              log.article?.legacyPath
+                            }
+                            className="text-red-700 hover:text-red-800 font-medium hover:underline"
+                          >
+                            {log.metadata?.title ||
+                              log.article?.title ||
+                              t("untitled")}
+                          </Link>
+                        ) : (
+                          <span className="italic text-gray-500">
+                            {log.metadata?.title ||
+                              log.article?.title ||
+                              t("untitled")}
+                          </span>
+                        )}
                       </>
                     ) : log.action === "ACTIVATE_PDF_ABO" ? (
                       <>

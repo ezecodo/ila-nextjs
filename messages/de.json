@@ -972,6 +972,8 @@
     "inEdition": "in Dossier",
     "createdEvent": "erstellte das Event",
     "assignedDossier": "hat das Dossier zugewiesen",
+    "assignedArticle": "hat den Artikel zugewiesen",
+    "submittedTranslationArticle": "hat die Übersetzung des Artikels zur Überprüfung eingereicht",
     "to": "an",
     "forTranslation": "zum Übersetzen",
     "pagination": {
@@ -1317,7 +1319,9 @@
       "upload_csv": "CSV hochladen",
       "uploading": "Hochladen...",
       "resend": "Einladung erneut senden",
-      "delete": "Löschen"
+      "delete": "Löschen",
+      "remind_all": "Erinnerung an Ausstehende ({count})",
+      "reminding": "Wird gesendet..."
     },
     "table": {
       "th_name": "Name",
@@ -1325,6 +1329,7 @@
       "th_status": "Status",
       "th_date_inv": "Einladungsdatum",
       "th_date_act": "Aktivierungsdatum",
+      "th_reminder": "Letzte Erinnerung",
       "th_actions": "Aktionen",
       "status_active": "Aktiviert",
       "status_pending": "Ausstehend",
@@ -1340,6 +1345,12 @@
       "cancel": "Abbrechen",
       "submit": "Einladung hinzufügen"
     },
+    "remind_modal": {
+      "title": "Erinnerung senden?",
+      "body": "Es wird eine Erinnerungs-E-Mail an alle {count} ausstehenden Abonnenten gesendet, ihr Digitalabo zu aktivieren. Dieser Vorgang kann etwa {seconds} Sekunden dauern.",
+      "cancel": "Abbrechen",
+      "confirm": "Ja, {count} Erinnerungen senden"
+    },
     "toasts": {
       "added": "E-Mail erfolgreich hinzugefügt",
       "add_error": "Fehler beim Hinzufügen der E-Mail",
@@ -1353,7 +1364,11 @@
       "connection_error": "Verbindungsfehler",
       "date_saved": "Startdatum gespeichert",
       "save_error": "Fehler beim Speichern",
-      "confirm_delete": "Sind Sie sicher, dass Sie diese Einladung löschen möchten?"
+      "confirm_delete": "Sind Sie sicher, dass Sie diese Einladung löschen möchten?",
+      "remind_all_success": "Erinnerungen gesendet: {sent} von {total}",
+      "remind_all_partial": "Erinnerungen gesendet: {sent} von {total}. Fehler bei: {failed}",
+      "remind_all_error": "Fehler beim Senden der Erinnerungen",
+      "remind_all_empty": "Es gibt keine ausstehenden Einladungen"
     },
     "loading": "Daten werden geladen..."
   },

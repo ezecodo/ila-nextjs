@@ -67,6 +67,14 @@ model Article {
   translationStatus String            @default("not_assigned")
   reviewedAt        DateTime?
   translationScrollES Int?
+  // Versión en el idioma original real (cuando difiere del alemán) — independiente
+  // del sistema de traducción DE→ES de arriba. Se muestra como sección aparte
+  // en la página del artículo, sin importar el locale (/de/ o /es/).
+  originalLanguage    String?
+  originalTitle       String?
+  originalSubtitle    String?
+  originalPreviewText String?           @db.LongText
+  originalContent     String?           @db.LongText
   activityLogs      ActivityLog[]
   pdfs              ArticlePdf[]
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
@@ -199,7 +207,8 @@ model PdfAboInvitation {
   startDate   DateTime  @default(now())
   endDate     DateTime?
   createdAt   DateTime  @default(now())
-  
+  reminderSentAt DateTime?
+
   user        User?     @relation(fields: [redeemedBy], references: [id])
 }
 model Banner {
@@ -534,6 +543,8 @@ model Image {
   width       Int?
   altES       String?
   titleES     String?  @db.VarChar(750)
+  originalAlt   String?
+  originalTitle String?  @db.VarChar(750)
 
   @@index([contentType, contentId])
 }

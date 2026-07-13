@@ -319,6 +319,26 @@ export default function MiPaginaDashboard() {
 - Si el artículo estaba `approved` y cambian campos ES o `imageTranslations` sin re-aprobar → fuerza `approved` y marca `editedAfterReview: true`
 - Caso `imageTranslationsOnly: true` → solo actualiza `Image.titleES`/`altES` (no toca estado), pero también marca `editedAfterReview` si el artículo estaba aprobado
 
+## Versión en idioma original (`originalLanguage`, etc.)
+
+Algunos artículos tienen como fuente real un texto en español, portugués o inglés (la entrevista se hizo en ese idioma) que luego se tradujo al alemán para la revista impresa. Este sistema permite adjuntar y publicar ese texto fuente — **totalmente independiente** del sistema de traducción ES de arriba (no comparte campos, estados ni lógica con `titleES`/`contentES`/`translationStatus`).
+
+### Modelo de datos
+- `Article`: `originalLanguage` (string libre: `"es"`, `"pt"`, `"en"`, u otro), `originalTitle`, `originalSubtitle`, `originalPreviewText`, `originalContent`
+- `Image`: `originalTitle`, `originalAlt` — créditos de imagen en el idioma original
+
+### Cargar/editar la versión original
+- Botón 🌎 por fila en `ArticlesList.js` (modo admin) — verde si el artículo ya tiene una versión cargada, gris si no
+- Abre `OriginalVersionModal.jsx`: selector de idioma (Español/Português/English/Otro) + título + subtítulo + Vorspann (`QuillEditor`) + contenido — el campo de contenido usa el **mismo Publilab** (`InterviewEditor`, click para abrir el editor fullscreen) que el módulo de ingreso normal, no un editor plano
+- Guarda con `PUT /api/articles/[id]` y `{ updateOriginalVersion: true, originalLanguage, originalTitle, originalSubtitle, originalPreviewText, originalContent, originalImages, inlineImageUrls }` — este caso especial vive **antes** de la lógica de traducción ES en el mismo endpoint y no toca `translationStatus`/`isTranslatedES`/`reviewedAt`
+- Las imágenes insertadas inline en el Publilab se registran como `Image` (`contentType: "ARTICLE_INLINE"`) igual que en el flujo normal
+
+### Visualización pública (`ausgaben` y `online`)
+- Debajo del subtítulo aparece un link "📄 Ver versión original en [idioma] →" — **no es un colapsable**, navega a la misma URL con `?original=true`
+- Con ese query param, la página renderiza un branch separado y acotado (`showOriginal`) que muestra una vista de artículo limpia con los campos `original*` (mismo pipeline de formato que el contenido normal: `autoFormatHeadings` → `autoDetectHeadings` → `rewriteEditionLinksWithLocale` → `wrapInlineImagesWithCaption`), con link para volver a la versión traducida
+- Deliberadamente **no** se tocó el árbol de conditionals `showES ? x : y` que ya existía — el modo original es un `if (showOriginal) return (...)` temprano, para no arriesgar el flujo DE/ES que ya funciona
+- Función `originalLanguageLabel(code)` duplicada en ambos archivos (mismo patrón que las demás transforms de esta página — ver "Editor de artículos" más abajo)
+
 ## Open Graph / previews al compartir (WhatsApp, redes)
 
 Las páginas que renderizan contenido son **client components** (`"use client"`), por lo que **no pueden exportar `metadata`/`generateMetadata`**. Sin metadata, WhatsApp y redes scrapean la URL y no encuentran imagen → preview sin portada.

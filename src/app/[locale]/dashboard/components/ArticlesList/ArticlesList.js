@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { Check } from "lucide-react";
 import AssignTranslatorCell from "./AssignTranslatorCell";
+import OriginalVersionModal from "./OriginalVersionModal";
 import { useSession } from "next-auth/react";
 
 /**
@@ -32,6 +33,7 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [editPickerId, setEditPickerId] = useState(null);
+  const [originalVersionArticleId, setOriginalVersionArticleId] = useState(null);
   const isSuperAdmin = session?.user?.email === "e.zeangeloni@gmail.com";
   const [selectedEdition, setSelectedEdition] = useState(initialFilter);
   const [editions, setEditions] = useState([]);
@@ -346,6 +348,7 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
                     🖼️
                   </th>
                   <th className="px-5 py-3 text-center">Editar</th>
+                  <th className="px-5 py-3 text-center" title="Versión en idioma original">🌎</th>
                   <th className="px-5 py-3 text-center">Eliminar</th>
                 </>
               )}
@@ -498,6 +501,23 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
                           <button className="text-blue-600 hover:underline">Editar</button>
                         </Link>
                       )}
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <button
+                        onClick={() => setOriginalVersionArticleId(article.id)}
+                        className={
+                          article.originalLanguage
+                            ? "text-green-600 hover:text-green-800"
+                            : "text-gray-400 hover:text-gray-700"
+                        }
+                        title={
+                          article.originalLanguage
+                            ? `Versión original (${article.originalLanguage}) cargada`
+                            : "Agregar versión en idioma original"
+                        }
+                      >
+                        🌎
+                      </button>
                     </td>
                     <td className="px-5 py-3 text-center">
                       <button
@@ -842,6 +862,20 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
             <button onClick={() => setEditPickerId(null)} className="mt-4 text-xs text-gray-400 hover:text-gray-600 w-full text-center">Cancelar</button>
           </div>
         </div>
+      )}
+
+      {originalVersionArticleId && (
+        <OriginalVersionModal
+          articleId={originalVersionArticleId}
+          onClose={() => setOriginalVersionArticleId(null)}
+          onSaved={(originalLanguage) => {
+            setArticles((prev) =>
+              prev.map((a) =>
+                a.id === originalVersionArticleId ? { ...a, originalLanguage } : a
+              )
+            );
+          }}
+        />
       )}
     </div>
   );

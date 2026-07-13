@@ -664,7 +664,7 @@ export async function sendPdfAboInvitationEmail(email, name = "") {
     </table>
 
     <p style="margin:0 0 20px 0;">
-      Du erhältst dann eine E-Mail, um deine Registrierung zu bestätigen. Danach ist dein Konto bereit und du findest alle verfügbaren Ausgaben in deinem persönlichen Dashboard unter <strong>„Meine Dossiers"</strong>. Außerdem kannst du Lieblingsartikel markieren und im Bereich <strong>„Eigenes PDF-Paket erstellen"</strong> selbst Spezialdossiers zusammenstellen und herunterladen.
+      Du erhältst dann eine E-Mail, um deine Registrierung zu bestätigen. Danach ist dein Konto bereit und du findest alle verfügbaren Ausgaben im Bereich <strong>„📰 Meine Dossiers (PDF)"</strong> deines persönlichen Dashboards. Zusätzlich kannst du Artikel als Favoriten markieren und dir daraus im Bereich <strong>„Lieblingsartikel"</strong> dein eigenes PDF-Paket zusammenstellen.
     </p>
 
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;">
@@ -707,5 +707,73 @@ export async function sendPdfAboInvitationEmail(email, name = "") {
   } catch (error) {
     console.error("❌ Error al enviar invitación PDF ABO:", error);
     throw new Error("No se pudo enviar la invitación PDF ABO.");
+  }
+}
+
+/**
+ * 📩 Recordatorio para quienes todavía no activaron su Digitalabo (PDF-Abo)
+ */
+export async function sendPdfAboReminderEmail(email, name = "") {
+  const params = new URLSearchParams({ pdfAbo: "true", email });
+  if (name) params.set("name", name);
+  const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/signup?${params.toString()}`;
+  const saludo = name ? `Hallo ${name},` : "Hallo,";
+
+  const body = `
+    <h1 style="margin:0 0 20px 0; font-size:26px; font-weight:700; color:#1a1a1a; letter-spacing:-0.01em;">Noch nicht aktiviert!</h1>
+
+    <p style="margin:0 0 16px 0;">${saludo}</p>
+
+    <p style="margin:0 0 24px 0;">
+      wir haben gesehen, dass du dein <strong>Digitalabo</strong> der Zeitschrift <strong>ila</strong> noch nicht aktiviert hast. Es wartet weiterhin auf dich — verpasse nicht den Zugang zum vollständigen Archiv und vielem mehr.
+    </p>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:8px 0 32px 0;">
+      <tr>
+        <td style="background-color:#c21f2e; border-radius:4px;">
+          <a href="${registerUrl}" target="_blank"
+             style="display:inline-block; padding:14px 32px; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; font-family:Arial,Helvetica,sans-serif;">
+            Jetzt aktivieren
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0 0 20px 0;">
+      Die Registrierung dauert nur eine Minute. Danach findest du alle verfügbaren Ausgaben im Bereich <strong>„📰 Meine Dossiers (PDF)"</strong> deines persönlichen Dashboards. Zusätzlich kannst du Artikel als Favoriten markieren und dir daraus im Bereich <strong>„Lieblingsartikel"</strong> dein eigenes PDF-Paket zusammenstellen.
+    </p>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:24px 0;">
+      <tr>
+        <td style="padding:16px 20px; background-color:#fff5f5; border-left:4px solid #c21f2e; border-radius:4px; font-size:14px; color:#333; line-height:1.55;">
+          <strong style="color:#c21f2e;">Wichtig:</strong> Bitte registriere dich mit genau dieser E-Mail-Adresse (<strong>${email}</strong>), damit dein Abo automatisch aktiviert wird.
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:0; color:#555;">
+      Solidarische Grüße<br>
+      <strong style="color:#1a1a1a;">von der ila-Redaktion</strong>
+    </p>
+
+    <p style="margin:28px 0 0 0; padding-top:18px; border-top:1px solid #eaeaea; font-size:13px; line-height:1.5; color:#999;">
+      Bitte antworte nicht auf diese E-Mail. Bei Fragen schreib uns gerne an
+      <a href="mailto:ila-bonn@t-online.de" style="color:#c21f2e; text-decoration:none; font-weight:600;">ila-bonn@t-online.de</a>.
+    </p>
+  `;
+
+  try {
+    const response = await resend.emails.send({
+      from: "no-reply@ila-web.de",
+      to: email,
+      subject: "Erinnerung: Dein Digitalabo bei ila wartet auf dich",
+      html: renderIlaEmail(body, "Aktiviere jetzt dein Digitalabo der Zeitschrift ila"),
+    });
+
+    console.log("✅ Correo de recordatorio PDF ABO enviado:", response);
+    return response;
+  } catch (error) {
+    console.error("❌ Error al enviar recordatorio PDF ABO:", error);
+    throw new Error("No se pudo enviar el recordatorio PDF ABO.");
   }
 }

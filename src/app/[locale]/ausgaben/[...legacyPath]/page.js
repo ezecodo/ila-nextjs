@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 import Image from "next/image";
 import ImageModal from "../../components/ImageModal/ImageModal";
@@ -37,6 +37,11 @@ function normalizeContentForRender(text) {
   return paragraphs.map((p) => `<p>${p}</p>`).join("");
 }
 
+const ORIGINAL_LANGUAGE_LABELS = { es: "Español", pt: "Português", en: "English" };
+function originalLanguageLabel(code) {
+  return ORIGINAL_LANGUAGE_LABELS[code] || code;
+}
+
 export default function LegacyArticlePage() {
   const t = useTranslations("article");
   const { data: session } = useSession();
@@ -46,6 +51,8 @@ export default function LegacyArticlePage() {
 
   const { legacyPath } = useParams();
   const fullPath = `/ausgaben/${legacyPath.join("/")}`;
+  const searchParams = useSearchParams();
+  const wantsOriginal = searchParams.get("original") === "true";
 
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
@@ -122,6 +129,8 @@ export default function LegacyArticlePage() {
   // el dashboard, no desde la página pública).
   const esApproved = article.translationStatus === "approved";
   const showES = isES && esApproved;
+  const showOriginal =
+    wantsOriginal && !!article.originalLanguage && !!article.originalContent;
   function formatDate(dateString, locale) {
     const options = { year: "numeric", month: "long", day: "numeric" };
     const localeCode = locale === "es" ? "es-ES" : "de-DE";
@@ -261,6 +270,17 @@ export default function LegacyArticlePage() {
     ),
   );
 
+  // Mismo pipeline de formato (headings, imágenes, links) para la versión en
+  // el idioma original — para que se vea igual de prolijo que el contenido normal.
+  const originalHtml = article.originalContent
+    ? wrapInlineImagesWithCaption(
+        rewriteEditionLinksWithLocale(
+          autoDetectHeadings(autoFormatHeadings(article.originalContent)),
+          locale,
+        ),
+      )
+    : "";
+
   const readerTitle = showES ? article.titleES : article.title;
   const readerSubtitle = showES ? article.subtitleES : article.subtitle;
   const readerAuthor = article.authors?.map((a) => a.name).join(", ");
@@ -275,6 +295,88 @@ export default function LegacyArticlePage() {
         locale,
       )
     : "";
+
+  // 📄 Vista aparte para la versión en el idioma original (?original=true).
+  // Branch acotado y separado del resto — no toca la lógica DE/ES de abajo.
+  if (showOriginal) {
+    const cover = article.images?.[0];
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-10">
+        <Link
+          href={`/${locale}${fullPath}`}
+          className="text-sm text-blue-700 underline font-medium"
+        >
+          ← {locale === "es" ? "Volver a la versión traducida" : "Zurück zur übersetzten Version"}
+        </Link>
+
+        <p className="text-sm text-gray-400 italic mt-6 mb-2">
+          {formatDate(article.publicationDate, locale)} ·{" "}
+          {originalLanguageLabel(article.originalLanguage)}
+        </p>
+
+        <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 dark:text-white mb-4 break-words">
+          {article.originalTitle}
+        </h1>
+        {article.originalSubtitle && (
+          <h2 className="text-lg md:text-xl font-light italic text-gray-600 dark:text-gray-300 mb-8">
+            {article.originalSubtitle}
+          </h2>
+        )}
+
+        {readerAuthor && (
+          <p className="text-sm text-gray-500 mb-6">{readerAuthor}</p>
+        )}
+
+        {cover && (
+          <div className="w-full max-w-3xl mb-6">
+            <div className="relative w-full aspect-[3/2] overflow-hidden shadow-md">
+              <Image
+                src={cover.url}
+                alt={cover.originalAlt || cover.alt || "Imagen del artículo"}
+                fill
+                className="object-cover"
+                sizes="(max-width: 800px) 100vw, 768px"
+              />
+            </div>
+            {(cover.originalAlt || cover.alt) && (
+              <p className="text-sm italic text-gray-600 text-center mt-3">
+                {cover.originalAlt || cover.alt}
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mb-6 items-center">
+          <EntityBadges
+            categories={article.categories}
+            regions={article.regions}
+            topics={article.topics}
+            locale={locale}
+          />
+        </div>
+
+        {article.originalPreviewText && (
+          <div
+            className="italic text-lg text-gray-700 dark:text-gray-300 mb-6"
+            dangerouslySetInnerHTML={{
+              __html: rewriteEditionLinksWithLocale(article.originalPreviewText, locale),
+            }}
+          />
+        )}
+
+        <div
+          className="article-content text-gray-700 dark:text-gray-200"
+          dangerouslySetInnerHTML={{ __html: originalHtml }}
+        />
+
+        {article.edition?.id && (
+          <ArticleDossierCTA edition={article.edition} currentArticleId={article.id} />
+        )}
+
+        <RelatedArticles articleId={article.id} />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -412,6 +514,21 @@ export default function LegacyArticlePage() {
               >
                 {showES ? article.subtitleES : article.subtitle}
               </h2>
+            )}
+
+            {/* 📄 Aviso: versión en el idioma original disponible — arriba del todo,
+                para que quien lee lo sepa desde el comienzo. Navega a la misma
+                página con ?original=true (no es un colapsable, es una vista aparte). */}
+            {article.originalLanguage && article.originalContent && (
+              <div className="mb-3">
+                <Link
+                  href={`/${locale}${fullPath}?original=true`}
+                  className="text-sm text-blue-700 underline font-medium"
+                >
+                  📄 {locale === "es" ? "Ver versión original en" : "Originalversion auf"}{" "}
+                  {originalLanguageLabel(article.originalLanguage)} →
+                </Link>
+              </div>
             )}
 
             {/* Modo lectura y Escucha (TTS) ahora viven en la ShareBar

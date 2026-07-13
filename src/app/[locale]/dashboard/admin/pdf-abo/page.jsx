@@ -15,6 +15,7 @@ import {
   FaUserCheck,
   FaUsers,
   FaInbox,
+  FaBell,
 } from "react-icons/fa";
 // IMPORTA TU SISTEMA DE TRADUCCIÓN AQUÍ.
 // Ejemplo para next-intl:
@@ -43,6 +44,8 @@ export default function PdfAboAdmin() {
   const [filter, setFilter] = useState("all");
   const [toasts, setToasts] = useState([]);
   const [editingDate, setEditingDate] = useState(null); // { id, value }
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [isSendingReminders, setIsSendingReminders] = useState(false);
 
   const showToast = (key, type = "success", values = {}) => {
     const id = Date.now();
@@ -181,6 +184,41 @@ export default function PdfAboAdmin() {
     } catch (error) {
       console.error("Error:", error);
       showToast("toasts.connection_error", "error");
+    }
+  };
+
+  const handleRemindAll = async () => {
+    setIsSendingReminders(true);
+    try {
+      const res = await fetch("/api/admin/pdf-abo-invitations/remind-all", {
+        method: "POST",
+      });
+      const result = await res.json();
+      if (res.ok) {
+        if (result.total === 0) {
+          showToast("toasts.remind_all_empty", "error");
+        } else if (result.failed.length > 0) {
+          showToast("toasts.remind_all_partial", "error", {
+            sent: result.sent,
+            total: result.total,
+            failed: result.failed.join(", "),
+          });
+        } else {
+          showToast("toasts.remind_all_success", "success", {
+            sent: result.sent,
+            total: result.total,
+          });
+        }
+        fetchInvitations();
+      } else {
+        showToast("toasts.remind_all_error", "error");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showToast("toasts.connection_error", "error");
+    } finally {
+      setIsSendingReminders(false);
+      setShowReminderModal(false);
     }
   };
 
@@ -348,7 +386,23 @@ export default function PdfAboAdmin() {
         </div>
 
         {/* Botones de Acción */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <button
+            onClick={() => setShowReminderModal(true)}
+            disabled={stats.pending === 0}
+            className="group flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold text-white shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-md"
+            style={{ backgroundColor: BRAND_GREEN }}
+            onMouseEnter={(e) => {
+              if (stats.pending > 0) e.currentTarget.style.backgroundColor = BRAND_GREEN_HOVER;
+            }}
+            onMouseLeave={(e) => {
+              if (stats.pending > 0) e.currentTarget.style.backgroundColor = BRAND_GREEN;
+            }}
+          >
+            <FaBell className="group-hover:scale-110 transition-transform" />
+            {t("actions.remind_all", { count: stats.pending })}
+          </button>
+
           <button
             onClick={() => setShowAddModal(true)}
             className="group flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-semibold text-white shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
@@ -417,6 +471,7 @@ export default function PdfAboAdmin() {
                   <th className="px-6 py-4">{t("table.th_status")}</th>
                   <th className="px-6 py-4">{t("table.th_date_inv")}</th>
                   <th className="px-6 py-4">{t("table.th_date_act")}</th>
+                  <th className="px-6 py-4">{t("table.th_reminder")}</th>
                   <th className="px-6 py-4 text-right">
                     {t("table.th_actions")}
                   </th>
@@ -425,7 +480,7 @@ export default function PdfAboAdmin() {
               <tbody className="divide-y divide-gray-100">
                 {filteredInvitations.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-16 text-center">
+                    <td colSpan={7} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center justify-center gap-4 text-gray-400">
                         <div className="p-4 bg-gray-50 rounded-full">
                           <FaInbox className="text-3xl opacity-50" />
@@ -512,6 +567,14 @@ export default function PdfAboAdmin() {
                       <td className="px-6 py-4 text-gray-500 text-sm">
                         {inv.redeemedAt
                           ? new Date(inv.redeemedAt).toLocaleDateString(
+                              locale === "es" ? "es-ES" : "de-DE",
+                              dateOptions,
+                            )
+                          : "-"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500 text-sm">
+                        {inv.reminderSentAt
+                          ? new Date(inv.reminderSentAt).toLocaleDateString(
                               locale === "es" ? "es-ES" : "de-DE",
                               dateOptions,
                             )
@@ -622,6 +685,63 @@ export default function PdfAboAdmin() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de recordatorio masivo */}
+      {showReminderModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity opacity-100 animate-in fade-in duration-200">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">
+                {t("remind_modal.title")}
+              </h2>
+              {!isSendingReminders && (
+                <button
+                  onClick={() => setShowReminderModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <FaTimes />
+                </button>
+              )}
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-600 mb-6">
+                {t("remind_modal.body", {
+                  count: stats.pending,
+                  seconds: Math.ceil((stats.pending * 0.55)),
+                })}
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReminderModal(false)}
+                  disabled={isSendingReminders}
+                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors disabled:opacity-50"
+                >
+                  {t("remind_modal.cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRemindAll}
+                  disabled={isSendingReminders}
+                  className="flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+                  style={{ backgroundColor: BRAND_GREEN }}
+                >
+                  {isSendingReminders ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                      {t("actions.reminding")}
+                    </>
+                  ) : (
+                    t("remind_modal.confirm", { count: stats.pending })
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

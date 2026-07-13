@@ -573,7 +573,7 @@ export default function Header() {
                       }}
                     >
                       {locale === "es"
-                        ? 'Sería tiempo de colgar los guantes y relajarse. ¿En un mundo donde el presidente de EE. UU. vuelve a hacer de "América para los estadounidenses" la guía de su política y el canciller alemán solo ve todo esto como "complejo"? ¿En un presente donde las fuerzas de derecha están en auge y, sin embargo, en todas partes la gente resiste día a día, luchando por una buena vida y sociedades solidarias? Celebramos y seguimos. ¿Y tú?'
+                        ? "¿Es momento de dejar la ILA y retirarnos? En un presente en el que las fuerzas de derecha avanzan, pero en el que, al mismo tiempo, personas de todas partes siguen resistiendo cada día y luchando por una vida digna y por sociedades solidarias… nosotros celebramos y seguimos adelante. ¿Y ustedes?"
                         : 'Es wäre Zeit, die ila an den Nagel zu hängen und sich zurückzulehnen. In einer Welt in der der US-Präsident "Amerika den (US-)Amerikanern" wieder zur Leitlinie seiner Politik macht und der deutsche Kanzler das Ganze nur als "komplex" sehen kann? In einer Gegenwart wo rechte Kräfte im Vormarsch sind und dennoch überall Menschen tagtäglich widerstehen, für ein gutes Leben und solidarische Gesellschaften kämpfen? Wir feiern und machen weiter. Und ihr?'}
                     </p>
 

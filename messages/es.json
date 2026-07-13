@@ -971,6 +971,8 @@
     "inEdition": "en la edición",
     "createdEvent": "creó el evento",
     "assignedDossier": "asignó el dossier",
+    "assignedArticle": "asignó el artículo",
+    "submittedTranslationArticle": "envió la traducción del artículo para revisión",
     "to": "a",
     "forTranslation": "para traducir",
     "pagination": {
@@ -1316,7 +1318,9 @@
       "upload_csv": "Subir CSV",
       "uploading": "Subiendo...",
       "resend": "Reenviar invitación",
-      "delete": "Eliminar"
+      "delete": "Eliminar",
+      "remind_all": "Recordar a pendientes ({count})",
+      "reminding": "Enviando..."
     },
     "table": {
       "th_name": "Nombre",
@@ -1324,6 +1328,7 @@
       "th_status": "Estado",
       "th_date_inv": "Fecha Invitación",
       "th_date_act": "Fecha Activación",
+      "th_reminder": "Último Recordatorio",
       "th_actions": "Acciones",
       "status_active": "Activado",
       "status_pending": "Pendiente",
@@ -1339,6 +1344,12 @@
       "cancel": "Cancelar",
       "submit": "Añadir Invitación"
     },
+    "remind_modal": {
+      "title": "¿Enviar recordatorio?",
+      "body": "Se enviará un email recordatorio a los {count} suscriptores pendientes para que activen su Digitalabo. El proceso puede tardar unos {seconds} segundos.",
+      "cancel": "Cancelar",
+      "confirm": "Sí, enviar {count} recordatorios"
+    },
     "toasts": {
       "added": "Email añadido correctamente",
       "add_error": "Error al añadir email",
@@ -1352,7 +1363,11 @@
       "connection_error": "Error de conexión",
       "date_saved": "Fecha de inicio guardada",
       "save_error": "Error al guardar",
-      "confirm_delete": "¿Estás seguro de eliminar esta invitación?"
+      "confirm_delete": "¿Estás seguro de eliminar esta invitación?",
+      "remind_all_success": "Recordatorios enviados: {sent} de {total}",
+      "remind_all_partial": "Recordatorios enviados: {sent} de {total}. Fallaron: {failed}",
+      "remind_all_error": "Error al enviar los recordatorios",
+      "remind_all_empty": "No hay invitaciones pendientes"
     },
     "loading": "Cargando datos..."
   },

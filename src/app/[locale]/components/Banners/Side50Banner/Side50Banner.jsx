@@ -21,7 +21,7 @@ export default function Banner50Compact() {
     },
     es: {
       title: "¡Cumplimos 50!",
-      fullText: `Sería tiempo de colgar los guantes y relajarse. ¿En un presente donde las fuerzas de derecha están en auge y, sin embargo, en todas partes la gente resiste día a día, luchando por una buena vida y sociedades solidarias? Celebramos y seguimos. ¿Y tú?`,
+      fullText: `¿Es momento de dejar la ILA y retirarnos? En un presente en el que las fuerzas de derecha avanzan, pero en el que, al mismo tiempo, personas de todas partes siguen resistiendo cada día y luchando por una vida digna y por sociedades solidarias… nosotros celebramos y seguimos adelante. ¿Y ustedes?`,
       cta1: "Suscríbete",
       cta2: "Únete",
       cta3: "Dona",

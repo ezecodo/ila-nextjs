@@ -67,6 +67,28 @@ export async function PUT(req, context) {
       }
     }
 
+    // 📋 Solo logueamos asignaciones nuevas (no reasignar a la misma persona
+    // ni desasignar) — así el feed muestra "se asignó tal artículo a tal
+    // traductor" sin ruido.
+    if (isNewAssignment) {
+      await prisma.activityLog.create({
+        data: {
+          userId: session.user.id,
+          articleId: article.id,
+          action: "ASSIGN_TRANSLATOR",
+          metadata: JSON.stringify({
+            title: article.title,
+            legacyPath: article.legacyPath,
+            translatorId: article.translator?.id ?? null,
+            translatorName: article.translator?.name ?? null,
+            edition: article.edition
+              ? { number: article.edition.number }
+              : null,
+          }),
+        },
+      });
+    }
+
     return NextResponse.json(article);
   } catch (error) {
     console.error("Error asignando/desasignando traductor:", error);

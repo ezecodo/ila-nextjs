@@ -168,6 +168,53 @@ export async function PUT(req, context) {
   try {
     if (contentType.includes("application/json")) {
       const body = await req.json();
+
+      // 🌎 Caso: guardar la versión en el idioma ORIGINAL del artículo (es/pt/en/…).
+      // Totalmente independiente del flujo de traducción DE→ES (no toca
+      // translationStatus/isTranslatedES/reviewedAt ni nada de ese pipeline).
+      if (body.updateOriginalVersion) {
+        const updatedArticle = await prisma.article.update({
+          where: { id: parseInt(id, 10) },
+          data: {
+            originalLanguage: body.originalLanguage || null,
+            originalTitle: body.originalTitle || null,
+            originalSubtitle: body.originalSubtitle || null,
+            originalPreviewText: body.originalPreviewText || null,
+            originalContent: body.originalContent || null,
+          },
+        });
+
+        if (body.originalImages) {
+          for (const [imgId, vals] of Object.entries(body.originalImages)) {
+            await prisma.image.update({
+              where: { id: parseInt(imgId, 10) },
+              data: {
+                originalTitle: vals.originalTitle || null,
+                originalAlt: vals.originalAlt || null,
+              },
+            });
+          }
+        }
+
+        // 🖼️ Registrar imágenes insertadas inline en el contenido original (si no
+        // estaban ya registradas para este artículo).
+        if (Array.isArray(body.inlineImageUrls) && body.inlineImageUrls.length > 0) {
+          const existing = await prisma.image.findMany({
+            where: { contentType: "ARTICLE_INLINE", contentId: parseInt(id, 10) },
+            select: { url: true },
+          });
+          const existingUrls = new Set(existing.map((img) => img.url));
+          const newUrls = body.inlineImageUrls.filter((url) => !existingUrls.has(url));
+          for (const url of newUrls) {
+            await prisma.image.create({
+              data: { contentType: "ARTICLE_INLINE", contentId: parseInt(id, 10), url },
+            });
+          }
+        }
+
+        return Response.json(updatedArticle, { status: 200 });
+      }
+
       // 🖼️ Caso: actualizar SOLO metadatos de imágenes (sin tocar estado de traducción)
       if (body.imageTranslationsOnly && body.imageTranslations) {
         for (const [imgId, translations] of Object.entries(
@@ -246,6 +293,11 @@ export async function PUT(req, context) {
           additionalInfoES: true,
         },
       });
+
+      // 📋 Guardamos el estado tal como llegó (antes de que la auto-aprobación
+      // de abajo lo pise) para saber, al loguear, si esto fue un envío a
+      // revisión real o quedó auto-aprobado.
+      const originalTranslationStatus = body.translationStatus;
 
       // 👤 Si quien envía la traducción es admin SIN rol de traductor acoplado
       // (canTranslate=false), no pasa por revisión: se aprueba directo y se le
@@ -421,26 +473,47 @@ export async function PUT(req, context) {
           });
         }
       }
+      // 📋 Activity log del flujo de traducción: solo interesa el envío a
+      // revisión (SUBMIT_TRANSLATION) o la auto-aprobación de un
+      // admin-traductor sin canTranslate (REVIEW_TRANSLATION). El guardado de
+      // borrador ("in_progress", incluidos los saves tras editar un artículo
+      // ya aprobado) y la aprobación explícita del revisor NO generan entrada
+      // acá — esta última ya la loguea el editor de traducción al aprobar, y
+      // duplicarla aquí como "editó el artículo" es justo la confusión que
+      // esto reemplaza.
       if (session?.user?.name !== "eZe") {
-        await prisma.activityLog.create({
-          data: {
-            userId,
-            articleId: updatedArticle.id,
-            action: "UPDATE_ARTICLE",
-            metadata: JSON.stringify({
-              title: updatedArticle.title,
-              legacyPath: updatedArticle.legacyPath,
-              edition: updatedArticle.edition
-                ? {
-                    id: updatedArticle.edition.id,
-                    number: updatedArticle.edition.number,
-                    title: updatedArticle.edition.title,
-                    datePublished: updatedArticle.edition.datePublished,
-                  }
-                : null,
-            }),
-          },
-        });
+        if (
+          originalTranslationStatus === "submitted" &&
+          !autoApproveByAdmin
+        ) {
+          await prisma.activityLog.create({
+            data: {
+              userId,
+              articleId: updatedArticle.id,
+              action: "SUBMIT_TRANSLATION",
+              metadata: JSON.stringify({
+                title: updatedArticle.title,
+                legacyPath: updatedArticle.legacyPath,
+                edition: updatedArticle.edition
+                  ? {
+                      id: updatedArticle.edition.id,
+                      number: updatedArticle.edition.number,
+                      title: updatedArticle.edition.title,
+                      datePublished: updatedArticle.edition.datePublished,
+                    }
+                  : null,
+              }),
+            },
+          });
+        } else if (autoApproveByAdmin) {
+          await prisma.activityLog.create({
+            data: {
+              userId,
+              articleId: updatedArticle.id,
+              action: "REVIEW_TRANSLATION",
+            },
+          });
+        }
       }
 
       return Response.json(updatedArticle, { status: 200 });
