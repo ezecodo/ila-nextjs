@@ -243,6 +243,7 @@ const DashboardStats = () => {
             { label: t("annualIndex"), href: "/dashboard/annual-index" },
             { label: t("authors"), href: "/dashboard/authors" },
             { label: t("network"), href: "/dashboard/network" },
+            { label: t("redaktionTeam"), href: "/dashboard/redaktion-team" },
             { label: t("regions"), href: "/dashboard/regions" },
             { label: t("topics"), href: "/dashboard/topics" },
           ]}
@@ -538,6 +539,13 @@ const DashboardStats = () => {
               onClick={closeMobile}
             >
               {t("network")}
+            </Link>
+            <Link
+              href="/dashboard/redaktion-team"
+              className={mobileLinkClass("/dashboard/redaktion-team")}
+              onClick={closeMobile}
+            >
+              {t("redaktionTeam")}
             </Link>
             <Link
               href="/dashboard/regions"

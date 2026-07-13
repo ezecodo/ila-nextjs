@@ -115,7 +115,7 @@ src/app/[locale]/dashboard/
   aktuelles/       carousels/     gifts/          regions/
   annual-index/    components/    instagram-generator/
   orders/          reviewer/      subscriptions/  topics/
-  translators/
+  translators/     redaktion-team/ # Gestión del equipo editorial (ver sección propia)
 ```
 
 ## Roles y autenticación
@@ -158,6 +158,30 @@ src/app/[locale]/dashboard/
 ```
 - **No usar `/api/media/`** para PDFs privados hasta implementar auth — pendiente
 - Los PDFs públicos de artículos siguen en `pdfs-public/`
+
+## Redaktion Team (equipo editorial, página `/about/editorial`)
+
+Antes "Die Redaktion" (nombres+bios de las 15 personas del equipo) estaba hardcodeado como JSX puro en `about/editorial/page.tsx` (párrafos `<p><strong>Nombre</strong> bio...</p>`, alemán y español por separado, sin base de datos ni fotos). Se migró a un módulo CRUD propio para que el equipo lo edite sin tocar código.
+
+### Modelo de datos — `RedaktionMember`
+- **Deliberadamente separado de `Author`** (que representa gente que firma artículos, migrado de Drupal con `drupalId`) — son conceptos distintos aunque haya personas que estén en ambas tablas sin ningún vínculo entre sí.
+- Campos: `name`, `bio`/`bioES` (texto plano, no HTML — no hace falta rich text para un párrafo de bio), `photoUrl` (opcional — hoy nadie del equipo quiere subir foto, por eso el diseño contempla avatar con iniciales como fallback), `order` (entero, controla el orden en la página pública, sin drag-and-drop, solo un input numérico en el form), `createdAt`/`updatedAt`.
+- **Sin `role`/`isActive`** a propósito — se evaluó agregarlos y se descartó: el cargo iba embebido en la bio como ya estaba, y "quitar" a alguien es borrado directo, no un toggle de activo/inactivo.
+
+### API — `/api/redaktion-team`
+- Mismo patrón que `gifts` (`POST` único crea o actualiza según venga `id` en el FormData, `DELETE` es borrado definitivo con `?id=`). A diferencia de `gifts`, no tiene soft-delete (`PATCH`/reactivar) porque no hay `isActive`.
+- `GET` es público (lo consume la página `/about/editorial`), sin filtro de admin — no hay estado "inactivo" que ocultar.
+- Foto opcional vía `uploadFile(file, "images/redaktion-team")` (`@/lib/localUpload`), reutilizando `<ImageGalleryManager mode="dossier">` (mismo componente que `gifts`) — el label dice "Titelbild"/"Imagen de portada" porque el componente es genérico para imagen única, no específico para fotos de persona; no se justificó un componente nuevo solo por el label.
+
+### Admin — `/dashboard/redaktion-team`
+- Página nueva, protegida automáticamente por el prefijo `/dashboard/` en `middleware.js` (no fue necesario tocarlo).
+- Link en el menú admin: dropdown "Verwaltung" de `DashboardStats.js` (desktop y mobile) — **no confundir con `/dashboard/redaktion`**, que es un dashboard de estadísticas de producción editorial (`@/lib/redaktionStats`) totalmente distinto, ya existente antes de este módulo.
+
+### Página pública `/about/editorial`
+- Pasó de client component con JSX hardcodeado a **server component** que hace `prisma.redaktionMember.findMany({ orderBy: { order: "asc" } })` directo (sin round-trip a la API).
+- Grid de cards (antes era pura prosa en columna única) — foto circular o, si no hay `photoUrl`, avatar con iniciales sobre fondo `#BD0E0D`. Bio según `locale` (`bioES` si existe, si no cae a `bio` en alemán).
+- El link a la web personal de Werner Rätz (único caso con link embebido en la bio original) quedó como texto plano, no clickeable — se decidió no agregar un campo `website` dedicado solo por ese caso, para mantener el modelo mínimo pedido.
+- Los 15 miembros existentes se migraron una sola vez con un script puntual fuera del repo (no se guardó nada en `scripts/`, que está en la lista de archivos que nunca se deben modificar).
 
 ## Internacionalización (next-intl)
 
@@ -318,6 +342,19 @@ export default function MiPaginaDashboard() {
 - Si llega con `translationStatus`, actualiza estado y deriva `isTranslatedES` / `needsReviewES`
 - Si el artículo estaba `approved` y cambian campos ES o `imageTranslations` sin re-aprobar → fuerza `approved` y marca `editedAfterReview: true`
 - Caso `imageTranslationsOnly: true` → solo actualiza `Image.titleES`/`altES` (no toca estado), pero también marca `editedAfterReview` si el artículo estaba aprobado
+
+### Activity log del flujo de traducción (feed del dashboard)
+El feed (`ActivityFeed.js`) originalmente logueaba `UPDATE_ARTICLE` ("editó el artículo") en **cada** guardado de este endpoint, incluidos los autoguardados de borrador del traductor — generaba ruido/confusión, ya que un traductor guardando en progreso no es lo mismo que alguien editando el artículo en alemán. Se acotó así:
+- **Guardar borrador** (`translationStatus: "in_progress"`, incluso en un artículo ya `approved` que dispara `editedAfterReview`) → **no genera entrada** en el feed.
+- **Enviar traducción** (`translationStatus: "submitted"`, caso normal) → `SUBMIT_TRANSLATION`, con metadata `{ title, legacyPath, edition }` del artículo.
+- **Aprobación normal** (reviewer aprueba desde `?mode=review`) → la loguea el propio editor de traducción con un `POST /api/activity-log` (`REVIEW_TRANSLATION`) al confirmar; el backend del PUT no vuelve a loguear para no duplicar.
+- **Auto-aprobación de admin sin `canTranslate`** (ver más arriba, admin que envía y se autoacredita) → el backend loguea `REVIEW_TRANSLATION` directo (este caso no pasa por el botón "Aprobar", así que si no lo logueara el backend no quedaría registro).
+- La variable `originalTranslationStatus` (capturada antes de que la auto-aprobación mute `body.translationStatus`) es la que decide qué se loguea — no usar `dataToUpdate.translationStatus` para esto, que ya viene pisado.
+- La edición "clásica" (multipart/form-data, contenido en alemán) sigue logueando `UPDATE_ARTICLE` sin cambios — esto es intencional, ahí sí es una edición real del artículo.
+
+### Asignación de traductor a un artículo (`/api/articles/[id]/assign`)
+- Antes no logueaba nada. Ahora loguea `ASSIGN_TRANSLATOR` (con `articleId`, metadata `{ title, legacyPath, translatorId, translatorName, edition }`) **solo** cuando `isNewAssignment` es true (persona nueva) — reasignar a la misma persona o desasignar no genera entrada.
+- El mismo `action: "ASSIGN_TRANSLATOR"` ya se usaba para asignar un traductor a **todo un dossier** (`editions/[id]/route.js`, metadata con `editionNumber`/`editionTitle`). `ActivityFeed.js` distingue los dos casos chequeando `log.metadata?.editionNumber` (dossier) vs su ausencia (artículo) — mismo patrón aplicado a `SUBMIT_TRANSLATION` y `REVIEW_TRANSLATION`, que también son compartidos entre dossier y artículo. Si se agrega un nuevo caso de estos actions, mantener esa distinción por `editionNumber` en el render.
 
 ## Versión en idioma original (`originalLanguage`, etc.)
 
