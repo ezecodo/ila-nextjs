@@ -368,10 +368,6 @@ body {
   scroll-margin-top: 6rem;
 }
 
-.article-content p {
-  margin-bottom: 1rem;
-}
-
 /* ESTILOS UNIFICADOS PARA ARTICLES */
 .article-content h2,
 .article-content h3,
@@ -455,25 +451,14 @@ body {
 }
 /* ESTILO PARA LÍNEAS QUE PARECEN TÍTULOS */
 .article-content p {
-  margin-bottom: 1.2rem;
-  line-height: 1.7;
-}
-
-@media (min-width: 768px) {
-  .article-content p {
-    margin-bottom: 1.8rem;
-  }
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
 }
 
 .article-content p + p {
   margin-top: 0;
 }
 
-@media (min-width: 768px) {
-  .article-content p + p {
-    margin-top: 1rem;
-  }
-}
 /* Modo oscuro */
 .dark .article-content p strong {
   color: #f3f4f6;
