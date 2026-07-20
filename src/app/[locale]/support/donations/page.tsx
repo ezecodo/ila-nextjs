@@ -15,15 +15,24 @@ export default function DonatePage() {
     script.type = "text/javascript";
     script.async = true;
     script.defer = true;
-    script.src = `https://spenden.twingle.de/embed/informationsstelle-lateinamerika-ila-e-v/spenden-allgemein/tw686e76ea72a53/widget/${id}`;
+    // El id del contenedor debe ir explícito en script.id ("tw-<id>"): el script de
+    // Twingle lo usa primero y solo cae a parsear el final de `src` si falta — pero esa
+    // regex está anclada a `$`, así que con `?tw_lang=` en el src nunca matchea.
+    script.id = "tw-" + id;
+    script.src = `https://spenden.twingle.de/embed/informationsstelle-lateinamerika-ila-e-v/spenden-allgemein/tw686e76ea72a53/widget/${id}?tw_lang=${locale}`;
 
     const wrapper = document.getElementById("twingle-container");
-    if (wrapper) {
-      wrapper.innerHTML = "";
-      wrapper.appendChild(container);
-      container.after(script);
-    }
-  }, []);
+    if (!wrapper) return;
+
+    wrapper.innerHTML = "";
+    wrapper.appendChild(container);
+    container.after(script);
+
+    return () => {
+      container.remove();
+      script.remove();
+    };
+  }, [locale]);
 
   const contentDe = (
     <>
