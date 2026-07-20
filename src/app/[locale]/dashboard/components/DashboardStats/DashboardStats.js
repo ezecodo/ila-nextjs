@@ -24,6 +24,7 @@ import {
   FaBookOpen,
   FaGlobeAmericas,
   FaDoorOpen,
+  FaShieldAlt,
 } from "react-icons/fa";
 
 const DashboardStats = () => {
@@ -246,7 +247,6 @@ const DashboardStats = () => {
             { label: t("redaktionTeam"), href: "/dashboard/redaktion-team" },
             { label: t("regions"), href: "/dashboard/regions" },
             { label: t("topics"), href: "/dashboard/topics" },
-            { label: t("backups"), href: "/dashboard/admin/backups" },
           ]}
           pathname={pathname}
         />
@@ -336,6 +336,39 @@ const DashboardStats = () => {
               <span className="absolute -top-1 right-4 h-2 w-2 rotate-45 bg-gray-900" />
               <span className="block font-bold text-cyan-300">GLOBila</span>
               <span className="mt-1 block">{t("mapTooltip")}</span>
+            </span>
+          </div>
+        </Link>
+
+        {/* VACAPila (backups) */}
+        <Link
+          href="/dashboard/admin/backups"
+          className="group relative flex-shrink-0"
+        >
+          <div
+            className={`relative flex items-center gap-1.5 rounded-md border-2 bg-white px-3 py-2 transition-all whitespace-nowrap shadow-[0_0_16px_3px_rgba(34,211,238,0.8)] ${
+              pathname?.startsWith("/dashboard/admin/backups")
+                ? "border-cyan-400 bg-cyan-50"
+                : "border-cyan-400 hover:bg-cyan-50"
+            }`}
+          >
+            {/* Anillo cyan pulsante (nuevo feature) */}
+            <span className="pointer-events-none absolute inset-0 rounded-md ring-2 ring-cyan-400 animate-pulse" />
+
+            <FaShieldAlt size={16} className="text-cyan-500" />
+            <span
+              className="text-lg font-extrabold leading-none tracking-tight"
+              style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+            >
+              <span className="text-gray-900">VACAP</span>
+              <span className="text-[#BD0E0D]">ila</span>
+            </span>
+
+            {/* Tooltip */}
+            <span className="pointer-events-none absolute top-full right-0 z-[9999] mt-2 block w-64 max-w-[80vw] whitespace-normal break-words rounded-none bg-gray-900 px-3.5 py-2.5 text-xs font-normal leading-snug text-white text-left opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100">
+              <span className="absolute -top-1 right-4 h-2 w-2 rotate-45 bg-gray-900" />
+              <span className="block font-bold text-cyan-300">VACAPila</span>
+              <span className="mt-1 block">{t("backupsTooltip")}</span>
             </span>
           </div>
         </Link>
@@ -562,14 +595,6 @@ const DashboardStats = () => {
             >
               {t("topics")}
             </Link>
-            <Link
-              href="/dashboard/admin/backups"
-              className={mobileLinkClass("/dashboard/admin/backups")}
-              onClick={closeMobile}
-            >
-              {t("backups")}
-            </Link>
-
             {/* Cuenta / FAQ / Analytics */}
             <div className="border-t border-gray-100 mt-2 pt-2">
               <Link
@@ -624,6 +649,22 @@ const DashboardStats = () => {
                   </span>
                   <span className="rounded-full bg-cyan-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-cyan-700">
                     Beta
+                  </span>
+                </span>
+              </Link>
+              <Link
+                href="/dashboard/admin/backups"
+                className={mobileLinkClass("/dashboard/admin/backups")}
+                onClick={closeMobile}
+              >
+                <span className="flex items-center gap-2">
+                  <FaShieldAlt size={14} className="text-cyan-500" />
+                  <span
+                    className="font-extrabold tracking-tight"
+                    style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+                  >
+                    <span className="text-gray-900">VACAP</span>
+                    <span className="text-[#BD0E0D]">ila</span>
                   </span>
                 </span>
               </Link>

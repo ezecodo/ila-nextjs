@@ -261,8 +261,12 @@
     "errorDelete": "Error al eliminar"
   },
   "backupsAdmin": {
-    "title": "💾 Backups",
+    "title": "Backups",
     "subtitle": "Historial de respaldos de la base de datos",
+    "missionTitle": "Por qué esto importa",
+    "missionText1": "Detrás de ila hay casi 50 años de periodismo independiente entre Alemania y América Latina — entrevistas, investigaciones y testimonios que no existen en ningún otro lado. Una falla del servidor o un solo clic equivocado podría borrar buena parte de eso en segundos, sin posibilidad de recuperarlo.",
+    "missionText2": "Este sistema de backups es el primer paso de una estructura sólida de preservación en la que voy a trabajar los próximos tres meses. Hoy se respaldan automáticamente cada noche la base de datos y todas las imágenes/PDFs, encriptados en la nube. Es un comienzo, pero uno importante: este material histórico merece ser preservado con el mismo cuidado con el que se fue construyendo durante décadas.",
+    "missionSignature": "Saludos, eZe",
     "loading": "Cargando backups...",
     "noBackups": "Todavía no hay backups registrados.",
     "statusOkTitle": "Los backups están funcionando",
@@ -687,6 +691,7 @@
     "digitalAboTooltipSignoff": "Un abrazo, Eze",
     "mapItem": "GLOBila (beta)",
     "mapTooltip": "Globo interactivo experimental con los artículos por país. Para probar — se agradece feedback.",
+    "backupsTooltip": "Respaldo automático de la base de datos e imágenes/PDFs, todas las noches.",
     "cuarto": "Cuarto"
   },
   "redaktion": {

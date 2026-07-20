@@ -9,6 +9,7 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaExclamationTriangle,
+  FaArchive,
 } from "react-icons/fa";
 
 // Cron corre a diario — margen sobre 24h antes de marcar como "atrasado"
@@ -71,13 +72,29 @@ export default function BackupsAdminPage() {
       <div className="max-w-5xl mx-auto p-6 lg:p-8">
         <div className="mb-8">
           <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#557a4c] to-[#46663f] rounded-md flex items-center justify-center shadow-lg">
               <FaDatabase className="text-white text-xl" />
             </div>
             {t("title")}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
             {t("subtitle")}
+          </p>
+        </div>
+
+        <div className="mb-8 rounded-2xl border border-[#89B881]/40 dark:border-[#89B881]/25 bg-[#89B881]/10 dark:bg-[#2c4327]/20 p-5 lg:p-6">
+          <h2 className="flex items-center gap-2 font-bold text-[#2c4327] dark:text-[#89B881] mb-3">
+            <FaArchive className="shrink-0" />
+            {t("missionTitle")}
+          </h2>
+          <p className="text-sm text-[#2c4327]/90 dark:text-green-100/80 leading-relaxed mb-3">
+            {t("missionText1")}
+          </p>
+          <p className="text-sm text-[#2c4327]/90 dark:text-green-100/80 leading-relaxed">
+            {t("missionText2")}
+          </p>
+          <p className="text-sm italic text-[#2c4327]/70 dark:text-[#89B881]/80 mt-4 text-right">
+            {t("missionSignature")}
           </p>
         </div>
 

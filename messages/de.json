@@ -261,8 +261,12 @@
     "errorDelete": "Fehler beim Entfernen"
   },
   "backupsAdmin": {
-    "title": "💾 Backups",
+    "title": "Backups",
     "subtitle": "Übersicht der Datenbank-Sicherungen",
+    "missionTitle": "Warum das hier wichtig ist",
+    "missionText1": "Hinter ila stehen fast 50 Jahre unabhängiger Berichterstattung zwischen Deutschland und Lateinamerika – Interviews, Recherchen und Zeugnisse, die es in dieser Form nirgendwo sonst gibt. Ein Server-Ausfall oder ein einziger falscher Klick könnte davon in Sekunden vieles unwiederbringlich löschen.",
+    "missionText2": "Dieses Backup-System ist der erste Schritt einer soliden Sicherungsstruktur, an der ich in den nächsten drei Monaten arbeite. Aktuell werden jede Nacht automatisch die Datenbank und alle Bilder/PDFs gesichert und verschlüsselt in der Cloud abgelegt. Es ist ein Anfang – aber ein wichtiger: Dieses historische Material verdient es, mit derselben Sorgfalt bewahrt zu werden, mit der es über Jahrzehnte gesammelt wurde.",
+    "missionSignature": "Viele Grüße, eZe",
     "loading": "Lade Backups...",
     "noBackups": "Noch keine Backups protokolliert.",
     "statusOkTitle": "Backups laufen wie erwartet",
@@ -687,6 +691,7 @@
     "digitalAboTooltipSignoff": "Eine Umarmung, Eze",
     "mapItem": "GLOBila (Beta)",
     "mapTooltip": "Experimenteller interaktiver Globus mit Artikeln nach Ländern. Zum Ausprobieren – Feedback willkommen.",
+    "backupsTooltip": "Automatische Sicherung von Datenbank und Bildern/PDFs, jede Nacht.",
     "cuarto": "Cuarto"
   },
   "redaktion": {
