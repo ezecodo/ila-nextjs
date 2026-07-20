@@ -486,6 +486,7 @@ await deleteFile(url);
 - **Dockerizar la app** — permitiría zero-downtime real con `docker-compose`, rollback instantáneo y entorno reproducible. Los uploads en `~/ila-uploads/` se montarían como volumen Docker.
 - **Migrar módulos restantes** de Cloudinary a storage local (ver lista de módulos pendientes arriba)
 - **Auth en `/api/media/pdfs-private/`** — implementar verificación de sesión + PDF-Abo antes de lanzar
+- **Backup de `~/ila-uploads/`** — el backup automático (ver "Sistema de Backups") solo cubre la DB; las imágenes/PDFs en disco (`ila-uploads/`) no tienen ningún respaldo hoy. Si el disco del servidor falla, la DB se recupera pero queda llena de links rotos. Pendiente de diseñar (probablemente `rclone sync` incremental en vez de un dump completo cada noche, dado el volumen mucho mayor que los 126 MB de la DB).
 
 ### Imágenes existentes en Cloudinary
 - Las URLs antiguas de Cloudinary siguen funcionando mientras la cuenta esté activa
@@ -527,6 +528,37 @@ await deleteFile(url);
   - `src/lib/email.js` — envío de emails con Resend
 - Envía errores tanto en local (`development`) como en producción — útil para detectar bugs antes del deploy
 - Dashboard: sentry.io
+
+## Sistema de Backups (DB)
+
+Backup diario automático de la base de datos MySQL vía cron en el servidor Hetzner. **El script (`backup-db.sh`) vive fuera de este repo**, directamente en `~/backup-db.sh` del servidor — nunca en `scripts/`, porque tiene rutas específicas del server y no debe versionarse junto a datos sensibles.
+
+### Flujo
+1. Cron (`0 3 * * *` en el `crontab` del usuario `ilaweb`) corre `~/backup-db.sh` cada noche a las 3 AM.
+2. El script: `mysqldump --single-transaction` → `gzip` → encripta con `gpg --symmetric --cipher-algo AES256` (passphrase en `~/.ila-backup-passphrase`, `chmod 600`, generada con `openssl rand -base64 32` — **solo existe en el servidor y en el password manager de Eze**; si se pierde, los backups quedan irrecuperables) → sube con `rclone` a Google Drive (remote `gdrive:ila-backups/`) → reporta el resultado a `POST /api/admin/backups`.
+3. Rotación: borra (local y en Drive) todo lo de más de 30 días — corre **solo después** de confirmar que el backup del día subió bien.
+
+### Modelo de datos — `BackupLog`
+- `status` (`"success"` | `"failed"`), `sizeBytes`, `destination` (`"google_drive"`), `fileName`, `errorMessage`, `createdAt`
+- Sin relación a otras tablas — es puramente un log de auditoría del cron externo
+
+### API `/api/admin/backups`
+- `GET` — protegido por sesión admin (lo consume el dashboard)
+- `POST` — lo llama el script del cron, no un usuario logueado. Se autentica con header `Authorization: Bearer $BACKUP_LOG_SECRET` contra la env var del mismo nombre — no usa NextAuth porque es una llamada servidor-a-servidor sin sesión de browser
+
+### Dashboard `/dashboard/admin/backups`
+- Lee `BackupLog`: banner verde/rojo según qué tan viejo es el último backup exitoso (umbral 26h, el cron es diario), tabla con fecha/estado/tamaño/destino/archivo
+- Link en el dropdown "Verwaltung" de `DashboardStats.js`
+
+### rclone + Google Drive
+- Remote `gdrive` con **client_id propio** (no el compartido de rclone, que Google retira durante 2026) — creado en Google Cloud Console, tipo "Desktop app", proyecto aparte
+- Scope `drive.file` (mínimo privilegio — solo ve archivos que rclone mismo sube, no el resto del Drive)
+- `~/.config/rclone/rclone.conf` (tiene el refresh token) vive **solo en el servidor y en la Mac de Eze**, nunca en git
+- Instalado en `~/bin/rclone` en el servidor (sin sudo — el managed server de Hetzner no da permisos de instalación a nivel sistema)
+- Cuenta de Google: institucional de ila (Gmail gratuito, no Workspace), separada de cuentas personales
+
+### Pendiente
+- **Prueba de restore real** (decrypt + gunzip + importar en un MySQL descartable vía Docker, comparar conteos contra la DB real) — sin esto, "el backup corrió sin error" no confirma que el contenido sea válido. Hacerla una primera vez y después repetirla periódicamente (ej. trimestral).
 
 ## Deploy en Hetzner (zero-downtime)
 

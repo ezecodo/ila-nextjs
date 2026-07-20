@@ -168,10 +168,14 @@ export default function BackupsAdminPage() {
                       {formatBytes(b.sizeBytes)}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                      {b.destination}
+                      {b.destination === "google_drive_uploads"
+                        ? t("destinationUploads")
+                        : t("destinationDb")}
                     </td>
                     <td className="px-4 py-3 text-gray-500 dark:text-gray-400 truncate max-w-[240px]">
-                      {b.fileName || "—"}
+                      {b.destination === "google_drive_uploads"
+                        ? t("filesAdded", { count: b.filesTransferred ?? 0 })
+                        : b.fileName || "—"}
                     </td>
                   </tr>
                 ))}

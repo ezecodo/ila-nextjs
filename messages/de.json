@@ -277,7 +277,10 @@
     "colDestination": "Ziel",
     "colFile": "Datei",
     "success": "Erfolgreich",
-    "failed": "Fehlgeschlagen"
+    "failed": "Fehlgeschlagen",
+    "destinationDb": "Google Drive (Datenbank)",
+    "destinationUploads": "Google Drive (Uploads)",
+    "filesAdded": "{count, plural, one {# Datei hinzugefügt} other {# Dateien hinzugefügt}}"
   },
   "editionTranslate": {
     "pageTitle": "Ausgabe übersetzen",

@@ -37,7 +37,14 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { status, sizeBytes, destination, fileName, errorMessage } = body;
+    const {
+      status,
+      sizeBytes,
+      destination,
+      fileName,
+      errorMessage,
+      filesTransferred,
+    } = body;
 
     if (!status || !destination) {
       return NextResponse.json(
@@ -53,6 +60,7 @@ export async function POST(request) {
         destination,
         fileName: fileName ?? null,
         errorMessage: errorMessage ?? null,
+        filesTransferred: filesTransferred ?? null,
       },
     });
 

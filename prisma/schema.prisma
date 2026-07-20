@@ -754,16 +754,19 @@ model AppSetting {
   updatedAt DateTime @updatedAt
 }
 
-// Registro de corridas del backup de la DB (cron externo en el servidor Hetzner,
-// fuera de este repo). El script inserta una fila acá al terminar cada corrida
-// (éxito o falla) para que el dashboard pueda mostrar el historial y alertar
-// si el último backup exitoso es demasiado viejo.
+// Registro de corridas de los backups (cron externo en el servidor Hetzner,
+// fuera de este repo). Cubre dos tipos: dump de la DB (destination="google_drive")
+// y sync incremental de ~/ila-uploads (destination="google_drive_uploads").
+// El script inserta una fila acá al terminar cada corrida (éxito o falla) para
+// que el dashboard pueda mostrar el historial y alertar si el último backup
+// exitoso es demasiado viejo.
 model BackupLog {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
-  status       String // "success" | "failed"
-  sizeBytes    Int?
-  destination  String // "google_drive"
-  fileName     String?
-  errorMessage String?  @db.Text
+  id               Int      @id @default(autoincrement())
+  createdAt        DateTime @default(now())
+  status           String // "success" | "failed"
+  sizeBytes        Int?
+  destination      String // "google_drive" | "google_drive_uploads"
+  fileName         String?
+  errorMessage     String?  @db.Text
+  filesTransferred Int? // solo backups de tipo uploads (archivos nuevos/actualizados esa corrida)
 }
