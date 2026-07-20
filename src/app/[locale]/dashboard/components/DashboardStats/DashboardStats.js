@@ -246,6 +246,7 @@ const DashboardStats = () => {
             { label: t("redaktionTeam"), href: "/dashboard/redaktion-team" },
             { label: t("regions"), href: "/dashboard/regions" },
             { label: t("topics"), href: "/dashboard/topics" },
+            { label: t("backups"), href: "/dashboard/admin/backups" },
           ]}
           pathname={pathname}
         />
@@ -560,6 +561,13 @@ const DashboardStats = () => {
               onClick={closeMobile}
             >
               {t("topics")}
+            </Link>
+            <Link
+              href="/dashboard/admin/backups"
+              className={mobileLinkClass("/dashboard/admin/backups")}
+              onClick={closeMobile}
+            >
+              {t("backups")}
             </Link>
 
             {/* Cuenta / FAQ / Analytics */}

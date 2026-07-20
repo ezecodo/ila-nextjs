@@ -260,6 +260,25 @@
     "errorSave": "Fehler beim Speichern",
     "errorDelete": "Fehler beim Entfernen"
   },
+  "backupsAdmin": {
+    "title": "💾 Backups",
+    "subtitle": "Übersicht der Datenbank-Sicherungen",
+    "loading": "Lade Backups...",
+    "noBackups": "Noch keine Backups protokolliert.",
+    "statusOkTitle": "Backups laufen wie erwartet",
+    "statusOkDesc": "Letztes erfolgreiches Backup: {date}",
+    "statusStaleTitle": "Kein aktuelles Backup gefunden",
+    "statusStaleDesc": "Letztes erfolgreiches Backup: {date} — das ist länger her als erwartet. Bitte den Cron-Job auf dem Server prüfen.",
+    "statusNoneTitle": "Noch nie ein erfolgreiches Backup registriert",
+    "statusNoneDesc": "Bitte prüfen, ob der Backup-Cron auf dem Server läuft.",
+    "colDate": "Datum",
+    "colStatus": "Status",
+    "colSize": "Größe",
+    "colDestination": "Ziel",
+    "colFile": "Datei",
+    "success": "Erfolgreich",
+    "failed": "Fehlgeschlagen"
+  },
   "editionTranslate": {
     "pageTitle": "Ausgabe übersetzen",
     "translationMode": "Übersetzungsmodus",
@@ -653,6 +672,7 @@
     "contentLabel": "Inhalte",
     "network": "Netzwerk",
     "redaktionTeam": "Die Redaktion",
+    "backups": "Backups",
     "aktuellesLabel": "Aktuelles",
     "aktuellesItem": "Aktuelles",
     "gestaltungLabel": "Gestaltung",

@@ -260,6 +260,25 @@
     "errorSave": "Error al guardar",
     "errorDelete": "Error al eliminar"
   },
+  "backupsAdmin": {
+    "title": "💾 Backups",
+    "subtitle": "Historial de respaldos de la base de datos",
+    "loading": "Cargando backups...",
+    "noBackups": "Todavía no hay backups registrados.",
+    "statusOkTitle": "Los backups están funcionando",
+    "statusOkDesc": "Último backup exitoso: {date}",
+    "statusStaleTitle": "No hay un backup reciente",
+    "statusStaleDesc": "Último backup exitoso: {date} — hace más tiempo del esperado. Revisar el cron en el servidor.",
+    "statusNoneTitle": "Todavía no se registró ningún backup exitoso",
+    "statusNoneDesc": "Revisar si el cron de backup está corriendo en el servidor.",
+    "colDate": "Fecha",
+    "colStatus": "Estado",
+    "colSize": "Tamaño",
+    "colDestination": "Destino",
+    "colFile": "Archivo",
+    "success": "Exitoso",
+    "failed": "Falló"
+  },
   "editionTranslate": {
     "pageTitle": "Traducir edición",
     "translationMode": "Modo traducción",
@@ -653,6 +672,7 @@
     "contentLabel": "Contenidos",
     "network": "Red",
     "redaktionTeam": "La Redacción",
+    "backups": "Backups",
     "aktuellesLabel": "Actualidad",
     "aktuellesItem": "Aktuelles",
     "gestaltungLabel": "Diseño web",
