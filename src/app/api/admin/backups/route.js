@@ -44,6 +44,7 @@ export async function POST(request) {
       fileName,
       errorMessage,
       filesTransferred,
+      totalSizeBytes,
     } = body;
 
     if (!status || !destination) {
@@ -61,6 +62,7 @@ export async function POST(request) {
         fileName: fileName ?? null,
         errorMessage: errorMessage ?? null,
         filesTransferred: filesTransferred ?? null,
+        totalSizeBytes: totalSizeBytes ?? null,
       },
     });
 

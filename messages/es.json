@@ -284,7 +284,8 @@
     "failed": "Falló",
     "destinationDb": "Google Drive (Base de datos)",
     "destinationUploads": "Google Drive (Uploads)",
-    "filesAdded": "{count, plural, one {# archivo agregado} other {# archivos agregados}}"
+    "filesAdded": "{count, plural, one {# archivo agregado} other {# archivos agregados}}",
+    "sizeTotal": "{size} respaldados en total"
   },
   "editionTranslate": {
     "pageTitle": "Traducir edición",

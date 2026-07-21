@@ -182,7 +182,11 @@ export default function BackupsAdminPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                      {formatBytes(b.sizeBytes)}
+                      {b.destination === "google_drive_uploads"
+                        ? t("sizeTotal", {
+                            size: formatBytes(b.totalSizeBytes),
+                          })
+                        : formatBytes(b.sizeBytes)}
                     </td>
                     <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
                       {b.destination === "google_drive_uploads"

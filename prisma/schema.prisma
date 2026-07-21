@@ -764,9 +764,10 @@ model BackupLog {
   id               Int      @id @default(autoincrement())
   createdAt        DateTime @default(now())
   status           String // "success" | "failed"
-  sizeBytes        Int?
+  sizeBytes        Int? // peso transferido en ESTA corrida (delta)
   destination      String // "google_drive" | "google_drive_uploads"
   fileName         String?
   errorMessage     String?  @db.Text
   filesTransferred Int? // solo backups de tipo uploads (archivos nuevos/actualizados esa corrida)
+  totalSizeBytes   Int? // solo backups de tipo uploads (peso total acumulado en Drive a esa fecha)
 }
