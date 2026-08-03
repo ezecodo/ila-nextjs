@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { extractArticleText } from "@/lib/pdfExtract";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
 
 // El publilab (InterviewEditor) usa el DOM; igual que en ArticleFormV2 se carga
@@ -377,13 +376,6 @@ function rankOptions(flat, query) {
 
 function escapeHtml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// Coste en USD (lo que cobra Anthropic). Importes minúsculos → muestra céntimos
-// de dólar cuando es < 1 ¢.
-function fmtUsd(c) {
-  if (c == null) return "–";
-  return c < 0.01 ? `${(c * 100).toFixed(3)}¢` : `$${c.toFixed(4)}`;
 }
 
 // Convierte el cuerpo al HTML del artículo. Línea en blanco = nuevo párrafo
@@ -888,18 +880,9 @@ export default function FromPdfPage() {
   const [selAuthors, setSelAuthors] = useState([]);
   const [authorBusy, setAuthorBusy] = useState(false);
 
-  // Rango de páginas del cuerpo (lo usa la estructuración con Claude).
+  // Rango de páginas del cuerpo (referencia de la edición impresa: startPage/endPage).
   const [bodyFrom, setBodyFrom] = useState("");
   const [bodyTo, setBodyTo] = useState("");
-
-  // Estructuración con Claude (API). Mide tokens/coste por llamada y acumulado.
-  const [aiModel, setAiModel] = useState("claude-haiku-4-5-20251001");
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiUsage, setAiUsage] = useState(null); // último: {input_tokens, output_tokens, cost, model}
-  const [aiTotalCost, setAiTotalCost] = useState(0);
-  const [aiTotalTokens, setAiTotalTokens] = useState({ input: 0, output: 0 });
-  const [aiCalls, setAiCalls] = useState(0);
-  const [aiBoundaryNote, setAiBoundaryNote] = useState("");
 
   // Recorte de imágenes del PDF (dos esquinas → JPEG → galería).
   const [cropMode, setCropMode] = useState(false); // arrastrar para recortar
@@ -1000,11 +983,6 @@ export default function FromPdfPage() {
     setError(null);
     setLoading(true);
     setFileName(name);
-    // Nuevo dossier → reinicia el contador de tokens/coste.
-    setAiUsage(null);
-    setAiTotalCost(0);
-    setAiTotalTokens({ input: 0, output: 0 });
-    setAiCalls(0);
     // Nuevo dossier → cierra el publilab y limpia su HTML.
     setPublilabOn(false);
     setContentHtml("");
@@ -1262,54 +1240,6 @@ export default function FromPdfPage() {
       setSelTopics(selectedOptions.slice(0, -1));
     } else {
       setSelTopics(selectedOptions || []);
-    }
-  };
-
-  // Extrae el texto del rango de páginas y se lo manda a Claude para que lo
-  // estructure. Claude solo devuelve autor y cuerpo (con ## entretítulos); el
-  // título, subtítulo y Vorspann se cargan a mano. Acumula tokens/coste del dossier.
-  const structureWithClaude = async () => {
-    if (!pdfDoc) return;
-    const from = Number(bodyFrom) || 1;
-    const to = Number(bodyTo) || numPages || from;
-    setAiBusy(true);
-    setError(null);
-    setAiBoundaryNote("");
-    try {
-      const text = await extractArticleText(pdfDoc, from, to);
-      if (!text || !text.trim()) throw new Error("kein Text im Seitenbereich");
-      const res = await fetch("/api/ai/structure-article", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, model: aiModel, title: title.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Claude-Fehler");
-
-      if (data.boundaryNote) setAiBoundaryNote(data.boundaryNote);
-      if (data.body) {
-        setContent(data.body);
-        // Si el publilab ya es la fuente de verdad, re-sembrar su HTML.
-        if (publilabOn) setContentHtml(bodyTextToHtml(data.body));
-      }
-      if (data.author) addAuthorByName(cleanAuthorName(data.author));
-      setBodyFrom(String(from));
-      setBodyTo(String(to));
-
-      if (data.usage) {
-        setAiUsage({ ...data.usage, cost: data.cost, model: data.model });
-        setAiTotalCost((c) => c + (data.cost || 0));
-        setAiTotalTokens((t) => ({
-          input: t.input + (data.usage.input_tokens || 0),
-          output: t.output + (data.usage.output_tokens || 0),
-        }));
-        setAiCalls((n) => n + 1);
-      }
-    } catch (err) {
-      console.error(err);
-      setError("Claude konnte den Artikel nicht strukturieren: " + err.message);
-    } finally {
-      setAiBusy(false);
     }
   };
 
@@ -1663,40 +1593,10 @@ export default function FromPdfPage() {
               <p className="text-xs text-gray-400 truncate">{fileName}</p>
             )}
 
-            {/* ── Claude: Artikel automatisch strukturieren ──────── */}
-            <div className="border border-[#BD0E0D]/30 bg-[#BD0E0D]/[0.03] p-3">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-xs font-bold text-gray-700">
-                  ✨ Mit Claude strukturieren
-                </span>
-                <select
-                  value={aiModel}
-                  onChange={(e) => setAiModel(e.target.value)}
-                  className="text-xs border border-gray-300 px-1.5 py-1 bg-white"
-                  title="Modell wählen — Haiku ist günstiger, Sonnet liefert bessere Struktur"
-                >
-                  <option value="claude-haiku-4-5-20251001">Haiku 4.5 (günstig)</option>
-                  <option value="claude-sonnet-4-6">Sonnet 4.6 (beste Qualität)</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-1.5 mt-2">
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Titel (optional — hilft beim Abschneiden am Seitenende)"
-                  className="flex-1 border border-gray-300 px-2 py-1 text-xs text-gray-700 focus:outline-none focus:border-[#BD0E0D]"
-                />
-                <button
-                  type="button"
-                  onClick={takeInto(setTitle)}
-                  className="text-xs px-2 py-1 bg-gray-800 text-white hover:bg-gray-700 transition-colors whitespace-nowrap"
-                  title="Aktuelle PDF-Auswahl als Titel übernehmen"
-                >
-                  ← Auswahl
-                </button>
-              </div>
-              <div className="flex items-center gap-1.5 mt-2 flex-wrap text-xs text-gray-500">
-                <span>Seiten</span>
+            {/* ── Seiten (Referenz für die gedruckte Ausgabe: startPage/endPage) ── */}
+            <div className="border border-gray-200 p-3">
+              <div className="flex items-center gap-1.5 flex-wrap text-xs text-gray-500">
+                <span className="font-medium text-gray-700">Seiten</span>
                 <input
                   type="number"
                   min={1}
@@ -1716,32 +1616,7 @@ export default function FromPdfPage() {
                   onChange={(e) => setBodyTo(e.target.value)}
                   className="w-14 border border-gray-300 px-1 py-0.5 text-center text-gray-700"
                 />
-                <button
-                  type="button"
-                  onClick={structureWithClaude}
-                  disabled={aiBusy || !pdfDoc}
-                  className="px-2.5 py-1 bg-[#BD0E0D] text-white hover:bg-[#a50c0b] transition-colors disabled:opacity-40"
-                  title="Seitenbereich extrahieren und von Claude in Felder zerlegen lassen"
-                >
-                  {aiBusy ? "Claude liest…" : "✨ Felder ausfüllen"}
-                </button>
               </div>
-              {aiBoundaryNote && (
-                <div className="mt-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 leading-relaxed">
-                  ✂ {aiBoundaryNote}
-                </div>
-              )}
-              {aiUsage && (
-                <div className="mt-2 text-[11px] text-gray-500 leading-relaxed border-t border-[#BD0E0D]/20 pt-2">
-                  Letzter Aufruf ({aiUsage.model?.includes("sonnet") ? "Sonnet" : "Haiku"}):{" "}
-                  {aiUsage.input_tokens} in / {aiUsage.output_tokens} out ·{" "}
-                  {fmtUsd(aiUsage.cost)}
-                  <br />
-                  Dossier gesamt ({aiCalls} {aiCalls === 1 ? "Artikel" : "Artikel"}):{" "}
-                  {aiTotalTokens.input + aiTotalTokens.output} Tokens ·{" "}
-                  <strong className="text-gray-700">{fmtUsd(aiTotalCost)}</strong>
-                </div>
-              )}
             </div>
 
             {/* Edición + tipo */}
