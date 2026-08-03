@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocale } from "next-intl";
-import { FaUpload, FaTrash, FaFilePdf, FaCheck, FaSpinner, FaEye } from "react-icons/fa";
+import { FaUpload, FaTrash, FaFilePdf, FaCheck, FaSpinner, FaEye, FaDownload } from "react-icons/fa";
 
 const BRAND_RED = "#BD0E0D";
 const BRAND_RED_HOVER = "#A30C0B";
@@ -178,6 +178,19 @@ function EditionRow({ edition, locale, uploading, deleting, onUpload, onDelete }
               title="Vorschau — así lo ven die Digital-Abo Nutzer*innen"
             >
               <FaEye /> Ver
+            </a>
+          )}
+          {/* Botón descargar — el PDF crudo tal cual está en el servidor,
+              para poder abrirlo con otro programa y descartar que el
+              problema sea del reader en vez del archivo */}
+          {hasPdf && (
+            <a
+              href={edition.pdf.pdfUrl}
+              download
+              className="flex items-center justify-center w-9 h-9 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
+              title="PDF herunterladen"
+            >
+              <FaDownload />
             </a>
           )}
           {/* Botón subir */}

@@ -32,6 +32,7 @@ const BookPage = forwardRef(function BookPage(
     if (!isVisible || !pdfDoc || !canvasRef.current) return;
 
     let cancelled = false;
+    let renderTask = null;
     pdfDoc.getPage(pageNumber).then((page) => {
       if (cancelled || !canvasRef.current) return;
       const pixelRatio = window.devicePixelRatio || 1;
@@ -48,10 +49,22 @@ const BookPage = forwardRef(function BookPage(
       canvas.style.width = width + "px";
       canvas.style.height = height + "px";
       const ctx = canvas.getContext("2d");
-      page.render({ canvasContext: ctx, viewport });
+      renderTask = page.render({ canvasContext: ctx, viewport });
+      renderTask.promise.catch((err) => {
+        // Cancelar un render en curso rechaza su promise a propósito — no es
+        // un error real, solo pasa cuando el efecto vuelve a correr antes de
+        // terminar (p. ej. `width` cambia por un reajuste de layout).
+        if (err?.name !== "RenderingCancelledException") console.error(err);
+      });
     });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      // Sin esto, un render viejo en curso puede terminar DESPUÉS de que el
+      // canvas ya se redimensionó para una página/escala nueva, dibujando
+      // encima con una transformación distinta — texto gigante y atravesado.
+      if (renderTask) renderTask.cancel();
+    };
   }, [isVisible, pdfDoc, pageNumber, width]);
 
   return (
