@@ -1257,10 +1257,12 @@ function PasteImportPanel({
   // flag para hacer auto-scroll al final tras insertar texto desde el PDF.
   const scrollRef = useRef(null);
   const pendingScrollRef = useRef(false);
-  // Ancla del comienzo del último texto pegado desde el PDF: { blockIdx,
-  // caretOffset }. Se captura en el PRIMER append de un lote para luego dejar el
-  // caret en la 1ª letra de lo pegado (la unión con el texto previo).
-  const insertAnchorRef = useRef(null);
+  // Último índice insertado en modo posicional (lote desde el PDF) — se usa
+  // para dejar el caret al FINAL de lo recién insertado y poder seguir
+  // pegando/escribiendo desde ahí sin buscarlo a mano.
+  const lastInsertedIdxRef = useRef(null);
+  // Flag: ¿ya se decidió posicional/anexar para el lote de inserción actual?
+  const batchStartedRef = useRef(false);
   // Offset de texto plano donde dejar el caret en un bloque contenteditable
   // (p. ej. el punto de unión tras un merge de párrafos). null = ignorar.
   const focusCaretOffsetRef = useRef(null);
@@ -1286,16 +1288,16 @@ function PasteImportPanel({
   // respuesta (Fließtext); `appendHeading` un Zwischentitel.
   // Al primer append de un lote, decide si insertar en una posición concreta
   // (justo tras el bloque enfocado) o anexar al final. Devuelve true si el modo
-  // es posicional. Fija insertAnchorRef (caret destino) y batchInsertRef.
+  // es posicional. Fija batchStartedRef/batchInsertRef para el resto del lote.
   const beginBatchPlacement = () => {
-    if (insertAnchorRef.current !== null) return batchInsertRef.current !== null;
+    if (batchStartedRef.current) return batchInsertRef.current !== null;
+    batchStartedRef.current = true;
     const arr = blocks || [];
     const fi = lastFocusedBlockRef.current;
     // Posicional solo si hay un bloque enfocado válido que NO sea el último
     // (si es el último, anexar al final es equivalente y más simple).
     if (fi != null && fi >= 0 && fi < arr.length - 1) {
       batchInsertRef.current = fi + 1;
-      insertAnchorRef.current = { blockIdx: fi + 1, caretOffset: 0 };
       return true;
     }
     batchInsertRef.current = null;
@@ -1305,30 +1307,16 @@ function PasteImportPanel({
   const appendText = (html) => {
     if (!html || !html.trim()) return;
     const positional = beginBatchPlacement();
-    // Captura el ancla del modo "anexar al final" si no se hizo en posicional.
-    if (insertAnchorRef.current === null) {
-      const arr = blocks || [];
-      const last = arr[arr.length - 1];
-      if (last && last.type === "answer") {
-        const tmp = document.createElement("div");
-        tmp.innerHTML = last.text || "";
-        insertAnchorRef.current = {
-          blockIdx: arr.length - 1,
-          caretOffset: tmp.textContent.length,
-        };
-      } else {
-        insertAnchorRef.current = { blockIdx: arr.length, caretOffset: 0 };
-      }
-    }
+    pendingScrollRef.current = true;
     if (positional) {
       const at = batchInsertRef.current;
       batchInsertRef.current = at + 1;
+      lastInsertedIdxRef.current = at;
       setBlocks((prev) => {
         const next = [...(prev || [])];
         next.splice(at, 0, { type: "answer", text: html });
         return next;
       });
-      pendingScrollRef.current = true;
       return;
     }
     setBlocks((prev) => {
@@ -1345,18 +1333,15 @@ function PasteImportPanel({
       }
       return [...arr, { type: "answer", text: html }];
     });
-    pendingScrollRef.current = true;
   };
   const appendHeading = (text, level = 3) => {
     if (!text || !text.trim()) return;
     const positional = beginBatchPlacement();
-    if (insertAnchorRef.current === null) {
-      const arr = blocks || [];
-      insertAnchorRef.current = { blockIdx: arr.length, caretOffset: 0 };
-    }
+    pendingScrollRef.current = true;
     if (positional) {
       const at = batchInsertRef.current;
       batchInsertRef.current = at + 1;
+      lastInsertedIdxRef.current = at;
       setBlocks((prev) => {
         const next = [...(prev || [])];
         next.splice(at, 0, {
@@ -1366,76 +1351,88 @@ function PasteImportPanel({
         });
         return next;
       });
-      pendingScrollRef.current = true;
       return;
     }
     setBlocks((prev) => [
       ...(prev || []),
       { type: "subtitle", text: text.trim(), headingLevel: level },
     ]);
+  };
+  // Pregunta de entrevista (bloque "F"). Igual que appendHeading pero con
+  // type: "question" — lo usa from-pdf al detectar una línea en negrita
+  // terminada en "?" dentro de un artículo tipo entrevista.
+  const appendQuestion = (text) => {
+    if (!text || !text.trim()) return;
+    const positional = beginBatchPlacement();
     pendingScrollRef.current = true;
+    if (positional) {
+      const at = batchInsertRef.current;
+      batchInsertRef.current = at + 1;
+      lastInsertedIdxRef.current = at;
+      setBlocks((prev) => {
+        const next = [...(prev || [])];
+        next.splice(at, 0, { type: "question", text: text.trim(), headingLevel: 4 });
+        return next;
+      });
+      return;
+    }
+    setBlocks((prev) => [...(prev || []), { type: "question", text: text.trim(), headingLevel: 4 }]);
   };
   useEffect(() => {
-    if (apiRef) apiRef.current = { appendText, appendHeading };
+    if (apiRef) apiRef.current = { appendText, appendHeading, appendQuestion };
   });
 
-  // Tras insertar texto desde el PDF, llevar el scroll del editor al final para
-  // que se vea de inmediato lo recién añadido (doble rAF: esperar a que los
-  // textareas se auto-redimensionen antes de medir scrollHeight).
+  // Tras insertar texto desde el PDF, llevar el caret y el scroll del editor
+  // al FINAL de lo recién insertado (no a la unión con lo anterior), para
+  // poder seguir pegando/escribiendo desde ahí sin tener que buscarlo a mano
+  // (doble rAF: esperar a que los textareas se auto-redimensionen antes de
+  // medir posiciones).
   useEffect(() => {
     if (!pendingScrollRef.current) return;
     pendingScrollRef.current = false;
-    const anchor = insertAnchorRef.current;
-    insertAnchorRef.current = null;
+    const wasPositional = batchInsertRef.current !== null;
+    batchStartedRef.current = false;
     batchInsertRef.current = null;
+    const targetIdx = wasPositional
+      ? lastInsertedIdxRef.current
+      : (blocks || []).length - 1;
+    lastInsertedIdxRef.current = null;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const container = scrollRef.current;
-        if (anchor) {
-          const el = blockRefsArr.current[anchor.blockIdx];
-          if (el) {
-            // Caret en la 1ª letra de lo pegado (unión con el texto previo),
-            // para poder ajustar/borrar el salto de línea.
-            el.focus({ preventScroll: true });
-            // Posición Y de la UNIÓN. Como todo el cuerpo se acumula en un solo
-            // bloque, no sirve el top del bloque: hay que medir el caret real.
-            let junctionTop = null;
-            if (el.contentEditable === "true") {
-              setCaretAtTextOffset(el, anchor.caretOffset);
-              const sel = window.getSelection();
-              if (sel && sel.rangeCount > 0) {
-                const range = sel.getRangeAt(0);
-                let rect = range.getBoundingClientRect();
-                if (!rect || (rect.top === 0 && rect.height === 0)) {
-                  // Caret colapsado sin rect medible → marcador temporal.
-                  const marker = document.createElement("span");
-                  marker.textContent = "​";
-                  const r2 = range.cloneRange();
-                  r2.insertNode(marker);
-                  rect = marker.getBoundingClientRect();
-                  marker.parentNode.removeChild(marker);
-                  el.normalize();
-                  setCaretAtTextOffset(el, anchor.caretOffset);
-                }
-                if (rect) junctionTop = rect.top;
-              }
-            } else if (typeof el.setSelectionRange === "function") {
-              el.setSelectionRange(anchor.caretOffset, anchor.caretOffset);
+        const el = targetIdx != null ? blockRefsArr.current[targetIdx] : null;
+        if (el) {
+          el.focus({ preventScroll: true });
+          let endBottom = null;
+          if (el.contentEditable === "true") {
+            // Offset EXACTO del final (no Infinity): así setCaretAtTextOffset
+            // ancla el rango dentro del último nodo de texto real, no en el
+            // contenedor — si ancla en el contenedor, el caret personalizado
+            // (updateCaret) mide el rect de TODO el bloque en vez de un punto.
+            setCaretAtTextOffset(el, el.textContent.length);
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+              const rect = sel.getRangeAt(0).getBoundingClientRect();
+              if (rect && !(rect.top === 0 && rect.height === 0)) endBottom = rect.bottom;
             }
-            // Llevar la unión cerca del borde superior visible.
-            if (container) {
-              const cRect = container.getBoundingClientRect();
-              const refTop =
-                junctionTop !== null
-                  ? junctionTop
-                  : el.getBoundingClientRect().top;
-              const target = container.scrollTop + (refTop - cRect.top) - 80;
-              container.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
-            } else {
-              el.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-            return;
+          } else if (typeof el.setSelectionRange === "function") {
+            el.setSelectionRange(el.value.length, el.value.length);
           }
+          // Llevar el final de lo insertado hacia la parte inferior del
+          // visor (con margen para seguir viendo contexto arriba).
+          if (container) {
+            const cRect = container.getBoundingClientRect();
+            const refBottom =
+              endBottom !== null ? endBottom : el.getBoundingClientRect().bottom;
+            const target =
+              container.scrollTop +
+              (refBottom - cRect.top) -
+              container.clientHeight * 0.6;
+            container.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
+          } else {
+            el.scrollIntoView({ behavior: "smooth", block: "end" });
+          }
+          return;
         }
         if (container)
           container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
@@ -2085,7 +2082,7 @@ function PasteImportPanel({
             {(blocks || []).map((block, i) => {
               const s = BLOCK_STYLES[block.type] || BLOCK_STYLES.answer;
               const blockHl =
-                block.headingLevel || (block.type === "question" ? 3 : 3);
+                block.headingLevel || (block.type === "question" ? 4 : 3);
               const taSize =
                 block.type === "subtitle" || block.type === "question"
                   ? blockHl === 2
@@ -2417,7 +2414,7 @@ function PasteImportPanel({
                         title="Typ wechseln"
                         className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${s.badgeClass}`}
                       >
-                        {`H${block.headingLevel || (block.type === "question" ? 3 : 3)}`}
+                        {`H${block.headingLevel || (block.type === "question" ? 4 : 3)}`}
                       </button>
                       <div className="flex-1 flex flex-col gap-2">
                         <textarea

@@ -21,7 +21,13 @@ export default function PdfReaderDevPage() {
       <PdfReader
         pdfUrl={activeUrl}
         title="ila — PDF Reader (dev)"
-        onClose={() => setShowReader(false)}
+        onClose={() => {
+          // Abierto en pestaña nueva (p. ej. desde "Ver" en Dossiers PDF) sin
+          // más historial → el browser suele permitir cerrarla. Si no lo
+          // permite (pestaña con historial propio), cae al formulario de abajo.
+          window.close();
+          setShowReader(false);
+        }}
       />
     );
   }

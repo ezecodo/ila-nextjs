@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import DossiersSection from "./DossiersSection";
 import {
   FaEnvelope,
   FaUpload,
@@ -608,9 +607,6 @@ export default function PdfAboAdmin() {
           </div>
         </div>
       </div>
-
-      {/* ── Sección Dossiers PDF ─────────────────────────────── */}
-      <DossiersSection />
 
       {/* Modal */}
       {showAddModal && (

@@ -169,17 +169,41 @@ function linesToParagraphs(items, domFont) {
   const sortedH = ls.map((l) => l.h).sort((a, b) => a - b);
   const medH = sortedH[Math.floor(sortedH.length / 2)] || 0;
 
-  // ¿Entretítulo? Mismas reglas que pdfExtract.isHeadingLine: fuente distinta
-  // a la del cuerpo (negrita) → entretítulo; o más alto que el cuerpo y corto.
+  // ¿Entretítulo? La fuente reportada por el OCR de dossiers escaneados suele
+  // ser la misma para todo el documento (una sola fuente "invisible" para
+  // permitir seleccionar texto sobre la imagen), así que `l.font !== domFont`
+  // casi nunca dispara ahí — no puede ser la única señal. Se agregan dos
+  // señales geométricas independientes entre sí (basta con que una se
+  // cumpla): una línea claramente más alta que el cuerpo (aunque ocupe todo
+  // el ancho — un título puede llenar la columna igual) o una línea
+  // marcadamente más corta que el ancho de columna (aunque no sea más alta —
+  // la altura del OCR no siempre refleja el tamaño real impreso).
   const isHeading = (l) => {
     const text = l.text;
+    // eslint-disable-next-line no-console -- debug temporal, sacar después de calibrar
+    console.debug("[isHeading]", {
+      text: text.slice(0, 50),
+      h: l.h,
+      medH,
+      hRatio: medH ? +(l.h / medH).toFixed(2) : null,
+      font: l.font,
+      domFont,
+      width: +(l.right - l.left).toFixed(1),
+      colWidth: +(colRight - colLeft).toFixed(1),
+      widthRatio: +((l.right - l.left) / (colRight - colLeft)).toFixed(2),
+    });
     if (text.length < 3 || text.length > 110) return false;
     if (!/^["'(\[«¿¡]?[A-ZÄÖÜÑÁÉÍÓÚ0-9]/.test(text)) return false;
-    if (/[.!]["')\]]?\s*$/.test(text)) return false;
+    // Una línea que termina en "?" es una Frage (entrevista), no un
+    // Zwischentitel — se detecta aparte a nivel párrafo en
+    // appendChunkToEditor y debe ir siempre a H4, no acá.
+    if (/[.!?]["')\]]?\s*$/.test(text)) return false;
     if (domFont && l.font && l.font !== domFont) return true;
-    const isShort = l.right < colRight - (colRight - colLeft) * 0.1;
-    const tall = medH && l.h >= medH * 1.18;
-    return tall && isShort;
+    const colWidth = colRight - colLeft;
+    const tall = medH && l.h >= medH * 1.08;
+    if (tall) return true;
+    const veryShort = l.right - l.left < colWidth * 0.75;
+    return veryShort;
   };
 
   const paras = [];
@@ -1077,11 +1101,17 @@ export default function FromPdfPage() {
     }
     chunk.split(/\n{2,}/).forEach((part) => {
       const h = part.match(/^#{2,3}\s+(.+)$/);
-      if (h) editorApi.current.appendHeading(h[1].trim(), 3);
-      else
-        editorApi.current.appendText(
-          `<p>${escapeHtml(part.replace(/\n/g, " ").trim())}</p>`
-        );
+      const flat = part.replace(/\n/g, " ").trim();
+      if (h) {
+        editorApi.current.appendHeading(h[1].trim(), 3);
+      } else if (/\?["')\]]?\s*$/.test(flat) && flat.length <= 300) {
+        // Entrevista: un párrafo entero que termina en "?" es una Frage —
+        // suelen ser 1-2 oraciones bastante más largas que un Zwischentitel,
+        // por eso se detecta acá (a nivel párrafo) y no en isHeading (línea).
+        editorApi.current.appendQuestion(flat);
+      } else {
+        editorApi.current.appendText(`<p>${escapeHtml(flat)}</p>`);
+      }
     });
   };
   const appendBodyToEditor = () =>
@@ -1443,6 +1473,11 @@ export default function FromPdfPage() {
       fd.append("title", title.trim());
       // Marca para métricas: este artículo se transcribió con el tool from-pdf.
       fd.append("createdFromPdf", "true");
+      // Este tool es de carga rápida (sin scheduler de publicación): publica
+      // el artículo de inmediato al crearlo, igual que el comportamiento por
+      // defecto del editor estándar sin fecha programada.
+      fd.append("isPublished", "true");
+      fd.append("publicationDate", new Date().toISOString());
       // En modo publilab el cuerpo ya es HTML; si no, se convierte el texto.
       fd.append("content", publilabOn ? contentHtml : bodyTextToHtml(content));
       fd.append("beitragstypId", String(beitragstypId));

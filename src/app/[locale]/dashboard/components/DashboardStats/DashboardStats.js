@@ -247,6 +247,7 @@ const DashboardStats = () => {
             { label: t("redaktionTeam"), href: "/dashboard/redaktion-team" },
             { label: t("regions"), href: "/dashboard/regions" },
             { label: t("topics"), href: "/dashboard/topics" },
+            { label: t("dossiersPdf"), href: "/dashboard/admin/dossiers-pdf" },
           ]}
           pathname={pathname}
         />
@@ -594,6 +595,13 @@ const DashboardStats = () => {
               onClick={closeMobile}
             >
               {t("topics")}
+            </Link>
+            <Link
+              href="/dashboard/admin/dossiers-pdf"
+              className={mobileLinkClass("/dashboard/admin/dossiers-pdf")}
+              onClick={closeMobile}
+            >
+              {t("dossiersPdf")}
             </Link>
             {/* Cuenta / FAQ / Analytics */}
             <div className="border-t border-gray-100 mt-2 pt-2">

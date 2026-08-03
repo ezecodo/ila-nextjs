@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { FaUpload, FaTrash, FaFilePdf, FaCheck, FaSpinner } from "react-icons/fa";
+import { useLocale } from "next-intl";
+import { FaUpload, FaTrash, FaFilePdf, FaCheck, FaSpinner, FaEye } from "react-icons/fa";
 
 const BRAND_RED = "#BD0E0D";
 const BRAND_RED_HOVER = "#A30C0B";
 
 export default function DossiersSection() {
+  const locale = useLocale();
   const [editions, setEditions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(null); // editionId en proceso
@@ -121,6 +123,7 @@ export default function DossiersSection() {
                 <EditionRow
                   key={edition.id}
                   edition={edition}
+                  locale={locale}
                   uploading={uploading === edition.id}
                   deleting={deleting === edition.id}
                   onUpload={(file) => handleUpload(edition.id, file)}
@@ -135,7 +138,7 @@ export default function DossiersSection() {
   );
 }
 
-function EditionRow({ edition, uploading, deleting, onUpload, onDelete }) {
+function EditionRow({ edition, locale, uploading, deleting, onUpload, onDelete }) {
   const fileRef = useRef(null);
   const hasPdf = !!edition.pdf;
   const fileSizeKB = edition.pdf?.fileSize
@@ -164,6 +167,19 @@ function EditionRow({ edition, uploading, deleting, onUpload, onDelete }) {
       <td className="px-6 py-4 text-gray-500 text-sm">{fileSizeKB}</td>
       <td className="px-6 py-4">
         <div className="flex items-center justify-end gap-2">
+          {/* Botón ver — abre el mismo visor (PdfReader) que usan los
+              suscriptores Digital-Abo, para corroborar que el PDF se vea bien */}
+          {hasPdf && (
+            <a
+              href={`/${locale}/pdf-reader?url=${encodeURIComponent(edition.pdf.pdfUrl)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all"
+              title="Vorschau — así lo ven die Digital-Abo Nutzer*innen"
+            >
+              <FaEye /> Ver
+            </a>
+          )}
           {/* Botón subir */}
           <input
             ref={fileRef}
