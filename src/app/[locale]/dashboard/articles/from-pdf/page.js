@@ -18,6 +18,10 @@ const QuillEditor = dynamic(
   () => import("../../../components/QuillEditor/QuillEditor"),
   { ssr: false }
 );
+// Toolbar reducida para el Vorspann: el default (headers, listas, poema...)
+// no entra bien en el panel angosto del modo split (PDF a la izquierda) y el
+// toolbar se corta — acá alcanza con negrita/cursiva/link/dossier.
+const VORSPANN_TOOLBAR = [["bold", "italic"], ["link"], ["dossier"]];
 
 // Carga pdfjs desde CDN (mismo patrón que PdfReader).
 function loadPdfJs() {
@@ -873,6 +877,12 @@ export default function FromPdfPage() {
   const [selectionPreview, setSelectionPreview] = useState("");
 
   // Campos del artículo.
+  // Fecha de publicación editable (antes fija a "ahora" sin forma de
+  // cambiarla). Si queda en el futuro, el artículo se crea programado
+  // (isPublished se deriva de esto al enviar), igual que en new/page.js.
+  const [publicationDate, setPublicationDate] = useState(() =>
+    new Date().toISOString().slice(0, 10)
+  );
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [previewText, setPreviewText] = useState("");
@@ -1029,13 +1039,6 @@ export default function FromPdfPage() {
     }
   };
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !pdfjs) return;
-    const buffer = await file.arrayBuffer();
-    await loadPdfBuffer(buffer, file.name);
-  };
-
   // Lista los dossiers que ya tienen PDF subido en el módulo Digital-ABO.
   const loadDossiers = async () => {
     setLoadingDossiers(true);
@@ -1182,6 +1185,40 @@ export default function FromPdfPage() {
     () => addAuthorByName(cleanAuthorName(lastSelectionRef.current)),
     [addAuthorByName]
   );
+
+  // Buscador de autores (igual que Regionen/Themen): si no hay match exacto,
+  // ofrece "➕ Neu anlegen" al final de la lista — mismo comportamiento
+  // check-existe-o-crea que "← Auswahl", pero sin depender de la selección
+  // del PDF.
+  // async: AsyncSelect espera que loadOptions devuelva una Promise (igual que
+  // loadRegions/loadTopics) — una función sync que devuelve un array plano
+  // deja el spinner de carga colgado para siempre, porque el array no tiene
+  // .then().
+  const loadAuthorOptions = async (inputValue) => {
+    const q = (inputValue || "").trim();
+    const flat = authorsCache.map((a) => ({ value: a.id, label: a.name }));
+    const ranked = q ? rankOptions(flat, q) : flat.slice(0, 50);
+    if (!q) return ranked;
+    const norm = (s) => (s || "").trim().toLowerCase();
+    const hasExact = flat.some((o) => norm(o.label) === norm(q));
+    const maybeCreate = hasExact
+      ? []
+      : [{ value: "new", label: `➕ Neu anlegen: "${q}"`, __inputValue: q }];
+    return [...maybeCreate, ...ranked];
+  };
+
+  const handleAuthorSelectChange = (selectedOptions) => {
+    const opts = selectedOptions || [];
+    const last = opts[opts.length - 1];
+    if (last?.value === "new") {
+      addAuthorByName(last.__inputValue || last.label);
+      return;
+    }
+    const byId = new Map(authorsCache.map((a) => [a.id, a]));
+    setSelAuthors(
+      opts.map((o) => byId.get(o.value) || { id: o.value, name: o.label })
+    );
+  };
 
   // ── Klassifizierung (mismo comportamiento que ArticleFormV2) ──────────────
   const toggleCategory = (categoryId) => {
@@ -1473,11 +1510,11 @@ export default function FromPdfPage() {
       fd.append("title", title.trim());
       // Marca para métricas: este artículo se transcribió con el tool from-pdf.
       fd.append("createdFromPdf", "true");
-      // Este tool es de carga rápida (sin scheduler de publicación): publica
-      // el artículo de inmediato al crearlo, igual que el comportamiento por
-      // defecto del editor estándar sin fecha programada.
-      fd.append("isPublished", "true");
-      fd.append("publicationDate", new Date().toISOString());
+      // Fecha elegida en el campo "Datum" — pasado/hoy publica de inmediato,
+      // futuro deja el artículo programado (mismo criterio que new/page.js).
+      const pubDate = publicationDate ? new Date(publicationDate) : new Date();
+      fd.append("isPublished", String(pubDate <= new Date()));
+      fd.append("publicationDate", pubDate.toISOString());
       // En modo publilab el cuerpo ya es HTML; si no, se convierte el texto.
       fd.append("content", publilabOn ? contentHtml : bodyTextToHtml(content));
       fd.append("beitragstypId", String(beitragstypId));
@@ -1558,6 +1595,7 @@ export default function FromPdfPage() {
               type="button"
               onClick={() => {
                 setCreatedId(null);
+                setPublicationDate(new Date().toISOString().slice(0, 10));
                 setTitle(""); setSubtitle(""); setPreviewText("");
                 setAdditionalInfo(""); setContent("");
                 setPublilabOn(false); setContentHtml("");
@@ -1585,10 +1623,6 @@ export default function FromPdfPage() {
                 >
                   <span>📚 Aus PDF-Abo wählen</span>
                 </button>
-                <label className="inline-flex items-center gap-3 px-4 py-2 bg-gray-800 text-white text-sm font-medium cursor-pointer hover:bg-gray-700 transition-colors w-max">
-                  <span>📄 Dossier-PDF hochladen</span>
-                  <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
-                </label>
               </div>
             ) : (
               <>
@@ -1718,9 +1752,62 @@ export default function FromPdfPage() {
 
             <PdfField label="Titel" value={title} onChange={setTitle} onTake={takeInto(setTitle)} getSelection={() => cleanSelection(lastSelectionRef.current)} required />
             <PdfField label="Untertitel" value={subtitle} onChange={setSubtitle} onTake={takeInto(setSubtitle)} getSelection={() => cleanSelection(lastSelectionRef.current)} />
-            <PdfField label="Vorspann" value={previewText} onChange={setPreviewText} onTake={takeInto(setPreviewText)} getSelection={() => cleanSelection(lastSelectionRef.current)} multiline />
 
-            {/* Autor */}
+            {/* Antes fija a "ahora" sin poder cambiarla — pasado/hoy publica
+                de inmediato, futuro programa el artículo. */}
+            <div>
+              <label className="text-xs font-medium text-gray-500 block mb-1">
+                Datum
+              </label>
+              <input
+                type="date"
+                value={publicationDate}
+                onChange={(e) => setPublicationDate(e.target.value)}
+                className="border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:border-[#BD0E0D]"
+              />
+            </div>
+            {/* Vorspann con QuillEditor (negrita/cursiva/link/dossier), igual que
+                el resto de los formularios — antes era un textarea plano sin
+                ningún formato. "← Auswahl" reemplaza el contenido, "＋ einfügen"
+                agrega la selección al final (con Quill no hay caret a seguir). */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-gray-500">Vorspann</label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sel = cleanSelection(lastSelectionRef.current);
+                      if (sel)
+                        setPreviewText(
+                          (previewText || "") + `<p>${escapeHtml(sel)}</p>`
+                        );
+                    }}
+                    className="text-xs px-2 py-0.5 border border-gray-800 text-gray-800 hover:bg-gray-100 transition-colors"
+                    title="PDF-Auswahl ans Ende anhängen"
+                  >
+                    ＋ einfügen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={takeInto(setPreviewText)}
+                    className="text-xs px-2 py-0.5 bg-gray-800 text-white hover:bg-gray-700 transition-colors"
+                    title="Aktuelle PDF-Auswahl übernehmen (ersetzt das Feld)"
+                  >
+                    ← Auswahl
+                  </button>
+                </div>
+              </div>
+              <QuillEditor
+                value={previewText}
+                onChange={setPreviewText}
+                toolbar={VORSPANN_TOOLBAR}
+              />
+            </div>
+
+            {/* Autor: buscador con check-existe-o-crea (igual que Regionen/
+                Themen) + botón rápido para tomar la selección del PDF. Los
+                chips seleccionados los muestra el propio AsyncSelect (isMulti). */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs font-medium text-gray-500">Autor:in</label>
@@ -1734,24 +1821,17 @@ export default function FromPdfPage() {
                   {authorBusy ? "…" : "← Auswahl"}
                 </button>
               </div>
-              {selAuthors.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {selAuthors.map((a) => (
-                    <span key={a.id} className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 text-xs px-2 py-0.5">
-                      {a.name}
-                      <button
-                        type="button"
-                        onClick={() => setSelAuthors((prev) => prev.filter((x) => x.id !== a.id))}
-                        className="text-gray-400 hover:text-[#BD0E0D]"
-                      >
-                        ✕
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-gray-400">Noch kein Autor zugewiesen.</p>
-              )}
+              <AsyncSelect
+                instanceId="from-pdf-author"
+                inputId="from-pdf-author-select"
+                isMulti
+                cacheOptions
+                defaultOptions
+                loadOptions={loadAuthorOptions}
+                onChange={handleAuthorSelectChange}
+                value={selAuthors.map((a) => ({ value: a.id, label: a.name }))}
+                placeholder="Autor:in suchen oder neu anlegen…"
+              />
             </div>
 
             {/* Imágenes recortadas del PDF */}
