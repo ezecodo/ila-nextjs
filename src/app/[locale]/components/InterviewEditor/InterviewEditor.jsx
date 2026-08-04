@@ -815,6 +815,20 @@ function trimEmptyParagraphs(html) {
     .trim();
 }
 
+// ¿El último <p> de este HTML termina en fin de oración (. ! ? : ; …)? Si no,
+// el párrafo sigue a mitad de frase — típico cuando una selección del PDF se
+// corta justo en un salto de columna/página y hay que traer el resto en una
+// segunda selección aparte.
+function htmlEndsSentence(html) {
+  if (typeof window === "undefined" || !html) return true;
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  const lastP = tmp.lastElementChild;
+  const text = (lastP ? lastP.textContent : tmp.textContent) || "";
+  const trimmed = text.trim();
+  return trimmed === "" || /[.!?:;…]["'"»”')\]]?\s*$/.test(trimmed);
+}
+
 // Fusiona dos fragmentos de answer uniendo el ÚLTIMO <p> del primero con el
 // PRIMER <p> del segundo (como hace el backspace nativo entre párrafos), en vez
 // de dejar dos <p> separados. Añade un espacio en la unión si hace falta.
@@ -1328,7 +1342,13 @@ function PasteImportPanel({
       // bloque nuevo.
       if (last && last.type === "answer") {
         const next = [...arr];
-        next[next.length - 1] = { ...last, text: (last.text || "") + html };
+        // Si el párrafo anterior no cerró la oración, esta selección es su
+        // continuación (p. ej. venía de la columna/página siguiente) — fusionar
+        // en vez de dejarla como párrafo aparte con un salto de línea de más.
+        const mergedText = htmlEndsSentence(last.text)
+          ? (last.text || "") + html
+          : mergeAnswerHtml(last.text || "", html);
+        next[next.length - 1] = { ...last, text: mergedText };
         return next;
       }
       return [...arr, { type: "answer", text: html }];

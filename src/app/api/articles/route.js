@@ -260,6 +260,7 @@ export async function POST(request) {
             legacyPath: article.legacyPath,
             edition: editionData,
             createdAt: new Date().toISOString(),
+            createdFromPdf: article.createdFromPdf,
           }),
         },
       });

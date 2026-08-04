@@ -291,6 +291,11 @@ export default function ActivityFeed() {
                               t("untitled")}
                           </span>
                         )}
+                        {log.metadata?.createdFromPdf && (
+                          <span className="ml-1 text-xs text-gray-400 italic">
+                            ({t("viaFromPdf")})
+                          </span>
+                        )}
                         {log.metadata?.edition && (
                           <span className="block mt-1 text-xs text-gray-500">
                             {t("inEdition")}{" "}

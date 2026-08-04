@@ -1004,6 +1004,7 @@
     "newSubscriptionsCount": "{count, plural, one {# nueva} other {# nuevas}}",
     "title": "ila Actividad",
     "createdArticle": "creó un artículo",
+    "viaFromPdf": "vía Artikel aus PDF",
     "recent": "📝 Actividad reciente",
     "none": "🔍 No hay actividad reciente.",
     "createdCarousel": "creó el carrusel",

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
 
 // El publilab (InterviewEditor) usa el DOM; igual que en ArticleFormV2 se carga
@@ -139,19 +140,27 @@ function linesToParagraphs(items, domFont) {
     let text = "";
     let lastRight = null;
     const lf = {};
+    const hf = {}; // altura → nº de caracteres con esa altura (redondeada)
     for (const it of l.items) {
+      // Umbral en base a la altura del span ACTUAL, no de toda la línea
+      // (l.h): si un drop cap (letra grande decorativa) cae en el mismo
+      // grupo de línea que el texto normal, l.h queda inflado por su altura
+      // y ningún espacio entre palabras comunes lo supera — todo el resto
+      // de la línea queda pegado sin espacios.
       if (
         text &&
         lastRight !== null &&
         !/\s$/.test(text) &&
         !/^\s/.test(it.str) &&
-        it.x - lastRight > l.h * 0.2
+        it.x - lastRight > it.h * 0.2
       ) {
         text += " ";
       }
       text += it.str;
       lastRight = it.right;
       if (it.font) lf[it.font] = (lf[it.font] || 0) + it.str.length;
+      const hKey = Math.round(it.h);
+      hf[hKey] = (hf[hKey] || 0) + it.str.length;
     }
     l.text = text.replace(/\s+/g, " ").trim();
     let lBest = 0;
@@ -163,6 +172,18 @@ function linesToParagraphs(items, domFont) {
       }
     }
     l.font = lFont;
+    // Altura DOMINANTE (la del texto que compone la mayor parte de la
+    // línea, ponderada por caracteres) — a diferencia de l.h (el máximo),
+    // no la infla un drop cap que comparte grupo de línea con texto normal.
+    let hBest = 0;
+    let hDominant = l.h;
+    for (const h in hf) {
+      if (hf[h] > hBest) {
+        hBest = hf[h];
+        hDominant = Number(h);
+      }
+    }
+    l.hDominant = hDominant;
   }
   const ls = lines.filter((l) => l.text);
   if (!ls.length) return [];
@@ -170,7 +191,9 @@ function linesToParagraphs(items, domFont) {
   const colRight = Math.max(...ls.map((l) => l.right));
   const colLeft = Math.min(...ls.map((l) => l.left));
   const shortThreshold = (colRight - colLeft) * 0.06 + 4;
-  const sortedH = ls.map((l) => l.h).sort((a, b) => a - b);
+  // hDominant (no l.h) para que una línea fusionada con un drop cap no
+  // infle la mediana de altura "típica" de la columna.
+  const sortedH = ls.map((l) => l.hDominant).sort((a, b) => a - b);
   const medH = sortedH[Math.floor(sortedH.length / 2)] || 0;
 
   // ¿Entretítulo? La fuente reportada por el OCR de dossiers escaneados suele
@@ -182,19 +205,38 @@ function linesToParagraphs(items, domFont) {
   // el ancho — un título puede llenar la columna igual) o una línea
   // marcadamente más corta que el ancho de columna (aunque no sea más alta —
   // la altura del OCR no siempre refleja el tamaño real impreso).
-  const isHeading = (l) => {
+  // Señal de ancho: una línea angosta AISLADA (a lo sumo 2 seguidas) suele
+  // ser un título. Una TIRADA LARGA de líneas angostas consecutivas casi
+  // siempre es texto envolviendo una imagen incrustada en la columna, no un
+  // título — ahí el ancho no sirve como señal y hay que ignorarla.
+  const colWidth = colRight - colLeft;
+  const narrowMask = ls.map((l) => l.right - l.left < colWidth * 0.75);
+  const narrowRunLen = new Array(ls.length).fill(0);
+  for (let i = 0; i < ls.length; ) {
+    if (!narrowMask[i]) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j < ls.length && narrowMask[j]) j++;
+    for (let k = i; k < j; k++) narrowRunLen[k] = j - i;
+    i = j;
+  }
+
+  const isHeading = (l, idx) => {
     const text = l.text;
     // eslint-disable-next-line no-console -- debug temporal, sacar después de calibrar
     console.debug("[isHeading]", {
       text: text.slice(0, 50),
-      h: l.h,
+      hDominant: l.hDominant,
       medH,
-      hRatio: medH ? +(l.h / medH).toFixed(2) : null,
+      hRatio: medH ? +(l.hDominant / medH).toFixed(2) : null,
       font: l.font,
       domFont,
       width: +(l.right - l.left).toFixed(1),
-      colWidth: +(colRight - colLeft).toFixed(1),
-      widthRatio: +((l.right - l.left) / (colRight - colLeft)).toFixed(2),
+      colWidth: +colWidth.toFixed(1),
+      widthRatio: +((l.right - l.left) / colWidth).toFixed(2),
+      narrowRunLen: narrowRunLen[idx],
     });
     if (text.length < 3 || text.length > 110) return false;
     if (!/^["'(\[«¿¡]?[A-ZÄÖÜÑÁÉÍÓÚ0-9]/.test(text)) return false;
@@ -203,11 +245,13 @@ function linesToParagraphs(items, domFont) {
     // appendChunkToEditor y debe ir siempre a H4, no acá.
     if (/[.!?]["')\]]?\s*$/.test(text)) return false;
     if (domFont && l.font && l.font !== domFont) return true;
-    const colWidth = colRight - colLeft;
-    const tall = medH && l.h >= medH * 1.08;
+    // hDominant, no l.h: una línea fusionada con un drop cap (letra grande
+    // decorativa) tiene l.h inflado por esa letra, aunque el resto sea texto
+    // normal — hDominant refleja la altura del texto que en verdad compone
+    // la línea.
+    const tall = medH && l.hDominant >= medH * 1.08;
     if (tall) return true;
-    const veryShort = l.right - l.left < colWidth * 0.75;
-    return veryShort;
+    return narrowRunLen[idx] > 0 && narrowRunLen[idx] <= 2;
   };
 
   const paras = [];
@@ -223,7 +267,7 @@ function linesToParagraphs(items, domFont) {
   };
   for (let i = 0; i < ls.length; i++) {
     const l = ls[i];
-    if (isHeading(l)) {
+    if (isHeading(l, i)) {
       flushBuf();
       head = head ? head + " " + l.text : l.text;
       continue;
@@ -776,7 +820,7 @@ function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, textR
 }
 
 // Campo de texto con botón "tomar selección del PDF".
-function PdfField({ label, value, onChange, onTake, getSelection, multiline, required }) {
+function PdfField({ label, value, onChange, onTake, getSelection, multiline, required, onFocusField }) {
   // Recuerda la posición del cursor en el campo para poder insertar la selección
   // del PDF justo ahí (útil con Vorspann/texto partido en columnas).
   const caretRef = useRef(null);
@@ -832,6 +876,7 @@ function PdfField({ label, value, onChange, onTake, getSelection, multiline, req
           onSelect={rememberCaret}
           onKeyUp={rememberCaret}
           onClick={rememberCaret}
+          onFocus={onFocusField}
           className="w-full border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:border-[#BD0E0D]"
           rows={3}
         />
@@ -842,6 +887,7 @@ function PdfField({ label, value, onChange, onTake, getSelection, multiline, req
           onSelect={rememberCaret}
           onKeyUp={rememberCaret}
           onClick={rememberCaret}
+          onFocus={onFocusField}
           className="w-full border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:border-[#BD0E0D]"
         />
       )}
@@ -850,6 +896,7 @@ function PdfField({ label, value, onChange, onTake, getSelection, multiline, req
 }
 
 export default function FromPdfPage() {
+  const { data: session } = useSession();
   const [pdfjs, setPdfjs] = useState(null);
   const [pdfDoc, setPdfDoc] = useState(null);
   const [numPages, setNumPages] = useState(0);
@@ -876,6 +923,12 @@ export default function FromPdfPage() {
   const bodyParasRef = useRef(""); // párrafos reconstruidos por geometría
   const [selectionPreview, setSelectionPreview] = useState("");
 
+  // Último campo de texto enfocado ("body" | "vorspann") — decide a dónde va
+  // el "Textbereich" al insertar. Nunca se resetea solo al perder foco (igual
+  // que lastFocusedBlockRef en InterviewEditor): arrastrar la selección en el
+  // PDF no debe "olvidar" que se estaba escribiendo el Vorspann.
+  const activeFieldRef = useRef("body");
+
   // Campos del artículo.
   // Fecha de publicación editable (antes fija a "ahora" sin forma de
   // cambiarla). Si queda en el futuro, el artículo se crea programado
@@ -899,6 +952,13 @@ export default function FromPdfPage() {
   // Relaciones / catálogos.
   const [editions, setEditions] = useState([]);
   const [editionId, setEditionId] = useState("");
+
+  // Artículos que YA existen en el dossier elegido — para que quien
+  // transcribe pueda chequear si un artículo del índice ya se cargó antes de
+  // volver a tipearlo. Se recarga cada vez que cambia editionId.
+  const [existingArticles, setExistingArticles] = useState([]);
+  const [loadingExisting, setLoadingExisting] = useState(false);
+  const [existingOpen, setExistingOpen] = useState(true);
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [beitragstypId, setBeitragstypId] = useState("");
   const [beitragssubtypId, setBeitragssubtypId] = useState("");
@@ -913,6 +973,10 @@ export default function FromPdfPage() {
   const [authorsCache, setAuthorsCache] = useState([]);
   const [selAuthors, setSelAuthors] = useState([]);
   const [authorBusy, setAuthorBusy] = useState(false);
+
+  // Entrevistado/a (solo aplica si el Beitragstyp elegido es "Interview",
+  // igual que en ArticleFormV2).
+  const [selInterviewees, setSelInterviewees] = useState([]);
 
   // Rango de páginas del cuerpo (referencia de la edición impresa: startPage/endPage).
   const [bodyFrom, setBodyFrom] = useState("");
@@ -945,6 +1009,37 @@ export default function FromPdfPage() {
       .then((d) => setEditions(d.items || (Array.isArray(d) ? d : [])))
       .catch(() => {});
   }, []);
+
+  // Recarga los artículos ya cargados del dossier elegido (todos, publicados
+  // o no — es un tool de admin). El endpoint recibe el NÚMERO de edición, no
+  // el id de la BD. Reutilizable: la dispara el cambio de editionId y,
+  // manualmente, la creación de un artículo nuevo (para que la lista no
+  // quede vieja mientras se sigue transcribiendo el mismo dossier).
+  const refreshExistingArticles = useCallback(
+    async (edId) => {
+      const edition = editions.find((ed) => String(ed.id) === String(edId));
+      if (!edition) return;
+      setLoadingExisting(true);
+      try {
+        const res = await fetch(`/api/articles/edition/${edition.number}`);
+        const d = res.ok ? await res.json() : [];
+        setExistingArticles(Array.isArray(d) ? d : []);
+      } catch {
+        setExistingArticles([]);
+      } finally {
+        setLoadingExisting(false);
+      }
+    },
+    [editions]
+  );
+
+  useEffect(() => {
+    if (!editionId) {
+      setExistingArticles([]);
+      return;
+    }
+    refreshExistingArticles(editionId);
+  }, [editionId, refreshExistingArticles]);
 
   // Captura la selección nativa del usuario sobre el text layer.
   useEffect(() => {
@@ -1073,6 +1168,10 @@ export default function FromPdfPage() {
   const pickDossier = async (d) => {
     setDossierPickerOpen(false);
     setLoading(true);
+    // El dossier elegido para transcribir es, casi siempre, el mismo que va
+    // en "Dossier (Ausgabe)" — se fija solo para no tener que elegirlo de
+    // nuevo, y de paso dispara la carga de artículos ya existentes.
+    setEditionId(String(d.id));
     try {
       const res = await fetch(d.pdfUrl);
       if (!res.ok) throw new Error("fetch pdf failed");
@@ -1125,11 +1224,40 @@ export default function FromPdfPage() {
   };
 
   // "Textbereich": recibe los spans dentro del rectángulo, los reordena por
-  // columnas (orden de lectura) y los anexa al cuerpo. Muestra una vista previa.
+  // columnas (orden de lectura) y los anexa al campo activo — el cuerpo por
+  // defecto, o Titel/Untertitel/Vorspann/Zusatzinfo si fue el último campo
+  // enfocado.
   const takeTextRegion = (items) => {
     const text = paragraphsFromItems(items);
     if (!text) return;
     setSelectionPreview(cleanSelection(text).slice(0, 140));
+    const field = activeFieldRef.current;
+    if (field === "title" || field === "subtitle") {
+      // Titel/Untertitel son de una sola línea: aplanar todo a texto plano,
+      // sin marcas de entretítulo ni saltos de párrafo.
+      const flat = text
+        .split(/\n+/)
+        .map((p) => cleanSelection(p).replace(/^#{2,3}\s+/, ""))
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      if (!flat) return;
+      const setter = field === "title" ? setTitle : setSubtitle;
+      setter((prev) => (prev ? prev + " " + flat : flat));
+      return;
+    }
+    if (field === "vorspann" || field === "additionalInfo") {
+      const html = text
+        .split(/\n{2,}/)
+        .map((p) => cleanSelection(p).replace(/^#{2,3}\s+/, ""))
+        .filter(Boolean)
+        .map((p) => `<p>${escapeHtml(p)}</p>`)
+        .join("");
+      if (!html) return;
+      const setter = field === "vorspann" ? setPreviewText : setAdditionalInfo;
+      setter((prev) => (prev || "") + html);
+      return;
+    }
     appendChunkToEditor(text);
   };
 
@@ -1139,6 +1267,9 @@ export default function FromPdfPage() {
     if (!pdfDoc) return;
     if (!publilabOn) setContentHtml(bodyTextToHtml(content));
     setBodyFullscreen(true);
+    // El Vorspann no está visible en el Vollbild — si quedó como campo
+    // activo, un "Textbereich" ahí adentro iría a un campo fuera de vista.
+    activeFieldRef.current = "body";
   };
   // Al cerrar, el publilab pasa a ser la fuente de verdad en la vista normal.
   const closeBodyFullscreen = () => {
@@ -1218,6 +1349,54 @@ export default function FromPdfPage() {
     setSelAuthors(
       opts.map((o) => byId.get(o.value) || { id: o.value, name: o.label })
     );
+  };
+
+  // Buscador de entrevistados (igual patrón que Themen: búsqueda en el
+  // servidor con /api/interviewees?search=, "➕ Neu anlegen" si no hay match
+  // exacto; el POST ya hace check-existe-o-crea del lado del servidor).
+  const loadIntervieweeOptions = async (inputValue) => {
+    const q = (inputValue || "").trim();
+    try {
+      const res = await fetch(`/api/interviewees?search=${encodeURIComponent(q)}`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      const flat = data.map((i) => ({ value: i.id, label: i.name }));
+      if (!q) return flat;
+      const norm = (s) => (s || "").trim().toLowerCase();
+      const hasExact = flat.some((o) => norm(o.label) === norm(q));
+      const maybeCreate = hasExact
+        ? []
+        : [{ value: "new", label: `➕ Neu anlegen: "${q}"`, __inputValue: q }];
+      return [...maybeCreate, ...flat];
+    } catch {
+      return [];
+    }
+  };
+
+  const handleIntervieweeSelectChange = async (selectedOptions) => {
+    const opts = selectedOptions || [];
+    const last = opts[opts.length - 1];
+    if (last?.value !== "new") {
+      setSelInterviewees(opts);
+      return;
+    }
+    const rawName = (last.__inputValue || last.label).trim();
+    try {
+      const res = await fetch("/api/interviewees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: rawName }),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setSelInterviewees([
+          ...opts.slice(0, -1),
+          { value: created.id, label: created.name },
+        ]);
+        return;
+      }
+    } catch {}
+    setSelInterviewees(opts.slice(0, -1));
   };
 
   // ── Klassifizierung (mismo comportamiento que ArticleFormV2) ──────────────
@@ -1461,6 +1640,26 @@ export default function FromPdfPage() {
           className="accent-[#BD0E0D]"
         />
       </label>
+      <button
+        type="button"
+        onClick={() => {
+          // El formulario (título/contenido/imágenes) NO se borra al cambiar
+          // de dossier — solo advertir si ya hay algo escrito, para no
+          // confundirse mirando un PDF distinto con datos de otro artículo.
+          if (
+            (title.trim() || hasBody) &&
+            !confirm(
+              "Es gibt schon Angaben für diesen Artikel. Trotzdem das Dossier wechseln?"
+            )
+          )
+            return;
+          openDossierPicker();
+        }}
+        className="ml-auto text-xs px-2 py-1 border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+        title="Anderes Dossier öffnen, ohne zurückzugehen"
+      >
+        🔁 Dossier wechseln
+      </button>
     </div>
   );
 
@@ -1491,6 +1690,9 @@ export default function FromPdfPage() {
   const selectedBeitragstyp = beitragstypen.find(
     (b) => String(b.id) === String(beitragstypId)
   );
+  // Igual criterio que ArticleFormV2: el Beitragstyp "Interview" habilita el
+  // campo de entrevistado/a.
+  const isInterview = selectedBeitragstyp?.name === "Interview";
 
   // Cuerpo válido: en modo publilab cuenta el HTML (sin tags); si no, el texto.
   const hasBody = publilabOn
@@ -1508,6 +1710,9 @@ export default function FromPdfPage() {
     try {
       const fd = new FormData();
       fd.append("title", title.trim());
+      // Sin esto el backend no genera el log de actividad CREATE_ARTICLE
+      // (ver /api/articles/route.js: solo loguea si viene "userId").
+      if (session?.user?.id) fd.append("userId", session.user.id);
       // Marca para métricas: este artículo se transcribió con el tool from-pdf.
       fd.append("createdFromPdf", "true");
       // Fecha elegida en el campo "Datum" — pasado/hoy publica de inmediato,
@@ -1540,6 +1745,11 @@ export default function FromPdfPage() {
           if (img.alt.trim()) fd.append(`gallery[${i}][alt]`, img.alt.trim());
         });
       fd.append("authors", JSON.stringify(selAuthors.map((a) => a.id)));
+      if (isInterview)
+        fd.append(
+          "interviewees",
+          JSON.stringify(selInterviewees.map((i) => i.value))
+        );
       fd.append("categories", JSON.stringify(selCategories));
       fd.append("regions", JSON.stringify(selRegions.map((r) => r.value)));
       fd.append("topics", JSON.stringify(selTopics.map((t) => t.value)));
@@ -1548,6 +1758,7 @@ export default function FromPdfPage() {
       if (!res.ok) throw new Error("create failed");
       const created = await res.json();
       setCreatedId(created.id);
+      if (editionId) refreshExistingArticles(editionId);
     } catch (err) {
       console.error(err);
       setError("Der Artikel konnte nicht angelegt werden.");
@@ -1599,7 +1810,7 @@ export default function FromPdfPage() {
                 setTitle(""); setSubtitle(""); setPreviewText("");
                 setAdditionalInfo(""); setContent("");
                 setPublilabOn(false); setContentHtml("");
-                setSelAuthors([]); setSelCategories([]); setSelRegions([]); setSelTopics([]);
+                setSelAuthors([]); setSelInterviewees([]); setSelCategories([]); setSelRegions([]); setSelTopics([]);
                 setCropMode(false);
                 images.forEach((img) => URL.revokeObjectURL(img.url));
                 setImages([]);
@@ -1626,6 +1837,56 @@ export default function FromPdfPage() {
               </div>
             ) : (
               <>
+                {/* Artículos ya cargados en este dossier — para chequear contra
+                    el índice antes de transcribir uno que ya existe. */}
+                {editionId && (
+                  <div className="mb-2 border border-gray-200 bg-white text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setExistingOpen((v) => !v)}
+                      className="w-full flex items-center justify-between px-2 py-1.5 text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      <span>
+                        📋 Bereits im Dossier:{" "}
+                        {loadingExisting ? "…" : existingArticles.length}
+                      </span>
+                      <span>{existingOpen ? "▲" : "▼"}</span>
+                    </button>
+                    {existingOpen &&
+                      (loadingExisting ? (
+                        <p className="px-2 pb-2 text-gray-400">Lade…</p>
+                      ) : existingArticles.length === 0 ? (
+                        <p className="px-2 pb-2 text-gray-400">
+                          Noch keine Artikel geladen.
+                        </p>
+                      ) : (
+                        <ul className="max-h-40 overflow-auto divide-y divide-gray-100 border-t border-gray-100">
+                          {existingArticles.map((a) => (
+                            <li
+                              key={a.id}
+                              className="px-2 py-1 flex items-center justify-between gap-2"
+                            >
+                              <span className="truncate text-gray-700" title={a.title}>
+                                {a.title}
+                                {a.authors?.length > 0 && (
+                                  <span className="text-gray-400">
+                                    {" "}
+                                    — {a.authors.map((au) => au.name).join(", ")}
+                                  </span>
+                                )}
+                              </span>
+                              {!a.isPublished && (
+                                <span className="shrink-0 text-[10px] px-1 bg-yellow-100 text-yellow-700">
+                                  Entwurf
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      ))}
+                  </div>
+                )}
+
                 {renderPageNav(scrollRef)}
 
                 {markBar}
@@ -1750,8 +2011,8 @@ export default function FromPdfPage() {
               </div>
             )}
 
-            <PdfField label="Titel" value={title} onChange={setTitle} onTake={takeInto(setTitle)} getSelection={() => cleanSelection(lastSelectionRef.current)} required />
-            <PdfField label="Untertitel" value={subtitle} onChange={setSubtitle} onTake={takeInto(setSubtitle)} getSelection={() => cleanSelection(lastSelectionRef.current)} />
+            <PdfField label="Titel" value={title} onChange={setTitle} onTake={takeInto(setTitle)} getSelection={() => cleanSelection(lastSelectionRef.current)} onFocusField={() => { activeFieldRef.current = "title"; }} required />
+            <PdfField label="Untertitel" value={subtitle} onChange={setSubtitle} onTake={takeInto(setSubtitle)} getSelection={() => cleanSelection(lastSelectionRef.current)} onFocusField={() => { activeFieldRef.current = "subtitle"; }} />
 
             {/* Antes fija a "ahora" sin poder cambiarla — pasado/hoy publica
                 de inmediato, futuro programa el artículo. */}
@@ -1769,8 +2030,10 @@ export default function FromPdfPage() {
             {/* Vorspann con QuillEditor (negrita/cursiva/link/dossier), igual que
                 el resto de los formularios — antes era un textarea plano sin
                 ningún formato. "← Auswahl" reemplaza el contenido, "＋ einfügen"
-                agrega la selección al final (con Quill no hay caret a seguir). */}
-            <div>
+                agrega la selección al final (con Quill no hay caret a seguir).
+                onFocus (con bubbling desde el contenteditable de Quill) marca
+                este campo como destino del "Textbereich" del PDF. */}
+            <div onFocus={() => { activeFieldRef.current = "vorspann"; }}>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs font-medium text-gray-500">Vorspann</label>
                 <div className="flex items-center gap-1">
@@ -1833,6 +2096,27 @@ export default function FromPdfPage() {
                 placeholder="Autor:in suchen oder neu anlegen…"
               />
             </div>
+
+            {/* Entrevistado/a — solo si el Beitragstyp es "Interview", igual
+                que ArticleFormV2. Mismo patrón de buscador que Autor:in. */}
+            {isInterview && (
+              <div>
+                <label className="text-xs font-medium text-gray-500 block mb-1">
+                  Gesprächspartner:in
+                </label>
+                <AsyncSelect
+                  instanceId="from-pdf-interviewee"
+                  inputId="from-pdf-interviewee-select"
+                  isMulti
+                  cacheOptions
+                  defaultOptions
+                  loadOptions={loadIntervieweeOptions}
+                  onChange={handleIntervieweeSelectChange}
+                  value={selInterviewees}
+                  placeholder="Gesprächspartner:in suchen oder neu anlegen…"
+                />
+              </div>
+            )}
 
             {/* Imágenes recortadas del PDF */}
             <div>
@@ -1919,7 +2203,9 @@ export default function FromPdfPage() {
               )}
             </div>
 
-            <div>
+            {/* onFocus (bubbling desde el contenteditable de Quill) marca este
+                campo como destino del "Textbereich" del PDF, igual que Vorspann. */}
+            <div onFocus={() => { activeFieldRef.current = "additionalInfo"; }}>
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 Zusatzinfo
               </label>
