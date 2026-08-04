@@ -187,6 +187,11 @@ function linesToParagraphs(items, domFont) {
   }
   const ls = lines.filter((l) => l.text);
   if (!ls.length) return [];
+  // Fin de artículo: limpiar el cuadradito-leído-como-"n" ACÁ, antes de
+  // isHeading — si no, la puntuación final queda tapada por esa "n" suelta
+  // y la última línea del párrafo se toma como título en vez de cierre.
+  const lastLine = ls[ls.length - 1];
+  lastLine.text = lastLine.text.replace(/([.!?])\s*n\s*$/, "$1");
 
   const colRight = Math.max(...ls.map((l) => l.right));
   const colLeft = Math.min(...ls.map((l) => l.left));
