@@ -292,7 +292,16 @@ function linesToParagraphs(items, domFont) {
   }
   flushHead();
   flushBuf();
-  return paras.filter(Boolean);
+  const out = paras.filter(Boolean);
+  // Fin de artículo: muchos dossiers cierran con un cuadradito negro (■) que
+  // el OCR confunde con una "n" suelta pegada al punto final ("wechseln. n").
+  // Solo se quita si queda literalmente al final del texto seleccionado —
+  // nunca a mitad de palabra, porque ahí sí sería una "n" real.
+  const lastIdx = out.length - 1;
+  if (lastIdx >= 0) {
+    out[lastIdx] = out[lastIdx].replace(/([.!?])\s*n\s*$/, "$1");
+  }
+  return out;
 }
 
 // Reconstruye los párrafos de la selección por GEOMETRÍA. La selección puede
@@ -958,7 +967,7 @@ export default function FromPdfPage() {
   // volver a tipearlo. Se recarga cada vez que cambia editionId.
   const [existingArticles, setExistingArticles] = useState([]);
   const [loadingExisting, setLoadingExisting] = useState(false);
-  const [existingOpen, setExistingOpen] = useState(true);
+  const [existingOpen, setExistingOpen] = useState(false);
   const [beitragstypen, setBeitragstypen] = useState([]);
   const [beitragstypId, setBeitragstypId] = useState("");
   const [beitragssubtypId, setBeitragssubtypId] = useState("");
@@ -1246,6 +1255,19 @@ export default function FromPdfPage() {
       setter((prev) => (prev ? prev + " " + flat : flat));
       return;
     }
+    if (field === "author") {
+      // Autor es de una sola línea, y cleanAuthorName (versalitas, prefijo
+      // "von"/"Text:", etc.) ya hace su propia limpieza — solo hace falta
+      // aplanar y sacar un posible "## " si la línea se marcó como título.
+      const flat = text
+        .split(/\n+/)
+        .map((p) => p.replace(/^#{2,3}\s+/, ""))
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      if (flat) addAuthorByName(cleanAuthorName(flat));
+      return;
+    }
     if (field === "vorspann" || field === "additionalInfo") {
       const html = text
         .split(/\n{2,}/)
@@ -1270,6 +1292,22 @@ export default function FromPdfPage() {
     // El Vorspann no está visible en el Vollbild — si quedó como campo
     // activo, un "Textbereich" ahí adentro iría a un campo fuera de vista.
     activeFieldRef.current = "body";
+    // Saltar directo a la página de inicio ya cargada en "Seiten", en vez de
+    // arrancar siempre en la página 1 y tener que scrollear a mano. El
+    // contenedor del Vollbild (dentro de InterviewEditor, vía leftPanel) puede
+    // tardar más de un par de frames en montarse — reintentar hasta que la
+    // página exista en el DOM en vez de asumir un delay fijo.
+    if (bodyFrom) {
+      const target = Number(bodyFrom) || 1;
+      let attempts = 0;
+      const tryScroll = () => {
+        attempts++;
+        const el = fsScrollRef.current?.querySelector(`[data-page="${target}"]`);
+        if (el) el.scrollIntoView({ behavior: "auto", block: "start" });
+        else if (attempts < 30) requestAnimationFrame(tryScroll);
+      };
+      requestAnimationFrame(tryScroll);
+    }
   };
   // Al cerrar, el publilab pasa a ser la fuente de verdad en la vista normal.
   const closeBodyFullscreen = () => {
@@ -2070,8 +2108,10 @@ export default function FromPdfPage() {
 
             {/* Autor: buscador con check-existe-o-crea (igual que Regionen/
                 Themen) + botón rápido para tomar la selección del PDF. Los
-                chips seleccionados los muestra el propio AsyncSelect (isMulti). */}
-            <div>
+                chips seleccionados los muestra el propio AsyncSelect (isMulti).
+                onFocus (bubbling desde el input interno del AsyncSelect) lo
+                marca como destino del "Textbereich" del PDF. */}
+            <div onFocus={() => { activeFieldRef.current = "author"; }}>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs font-medium text-gray-500">Autor:in</label>
                 <button
