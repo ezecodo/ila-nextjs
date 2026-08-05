@@ -296,6 +296,16 @@ export default function LegacyArticlePage() {
       )
     : "";
 
+  // 📚 Buchbesprechung: la portada del libro va embebida y flotada dentro
+  // del Vorspann (mismo mecanismo CSS que las imágenes inline del cuerpo,
+  // ver .article-content figure.inline-image-figure en globals.css) en vez
+  // del bloque de imágenes normal — ese usa aspect-[3/2] + object-cover, que
+  // recorta las tapas de libro (casi siempre verticales/2:3).
+  const isBuchbesprechung = article.beitragstyp?.name === "Buchbesprechung";
+  const vorspannText = showES && article.previewTextES ? article.previewTextES : article.previewText;
+  const bookCoverImage = isBuchbesprechung ? article.images?.[0] : null;
+  const remainingImages = bookCoverImage ? article.images.slice(1) : article.images;
+
   // 📄 Vista aparte para la versión en el idioma original (?original=true).
   // Branch acotado y separado del resto — no toca la lógica DE/ES de abajo.
   if (showOriginal) {
@@ -535,21 +545,45 @@ export default function LegacyArticlePage() {
                 izquierda — destacados en verde. */}
           </div>
 
-          {/* VORSPANN / STANDFIRST */}
-          {(showES ? article.previewTextES : article.previewText) && (
+          {/* VORSPANN / STANDFIRST — si es Buchbesprechung, la portada va
+              embebida y flotada acá adentro (ver bookCoverImage arriba) */}
+          {(vorspannText || bookCoverImage) && (
             <div className="mt-3 md:mt-4 mb-6 md:mb-6 border-l-4 border-red-600/80 pl-4 md:pl-5">
               <div
                 className="article-content text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200"
                 data-tts="vorspann"
-                dangerouslySetInnerHTML={{
-                  __html: rewriteEditionLinksWithLocale(
-                    showES && article.previewTextES
-                      ? article.previewTextES
-                      : article.previewText,
-                    locale,
-                  ),
-                }}
-              />
+              >
+                {bookCoverImage && (
+                  <figure
+                    className="inline-image-figure inline-image-left cursor-pointer"
+                    style={{ width: "35%" }}
+                    onClick={() => openPopup(bookCoverImage)}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={bookCoverImage.url}
+                      alt={
+                        (isES && bookCoverImage.altES) ||
+                        bookCoverImage.alt ||
+                        "Buchcover"
+                      }
+                      className="shadow-md"
+                    />
+                    {((isES && bookCoverImage.altES) || bookCoverImage.alt) && (
+                      <figcaption>
+                        {(isES && bookCoverImage.altES) || bookCoverImage.alt}
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
+                {vorspannText && (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: rewriteEditionLinksWithLocale(vorspannText, locale),
+                    }}
+                  />
+                )}
+              </div>
             </div>
           )}
 
@@ -563,9 +597,9 @@ export default function LegacyArticlePage() {
             </div>
           )}
 
-          {article.images?.length > 0 && (
+          {remainingImages?.length > 0 && (
             <div className="flex flex-col items-center mb-6 gap-2">
-              {article.images.map((image) => (
+              {remainingImages.map((image) => (
                 <div key={image.id} className="w-full max-w-3xl">
                   <div
                     className="cursor-pointer overflow-hidden shadow-md"
