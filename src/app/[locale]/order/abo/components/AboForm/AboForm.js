@@ -173,6 +173,8 @@ export default function AboForm({ gifts, digital = false }) {
   useEffect(() => {
     if (form.type === "NORMAL_PDF" && form.format !== "PDF") {
       setForm((prev) => ({ ...prev, format: "PDF" }));
+    } else if (form.type !== "NORMAL_PDF" && form.format !== "PRINT") {
+      setForm((prev) => ({ ...prev, format: "PRINT" }));
     }
     if (form.type !== "SUPPORTER") {
       setDonationError("");

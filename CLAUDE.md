@@ -110,7 +110,9 @@ src/app/[locale]/dashboard/
   account/         articles/      editions/       k2/
   activity/        authors/       events/         links/
   admin/
-    pdf-abo/       # Gestión PDF-Abo: suscriptores + upload de dossiers
+    pdf-abo/       # Gestión PDF-Abo: solo suscriptores/invitaciones
+    dossiers-pdf/  # Subir/ver/descargar el PDF completo de cada edición (separado de pdf-abo)
+    backups/       translators/
   banners/         faq/            network/
   aktuelles/       carousels/     gifts/          regions/
   annual-index/    components/    instagram-generator/
@@ -134,7 +136,7 @@ src/app/[locale]/dashboard/
 
 ### Flujo completo
 1. Admin carga emails en `/dashboard/admin/pdf-abo` (individualmente o por CSV)
-2. Admin sube PDFs de dossiers desde la sección "Dossiers PDF-Abo" de esa misma página
+2. Admin sube el PDF completo de cada edición en `/dashboard/admin/dossiers-pdf` (módulo separado, ver abajo)
 3. Admin envía invitación por email (botón ✈️ por cada suscriptor) — el link incluye email y nombre pre-rellenados
 4. El suscriptor hace click → llega a `/auth/signup?pdfAbo=true&email=...&name=...` con el form pre-rellenado y el email bloqueado
 5. Al registrarse, `PdfAboInvitation` se marca `isRedeemed: true` y se vincula al `User`
@@ -143,14 +145,21 @@ src/app/[locale]/dashboard/
 ### Acceso a PDFs privados
 - Los PDFs se sirven desde `/api/media/pdfs-private/...` — actualmente sin auth (pendiente implementar verificación)
 - Para verificar acceso: `GET /api/user/pdf-abo` → `{ hasPdfAbo: boolean }`
-- El visor usa `PdfReader` component (`react-pageflip` + `pdfjs` desde CDN)
+- El visor usa `PdfReader` component (`react-pageflip` + `pdfjs` desde CDN, un `<canvas>` por página — no genera ninguna capa de texto propia, así que cualquier cosa rara en la página **está en el PDF de origen**, no la agrega el reader)
+- `PdfReader`/`BookPage`: el `RenderTask` de `page.render()` se guarda y se cancela explícitamente en el cleanup del efecto — si no, un render viejo (p. ej. disparado por un reajuste de `width` justo al abrir) puede terminar de pintar DESPUÉS de que el canvas ya cambió de escala, dejando texto gigante/atravesado superpuesto. No sacar ese `renderTask.cancel()`.
+
+### Módulo "Dossiers PDF" (`/dashboard/admin/dossiers-pdf`)
+- **Separado a propósito de `pdf-abo`**: antes vivía como sección dentro de la página de suscriptores; se movió a Verwaltung porque son cosas distintas (gestionar quién tiene el Digital-Abo vs. subir el PDF de cada edición).
+- Componente `DossiersSection.jsx` vive en esa misma carpeta (no en `pdf-abo/`).
+- Por fila: **Ver** (abre `/pdf-reader?url=...` en pestaña nueva — mismo visor que usan los suscriptores, para corroborar que el PDF se vea bien) y **Descargar** (`<a download>` con el PDF crudo, para abrirlo con otro programa y descartar si un problema es del archivo o del reader).
+- Link en el dropdown "Verwaltung" de `DashboardStats.js` (desktop y mobile), key de traducción `stats.dossiersPdf`.
 
 ### Archivos clave
-- `src/app/[locale]/dashboard/admin/pdf-abo/page.jsx` — página admin (suscriptores + dossiers)
-- `src/app/[locale]/dashboard/admin/pdf-abo/DossiersSection.jsx` — sección upload de PDFs por edición
+- `src/app/[locale]/dashboard/admin/pdf-abo/page.jsx` — página admin (solo suscriptores/invitaciones)
+- `src/app/[locale]/dashboard/admin/dossiers-pdf/page.js` + `DossiersSection.jsx` — upload/ver/descargar PDF por edición
 - `src/app/[locale]/dashboard-users/page.js` — dashboard usuario (muestra módulo PDF si tiene ABO)
 - `src/app/[locale]/components/PdfReader/PdfReader.jsx` — visor flip-book
-- `src/app/[locale]/pdf-reader/page.js` — página de prueba del visor (`/de/pdf-reader?url=...`)
+- `src/app/[locale]/pdf-reader/page.js` — página de prueba del visor (`/de/pdf-reader?url=...`) — el botón cerrar intenta `window.close()` (funciona si se abrió en pestaña nueva sin más historial, como desde "Ver" en Dossiers PDF); si el navegador no lo permite, cae al formulario de prueba de siempre
 
 ### PDFs privados en Hetzner
 ```
@@ -158,6 +167,49 @@ src/app/[locale]/dashboard/
 ```
 - **No usar `/api/media/`** para PDFs privados hasta implementar auth — pendiente
 - Los PDFs públicos de artículos siguen en `pdfs-public/`
+
+## Artikel aus PDF (`/dashboard/articles/from-pdf`)
+
+Herramienta para digitalizar el archivo histórico de ila (50 años de dossiers, muchos escaneados con OCR): se abre un PDF, se selecciona texto directo sobre la página y se arma el artículo sin tipear de nuevo. Link "➕ Artikel aus PDF" en `/dashboard/articles` (promovido de "en pruebas" a link normal). Archivo principal: `src/app/[locale]/dashboard/articles/from-pdf/page.js`.
+
+### Elegir el dossier
+- "📚 Aus PDF-Abo wählen" trae el PDF desde `EditionPdf` (mismo storage que el módulo Digital-Abo) — **no hay upload manual** (se sacó el botón "Dossier-PDF hochladen"; el flujo es siempre a través de dossiers ya subidos en Dossiers PDF).
+- Al elegir, fija automáticamente `editionId` (antes había que elegirlo aparte en el select "Dossier (Ausgabe)").
+- Panel colapsable **"📋 Bereits im Dossier: N"** (arranca replegado) — `GET /api/articles/edition/[number]` (recibe el NÚMERO de edición, no el id de la BD; para rol admin devuelve TODOS los artículos, publicados o no) para chequear contra el índice antes de transcribir uno que ya existe. Se refresca solo al crear un artículo nuevo.
+- **"🔁 Dossier wechseln"** en la barra de navegación reabre el selector sin ir para atrás — pide confirmación si ya hay título/cuerpo cargado (el formulario no se borra solo, pero cambia el PDF de fondo).
+
+### Selección de texto y reconstrucción de párrafos
+Dos modos, ambos pasan por la misma reconstrucción geométrica (`paragraphsFromItems` → `linesToParagraphs`): selección nativa (arrastrar sobre el texto) y **"Textbereich"** (dibujar un rectángulo — cruza columnas, reordena por orden de lectura aislando columnas por huecos verticales sin texto).
+
+**Detección de títulos/entretítulos (`isHeading`)** — el font-family que reporta el OCR de páginas escaneadas suele ser el mismo para todo el documento (una única fuente "invisible" para poder seleccionar texto sobre la imagen), así que esa señal casi nunca sirve; la detección es mayormente geométrica:
+- Línea más alta que la mediana del cuerpo, usando `l.hDominant` (altura del texto que realmente compone la línea, ponderada por caracteres) y **no** `l.h` (el máximo) — una línea que se fusiona con un drop cap (letra grande decorativa) tiene `l.h` inflado por esa letra aunque el resto sea texto normal.
+- Línea marcadamente más corta que la columna, pero **solo en corridas aisladas de ≤2 líneas seguidas** (`narrowRunLen`) — una corrida larga de líneas angostas consecutivas es texto envolviendo una imagen incrustada en la columna, no un título.
+- Excluye líneas que terminan en `. ! ? :` (etc.) — una línea que termina en "?" es una Frage de entrevista (ver abajo), no un entretítulo, y se maneja aparte.
+- El cuadradito negro (■) que algunos dossiers ponen al final del artículo, que el OCR confunde con una "n" suelta pegada al punto (`"...wechseln. n"`), se limpia en la **última línea de cada columna antes de evaluar `isHeading`** — si se limpiara recién al final (a nivel párrafo), la última oración del artículo quedaría con la puntuación tapada por esa "n" y se detectaría como título.
+- Al espaciar palabras dentro de una línea (`linesToParagraphs`), el umbral de gap usa la altura del **span individual** (`it.h`), no la de toda la línea (`l.h`) — con un drop cap en el mismo grupo de línea, `l.h` queda inflado y ningún espacio entre palabras normales lo supera (todo el resto de la línea queda pegado sin espacios).
+- `console.debug("[isHeading]", …)` queda activo a propósito (dev-only) para calibrar casos nuevos con datos reales en vez de ajustar umbrales a ciegas — no sacarlo sin necesidad.
+
+**Preguntas de entrevista**: un párrafo *completo* que termina en "?" (no una línea corta — las preguntas suelen ser 1-2 oraciones, más largas que un Zwischentitel típico) se detecta a nivel párrafo en `appendChunkToEditor`, no en `isHeading` (a nivel línea). Se manda a `editorApi.current.appendQuestion()` en vez de `appendHeading` — crea un bloque tipo `"question"` (badge "F") en vez de `"subtitle"`, con `headingLevel: 4` por defecto (antes cualquier entretítulo, incluidas las preguntas, quedaba en H3). Solo aparece el campo "Gesprächspartner:in" (entrevistado) si el Beitragstyp elegido es `"Interview"` (mismo criterio que `ArticleFormV2`).
+
+### Textbereich → campo activo
+`activeFieldRef` (ref, no state) trackea el último campo de texto enfocado y decide a dónde manda el "Textbereich" al insertar: `"body"` (default) | `"title"` | `"subtitle"` | `"vorspann"` | `"additionalInfo"` | `"author"`. Foco en Titel/Untertitel/Vorspann/Zusatzinfo/Autor:in lo marca; abrir el Vollbild lo resetea a `"body"` (los demás campos no son visibles ahí). Titel/Untertitel se aplanan a una línea y se **agregan** (no reemplazan); Vorspann/Zusatzinfo se envuelven en `<p>` y se agregan al HTML de su `QuillEditor`; Autor:in pasa por `cleanAuthorName` + `addAuthorByName` (check-existe-o-crea, igual que el botón "← Auswahl").
+
+- **Vorspann usa `QuillEditor`** (antes era un textarea plano sin ningún formato) con un `toolbar` reducido (`VORSPANN_TOOLBAR = [["bold","italic"],["link"],["dossier"]]`) — el toolbar default (headers, listas, poema…) no entraba en el panel angosto del modo split y se cortaba.
+- **Autor:in y Gesprächspartner:in** usan `AsyncSelect` (mismo patrón que Regionen/Themen): buscan y ofrecen "➕ Neu anlegen" si no hay match exacto. `loadOptions` **debe ser `async`** (devolver una Promise) — una función sync que devuelve un array plano deja el spinner de carga colgado para siempre, porque `react-select/async` espera `.then()` en el valor devuelto.
+
+### Cuerpo (Publilab / `InterviewEditor` en modo split)
+- La selección del PDF se inyecta como bloques vía `apiRef.current.{appendText, appendHeading, appendQuestion}` (contrato del modo split — ver memoria "publilab como editor editorial unificado").
+- Caret y scroll van al **final** de lo recién insertado, no a la unión con lo anterior (`lastInsertedIdxRef`/`batchStartedRef` en `InterviewEditor.jsx`) — el caret personalizado (`updateCaret`) mide el rect del rango de la selección; si el rango queda anclado al contenedor en vez de a un nodo de texto real (p. ej. `selectNodeContents` + `collapse` sobre el div en vez de `setCaretAtTextOffset` con el offset exacto), el caret se dibuja del tamaño de todo el bloque.
+- **Continuación entre selecciones separadas**: si el párrafo anterior no cerró la oración (no termina en `. ! ? : ;`), la siguiente selección se **fusiona** en el mismo `<p>` (con espacio) en vez de quedar como párrafo aparte — típico cuando el texto se corta justo en un salto de columna/página y hay que traerlo en dos selecciones. Ver `htmlEndsSentence`/`mergeAnswerHtml` dentro de `appendText` en `InterviewEditor.jsx` (`mergeAnswerHtml` ya existía para la fusión de bloques con Backspace; se reutiliza acá).
+- Abrir el Vollbild salta directo a la página cargada en "Seiten" (`bodyFrom`), si hay — reintenta por `requestAnimationFrame` hasta que la página exista en el DOM en vez de asumir un delay fijo (el panel izquierdo, montado vía prop `leftPanel` de `InterviewEditor`, puede tardar más de un par de frames).
+
+### Al crear el artículo
+- Publica de inmediato: `isPublished` se deriva de un campo **"Datum"** editable (pasado/hoy → publica ya; futuro → queda programado, mismo criterio que `new/page.js`). Antes quedaba fijo a "ahora" sin forma de cambiarlo.
+- Manda `userId` (de `useSession()`) — sin esto `/api/articles/route.js` **no genera el log `CREATE_ARTICLE`** (solo loguea si `formData.get("userId")` existe).
+- El log de actividad incluye `createdFromPdf` en el metadata → `ActivityFeed.js` muestra "(via Artikel aus PDF)" junto al título, para distinguirlo de artículos cargados por el editor estándar.
+
+### Removido
+- El botón "✨ Mit Claude strukturieren" (estructuración automática del cuerpo vía Claude API) se sacó del tool por no funcionar bien. La ruta `/api/ai/structure-article` sigue en el repo pero **huérfana** (sin ninguna UI que la llame) — no borrar sin revisar, ver memoria "PDF→Artikel con Claude API".
 
 ## Redaktion Team (equipo editorial, página `/about/editorial`)
 
