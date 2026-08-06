@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 // ── HTML ↔ Q&A conversion ─────────────────────────────────────────────────
 
@@ -890,6 +891,8 @@ function DarkAnswerBlock({
   onRef,
   onSplit,
   onMergeUp,
+  marginSlot,
+  isActive,
 }) {
   const divRef = useRef(null);
   const wrapRef = useRef(null);
@@ -1056,50 +1059,76 @@ function DarkAnswerBlock({
   const btnCls =
     "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors";
 
+  // Mismos botones para las dos ubicaciones posibles: apilados en el margen
+  // izquierdo (desktop, portal a marginSlot) u horizontales inline (fallback
+  // en pantallas angostas, donde no hay margen suficiente para el portal).
+  const renderToolbarButtons = (vertical) => (
+    <div
+      className={
+        vertical
+          ? "flex flex-col items-center gap-0.5 bg-white border border-gray-200 rounded-lg shadow-sm p-1"
+          : "inline-flex w-fit items-center gap-0.5 px-1.5 py-1 mb-1 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 group-focus-within/answer:opacity-100 group-hover/answer:opacity-100 transition-opacity"
+      }
+    >
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          exec("bold");
+        }}
+        className={`${btnCls} font-black`}
+        title="Fett"
+      >
+        B
+      </button>
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          exec("italic");
+        }}
+        className={`${btnCls} italic`}
+        title="Kursiv"
+      >
+        I
+      </button>
+      <span
+        className={
+          vertical
+            ? "h-px w-3.5 bg-gray-200 my-0.5"
+            : "w-px h-3.5 bg-gray-200 mx-0.5"
+        }
+      />
+      <button
+        type="button"
+        onMouseDown={handleLink}
+        className={btnCls}
+        title="Link"
+      >
+        🔗
+      </button>
+      <button
+        type="button"
+        onMouseDown={handleDossierClick}
+        className={btnCls}
+        title="ila Dossier"
+      >
+        📕
+      </button>
+    </div>
+  );
+
   return (
     <div className="flex-1 flex flex-col gap-1.5 min-w-0 group/answer">
-      {/* Mini toolbar — appears on hover/focus */}
-      <div className="flex items-center gap-0.5 pb-1 border-b border-gray-100 opacity-0 group-focus-within/answer:opacity-100 group-hover/answer:opacity-100 transition-opacity">
-        <button
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            exec("bold");
-          }}
-          className={`${btnCls} font-black`}
-          title="Fett"
-        >
-          B
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            exec("italic");
-          }}
-          className={`${btnCls} italic`}
-          title="Kursiv"
-        >
-          I
-        </button>
-        <span className="w-px h-3.5 bg-gray-200 mx-0.5" />
-        <button
-          type="button"
-          onMouseDown={handleLink}
-          className={btnCls}
-          title="Link"
-        >
-          🔗
-        </button>
-        <button
-          type="button"
-          onMouseDown={handleDossierClick}
-          className={btnCls}
-          title="ila Dossier"
-        >
-          📕
-        </button>
-      </div>
+      {/* Toolbar del párrafo activo: en desktop vive en el margen izquierdo
+          del panel (portal a marginSlot, siempre centrada verticalmente, no
+          hace falta volver a scrollear hasta ella). Por debajo del breakpoint
+          lg no hay margen para eso — se usa el chip inline de siempre
+          (aparece con hover/focus, arriba del bloque). */}
+      {isActive && marginSlot
+        ? createPortal(renderToolbarButtons(true), marginSlot)
+        : null}
+      <div className="lg:hidden">{renderToolbarButtons(false)}</div>
       {/* Contenteditable */}
       <div ref={wrapRef} className="relative">
       <div
@@ -1265,6 +1294,12 @@ function PasteImportPanel({
   };
   const textareaRef = useRef(null);
   const blockRefsArr = useRef([]);
+  // Nodo DOM (en el margen izquierdo del panel) donde se portalea la mini
+  // toolbar del bloque "answer" activo — ver renderToolbarButtons en
+  // DarkAnswerBlock. useState (no ref) porque un ref callback recién dispara
+  // un re-render si se guarda con setState.
+  const [marginSlot, setMarginSlot] = useState(null);
+  const [activeAnswerIdx, setActiveAnswerIdx] = useState(null);
   const focusTargetRef = useRef(null);
   const focusEndRef = useRef(false);
   // Contenedor scrollable del editor de bloques (lado derecho en modo split) y
@@ -1965,7 +2000,18 @@ function PasteImportPanel({
           </>
         )}
         {/* Lado derecho: editor de bloques (envuelto para convivir con el split) */}
-        <div className="flex-1 overflow-hidden flex min-w-0 min-h-0">
+        <div className="relative flex-1 overflow-hidden flex min-w-0 min-h-0">
+        {/* Margen izquierdo del panel: destino del portal de la mini toolbar
+            del párrafo activo (ver DarkAnswerBlock/renderToolbarButtons).
+            Este panel no scrollea (solo scrollRef, adentro), así que queda
+            fija, siempre visible y centrada verticalmente — sin necesidad de
+            recalcular su posición al hacer scroll. Solo desde lg: por debajo
+            de eso no sobra margen y se usa el chip inline (lg:hidden en el
+            propio toolbar) como respaldo. */}
+        <div
+          ref={setMarginSlot}
+          className="hidden lg:flex absolute top-1/2 left-2 -translate-y-1/2 z-20 flex-col items-center gap-0.5"
+        />
         {/* Paste area — only when no blocks at all (no en modo split) */}
         {!hasBlocks && !leftPanel && (
           <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
@@ -2118,6 +2164,17 @@ function PasteImportPanel({
                   className="mb-0.5"
                   onFocus={() => {
                     lastFocusedBlockRef.current = i;
+                    setActiveAnswerIdx(block.type === "answer" ? i : null);
+                  }}
+                  onBlur={(e) => {
+                    // Si el foco se va afuera de esta fila entera, dejamos de
+                    // considerar este bloque "activo" (oculta la toolbar del
+                    // margen). Los clicks en la propia mini-toolbar nunca
+                    // llegan acá: sus botones usan mousedown+preventDefault,
+                    // así que no disparan blur.
+                    if (!e.currentTarget.contains(e.relatedTarget)) {
+                      setActiveAnswerIdx((cur) => (cur === i ? null : cur));
+                    }
                   }}
                 >
                   {/* ── IMAGE block ── */}
@@ -2366,6 +2423,8 @@ function PasteImportPanel({
                         value={block.text}
                         onChange={(html) => updateBlockText(i, html)}
                         onDelete={() => deleteBlock(i)}
+                        marginSlot={marginSlot}
+                        isActive={activeAnswerIdx === i}
                         onRef={(el) => {
                           blockRefsArr.current[i] = el;
                         }}
