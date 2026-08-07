@@ -24,6 +24,15 @@ const QuillEditor = dynamic(
 // toolbar se corta — acá alcanza con negrita/cursiva/link/dossier.
 const VORSPANN_TOOLBAR = [["bold", "italic"], ["link"], ["dossier"]];
 
+// Rango de zoom del visor de PDF (pageWidth, en px de render). ZOOM_DEFAULT
+// coincide con el useState inicial de pageWidth y es la referencia de "100%"
+// que se muestra en los controles — no es un tamaño "real" del PDF, sólo el
+// ancho de partida elegido para que la primera página entre cómoda.
+const ZOOM_MIN = 400;
+const ZOOM_MAX = 1000;
+const ZOOM_STEP = 40;
+const ZOOM_DEFAULT = 620;
+
 // Carga pdfjs desde CDN (mismo patrón que PdfReader).
 function loadPdfJs() {
   return new Promise((resolve, reject) => {
@@ -923,7 +932,7 @@ export default function FromPdfPage() {
   const fsScrollRef = useRef(null);
   const floatBarRef = useRef(null); // barra flotante anclada al visualViewport
   const editorApi = useRef(null); // API del publilab en modo split: { appendText, appendHeading }
-  const [pageWidth, setPageWidth] = useState(620);
+  const [pageWidth, setPageWidth] = useState(ZOOM_DEFAULT);
   const [loading, setLoading] = useState(false);
 
   // Selector de dossiers ya subidos al módulo Digital-ABO (EditionPdf).
@@ -991,6 +1000,7 @@ export default function FromPdfPage() {
   // Entrevistado/a (solo aplica si el Beitragstyp elegido es "Interview",
   // igual que en ArticleFormV2).
   const [selInterviewees, setSelInterviewees] = useState([]);
+  const [intervieweeBusy, setIntervieweeBusy] = useState(false);
 
   // Rango de páginas del cuerpo (referencia de la edición impresa: startPage/endPage).
   const [bodyFrom, setBodyFrom] = useState("");
@@ -1260,17 +1270,20 @@ export default function FromPdfPage() {
       setter((prev) => (prev ? prev + " " + flat : flat));
       return;
     }
-    if (field === "author") {
-      // Autor es de una sola línea, y cleanAuthorName (versalitas, prefijo
-      // "von"/"Text:", etc.) ya hace su propia limpieza — solo hace falta
-      // aplanar y sacar un posible "## " si la línea se marcó como título.
+    if (field === "author" || field === "interviewee") {
+      // Autor/Entrevistado son de una sola línea, y cleanAuthorName
+      // (versalitas, prefijo "von"/"Text:"/"Interview:", etc.) ya hace su
+      // propia limpieza — solo hace falta aplanar y sacar un posible "## "
+      // si la línea se marcó como título.
       const flat = text
         .split(/\n+/)
         .map((p) => p.replace(/^#{2,3}\s+/, ""))
         .filter(Boolean)
         .join(" ")
         .trim();
-      if (flat) addAuthorByName(cleanAuthorName(flat));
+      if (!flat) return;
+      if (field === "author") addAuthorByName(cleanAuthorName(flat));
+      else addIntervieweeByName(cleanAuthorName(flat));
       return;
     }
     if (field === "vorspann" || field === "additionalInfo") {
@@ -1358,6 +1371,46 @@ export default function FromPdfPage() {
   const takeAuthor = useCallback(
     () => addAuthorByName(cleanAuthorName(lastSelectionRef.current)),
     [addAuthorByName]
+  );
+
+  // Añade un/a entrevistado/a por nombre (lo crea si no existe). Mismo patrón
+  // que addAuthorByName, pero sin cache local previa — el POST a
+  // /api/interviewees ya hace el check-existe-o-crea del lado del servidor
+  // (findUnique por name), así que alcanza con deduplicar contra la selección
+  // actual del multi-select.
+  const addIntervieweeByName = useCallback(async (rawName) => {
+    const name = (rawName || "").trim();
+    if (!name) return;
+    setIntervieweeBusy(true);
+    try {
+      const res = await fetch("/api/interviewees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error("create interviewee failed");
+      const interviewee = await res.json();
+      setSelInterviewees((prev) =>
+        prev.some((i) => i.value === interviewee.id)
+          ? prev
+          : [...prev, { value: interviewee.id, label: interviewee.name }]
+      );
+    } catch (err) {
+      console.error(err);
+      setError("Gesprächspartner:in konnte nicht angelegt werden.");
+    } finally {
+      setIntervieweeBusy(false);
+    }
+  }, []);
+
+  // "← Auswahl": toma la selección nativa del PDF (lastSelectionRef, igual
+  // fuente que takeAuthor) y la usa como Gesprächspartner:in. Reusa
+  // cleanAuthorName porque el problema que resuelve (versalitas/drop-cap del
+  // OCR, prefijo de crédito suelto) es el mismo para cualquier nombre propio
+  // seleccionado del PDF, no específico de autoría.
+  const takeInterviewee = useCallback(
+    () => addIntervieweeByName(cleanAuthorName(lastSelectionRef.current)),
+    [addIntervieweeByName]
   );
 
   // Buscador de autores (igual que Regionen/Themen): si no hay match exacto,
@@ -1655,6 +1708,76 @@ export default function FromPdfPage() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  // Cambia pageWidth preservando la página que se está leyendo. Sin esto: al
+  // hacer zoom cambia el alto de TODAS las páginas apiladas (misma pageWidth
+  // para todas), y el contenedor mantiene el mismo scrollTop en píxeles —
+  // que tras el resize cae en un punto distinto del documento, "saltando" a
+  // otra página. Ancla la página visible arriba del viewport y la fracción
+  // ya scrolleada dentro de ella ANTES del cambio, y la restaura una vez que
+  // el nuevo ancho ya se pintó. El resize del canvas ocurre dentro de un
+  // .then() (async) en PdfPageView, así que un solo rAF puede llegar antes
+  // de que termine — de ahí los dos anidados, no es descuido.
+  const setPageWidthPreserveScroll = (rootRef, newWidth) => {
+    const root = rootRef?.current;
+    if (!root) {
+      setPageWidth(newWidth);
+      return;
+    }
+    const rootRect = root.getBoundingClientRect();
+    const pageEls = Array.from(root.querySelectorAll("[data-page]"));
+    let anchor = null;
+    for (const el of pageEls) {
+      const r = el.getBoundingClientRect();
+      const relTop = r.top - rootRect.top;
+      if (relTop + r.height > 0) {
+        anchor = {
+          num: el.dataset.page,
+          fraction: relTop < 0 ? -relTop / r.height : 0,
+        };
+        break;
+      }
+    }
+    setPageWidth(newWidth);
+    if (!anchor) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = root.querySelector(`[data-page="${anchor.num}"]`);
+        if (!el) return;
+        const newRootRect = root.getBoundingClientRect();
+        const newElRect = el.getBoundingClientRect();
+        const currentRelTop = newElRect.top - newRootRect.top;
+        const desiredRelTop = -(anchor.fraction * newElRect.height);
+        root.scrollTop += currentRelTop - desiredRelTop;
+      });
+    });
+  };
+
+  // "Ganze Seite": calcula el ancho de render (pageWidth maneja el alto vía
+  // pageAspect) para que la página completa entre en el alto visible del
+  // contenedor, sin tener que scrollear dentro de la página para verla
+  // entera — pedido explícito de un usuario para facilitar el marcado de
+  // texto. Clampeado al mismo rango [400,1000] que el slider de zoom, así
+  // ambos controles quedan en sincro (mismo estado pageWidth). Reusa el
+  // anclaje de setPageWidthPreserveScroll para que tampoco salte de página.
+  const fitPageToHeight = (rootRef) => {
+    const el = rootRef?.current;
+    if (!el) return;
+    const availableHeight = el.clientHeight - 24; // p-3 = 12px arriba y abajo
+    if (availableHeight <= 0) return;
+    const width = Math.round(availableHeight / pageAspect);
+    setPageWidthPreserveScroll(
+      rootRef,
+      Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, width))
+    );
+  };
+
+  // Botones −/+: un paso de zoom discreto (más fácil de acertar con el mouse
+  // o trackpad que arrastrar el slider nativo, sobre todo para ajustes chicos).
+  const adjustZoom = (rootRef, delta) => {
+    const next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pageWidth + delta));
+    setPageWidthPreserveScroll(rootRef, next);
+  };
+
   // Barra de navegación del visor continuo: ir a página + zoom.
   const renderPageNav = (rootRef) => (
     <div className="flex items-center gap-2 mb-2 flex-wrap text-sm">
@@ -1671,18 +1794,47 @@ export default function FromPdfPage() {
         className="w-16 border border-gray-300 px-2 py-1 text-center"
       />
       <span className="text-gray-500">/ {numPages}</span>
-      <label className="flex items-center gap-2 text-xs text-gray-500 ml-2">
-        Zoom
-        <input
-          type="range"
-          min={400}
-          max={1000}
-          step={40}
-          value={pageWidth}
-          onChange={(e) => setPageWidth(Number(e.target.value))}
-          className="accent-[#BD0E0D]"
-        />
-      </label>
+      {/* Stepper de zoom: botones grandes en vez del slider nativo (difícil de
+          acertar con precisión, sobre todo con trackpad, para ajustes chicos).
+          El porcentaje central es clickeable y resetea a 100% (= ZOOM_DEFAULT,
+          el ancho de partida). Grupo con bordes compartidos, mismo lenguaje
+          visual que los demás botones de esta barra. */}
+      <div className="flex items-center ml-2 border border-gray-300 divide-x divide-gray-300">
+        <button
+          type="button"
+          onClick={() => adjustZoom(rootRef, -ZOOM_STEP)}
+          disabled={pageWidth <= ZOOM_MIN}
+          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-base leading-none"
+          title="Verkleinern"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          onClick={() => setPageWidthPreserveScroll(rootRef, ZOOM_DEFAULT)}
+          className="min-w-[3.25rem] h-7 flex items-center justify-center text-xs text-gray-600 hover:bg-gray-100 tabular-nums transition-colors"
+          title="Auf 100% zurücksetzen"
+        >
+          {Math.round((pageWidth / ZOOM_DEFAULT) * 100)}%
+        </button>
+        <button
+          type="button"
+          onClick={() => adjustZoom(rootRef, ZOOM_STEP)}
+          disabled={pageWidth >= ZOOM_MAX}
+          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-base leading-none"
+          title="Vergrößern"
+        >
+          +
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={() => fitPageToHeight(rootRef)}
+        className="text-xs px-2 py-1 border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+        title="Zoom so anpassen, dass die ganze Seite ohne Scrollen sichtbar ist"
+      >
+        📄 Ganze Seite
+      </button>
       <button
         type="button"
         onClick={() => {
@@ -2142,13 +2294,27 @@ export default function FromPdfPage() {
               />
             </div>
 
-            {/* Entrevistado/a — solo si el Beitragstyp es "Interview", igual
-                que ArticleFormV2. Mismo patrón de buscador que Autor:in. */}
+            {/* Entrevistado/a — solo si el Beitragstyp elegido es "Interview",
+                igual que ArticleFormV2. Mismo patrón de buscador que Autor:in
+                (multi + "➕ Neu anlegen" en el propio select si no hay match),
+                y ahora también el mismo atajo "← Auswahl" que Autor:in:
+                marcar texto del PDF y tomarlo directo, sin tipear a mano. */}
             {isInterview && (
-              <div>
-                <label className="text-xs font-medium text-gray-500 block mb-1">
-                  Gesprächspartner:in
-                </label>
+              <div onFocus={() => { activeFieldRef.current = "interviewee"; }}>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-medium text-gray-500">
+                    Gesprächspartner:in
+                  </label>
+                  <button
+                    type="button"
+                    onClick={takeInterviewee}
+                    disabled={intervieweeBusy}
+                    className="text-xs px-2 py-0.5 bg-gray-800 text-white hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    title="Auswahl als Gesprächspartner:in übernehmen (anlegen falls neu)"
+                  >
+                    {intervieweeBusy ? "…" : "← Auswahl"}
+                  </button>
+                </div>
                 <AsyncSelect
                   instanceId="from-pdf-interviewee"
                   inputId="from-pdf-interviewee-select"
