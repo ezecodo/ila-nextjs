@@ -1752,13 +1752,17 @@ export default function FromPdfPage() {
     });
   };
 
-  // "Ganze Seite": calcula el ancho de render (pageWidth maneja el alto vía
+  // "Übersicht": calcula el ancho de render (pageWidth maneja el alto vía
   // pageAspect) para que la página completa entre en el alto visible del
-  // contenedor, sin tener que scrollear dentro de la página para verla
-  // entera — pedido explícito de un usuario para facilitar el marcado de
-  // texto. Clampeado al mismo rango [400,1000] que el slider de zoom, así
-  // ambos controles quedan en sincro (mismo estado pageWidth). Reusa el
-  // anclaje de setPageWidthPreserveScroll para que tampoco salte de página.
+  // contenedor, sin scrollear para verla entera. OJO: esto es solo para
+  // orientarse rápido en una página nueva — si el panel no es muy alto (caso
+  // típico del modo split), el ancho resultante achica la página en vez de
+  // agrandarla (no hay forma de mostrar el alto completo Y agrandar al mismo
+  // tiempo si el panel no tiene esa altura; es una restricción física, no un
+  // bug). Para seleccionar texto con precisión, usar los botones de Zoom
+  // (adjustZoom) en su lugar — feedback real de un usuario tras probar esto
+  // pensando que serviría para lo mismo. Clampeado al mismo rango que el
+  // stepper de zoom y reusa su mismo anclaje de scroll (no salta de página).
   const fitPageToHeight = (rootRef) => {
     const el = rootRef?.current;
     if (!el) return;
@@ -1831,9 +1835,9 @@ export default function FromPdfPage() {
         type="button"
         onClick={() => fitPageToHeight(rootRef)}
         className="text-xs px-2 py-1 border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
-        title="Zoom so anpassen, dass die ganze Seite ohne Scrollen sichtbar ist"
+        title="Schnelle Übersicht der Seite (zum Orientieren) — zum genauen Markieren die Zoom-Buttons benutzen"
       >
-        📄 Ganze Seite
+        📄 Übersicht
       </button>
       <button
         type="button"
