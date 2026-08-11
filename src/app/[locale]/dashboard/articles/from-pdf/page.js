@@ -1469,30 +1469,22 @@ export default function FromPdfPage() {
     }
   };
 
-  const handleIntervieweeSelectChange = async (selectedOptions) => {
+  // Misma dinámica que handleAuthorSelectChange: al elegir "➕ Neu anlegen" no
+  // se toca selInterviewees acá (el "new" sentinel nunca entra al estado) —
+  // se delega TODO a addIntervieweeByName, que hace el POST y ya se encarga
+  // de agregarlo a la selección. Antes esta función tenía su propio POST
+  // duplicado e inconsistente: si fallaba, revertía en silencio sin avisar
+  // nada (no llamaba a setError), así que un fallo de red se sentía como
+  // "no se puede crear" sin ninguna pista de qué pasó. Con addIntervieweeByName
+  // el error queda visible igual que con Autor:in.
+  const handleIntervieweeSelectChange = (selectedOptions) => {
     const opts = selectedOptions || [];
     const last = opts[opts.length - 1];
-    if (last?.value !== "new") {
-      setSelInterviewees(opts);
+    if (last?.value === "new") {
+      addIntervieweeByName(last.__inputValue || last.label);
       return;
     }
-    const rawName = (last.__inputValue || last.label).trim();
-    try {
-      const res = await fetch("/api/interviewees", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: rawName }),
-      });
-      if (res.ok) {
-        const created = await res.json();
-        setSelInterviewees([
-          ...opts.slice(0, -1),
-          { value: created.id, label: created.name },
-        ]);
-        return;
-      }
-    } catch {}
-    setSelInterviewees(opts.slice(0, -1));
+    setSelInterviewees(opts);
   };
 
   // ── Klassifizierung (mismo comportamiento que ArticleFormV2) ──────────────

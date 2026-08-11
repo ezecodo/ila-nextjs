@@ -6,8 +6,14 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search") || "";
 
+    // `mode: "insensitive"` es un filtro de Postgres/MongoDB — Prisma lo
+    // rechaza en tiempo de ejecución con este provider (MySQL) y tiraba 500
+    // en CUALQUIER búsqueda no vacía (el catch de abajo lo devolvía como
+    // "Error interno del servidor" genérico). La collation por defecto de
+    // MySQL (utf8mb4_*_ci) ya es case-insensitive, así que un `contains`
+    // simple preserva el comportamiento esperado sin el parámetro.
     const interviewees = await prisma.interviewee.findMany({
-      where: search ? { name: { contains: search, mode: "insensitive" } } : {},
+      where: search ? { name: { contains: search } } : {},
       select: {
         id: true,
         name: true,
