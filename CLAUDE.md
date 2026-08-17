@@ -538,7 +538,7 @@ await deleteFile(url);
 - **Dockerizar la app** — permitiría zero-downtime real con `docker-compose`, rollback instantáneo y entorno reproducible. Los uploads en `~/ila-uploads/` se montarían como volumen Docker.
 - **Migrar módulos restantes** de Cloudinary a storage local (ver lista de módulos pendientes arriba)
 - **Auth en `/api/media/pdfs-private/`** — implementar verificación de sesión + PDF-Abo antes de lanzar
-- **Backup de `~/ila-uploads/`** — el backup automático (ver "Sistema de Backups") solo cubre la DB; las imágenes/PDFs en disco (`ila-uploads/`) no tienen ningún respaldo hoy. Si el disco del servidor falla, la DB se recupera pero queda llena de links rotos. Pendiente de diseñar (probablemente `rclone sync` incremental en vez de un dump completo cada noche, dado el volumen mucho mayor que los 126 MB de la DB).
+- ~~Backup de `~/ila-uploads/`~~ — resuelto, ver "Sistema de Backups (DB + uploads)".
 
 ### Imágenes existentes en Cloudinary
 - Las URLs antiguas de Cloudinary siguen funcionando mientras la cuenta esté activa
@@ -581,17 +581,22 @@ await deleteFile(url);
 - Envía errores tanto en local (`development`) como en producción — útil para detectar bugs antes del deploy
 - Dashboard: sentry.io
 
-## Sistema de Backups (DB)
+## Sistema de Backups (DB + uploads)
 
-Backup diario automático de la base de datos MySQL vía cron en el servidor Hetzner. **El script (`backup-db.sh`) vive fuera de este repo**, directamente en `~/backup-db.sh` del servidor — nunca en `scripts/`, porque tiene rutas específicas del server y no debe versionarse junto a datos sensibles.
+Backup diario automático de la base de datos MySQL **y** de `~/ila-uploads/` (imágenes+PDFs) vía cron en el servidor Hetzner. **Los scripts viven fuera de este repo**, directamente en el home del servidor — nunca en `scripts/`, porque tienen rutas específicas del server y no deben versionarse junto a datos sensibles.
 
 ### Flujo
-1. Cron (`0 3 * * *` en el `crontab` del usuario `ilaweb`) corre `~/backup-db.sh` cada noche a las 3 AM.
-2. El script: `mysqldump --single-transaction` → `gzip` → encripta con `gpg --symmetric --cipher-algo AES256` (passphrase en `~/.ila-backup-passphrase`, `chmod 600`, generada con `openssl rand -base64 32` — **solo existe en el servidor y en el password manager de Eze**; si se pierde, los backups quedan irrecuperables) → sube con `rclone` a Google Drive (remote `gdrive:ila-backups/`) → reporta el resultado a `POST /api/admin/backups`.
-3. Rotación: borra (local y en Drive) todo lo de más de 30 días — corre **solo después** de confirmar que el backup del día subió bien.
+1. Cron del usuario `ilaweb` en el servidor (`ilaweb@dedivirt2805`, IP `162.55.222.220` — managed server, login por password, no por key; password en el Keychain de la Mac de Eze):
+   - `0 3 * * * ~/backup-db.sh` — `mysqldump --single-transaction` → `gzip` → encripta con `gpg --symmetric --cipher-algo AES256` (passphrase en `~/.ila-backup-passphrase`, `chmod 600`, generada con `openssl rand -base64 32` — **solo existe en el servidor y en el password manager de Eze**; si se pierde, los backups quedan irrecuperables) → sube con `rclone copy` a Google Drive (`gdrive:ila-backups/`).
+   - `30 3 * * * ~/backup-uploads.sh` — `rclone copy` directo (nunca `sync`: solo agrega/actualiza, nunca borra en destino, así un borrado accidental local no se propaga) de `~/ila-uploads/` a `gdrive:ila-uploads/`.
+   - Ambos reportan el resultado a `POST /api/admin/backups`.
+2. Rotación (solo el de DB): borra (local y en Drive) todo lo de más de 30 días — corre **solo después** de confirmar que el backup del día subió bien.
+
+### ⚠️ `backup-uploads.sh` — no reintroducir el pre-chequeo con `--dry-run`
+El script hacía antes un `rclone copy --dry-run -v` previo para decidir si había algo nuevo, buscando en el log el texto `"Copied (new)"` / `"Copied (replaced"`. Ese texto **no aparece** en el modo dry-run de rclone 1.7x (imprime `"Skipped copy as --dry-run is set"` en su lugar) → el grep nunca matcheaba → el script reportaba `"✅ OK: sin cambios"` **sin haber corrido nunca la subida real** — falso positivo que estuvo activo bastante tiempo sin que nadie lo notara (el dashboard mostraba éxito igual). Se sacó ese pre-chequeo: ahora corre `rclone copy` real directo y parsea el log de esa misma corrida (que si contiene `"Copied (new)/(replaced"` en una ejecución real). Si se toca este script de nuevo: no confiar en el texto exacto de logs de rclone entre versiones — o parsear `--json`, o directamente ejecutar la operación real siempre (es idempotente, correr `rclone copy` sin cambios no tiene costo real distinto a un dry-run).
 
 ### Modelo de datos — `BackupLog`
-- `status` (`"success"` | `"failed"`), `sizeBytes`, `destination` (`"google_drive"`), `fileName`, `errorMessage`, `createdAt`
+- `status` (`"success"` | `"failed"`), `sizeBytes`, `totalSizeBytes`, `destination` (`"google_drive"` | `"google_drive_uploads"`), `fileName`, `errorMessage`, `createdAt`
 - Sin relación a otras tablas — es puramente un log de auditoría del cron externo
 
 ### API `/api/admin/backups`
@@ -603,14 +608,16 @@ Backup diario automático de la base de datos MySQL vía cron en el servidor Het
 - Link en el dropdown "Verwaltung" de `DashboardStats.js`
 
 ### rclone + Google Drive
-- Remote `gdrive` con **client_id propio** (no el compartido de rclone, que Google retira durante 2026) — creado en Google Cloud Console, tipo "Desktop app", proyecto aparte
-- Scope `drive.file` (mínimo privilegio — solo ve archivos que rclone mismo sube, no el resto del Drive)
-- `~/.config/rclone/rclone.conf` (tiene el refresh token) vive **solo en el servidor y en la Mac de Eze**, nunca en git
-- Instalado en `~/bin/rclone` en el servidor (sin sudo — el managed server de Hetzner no da permisos de instalación a nivel sistema)
-- Cuenta de Google: institucional de ila (Gmail gratuito, no Workspace), separada de cuentas personales
+- Remote `gdrive` con **client_id propio** (no el compartido de rclone, que Google retira durante 2026) — client `rclone-backup`, proyecto de Google Cloud **`ila-backups`** (tipo "Desktop app").
+- Scope `drive.file` (mínimo privilegio — solo ve archivos que la propia app crea, no el resto del Drive; ojo, esto también significa que si se reautoriza con la cuenta de Google equivocada, `rclone lsd gdrive:` queda vacío sin error visible aunque la cuenta tenga cuota usada — comprobar siempre con la cuenta correcta).
+- `~/.config/rclone/rclone.conf` (tiene el refresh token) vive **solo en el servidor y en la Mac de Eze**, nunca en git.
+- Instalado en `~/bin/rclone` en el servidor (sin sudo — el managed server de Hetzner no da permisos de instalación a nivel sistema).
+- Cuenta de Google: **dedicada exclusivamente a backups**, `ilaweblatam@gmail.com` (Gmail gratuito, no Workspace) — separada de cuentas personales e institucionales de otro uso.
+- **El proyecto de Google Cloud debe estar en "Publishing status: Production"** (Google Cloud Console → proyecto `ila-backups` → Google Auth Platform → Público → "Publicar app"). Mientras esté en "Testing", Google fuerza que el refresh token caduque a los **7 días** sin importar actividad — causó un corte real el 2026-08-12 (`invalid_grant: maybe token expired?` en ambos scripts). Como el scope `drive.file` es no-sensible, publicar no pide verificación de Google.
+- Reautorizar si vuelve a caducar: `rclone config reconnect gdrive:` en el server → `y` a refresh → `n` a auto config → copiar el comando `rclone authorize "drive" "<blob>"` que imprime y correrlo en una máquina con navegador → pegar el resultado en el prompt del server.
 
 ### Pendiente
-- **Prueba de restore real** (decrypt + gunzip + importar en un MySQL descartable vía Docker, comparar conteos contra la DB real) — sin esto, "el backup corrió sin error" no confirma que el contenido sea válido. Hacerla una primera vez y después repetirla periódicamente (ej. trimestral).
+- **Prueba de restore real** (decrypt + gunzip + importar en un MySQL descartable vía Docker, comparar conteos contra la DB real) — sin esto, "el backup corrió sin error" no confirma que el contenido sea válido. El incidente del `backup-uploads.sh` (arriba) es evidencia concreta de por qué hace falta. Hacerla una primera vez y después repetirla periódicamente (ej. trimestral).
 
 ## Deploy en Hetzner (zero-downtime)
 

@@ -483,7 +483,7 @@ body {
 .article-content a {
   word-break: break-word; /* Corta palabras largas si es necesario */
   overflow-wrap: anywhere; /* Permite cortar en cualquier sitio */
-  hyphens: auto; /* Añade guiones si el idioma lo soporta */
+  hyphens: none; /* No partir palabras con guión — la redacción las quiere completas */
 }
 
 .article-content a {
