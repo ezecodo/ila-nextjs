@@ -908,6 +908,12 @@ const TranslateArticlePage = () => {
       return { ...prev, [stateKey]: value };
     });
   };
+  // El artículo ya está aprobado/publicado en ES — el botón de guardado no
+  // lo manda a borrador (el backend lo mantiene "approved", ver PUT), así que
+  // el label no debe decir "borrador" para no confundir a quien solo está
+  // corrigiendo un artículo ya publicado (p. ej. tildando esIsOriginal).
+  const isApprovedArticle = article?.translationStatus === "approved";
+
   return (
     <div className="translate-page max-w-7xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6 text-red-600">
@@ -1204,7 +1210,9 @@ const TranslateArticlePage = () => {
                       ? "✓ Guardado"
                       : modalSaveState === "error"
                         ? "❌ Error"
-                        : "💾 Guardar borrador"}
+                        : isApprovedArticle
+                          ? "💾 Guardar cambios"
+                          : "💾 Guardar borrador"}
                 </button>
                 <button
                   type="button"
@@ -1880,15 +1888,19 @@ const TranslateArticlePage = () => {
                   });
 
                   if (res.ok) {
-                    alert("💾 Traducción guardada como borrador");
+                    alert(
+                      isApprovedArticle
+                        ? "💾 Cambios guardados"
+                        : "💾 Traducción guardada como borrador",
+                    );
                     router.replace(afterDraftUrl);
                   } else {
-                    alert("❌ Error al guardar borrador");
+                    alert("❌ Error al guardar");
                   }
                 }}
                 className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600"
               >
-                💾 Guardar borrador
+                {isApprovedArticle ? "💾 Guardar cambios" : "💾 Guardar borrador"}
               </button>
 
               {/* Enviar traducción */}

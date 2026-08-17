@@ -291,6 +291,7 @@ export async function PUT(req, context) {
           contentES: true,
           previewTextES: true,
           additionalInfoES: true,
+          esIsOriginal: true,
         },
       });
 
@@ -375,7 +376,12 @@ export async function PUT(req, context) {
           currentArticle.subtitleES !== body.subtitleES ||
           currentArticle.contentES !== body.contentES ||
           currentArticle.previewTextES !== body.previewES ||
-          currentArticle.additionalInfoES !== body.additionalInfoES);
+          currentArticle.additionalInfoES !== body.additionalInfoES ||
+          // Comparación laxa (!= en vez de !==): body.esIsOriginal puede llegar
+          // undefined en guardados que no tocan este campo (p. ej. el patch de
+          // alt/title de imágenes) — no queremos que eso cuente como "cambió".
+          (body.esIsOriginal !== undefined &&
+            currentArticle.esIsOriginal !== body.esIsOriginal));
       const imageTranslationsTouched =
         body.imageTranslations &&
         Object.keys(body.imageTranslations).length > 0;
