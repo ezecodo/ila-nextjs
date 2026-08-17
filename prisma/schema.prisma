@@ -67,6 +67,10 @@ model Article {
   translationStatus String            @default("not_assigned")
   reviewedAt        DateTime?
   translationScrollES Int?
+  // El contenido ES cargado NO es una traducción DeepL sino el texto fuente real
+  // (p. ej. artículo escrito originalmente en español, traducido al alemán para
+  // la revista impresa). Solo afecta el crédito mostrado en la página pública.
+  esIsOriginal      Boolean           @default(false)
   // Versión en el idioma original real (cuando difiere del alemán) — independiente
   // del sistema de traducción DE→ES de arriba. Se muestra como sección aparte
   // en la página del artículo, sin importar el locale (/de/ o /es/).

@@ -887,7 +887,7 @@ export default function LegacyArticlePage() {
           )}
           {/* 👇 Créditos de traducción al final del artículo */}
 
-          {showES && (
+          {showES && !article.esIsOriginal && (
             <p className="text-sm text-gray-500 italic mt-10 text-right">
               Traducción realizada con la ayuda de DeepL
               {article.translator && (

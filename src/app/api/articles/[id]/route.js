@@ -336,6 +336,10 @@ export async function PUT(req, context) {
         // cambio de traducción → no dispara editedAfterReview). undefined si no
         // viene en el body, así otros guardados no lo tocan.
         translationScrollES: body.translationScrollES,
+        // El contenido ES es el texto fuente real (no una traducción DeepL) —
+        // solo afecta el crédito mostrado en la página pública, no el flujo de
+        // estados de traducción.
+        esIsOriginal: body.esIsOriginal,
       };
 
       // ✅ reviewedAt SOLO cuando se aprueba

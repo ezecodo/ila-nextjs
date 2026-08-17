@@ -350,6 +350,11 @@ const TranslateArticlePage = () => {
     }
     return idx;
   };
+  // El contenido ES cargado es el texto fuente real (p. ej. artículo escrito
+  // originalmente en español, traducido al alemán para la revista impresa),
+  // no una traducción DeepL — evita que la página pública le atribuya crédito
+  // a DeepL cuando en realidad es el original.
+  const [esIsOriginal, setEsIsOriginal] = useState(false);
   const [deepl, setDeepl] = useState(null); // { titleES, subtitleES, previewTextES, contentES, additionalInfoES }
   const [deeplLoading, setDeeplLoading] = useState(false);
   const [deeplError, setDeeplError] = useState("");
@@ -393,6 +398,7 @@ const TranslateArticlePage = () => {
       const res = await fetch(`/api/articles/${id}`);
       const data = await res.json();
       setArticle(data);
+      setEsIsOriginal(!!data.esIsOriginal);
       savedScrollIndexRef.current =
         typeof data.translationScrollES === "number"
           ? data.translationScrollES
@@ -921,6 +927,23 @@ const TranslateArticlePage = () => {
         {deeplError && (
           <span className="text-red-600 text-sm">DeepL: {deeplError}</span>
         )}
+
+        <label
+          className={`ml-auto flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium cursor-pointer transition-colors select-none ${
+            esIsOriginal
+              ? "bg-purple-50 border-purple-400 text-purple-800"
+              : "bg-white border-gray-300 text-gray-600 hover:border-purple-300"
+          }`}
+          title="Marcar cuando el texto en español no es una traducción, sino la fuente original (p. ej. artículo escrito originalmente en español y traducido al alemán para el impreso)"
+        >
+          <input
+            type="checkbox"
+            checked={esIsOriginal}
+            onChange={(e) => setEsIsOriginal(e.target.checked)}
+            className="accent-purple-600 w-4 h-4"
+          />
+          🌎 Es texto original en español, no traducción
+        </label>
       </div>
       <form className="grid grid-cols-2 gap-6 text-sm">
         {/* Título */}
@@ -1157,6 +1180,7 @@ const TranslateArticlePage = () => {
                           translationStatus: "in_progress",
                           imageTranslations,
                           translationScrollES: scrollIndex,
+                          esIsOriginal,
                         }),
                       });
                       setModalSaveState(res.ok ? "saved" : "error");
@@ -1813,6 +1837,7 @@ const TranslateArticlePage = () => {
                     ...translations,
                     translationStatus: "approved",
                     imageTranslations,
+                    esIsOriginal,
                   }),
                 });
 
@@ -1850,6 +1875,7 @@ const TranslateArticlePage = () => {
                       ...translations,
                       translationStatus: "in_progress",
                       imageTranslations,
+                      esIsOriginal,
                     }),
                   });
 
@@ -1876,6 +1902,7 @@ const TranslateArticlePage = () => {
                       ...translations,
                       translationStatus: "submitted",
                       imageTranslations,
+                      esIsOriginal,
                     }),
                   });
 
