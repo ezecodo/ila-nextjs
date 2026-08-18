@@ -638,3 +638,23 @@ html {
   @apply border rounded p-2 bg-gray-100 text-gray-800;
   color-scheme: light; /* fuerza esquema claro */
 }
+
+/* Marca "acá se unió el último lote pegado desde el PDF" (InterviewEditor /
+   Artikel aus PDF). Estilo por ATRIBUTO a propósito, no por clase: el
+   contentEditable del publilab pasa el HTML por stripInlineColors cada vez
+   que se resincroniza, que borra `style`/`class` de todo lo que no sea media
+   — con un `data-*` sobrevive esa limpieza. */
+span[data-pdf-seam="1"] {
+  display: inline-block;
+  width: 4px;
+  height: 1.4em;
+  vertical-align: middle;
+  /* Sin margen: la costura a veces cae a mitad de una palabra (p. ej. al
+     rearmar a mano una palabra cortada con guión en el PDF) — un margen se
+     lee ahí como un espacio que no debería estar y la palabra parece
+     truncada. Sin margen se ve como una rayita fina pegada a las letras,
+     visible en cualquier caso sin sumar espacio falso. */
+  margin: 0;
+  background-color: #fbbf24; /* amber-400 */
+  border-radius: 1px;
+}

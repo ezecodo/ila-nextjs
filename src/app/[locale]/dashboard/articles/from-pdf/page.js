@@ -104,6 +104,14 @@ function stripLeadingBylines(raw) {
 function isHeadingLike(text) {
   if (!text || text.length > 140) return false;
   if (!/^[""'(\[]?[A-ZÄÖÜÑÁÉÍÓÚ¿]/.test(text)) return false;
+  // Corte de palabra a mitad de línea/columna (la selección terminó justo en
+  // "...Zerstö-"): es la CONTINUACIÓN de un párrafo de cuerpo cortada por el
+  // límite de lo que se copió, no un entretítulo — un título real nunca
+  // termina en una palabra partida con guión. Sin este check, cualquier
+  // selección que termine a mitad de palabra (muy común: el corte cae donde
+  // cae) queda marcada como título si además tiene ≤1 oración completa
+  // adentro (ver `fewSentences` abajo).
+  if (/[a-zäöüß]-\s*$/.test(text)) return false;
   if (/:\s*$/.test(text)) return true;
   const endsWithSentence = /[a-z][.!?]\s*$/.test(text);
   const fewSentences = (text.match(/[a-z][.!?]/g) || []).length <= 1;
@@ -129,11 +137,21 @@ function reflowBodySelection(raw) {
 // Devuelve un array de párrafos (entretítulos prefijados con "## ").
 function linesToParagraphs(items, domFont) {
   items.sort((a, b) => a.y - b.y || a.x - b.x);
-  // Agrupar en líneas por baseline (Y).
+  // Agrupar en líneas por baseline (Y). Tolerancia PROPORCIONAL a la altura
+  // del texto (no un píxel fijo): un número fijo asume una altura de línea
+  // "típica" (~12px) y con fuentes/zoom más chicos (dossiers escaneados con
+  // line-height más apretado) dos líneas físicas distintas pueden caer
+  // dentro de esa distancia fija y agruparse como una sola — ahí el orden
+  // por X mezcla palabras de líneas distintas y el espaciado intra-línea
+  // (más estricto que el salto de línea normal) se come el espacio real
+  // entre ellas. min(cur.h, it.h) evita que un drop cap ya agrupado infle la
+  // tolerancia. El factor 0.5 preserva el umbral de hoy en el caso ya
+  // calibrado (h≈12 → 6px) y solo escala para los demás.
   const lines = [];
   let cur = null;
   for (const it of items) {
-    if (cur && Math.abs(it.y - cur.y) <= 6) {
+    const yTol = cur ? Math.max(3, Math.min(cur.h, it.h) * 0.5) : 0;
+    if (cur && Math.abs(it.y - cur.y) <= yTol) {
       cur.items.push(it);
       cur.right = Math.max(cur.right, it.right);
       cur.left = Math.min(cur.left, it.x);

@@ -648,8 +648,10 @@ function blocksToQa(blocks) {
       // answer — may be plain text or HTML (from contenteditable)
       if (!currentPair) currentPair = { id: genId(), question: "", answer: "" };
       const isHtml = /<[a-z]/i.test(block.text || "");
+      // stripSeamMarks: la marca de "acá se unió el último lote del PDF" es
+      // puramente de edición — nunca debe llegar al HTML guardado/publicado.
       currentPair.answer += isHtml
-        ? block.text
+        ? stripSeamMarks(block.text)
         : `<p>${escapeHtml(block.text)}</p>`;
     }
   }
@@ -830,10 +832,46 @@ function htmlEndsSentence(html) {
   return trimmed === "" || /[.!?:;…]["'"»”')\]]?\s*$/.test(trimmed);
 }
 
+// Marca de "acá se unió el último lote pegado desde el PDF" — un span
+// minúsculo insertado EN EL PUNTO EXACTO de la costura (fin del texto viejo /
+// arranque del texto nuevo). Puramente de edición: SIEMPRE se saca antes de
+// guardar (ver stripSeamMarks, usado en blocksToQa) y se reemplaza sola —
+// solo existe una a la vez — al insertar el próximo lote.
+// OJO: el estilo va por CSS de atributo (globals.css, `[data-pdf-seam="1"]`),
+// NUNCA por `class`/`style` inline — stripInlineColors (más abajo) borra esos
+// dos atributos de CUALQUIER elemento no-media cada vez que el value externo
+// del bloque se resincroniza, así que una marca con solo `class` queda vacía
+// e invisible apenas se inserta la siguiente.
+// OJO 2: SIN contenteditable="false" a propósito. Un span no-editable es un
+// bloque atómico para el navegador: Backspace/Delete justo al lado no borra
+// caracteres, hay que borrar TODO el span primero — justo donde la persona
+// más necesita corregir con el teclado normal (la costura). Al ser un span
+// vacío común, un Backspace/Delete de más se lo come solo y el resto de la
+// edición sigue igual que siempre.
+const SEAM_MARK_HTML =
+  '<span data-pdf-seam="1" title="Naht der letzten PDF-Einfügung"></span>';
+
+function stripSeamMarks(html) {
+  if (!html) return html;
+  return html.replace(/<span[^>]*data-pdf-seam="1"[^>]*><\/span>/g, "");
+}
+
+// Mete la marca de costura justo al principio del contenido del primer <p>
+// de un HTML nuevo — para el caso "se agrega como <p> aparte" (el párrafo
+// anterior sí cerraba oración, así que no hace falta fusionar).
+function markSeamAtStart(html) {
+  if (!html) return html;
+  const m = html.match(/^\s*<p[^>]*>/i);
+  if (!m) return SEAM_MARK_HTML + html;
+  return html.slice(0, m[0].length) + SEAM_MARK_HTML + html.slice(m[0].length);
+}
+
 // Fusiona dos fragmentos de answer uniendo el ÚLTIMO <p> del primero con el
 // PRIMER <p> del segundo (como hace el backspace nativo entre párrafos), en vez
 // de dejar dos <p> separados. Añade un espacio en la unión si hace falta.
-function mergeAnswerHtml(prevHtml, addHtml) {
+// `markSeam`: solo true cuando la llama la inserción desde el PDF (no en el
+// backspace/merge-up nativo del editor, donde una marca no tendría sentido).
+function mergeAnswerHtml(prevHtml, addHtml, markSeam = false) {
   if (typeof window === "undefined") return (prevHtml || "") + (addHtml || "");
   const prev = document.createElement("div");
   prev.innerHTML = prevHtml || "";
@@ -851,6 +889,11 @@ function mergeAnswerHtml(prevHtml, addHtml) {
       /\S$/.test(lastPrev.textContent || "") &&
       /^\S/.test(firstAdd.textContent || "");
     if (needSpace) lastPrev.appendChild(document.createTextNode(" "));
+    if (markSeam) {
+      const tmpMark = document.createElement("div");
+      tmpMark.innerHTML = SEAM_MARK_HTML;
+      lastPrev.appendChild(tmpMark.firstChild);
+    }
     while (firstAdd.firstChild) lastPrev.appendChild(firstAdd.firstChild);
     firstAdd.remove();
   }
@@ -1300,6 +1343,14 @@ function PasteImportPanel({
   // un re-render si se guarda con setState.
   const [marginSlot, setMarginSlot] = useState(null);
   const [activeAnswerIdx, setActiveAnswerIdx] = useState(null);
+  // Índice del bloque donde EMPEZÓ el último lote de texto insertado desde el
+  // PDF (a diferencia de lastInsertedIdxRef/el caret, que van al FINAL). Sirve
+  // de marca visual persistente ("desde acá se pegó lo último") para que la
+  // persona pueda revisar esa costura a simple vista — p. ej. cuando el
+  // párrafo anterior no cerraba oración y el nuevo texto se fusionó a mitad
+  // de un bloque ya existente. La pisa el próximo lote; no se guarda en el
+  // artículo (es puramente de edición).
+  const [insertStartMark, setInsertStartMark] = useState(null);
   const focusTargetRef = useRef(null);
   const focusEndRef = useRef(false);
   // Contenedor scrollable del editor de bloques (lado derecho en modo split) y
@@ -1312,6 +1363,12 @@ function PasteImportPanel({
   const lastInsertedIdxRef = useRef(null);
   // Flag: ¿ya se decidió posicional/anexar para el lote de inserción actual?
   const batchStartedRef = useRef(false);
+  // Flag: ¿falta poner la marca de costura inline (SEAM_MARK_HTML) en el
+  // próximo <p> insertado? Se prende una sola vez por lote (solo si el lote
+  // arranca con appendText) y se apaga apenas se usa, así el resto de
+  // párrafos del mismo lote no se marcan — solo el punto de unión con lo que
+  // ya había antes.
+  const seamPendingRef = useRef(false);
   // Offset de texto plano donde dejar el caret en un bloque contenteditable
   // (p. ej. el punto de unión tras un merge de párrafos). null = ignorar.
   const focusCaretOffsetRef = useRef(null);
@@ -1338,32 +1395,60 @@ function PasteImportPanel({
   // Al primer append de un lote, decide si insertar en una posición concreta
   // (justo tras el bloque enfocado) o anexar al final. Devuelve true si el modo
   // es posicional. Fija batchStartedRef/batchInsertRef para el resto del lote.
-  const beginBatchPlacement = () => {
+  // `kind`: "answer" | "heading" | "question" — qué tipo de bloque arranca el
+  // lote. "answer" usa la marca de costura INLINE, exacta (seamPendingRef +
+  // markSeamAtStart/mergeAnswerHtml), porque es HTML en un contenteditable.
+  // heading/question son texto plano en un <textarea> — ahí no se puede
+  // incrustar un <span>, así que siguen usando el anillo de bloque
+  // (insertStartMark) de siempre.
+  const beginBatchPlacement = (kind) => {
     if (batchStartedRef.current) return batchInsertRef.current !== null;
     batchStartedRef.current = true;
+    const isAnswer = kind === "answer";
+    seamPendingRef.current = isAnswer;
+    if (isAnswer) {
+      // Solo puede haber UNA marca de costura visible a la vez: sacar
+      // cualquier resabio de lotes anteriores antes de meter la nueva.
+      setInsertStartMark(null);
+      setBlocks((prev) =>
+        (prev || []).map((b) =>
+          b.type === "answer" ? { ...b, text: stripSeamMarks(b.text) } : b
+        )
+      );
+    }
     const arr = blocks || [];
     const fi = lastFocusedBlockRef.current;
     // Posicional solo si hay un bloque enfocado válido que NO sea el último
     // (si es el último, anexar al final es equivalente y más simple).
     if (fi != null && fi >= 0 && fi < arr.length - 1) {
       batchInsertRef.current = fi + 1;
+      if (!isAnswer) setInsertStartMark({ blockIdx: fi + 1 });
       return true;
     }
     batchInsertRef.current = null;
+    if (!isAnswer) setInsertStartMark({ blockIdx: arr.length });
     return false;
   };
 
   const appendText = (html) => {
     if (!html || !html.trim()) return;
-    const positional = beginBatchPlacement();
+    const positional = beginBatchPlacement("answer");
     pendingScrollRef.current = true;
+    // Solo el PRIMER párrafo de todo el lote es la costura con lo viejo — los
+    // siguientes párrafos del mismo lote (p. ej. una selección con varios
+    // párrafos) son contenido nuevo entre sí, no necesitan marca.
+    const placeMark = seamPendingRef.current;
+    if (placeMark) seamPendingRef.current = false;
     if (positional) {
       const at = batchInsertRef.current;
       batchInsertRef.current = at + 1;
       lastInsertedIdxRef.current = at;
       setBlocks((prev) => {
         const next = [...(prev || [])];
-        next.splice(at, 0, { type: "answer", text: html });
+        next.splice(at, 0, {
+          type: "answer",
+          text: placeMark ? markSeamAtStart(html) : html,
+        });
         return next;
       });
       return;
@@ -1381,17 +1466,20 @@ function PasteImportPanel({
         // continuación (p. ej. venía de la columna/página siguiente) — fusionar
         // en vez de dejarla como párrafo aparte con un salto de línea de más.
         const mergedText = htmlEndsSentence(last.text)
-          ? (last.text || "") + html
-          : mergeAnswerHtml(last.text || "", html);
+          ? (last.text || "") + (placeMark ? markSeamAtStart(html) : html)
+          : mergeAnswerHtml(last.text || "", html, placeMark);
         next[next.length - 1] = { ...last, text: mergedText };
         return next;
       }
-      return [...arr, { type: "answer", text: html }];
+      return [
+        ...arr,
+        { type: "answer", text: placeMark ? markSeamAtStart(html) : html },
+      ];
     });
   };
   const appendHeading = (text, level = 3) => {
     if (!text || !text.trim()) return;
-    const positional = beginBatchPlacement();
+    const positional = beginBatchPlacement("heading");
     pendingScrollRef.current = true;
     if (positional) {
       const at = batchInsertRef.current;
@@ -1418,7 +1506,7 @@ function PasteImportPanel({
   // terminada en "?" dentro de un artículo tipo entrevista.
   const appendQuestion = (text) => {
     if (!text || !text.trim()) return;
-    const positional = beginBatchPlacement();
+    const positional = beginBatchPlacement("question");
     pendingScrollRef.current = true;
     if (positional) {
       const at = batchInsertRef.current;
@@ -2158,10 +2246,12 @@ function PasteImportPanel({
                       : "text-lg"
                   : "text-sm";
 
+              const isInsertStart = insertStartMark?.blockIdx === i;
+
               return (
                 <div
                   key={`${lang}-${i}`}
-                  className="mb-0.5"
+                  className={`mb-0.5 relative ${isInsertStart ? "ring-2 ring-amber-400" : ""}`}
                   onFocus={() => {
                     lastFocusedBlockRef.current = i;
                     setActiveAnswerIdx(block.type === "answer" ? i : null);
@@ -2177,6 +2267,18 @@ function PasteImportPanel({
                     }
                   }}
                 >
+                  {/* Marca "acá empezó lo último insertado desde el PDF" —
+                      solo de edición, no se guarda; la pisa el próximo lote. */}
+                  {isInsertStart && (
+                    <button
+                      type="button"
+                      onClick={() => setInsertStartMark(null)}
+                      title="Hier begann die letzte Einfügung aus dem PDF — Klick zum Ausblenden"
+                      className="absolute -top-2.5 left-2 z-10 flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm hover:bg-amber-300 transition-colors"
+                    >
+                      ▸ PDF-Einfügung ✕
+                    </button>
+                  )}
                   {/* ── IMAGE block ── */}
                   {block.type === "image" && (
                     <div

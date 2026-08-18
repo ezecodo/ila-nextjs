@@ -187,6 +187,7 @@ Dos modos, ambos pasan por la misma reconstrucción geométrica (`paragraphsFrom
 - Excluye líneas que terminan en `. ! ? :` (etc.) — una línea que termina en "?" es una Frage de entrevista (ver abajo), no un entretítulo, y se maneja aparte.
 - El cuadradito negro (■) que algunos dossiers ponen al final del artículo, que el OCR confunde con una "n" suelta pegada al punto (`"...wechseln. n"`), se limpia en la **última línea de cada columna antes de evaluar `isHeading`** — si se limpiara recién al final (a nivel párrafo), la última oración del artículo quedaría con la puntuación tapada por esa "n" y se detectaría como título.
 - Al espaciar palabras dentro de una línea (`linesToParagraphs`), el umbral de gap usa la altura del **span individual** (`it.h`), no la de toda la línea (`l.h`) — con un drop cap en el mismo grupo de línea, `l.h` queda inflado y ningún espacio entre palabras normales lo supera (todo el resto de la línea queda pegado sin espacios).
+- **Agrupado de líneas por baseline (Y)**: la tolerancia es **proporcional** a la altura del texto (`min(cur.h, it.h) * 0.5`, mínimo 3px), no un píxel fijo — con un número fijo (había quedado en `6`), un dossier con line-height más apretado que el caso calibrado (fuente chica, scan viejo) podía fusionar dos líneas físicas distintas en una sola: el orden por X mezclaba palabras de líneas distintas (texto con cláusulas fuera de orden) y el espaciado intra-línea, más estricto que el salto de línea normal, se comía el espacio real entre ellas — reportado por el equipo editorial como "palabras pegadas" y "líneas mezcladas" en dossiers concretos.
 - `console.debug("[isHeading]", …)` queda activo a propósito (dev-only) para calibrar casos nuevos con datos reales en vez de ajustar umbrales a ciegas — no sacarlo sin necesidad.
 
 **Preguntas de entrevista**: un párrafo *completo* que termina en "?" (no una línea corta — las preguntas suelen ser 1-2 oraciones, más largas que un Zwischentitel típico) se detecta a nivel párrafo en `appendChunkToEditor`, no en `isHeading` (a nivel línea). Se manda a `editorApi.current.appendQuestion()` en vez de `appendHeading` — crea un bloque tipo `"question"` (badge "F") en vez de `"subtitle"`, con `headingLevel: 4` por defecto (antes cualquier entretítulo, incluidas las preguntas, quedaba en H3). Solo aparece el campo "Gesprächspartner:in" (entrevistado) si el Beitragstyp elegido es `"Interview"` (mismo criterio que `ArticleFormV2`).
@@ -364,6 +365,7 @@ export default function MiPaginaDashboard() {
 - `reviewedAt` — fecha de la última aprobación
 - `editedAfterReview` — true cuando un artículo `approved` se edita después (sin volver a aprobar)
 - `translatorId`, `reviewerId`, `assignedAt`
+- `esIsOriginal` — el contenido ES cargado es el texto fuente real (artículo escrito originalmente en español, traducido al alemán para el impreso), no una traducción DeepL — ver sección propia más abajo
 
 ### Flujo de estados
 1. Admin asigna traductor → `in_progress`
@@ -389,10 +391,18 @@ export default function MiPaginaDashboard() {
 - Toolbar (`setBlockTag`, `execModal`) re-guarda la selección post-comando para que clicks consecutivos (h3 → h4) no pierdan la selección
 - Botón "🖼️ Guardar alt/title de imágenes" abajo solo aparece si `inlineImages.length > 0`
 - En modo `?mode=review` el botón de abajo es "✅ Aprobar traducción"
+- Checkbox "🌎 Es texto original en español, no traducción" (al lado del botón DeepL, empujado a la derecha) → guarda `esIsOriginal`, ver sección propia abajo
+- Los botones de guardado ("Guardar borrador" y el del modal de contenido) muestran **"💾 Guardar cambios"** en vez de "💾 Guardar borrador" cuando `article.translationStatus === "approved"` — el artículo no va a borrador en ese caso (queda `approved`, ver API PUT abajo), así que el label viejo confundía
+
+### Texto original en español dentro del módulo de traducción (`esIsOriginal`)
+A veces el artículo real fue escrito originalmente en español y traducido al alemán para el impreso (la revista es en alemán); para la versión digital ES se carga ese texto original real en el módulo de traducción, no una traducción DeepL. El checkbox de arriba marca ese caso: cuando `esIsOriginal` está activo, la página pública (`ausgaben/[...legacyPath]/page.js`) no muestra el crédito "Traducción realizada con la ayuda de DeepL".
+- **Independiente** del sistema "Versión en idioma original" (`originalLanguage`/`originalContent`, ver sección propia más abajo) — no comparte campos, pantalla ni lógica; solo afecta ese crédito, no toca `translationStatus`.
+- Para corregir artículos **ya ingresados**: entrar a `translate/[id]`, tildar el checkbox y guardar — funciona igual en artículos `approved` (ver gotcha abajo).
+- **Gotcha ya resuelto**: la salvaguarda que mantiene `approved` cuando se edita un artículo ya aprobado (`translationFieldsChanged` en la API PUT) no consideraba cambios en `esIsOriginal` — tildar solo ese checkbox y guardar desaprobaba el artículo en silencio (pasaba a `in_progress`), ocultándolo de la web en español hasta re-aprobar. Se agregó `esIsOriginal` a esa comparación.
 
 ### API PUT `/api/articles/[id]` — lógica de traducción
 - Si llega con `translationStatus`, actualiza estado y deriva `isTranslatedES` / `needsReviewES`
-- Si el artículo estaba `approved` y cambian campos ES o `imageTranslations` sin re-aprobar → fuerza `approved` y marca `editedAfterReview: true`
+- Si el artículo estaba `approved` y cambian campos ES, `esIsOriginal` o `imageTranslations` sin re-aprobar → fuerza `approved` y marca `editedAfterReview: true`
 - Caso `imageTranslationsOnly: true` → solo actualiza `Image.titleES`/`altES` (no toca estado), pero también marca `editedAfterReview` si el artículo estaba aprobado
 
 ### Activity log del flujo de traducción (feed del dashboard)
