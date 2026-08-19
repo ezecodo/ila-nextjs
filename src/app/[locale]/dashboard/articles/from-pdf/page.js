@@ -1037,8 +1037,19 @@ export default function FromPdfPage() {
   const [bodyFullscreen, setBodyFullscreen] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
-  const [createdId, setCreatedId] = useState(null);
   const [error, setError] = useState(null);
+  // Bannerchen central tras darle a "Artikel anlegen": avanza solo por las
+  // fases "hinzugefügt → hinzugefügt! → zurück zum Dossier" y se desvanece —
+  // no tapa el panel PDF/Formular, para poder seguir transcribiendo el
+  // siguiente artículo del mismo dossier sin volver a elegirlo.
+  const [bannerPhase, setBannerPhase] = useState(null); // null | "uploading" | "success" | "returning"
+  const [bannerFading, setBannerFading] = useState(false);
+  const bannerTimersRef = useRef([]);
+  const clearBannerTimers = () => {
+    bannerTimersRef.current.forEach(clearTimeout);
+    bannerTimersRef.current = [];
+  };
+  useEffect(() => clearBannerTimers, []);
 
   // Carga pdfjs y catálogos al montar.
   useEffect(() => {
@@ -1916,6 +1927,9 @@ export default function FromPdfPage() {
     if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
+    clearBannerTimers();
+    setBannerFading(false);
+    setBannerPhase("uploading");
     try {
       const fd = new FormData();
       fd.append("title", title.trim());
@@ -1965,12 +1979,52 @@ export default function FromPdfPage() {
 
       const res = await fetch("/api/articles", { method: "POST", body: fd });
       if (!res.ok) throw new Error("create failed");
-      const created = await res.json();
-      setCreatedId(created.id);
+      await res.json();
       if (editionId) refreshExistingArticles(editionId);
+
+      // Página donde terminó el artículo recién creado (o donde empezó, si no
+      // se cargó "Bis") — el siguiente suele arrancar ahí mismo o poco después,
+      // así el editor solo tiene que scrollear un poco en vez de re-elegir el
+      // dossier y buscar la página de nuevo. Se guarda ANTES de resetear el
+      // formulario, porque "Seiten" (bodyFrom/bodyTo) no se limpia abajo.
+      const lastPage = Number(bodyTo) || Number(bodyFrom) || null;
+
+      // Deja el dossier/PDF abiertos (pdfDoc, editionId, "Seiten") y solo
+      // limpia los campos propios del artículo — mismo criterio que tenía el
+      // viejo botón "+ Nächster Artikel", ahora automático en cada creación.
+      setPublicationDate(new Date().toISOString().slice(0, 10));
+      setTitle(""); setSubtitle(""); setPreviewText("");
+      setAdditionalInfo(""); setContent("");
+      setPublilabOn(false); setContentHtml("");
+      setSelAuthors([]); setSelInterviewees([]); setSelCategories([]); setSelRegions([]); setSelTopics([]);
+      setCropMode(false);
+      images.forEach((img) => URL.revokeObjectURL(img.url));
+      setImages([]);
+
+      // Secuencia del bannerchen: "hinzugefügt!" un momento, después "zurück
+      // zum Dossier" (recién ahí scrollea, para que el texto coincida con lo
+      // que pasa en pantalla), después se desvanece (transición de opacity,
+      // no un unmount seco) y desaparece del todo.
+      setBannerPhase("success");
+      bannerTimersRef.current.push(
+        setTimeout(() => {
+          setBannerPhase("returning");
+          if (lastPage) scrollToPage(scrollRef, lastPage);
+        }, 900)
+      );
+      bannerTimersRef.current.push(setTimeout(() => setBannerFading(true), 1900));
+      bannerTimersRef.current.push(
+        setTimeout(() => {
+          setBannerPhase(null);
+          setBannerFading(false);
+        }, 2400)
+      );
     } catch (err) {
       console.error(err);
       setError("Der Artikel konnte nicht angelegt werden.");
+      clearBannerTimers();
+      setBannerPhase(null);
+      setBannerFading(false);
     } finally {
       setSubmitting(false);
     }
@@ -2001,38 +2055,39 @@ export default function FromPdfPage() {
         </p>
       </div>
 
-      {createdId ? (
-        <div className="m-4 p-6 border border-green-300 bg-green-50">
-          <p className="text-green-800 font-medium">✓ Artikel angelegt (ID {createdId}).</p>
-          <div className="mt-3 flex gap-4">
-            <a
-              href={`/dashboard/articles/edit/${createdId}`}
-              className="text-sm text-[#BD0E0D] hover:underline"
-            >
-              → Im Editor öffnen (Bilder, Übersetzung…)
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                setCreatedId(null);
-                setPublicationDate(new Date().toISOString().slice(0, 10));
-                setTitle(""); setSubtitle(""); setPreviewText("");
-                setAdditionalInfo(""); setContent("");
-                setPublilabOn(false); setContentHtml("");
-                setSelAuthors([]); setSelInterviewees([]); setSelCategories([]); setSelRegions([]); setSelTopics([]);
-                setCropMode(false);
-                images.forEach((img) => URL.revokeObjectURL(img.url));
-                setImages([]);
-              }}
-              className="text-sm text-gray-500 hover:underline"
-            >
-              + Nächster Artikel
-            </button>
+      {/* Bannerchen central tras "Artikel anlegen": avanza solo por las fases
+          hochladen → hinzugefügt! → zurück zum Dossier, y se desvanece —
+          no tapa el panel, el dossier sigue abierto para el siguiente
+          Artikel (ver handleSubmit para la secuencia/timers). */}
+      {bannerPhase && (
+        <div
+          className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 transition-opacity duration-500 ease-out ${
+            bannerFading ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-white border border-gray-200 shadow-xl">
+            {bannerPhase === "uploading" && (
+              <span className="h-4 w-4 border-2 border-[#BD0E0D]/25 border-t-[#BD0E0D] rounded-full animate-spin shrink-0" />
+            )}
+            {bannerPhase === "success" && (
+              <span className="h-5 w-5 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold shrink-0 animate-scaleIn">
+                ✓
+              </span>
+            )}
+            {bannerPhase === "returning" && (
+              <span className="text-base shrink-0 animate-scaleIn">↩️</span>
+            )}
+            <span key={bannerPhase} className="text-sm font-medium text-gray-700 animate-fadeIn whitespace-nowrap">
+              {bannerPhase === "uploading" && "Artikel wird hinzugefügt …"}
+              {bannerPhase === "success" && "Artikel hinzugefügt!"}
+              {bannerPhase === "returning" && "Zurück zum Dossier …"}
+            </span>
           </div>
         </div>
-      ) : (
-        <div className="flex flex-col lg:flex-row gap-4 p-4">
-          {/* ── Panel PDF ─────────────────────────────────────── */}
+      )}
+
+      <div className="flex flex-col lg:flex-row gap-4 p-4">
+        {/* ── Panel PDF ─────────────────────────────────────── */}
           <div className="lg:w-1/2 flex flex-col">
             {!pdfDoc ? (
               <div className="flex flex-col gap-3">
@@ -2557,13 +2612,15 @@ export default function FromPdfPage() {
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className="px-6 py-2.5 bg-[#BD0E0D] text-white text-sm font-bold hover:bg-[#a50c0b] transition-colors disabled:opacity-40 disabled:cursor-not-allowed w-max"
+              className="px-6 py-2.5 bg-[#BD0E0D] text-white text-sm font-bold hover:bg-[#a50c0b] transition-colors disabled:opacity-40 disabled:cursor-not-allowed w-max inline-flex items-center gap-2"
             >
+              {submitting && (
+                <span className="h-3.5 w-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin shrink-0" />
+              )}
               {submitting ? "Wird angelegt…" : "Artikel anlegen"}
             </button>
           </div>
         </div>
-      )}
 
       {/* ── Vollbild: publilab a pantalla completa con el PDF acoplado (split) ── */}
       {bodyFullscreen && pdfDoc && (
