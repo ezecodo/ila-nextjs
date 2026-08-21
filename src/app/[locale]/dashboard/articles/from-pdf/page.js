@@ -491,6 +491,16 @@ function escapeHtml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Vaciar un QuillEditor a mano (seleccionar todo + borrar) no deja su value en
+// "" — Quill se queda con su bloque vacío ("<p><br></p>" o "<p></p>"). Si eso
+// se concatena tal cual antes del próximo texto pegado desde el PDF, queda
+// como una línea en blanco delante de lo recién insertado. Se recorta
+// cualquier <p> vacío colgando al final de lo ya existente antes de sumarle
+// el nuevo bloque.
+function stripTrailingEmptyParagraph(html) {
+  return (html || "").replace(/(?:<p>(?:<br\s*\/?>)?<\/p>\s*)+$/i, "");
+}
+
 // Convierte el cuerpo al HTML del artículo. Línea en blanco = nuevo párrafo
 // (<p>), salto de línea simple = <br>, líneas "## " = entretítulo (<h3>/<h4>).
 // Se procesa LÍNEA por LÍNEA: una línea con "## " titula SÓLO esa línea; el
@@ -1324,7 +1334,7 @@ export default function FromPdfPage() {
         .join("");
       if (!html) return;
       const setter = field === "vorspann" ? setPreviewText : setAdditionalInfo;
-      setter((prev) => (prev || "") + html);
+      setter((prev) => stripTrailingEmptyParagraph(prev) + html);
       return;
     }
     appendChunkToEditor(text);
@@ -2307,7 +2317,8 @@ export default function FromPdfPage() {
                       const sel = cleanSelection(lastSelectionRef.current);
                       if (sel)
                         setPreviewText(
-                          (previewText || "") + `<p>${escapeHtml(sel)}</p>`
+                          stripTrailingEmptyParagraph(previewText) +
+                            `<p>${escapeHtml(sel)}</p>`
                         );
                     }}
                     className="text-xs px-2 py-0.5 border border-gray-800 text-gray-800 hover:bg-gray-100 transition-colors"
@@ -2317,7 +2328,10 @@ export default function FromPdfPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={takeInto(setPreviewText)}
+                    onClick={() => {
+                      const sel = cleanSelection(lastSelectionRef.current);
+                      if (sel) setPreviewText(`<p>${escapeHtml(sel)}</p>`);
+                    }}
                     className="text-xs px-2 py-0.5 bg-gray-800 text-white hover:bg-gray-700 transition-colors"
                     title="Aktuelle PDF-Auswahl übernehmen (ersetzt das Feld)"
                   >

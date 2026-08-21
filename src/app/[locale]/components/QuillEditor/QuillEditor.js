@@ -230,6 +230,19 @@ const QuillEditor = ({
       const editorHtml = quillRef.current.root.innerHTML.trim();
       let incoming = (value || "").trim();
 
+      // Vacío real (nada guardado aún): Quill ya arranca con su propio bloque
+      // vacío por defecto ("<p><br></p>"). Si acá lo pisamos con innerHTML=""
+      // para "igualarlo" a un value="", Quill detecta el DOM sin ningún
+      // bloque y se autocorrige solo (su MutationObserver reinserta una línea
+      // vacía) — esa autocorrección dispara "text-change" → onChange, y esa
+      // línea vacía queda grabada como estado ANTES de que el usuario pegue
+      // nada. Resultado: el primer texto insertado (p. ej. desde Textbereich
+      // en el tool "Artikel aus PDF") queda con una línea en blanco delante.
+      // No hay nada que sincronizar en este caso — no tocar el DOM.
+      if (incoming === "" && (editorHtml === "" || editorHtml === "<p><br></p>")) {
+        return;
+      }
+
       if (editorHtml !== incoming) {
         const selection = quillRef.current.getSelection();
         const cursorPosition = selection ? selection.index : 0;
