@@ -138,7 +138,7 @@ export async function POST(req) {
     const isAvailableToOrder = formData.get("isAvailableToOrder") === "true";
     const subtitle = formData.get("subtitle") || null;
     const datePublished = formData.get("datePublished");
-    const summary = formData.get("summary");
+    const summary = formData.get("summary") || ""; // Editorial es opcional al crear
     const tableOfContents = formData.get("tableOfContents") || null;
     const isCurrent = formData.get("isCurrent") === "true";
 
@@ -148,11 +148,10 @@ export async function POST(req) {
     const coverImageFile = formData.get("coverImage");
 
     // Validaciones básicas
-    if (!number || !title || !summary) {
+    if (!number || !title) {
       console.error("Campos obligatorios faltantes:", {
         number,
         title,
-        summary,
       });
       return NextResponse.json(
         { error: "Campos obligatorios faltantes" },

@@ -1065,7 +1065,7 @@
     "dateLabel": "Fecha de Publicación (Mes y Año)",
     "dateHint": "Ejemplo: Mayo 2025",
     "datePh": "Selecciona el mes y año",
-    "editorialLabel": "Editorial",
+    "editorialLabel": "Editorial (opcional)",
     "tocLabel": "Tabla de Contenidos",
     "tocPh": "Ingrese la tabla de contenidos (opcional)",
     "isCurrent": "¿Es la edición actual?",
