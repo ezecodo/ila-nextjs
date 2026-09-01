@@ -2631,7 +2631,7 @@ export default function FromPdfPage() {
               {submitting && (
                 <span className="h-3.5 w-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin shrink-0" />
               )}
-              {submitting ? "Wird angelegt…" : "Artikel anlegen"}
+              {submitting ? "Wird gespeichert…" : "Speichern"}
             </button>
           </div>
         </div>

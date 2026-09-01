@@ -172,6 +172,13 @@ src/app/[locale]/dashboard/
 
 Herramienta para digitalizar el archivo histórico de ila (50 años de dossiers, muchos escaneados con OCR): se abre un PDF, se selecciona texto directo sobre la página y se arma el artículo sin tipear de nuevo. Link "➕ Artikel aus PDF" en `/dashboard/articles` (promovido de "en pruebas" a link normal). Archivo principal: `src/app/[locale]/dashboard/articles/from-pdf/page.js`.
 
+### Requisito: el PDF de origen necesita OCR
+La herramienta **no genera su propia capa de texto** — depende 100% de que el PDF subido a Dossiers PDF ya tenga texto seleccionable (OCR), aunque sea invisible sobre la imagen escaneada. Un PDF puramente imagen (sin OCR) no tiene nada para seleccionar y la herramienta "no reconoce texto" — no es un bug, es que falta ese paso.
+- Caso real (2026-08-23): `ila-info nr. 1` y `nr. 2` (las primeras ediciones, de 1976/77) llegaron escaneadas por el equipo (Henry) con el `Producer: BookChanger 4.6.3`, sin ningún OCR — `pdftotext` devolvía 0 caracteres en las 16 páginas.
+- Se les corrió OCR retroactivo con `ocrmypdf -l deu --force-ocr archivo.pdf archivo_ocr.pdf` (herramienta CLI, `brew install ocrmypdf tesseract-lang` para el paquete de alemán) — pasó de 0 a ~54.000 caracteres extraíbles por dossier. El PDF resultante es el que va a Dossiers PDF, no el original.
+- DPI: los scans de Henry venían a **233 DPI** (no 96, que es resolución de pantalla) y el OCR salió razonablemente bien igual; lo recomendado para buen OCR es **300 DPI**.
+- Si vuelven a llegar dossiers viejos sin OCR, correrles `ocrmypdf` antes de subirlos es responsabilidad de quien los sube (hoy, manual) — ver "Backlog de producto" en la sección de Roadmap institucional para la idea de automatizar esto al subir el PDF.
+
 ### Elegir el dossier
 - "📚 Aus PDF-Abo wählen" trae el PDF desde `EditionPdf` (mismo storage que el módulo Digital-Abo) — **no hay upload manual** (se sacó el botón "Dossier-PDF hochladen"; el flujo es siempre a través de dossiers ya subidos en Dossiers PDF).
 - Al elegir, fija automáticamente `editionId` (antes había que elegirlo aparte en el select "Dossier (Ausgabe)").
@@ -882,3 +889,14 @@ Ofrecerlo a instituciones implica tráfico y compromisos de servicio que el setu
 - Feature nueva para suscriptor → preguntarse "¿esto hace valer el Digital-Abo ante una universidad?".
 - Mantener todo lo institucional **detrás del gate** `hasPdfAbo` (sub-marca verde `#89B881`, ver Brand Kit), con el bypass de super-admin para demos.
 - No sobre-construir para escala que aún no existe; sí dejar el camino a docker/escala documentado.
+
+### Backlog de producto — ideas evaluadas 2026-08-26 (ninguna construida todavía)
+
+Sesión de brainstorming con foco "qué features marcarían la diferencia" (lector + equipo editorial). Ver [[project_rag_archive_search]] y [[project_feature_backlog_ideas]] para el detalle completo; resumen acá para que quede a mano al decidir prioridades:
+
+- **Búsqueda semántica sobre el archivo (RAG)** — la idea con más potencial: "preguntale al archivo" con Claude + embeddings, respuestas citando el artículo fuente. Arrancar por una versión interna (redacción, para chequear si ya se escribió sobre un tema antes de asignarlo) antes de pensar en una versión de cara al lector/institucional. Corpus (5.103 artículos, ~10M tokens) es chico — no hace falta vector DB, alcanza con embeddings (Voyage AI, proveedor recomendado por Anthropic) + similitud coseno en memoria.
+- **Generador de cita académica** (APA / Deutsche Zitierweise) por artículo — costo de build muy bajo (solo templating con datos que ya existen), impacto alto para el público de Lateinamerika-Studien.
+- **OCR automático al subir el PDF en Dossiers PDF** — hoy Eze corre `ocrmypdf` a mano cada vez que llega un dossier viejo sin OCR (ver "Artikel aus PDF" arriba); automatizarlo en el propio endpoint de subida saca ese cuello de botella manual.
+- **Chequeo de duplicados al crear un artículo** — con el backlog de ~4.000 artículos por cargar, aumenta el riesgo de cargar el mismo artículo histórico dos veces; se puede resolver con la misma pieza de embeddings del RAG.
+- **Vista de producción por dossier** — extender la Prognose (`src/lib/redaktionStats.js`, `/dashboard/redaktion`) más allá del agregado global, mostrando avance hacia `TARGET_PER_DOSSIER` por edición individual.
+- Ideas más chicas de lado lector: módulo "un día como hoy, hace X años" en la home; recordar página de lectura en el `PdfReader`; exportar una selección de artículos de varias ediciones a un solo PDF (uso académico/de cátedra).
