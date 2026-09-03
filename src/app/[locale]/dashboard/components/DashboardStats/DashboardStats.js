@@ -10,7 +10,6 @@ const SUPER_ADMIN_EMAIL = "e.zeangeloni@gmail.com";
 
 import {
   FaFileAlt,
-  FaRegNewspaper,
   FaShoppingCart,
   FaLanguage,
   FaSlidersH,
@@ -20,7 +19,7 @@ import {
   FaBars,
   FaTimes,
   FaChartLine,
-  FaChartBar,
+  FaClipboardList,
   FaBookOpen,
   FaGlobeAmericas,
   FaDoorOpen,
@@ -119,7 +118,7 @@ const DashboardStats = () => {
   return (
     <div className="sticky top-0 z-[60] bg-white shadow-sm">
       {/* ── Desktop nav ─────────────────────────────────────── */}
-      <div className="hidden md:flex flex-nowrap gap-2 items-center justify-center py-2 px-2">
+      <div className="hidden md:flex flex-wrap gap-2 items-center justify-center py-2 px-2">
         {/* Logo ila */}
         <StatCard
           icon={
@@ -136,11 +135,13 @@ const DashboardStats = () => {
           pathname={pathname}
         />
 
-        {/* Inhalte */}
+        {/* Inhalte (incluye Aktuelles/Events, fusionados acá para ahorrar
+            un botón entero en la fila — antes era un dropdown aparte) */}
         <StatCardDropdown
           icon={<FaFileAlt size={18} />}
           label={t("contentLabel")}
           items={[
+            { heading: t("contentLabel") },
             {
               label: `${t("articles")} (${stats.totalArticles})`,
               href: "/dashboard/articles",
@@ -149,15 +150,7 @@ const DashboardStats = () => {
               label: `${t("editions")} (${stats.totalEditions})`,
               href: "/dashboard/editions",
             },
-          ]}
-          pathname={pathname}
-        />
-
-        {/* Aktuelles */}
-        <StatCardDropdown
-          icon={<FaRegNewspaper size={18} />}
-          label={t("aktuellesLabel")}
-          items={[
+            { heading: t("aktuellesLabel") },
             {
               label: `${t("aktuellesItem")} (${stats.totalAktuelles})`,
               href: "/dashboard/aktuelles",
@@ -197,34 +190,6 @@ const DashboardStats = () => {
           badgeTitle={`${newReviews} Artikel zur Überprüfung`}
         />
 
-        {/* Bestellungen */}
-        <StatCardDropdown
-          icon={
-            <div className="relative">
-              <FaShoppingCart
-                size={18}
-                className={newOrders > 0 ? "text-red-600" : ""}
-              />
-            </div>
-          }
-          label={t("orders")}
-          items={[
-            {
-              label: `${t("viewOrders")}${newOrders > 0 ? ` (${newOrders})` : ""}`,
-              href: "/dashboard/orders",
-            },
-            {
-              label: `Abos${newSubscriptions > 0 ? ` (${newSubscriptions})` : ""}`,
-              href: "/dashboard/subscriptions",
-            },
-            { label: t("gifts"), href: "/dashboard/gifts" },
-            { label: t("pdfAbo"), href: "/dashboard/admin/pdf-abo" },
-          ]}
-          pathname={pathname}
-          badgeCount={newOrders + newSubscriptions}
-          badgeTitle={`${newOrders} neue Bestellung${newOrders !== 1 ? "en" : ""}`}
-        />
-
         {/* Gestaltung */}
         <StatCardDropdown
           icon={<FaSlidersH size={18} />}
@@ -252,6 +217,36 @@ const DashboardStats = () => {
           pathname={pathname}
         />
 
+        {/* Bestellungen — solo ícono (carrito), como Cuenta/Redaktion/
+            Analytics/FAQ en esta misma fila; el label vive en el `title` */}
+        <StatCardDropdown
+          icon={
+            <div className="relative">
+              <FaShoppingCart
+                size={18}
+                className={newOrders > 0 ? "text-red-600" : ""}
+              />
+            </div>
+          }
+          label={t("orders")}
+          iconOnly
+          items={[
+            {
+              label: `${t("viewOrders")}${newOrders > 0 ? ` (${newOrders})` : ""}`,
+              href: "/dashboard/orders",
+            },
+            {
+              label: `Abos${newSubscriptions > 0 ? ` (${newSubscriptions})` : ""}`,
+              href: "/dashboard/subscriptions",
+            },
+            { label: t("gifts"), href: "/dashboard/gifts" },
+            { label: t("pdfAbo"), href: "/dashboard/admin/pdf-abo" },
+          ]}
+          pathname={pathname}
+          badgeCount={newOrders + newSubscriptions}
+          badgeTitle={`${newOrders} neue Bestellung${newOrders !== 1 ? "en" : ""}`}
+        />
+
         {/* Cuenta */}
         <StatCard
           icon={<FaCog size={18} />}
@@ -261,13 +256,23 @@ const DashboardStats = () => {
           pathname={pathname}
         />
 
-        {/* Redaktion */}
+        {/* Redaktion — ícono de checklist (no de gráfico) para no
+            confundirse con Analytics: mide avance de producción, no
+            tráfico */}
         <StatCard
-          icon={<FaChartBar size={18} />}
+          icon={<FaClipboardList size={18} />}
           label=""
           value=""
           href="/dashboard/redaktion"
           pathname={pathname}
+          tooltip={
+            <>
+              <span className="block font-bold text-white">
+                {t("redaktion")}
+              </span>
+              <span className="mt-1 block">{t("redaktionTooltip")}</span>
+            </>
+          }
         />
 
         {/* Analytics */}
@@ -277,6 +282,14 @@ const DashboardStats = () => {
           value=""
           href="/dashboard/analytics"
           pathname={pathname}
+          tooltip={
+            <>
+              <span className="block font-bold text-white">
+                {t("analytics")}
+              </span>
+              <span className="mt-1 block">{t("analyticsTooltip")}</span>
+            </>
+          }
         />
 
         {/* Mein DIGIabo (vista de suscriptor) */}
@@ -488,49 +501,6 @@ const DashboardStats = () => {
               )}
             </Link>
 
-            {/* Bestellungen */}
-            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-              {t("orders")}
-            </div>
-            <Link
-              href="/dashboard/orders"
-              className={mobileLinkClass("/dashboard/orders")}
-              onClick={closeMobile}
-            >
-              {t("viewOrders")}
-              {newOrders > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-red-600 text-white rounded-full">
-                  {newOrders}
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/dashboard/subscriptions"
-              className={mobileLinkClass("/dashboard/subscriptions")}
-              onClick={closeMobile}
-            >
-              Abos
-              {newSubscriptions > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-green-600 text-white rounded-full">
-                  {newSubscriptions}
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/dashboard/gifts"
-              className={mobileLinkClass("/dashboard/gifts")}
-              onClick={closeMobile}
-            >
-              {t("gifts")}
-            </Link>
-            <Link
-              href="/dashboard/admin/pdf-abo"
-              className={mobileLinkClass("/dashboard/admin/pdf-abo")}
-              onClick={closeMobile}
-            >
-              {t("pdfAbo")}
-            </Link>
-
             {/* Gestaltung */}
             <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
               {t("gestaltungLabel")}
@@ -603,6 +573,50 @@ const DashboardStats = () => {
             >
               {t("dossiersPdf")}
             </Link>
+
+            {/* Bestellungen */}
+            <div className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              {t("orders")}
+            </div>
+            <Link
+              href="/dashboard/orders"
+              className={mobileLinkClass("/dashboard/orders")}
+              onClick={closeMobile}
+            >
+              {t("viewOrders")}
+              {newOrders > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-red-600 text-white rounded-full">
+                  {newOrders}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/dashboard/subscriptions"
+              className={mobileLinkClass("/dashboard/subscriptions")}
+              onClick={closeMobile}
+            >
+              Abos
+              {newSubscriptions > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-green-600 text-white rounded-full">
+                  {newSubscriptions}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/dashboard/gifts"
+              className={mobileLinkClass("/dashboard/gifts")}
+              onClick={closeMobile}
+            >
+              {t("gifts")}
+            </Link>
+            <Link
+              href="/dashboard/admin/pdf-abo"
+              className={mobileLinkClass("/dashboard/admin/pdf-abo")}
+              onClick={closeMobile}
+            >
+              {t("pdfAbo")}
+            </Link>
+
             {/* Cuenta / FAQ / Analytics */}
             <div className="border-t border-gray-100 mt-2 pt-2">
               <Link
@@ -620,7 +634,7 @@ const DashboardStats = () => {
                 onClick={closeMobile}
               >
                 <span className="flex items-center gap-2">
-                  <FaChartBar size={14} /> {t("redaktion")}
+                  <FaClipboardList size={14} /> {t("redaktion")}
                 </span>
               </Link>
               <Link
@@ -629,7 +643,7 @@ const DashboardStats = () => {
                 onClick={closeMobile}
               >
                 <span className="flex items-center gap-2">
-                  <FaChartLine size={14} /> Analytics
+                  <FaChartLine size={14} /> {t("analytics")}
                 </span>
               </Link>
               <Link
@@ -773,6 +787,7 @@ export function StatCardDropdown({
   pathname,
   badgeCount = 0,
   badgeTitle,
+  iconOnly = false,
 }) {
   const [open, setOpen] = useState(false);
   const isActive = items.some((item) => pathname?.startsWith(item.href));
@@ -784,22 +799,26 @@ export function StatCardDropdown({
       onMouseLeave={() => setOpen(false)}
       onClick={() => setOpen(!open)}
     >
-      {/* Botón */}
+      {/* Botón. iconOnly: sin label ni min-width fijo — solo el ícono, con
+          `title` nativo como reemplazo accesible del texto que se esconde. */}
       <div
-        className={`relative cursor-pointer min-w-[115px] px-3 py-2 bg-white rounded-md shadow-sm border-2 ${
+        title={iconOnly ? label : undefined}
+        className={`relative cursor-pointer ${iconOnly ? "px-3 py-2" : "min-w-[115px] px-3 py-2"} bg-white rounded-md shadow-sm border-2 ${
           isActive
             ? "border-red-500 bg-red-50 dark:bg-red-900/20"
             : "border-gray-200 hover:bg-gray-50"
         } flex items-center gap-2 text-sm transition-all whitespace-nowrap`}
       >
         {icon && <span className={isActive ? "text-red-600" : ""}>{icon}</span>}
-        <span
-          className={`${
-            isActive ? "font-bold text-red-600" : "font-normal text-gray-900"
-          } ${color}`}
-        >
-          {label}
-        </span>
+        {!iconOnly && (
+          <span
+            className={`${
+              isActive ? "font-bold text-red-600" : "font-normal text-gray-900"
+            } ${color}`}
+          >
+            {label}
+          </span>
+        )}
 
         {badgeCount > 0 && (
           <span
@@ -814,7 +833,22 @@ export function StatCardDropdown({
         <div className="absolute left-0 top-full pt-1 bg-transparent">
           <div className="bg-white border border-gray-200 rounded-md shadow-lg z-[9999] min-w-[200px]">
             <ul className="py-2 text-sm text-gray-700">
-              {items.map((item) => {
+              {items.map((item, idx) => {
+                // Encabezado de sección no-clickeable, para agrupar ítems
+                // dentro de un mismo dropdown sin agregar un submenú/flyout
+                // (más interacción de la que amerita un puñado de ítems).
+                if (item.heading) {
+                  return (
+                    <li
+                      key={`heading-${item.heading}`}
+                      className={`px-4 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 ${
+                        idx === 0 ? "pt-1" : "mt-1 pt-2 border-t border-gray-100"
+                      }`}
+                    >
+                      {item.heading}
+                    </li>
+                  );
+                }
                 const isItemActive = pathname?.startsWith(item.href);
                 return (
                   <li key={item.href}>
