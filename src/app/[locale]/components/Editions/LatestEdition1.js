@@ -882,9 +882,9 @@ export default function LatestEditionWithArticles() {
 
             <div
               ref={leftColRef}
-              className="relative w-full lg:w-auto flex items-start justify-end -mt-2 lg:mt-6 lg:float-left lg:mr-1"
+              className="relative w-full lg:w-auto flex items-start justify-end -mt-2 lg:mt-6 lg:float-left lg:mr-4"
             >
-              <div className="bg-white dark:bg-gray-900 lg:shadow-lg dark:lg:shadow-gray-800 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
+              <div className="bg-white dark:bg-gray-900 p-2 pt-0 flex flex-col gap-4 items-center w-full max-w-sm lg:max-w-md">
                 <div className="order-2 w-full text-center px-2 lg:-mt-3">
                   {/* break-words + hyphens-auto: títulos de una sola palabra larga (p. ej. "Versicherheitlichung") no deben desbordar el viewport con fuente del sistema agrandada */}
                   <div
@@ -945,7 +945,7 @@ export default function LatestEditionWithArticles() {
                         alt={`ila ${editions[currentEditionIndex + 1].number}`}
                         width={140}
                         height={187}
-                        className="shadow-lg object-cover w-full h-auto"
+                        className="object-cover w-full h-auto"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded">
                         <div className="bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1043,7 +1043,7 @@ export default function LatestEditionWithArticles() {
                         alt={`ila ${editions[currentEditionIndex - 1].number}`}
                         width={140}
                         height={187}
-                        className="shadow-lg object-cover w-full h-auto"
+                        className="object-cover w-full h-auto"
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded">
                         <div className="bg-white/90 dark:bg-gray-800/90 rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -1182,8 +1182,21 @@ export default function LatestEditionWithArticles() {
                 </div>
               )}
 
-              {/* Desktop */}
-              <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
+              {/* Desktop. 3 columnas ya desde 1400px (no 2xl/1536px): en
+                  anchos intermedios (p. ej. MacBook 13", ~1430px) la grilla a
+                  2 columnas quedaba más alta que la portada+banners de la
+                  izquierda (float), y como un bloque que evita superponerse
+                  a un float calcula su ancho una sola vez para toda su
+                  altura, la parte que sobraba por debajo del float no lo
+                  recuperaba — quedaba un hueco en blanco a la izquierda. Con
+                  3 columnas antes, la grilla es más baja y en la mayoría de
+                  los dossiers ya no le gana en altura a la izquierda.
+                  1400px (no xl/1280px) a propósito: a 1280px, con la
+                  portada restando ~450px, cada card de 3 columnas quedaría
+                  en ~255px — más angosta que cualquier card del sitio (ni
+                  mobile baja de ~350px). Pantallas ≥1536px no se tocan, ya
+                  mostraban 3 columnas antes de este cambio. */}
+              <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 min-[1400px]:grid-cols-3 gap-4">
                 {loading ? (
                   <div className="col-span-full flex items-center justify-center min-h-[400px]">
                     <IlaLoader />
