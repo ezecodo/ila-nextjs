@@ -10,7 +10,7 @@ function addToCalendar() {
     "VERSION:2.0",
     "PRODID:-//ila//Geburtstagsparty//DE",
     "BEGIN:VEVENT",
-    "DTSTART:20260905T180000",
+    "DTSTART:20260905T170000",
     "SUMMARY:ila-Geburtstagsparty 🎉",
     "DESCRIPTION:Ihr seid alle herzlich eingeladen zu unserer großen Geburtstagsparty im Allerweltshaus in Köln!",
     "LOCATION:Allerweltshaus\\, Köln",
@@ -35,13 +35,13 @@ export default function PartyBanner() {
       kicker: "50 Jahre ila · Einladung",
       title: "Geburtstagsparty",
       text: "Ihr seid alle herzlich eingeladen zu unserer großen Geburtstagsparty in diesem Herbst im Allerweltshaus in Köln",
-      date: "Sa. 5. September · ab 18 Uhr",
+      date: "Sa. 5. September · ab 17 Uhr",
     },
     es: {
       kicker: "50 años de ila · Invitación",
       title: "Fiesta de cumpleaños",
       text: "Están todxs cordialmente invitadxs a nuestra gran fiesta de cumpleaños este otoño en el Allerweltshaus de Colonia",
-      date: "Sáb. 5 de septiembre · 18 h",
+      date: "Sáb. 5 de septiembre · 17 h",
     },
   };
 
