@@ -62,6 +62,15 @@ export default function LatestEditionWithArticles() {
   const [justAdded, setJustAdded] = useState(false);
   const addedTimerRef = useRef(null);
 
+  // Cuántos ítems muestran hoy Events/AktuellesPreview (cada uno reporta el
+  // suyo al resolver su fetch) — si alguno tiene más de uno, esa columna ya
+  // ocupa varias filas y los banners del sidebar se comprimen a carrusel en
+  // vez de apilarse completos, para no dejar un hueco en blanco al lado de
+  // la grilla de artículos (ver nota en SlideBanner.jsx).
+  const [eventsCount, setEventsCount] = useState(0);
+  const [aktuellesCount, setAktuellesCount] = useState(0);
+  const forceBannerCarousel = eventsCount > 1 || aktuellesCount > 1;
+
   const handleAddToCart = () => {
     if (!currentEdition) return;
     const type = currentEdition.isSpecialOffer ? "offer" : "normal";
@@ -1139,9 +1148,9 @@ export default function LatestEditionWithArticles() {
                 </div>
 
                 <div className="hidden lg:flex flex-col gap-4 w-full order-7">
-                  <AktuellesPreview />
-                  <Events />
-                  <SlideBanner />
+                  <AktuellesPreview onCountChange={setAktuellesCount} />
+                  <Events onCountChange={setEventsCount} />
+                  <SlideBanner forceCarousel={forceBannerCarousel} />
                 </div>
               </div>
             </div>
@@ -1374,10 +1383,10 @@ export default function LatestEditionWithArticles() {
               </div>
 
               <div className="block lg:hidden w-full -mt-2 space-y-4">
-                <AktuellesPreview />
-                <Events />
+                <AktuellesPreview onCountChange={setAktuellesCount} />
+                <Events onCountChange={setEventsCount} />
                 <div className="flex flex-col gap-4">
-                  <SlideBanner />
+                  <SlideBanner forceCarousel={forceBannerCarousel} />
                 </div>
               </div>
             </div>

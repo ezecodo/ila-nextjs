@@ -191,13 +191,19 @@ function DigiAboBlock({ block, locale }) {
   );
 }
 
-const LOGO_SIZE = { sm: "mini", md: "compact", lg: "default" };
+// "mini" (80px) queda afuera a propósito: es el preset pensado para navbar, no para un
+// banner grande — con él el logo quedaba perdido en medio de mucho margen vacío. Antes
+// además el fallback (bloque sin `size` guardado, el caso más común) caía justo en "mini"
+// mientras el propio dropdown del editor mostraba "Mediano" seleccionado — desajuste entre
+// lo que se veía elegido y lo que en realidad se renderizaba. Ahora el fallback es
+// "default", coherente con el resto de los bloques (sizeClass() cae a la escala "md").
+const LOGO_SIZE = { sm: "compact", md: "default", lg: "large" };
 
 function LogoBlock({ block }) {
   // Sin el "50": es un mark decorativo del banner, no algo atado al aniversario.
   return (
     <IlaLogo50
-      size={LOGO_SIZE[block.size] || "mini"}
+      size={LOGO_SIZE[block.size] || "default"}
       show50={false}
       isLink={false}
       animated={false}

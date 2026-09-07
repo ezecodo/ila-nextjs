@@ -591,6 +591,9 @@ const { url, filename } = await uploadFile(file, "images"); // subfolder: images
 await deleteFile(url);
 ```
 
+### Gotcha: `uploadFile` no funciona en local (dev)
+`MEDIA_DIR` es una ruta **absoluta hardcodeada del servidor Hetzner** (`/usr/home/ilaweb/ila-uploads`). En local (Mac) esa ruta no existe y el `mkdir`/`writeFile` de `uploadFile()` tira error — cualquier POST con imagen obligatoria (crear evento, aktuelle, artículo con imagen, etc.) falla en local con un 500 genérico ("Error al crear..."), sin que sea un bug de esa feature puntual. Como la BD **sí** es la misma en local y producción (ver "Deploy en Hetzner"), para probar en local un flujo que dependa de un registro con imagen sin pasar por el upload real: insertar la fila a mano con `npx prisma studio` (campo `image`/`url` con cualquier string, ej. `https://placehold.co/600x400`) y borrarla después.
+
 ### Módulos ya migrados a storage local
 - `src/app/api/upload/route.js` ✅
 - `src/app/api/articles/route.js` ✅

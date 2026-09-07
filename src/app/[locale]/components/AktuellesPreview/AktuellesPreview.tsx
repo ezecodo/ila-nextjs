@@ -18,7 +18,11 @@ interface Aktuelles {
   images?: { url: string; alt: string | null }[];
 }
 
-export default function AktuellesPreview() {
+export default function AktuellesPreview({
+  onCountChange,
+}: {
+  onCountChange?: (count: number) => void;
+}) {
   const locale = useLocale();
   const [items, setItems] = useState<Aktuelles[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +50,14 @@ export default function AktuellesPreview() {
 
         setItems(sorted);
         setLoading(false);
+        onCountChange?.(sorted.length);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setLoading(false);
+        onCountChange?.(0);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch corre una
+    // sola vez al montar, ver misma nota en Events.js
   }, []);
 
   const getTitle = (item: Aktuelles) =>

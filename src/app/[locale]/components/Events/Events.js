@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import QuietSectionHeader from "../../components/SectionsHeader/QuietSectionHeader";
 
-export default function InfoBox() {
+export default function InfoBox({ onCountChange }) {
   const t = useTranslations("navMenu");
   const locale = useLocale();
 
@@ -39,12 +39,20 @@ export default function InfoBox() {
         });
 
         setEvents(upcoming);
+        // Reporta cuántos se van a mostrar de verdad (capado a 3, ver slice
+        // más abajo) — es lo que le importa a quien decide si los banners
+        // del sidebar deben comprimirse a modo carrusel.
+        onCountChange?.(Math.min(upcoming.length, 3));
       } catch (error) {
         console.error(error);
+        onCountChange?.(0);
       }
     }
 
     fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch corre una
+    // sola vez al montar; onCountChange se invoca con el valor vigente al
+    // resolver, no hace falta re-disparar el fetch si el padre lo redefine.
   }, []);
 
   const calendarLink = (

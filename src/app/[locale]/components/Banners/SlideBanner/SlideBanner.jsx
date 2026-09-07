@@ -8,6 +8,14 @@
 // - "edition-sidebar-stacked": apilados, todos siempre visibles (uno debajo del otro).
 // - "edition-sidebar": carrusel — si hay 2+ banners ahí, rotan uno a la vez.
 // Los apilados van primero, seguidos del carrusel (si hay banners ahí) — se pueden combinar.
+//
+// prop `forceCarousel`: quien use este componente (hoy solo LatestEdition1)
+// puede pedir que TODO se muestre en carrusel sin importar el `position` de
+// cada banner — pensado para cuando el resto del sidebar (Events/Aktuelles)
+// ya ocupa varias filas: apilar además los banners "stacked" completos suma
+// demasiada altura a esa columna y deja un hueco en blanco al lado de la
+// grilla de artículos, que termina antes. Sin este prop, comportamiento
+// idéntico al de siempre.
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import Slider from "../../SafeSlick/SafeSlick";
@@ -30,7 +38,7 @@ const CAROUSEL_SETTINGS = {
   dotsClass: "slick-dots !bottom-2",
 };
 
-export default function SlideBanner() {
+export default function SlideBanner({ forceCarousel = false }) {
   const locale = useLocale();
   const [stacked, setStacked] = useState(null); // null = cargando
   const [carousel, setCarousel] = useState(null);
@@ -82,23 +90,28 @@ export default function SlideBanner() {
   if (stacked === null || carousel === null) return null; // cargando
   if (stacked.length === 0 && carousel.length === 0) return null;
 
+  // Con forceCarousel, los "stacked" se suman al carrusel en vez de
+  // apilarse completos — ver nota arriba sobre por qué.
+  const stackedToRender = forceCarousel ? [] : stacked;
+  const carouselToRender = forceCarousel ? [...stacked, ...carousel] : carousel;
+
   return (
     <div className="flex flex-col gap-4">
-      {stacked.map((banner) => (
+      {stackedToRender.map((banner) => (
         <BannerSlide key={banner.id} banner={banner} stats={stats} locale={locale} />
       ))}
 
-      {carousel.length === 1 && (
-        <BannerSlide banner={carousel[0]} stats={stats} locale={locale} />
+      {carouselToRender.length === 1 && (
+        <BannerSlide banner={carouselToRender[0]} stats={stats} locale={locale} />
       )}
 
-      {carousel.length > 1 && (
+      {carouselToRender.length > 1 && (
         <div
           className="[&_.slick-list]:h-full [&_.slick-track]:h-full [&_.slick-slide>div]:h-full [&_.slick-slide]:h-full"
           style={{ height: BANNER_HEIGHT, flexShrink: 0 }}
         >
           <Slider {...CAROUSEL_SETTINGS}>
-            {carousel.map((banner) => (
+            {carouselToRender.map((banner) => (
               <div key={banner.id} className="h-full">
                 <BannerSlide banner={banner} stats={stats} locale={locale} />
               </div>
