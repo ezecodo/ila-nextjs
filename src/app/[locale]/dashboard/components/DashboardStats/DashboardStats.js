@@ -197,6 +197,7 @@ const DashboardStats = () => {
           items={[
             { label: t("carousels"), href: "/dashboard/carousels" },
             { label: t("links"), href: "/dashboard/links" },
+            { label: t("banners"), href: "/dashboard/banners" },
           ]}
           pathname={pathname}
         />
@@ -518,6 +519,13 @@ const DashboardStats = () => {
               onClick={closeMobile}
             >
               {t("links")}
+            </Link>
+            <Link
+              href="/dashboard/banners"
+              className={mobileLinkClass("/dashboard/banners")}
+              onClick={closeMobile}
+            >
+              {t("banners")}
             </Link>
 
             {/* Verwaltung */}
