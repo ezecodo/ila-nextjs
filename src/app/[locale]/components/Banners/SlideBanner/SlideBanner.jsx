@@ -68,7 +68,7 @@ export default function SlideBanner({ forceCarousel = false }) {
           normalizeBlocks(b.blocks).items.some((block) => block.type === "stats"),
         );
         if (needsStats) {
-          const statsRes = await fetch("/api/stats/site");
+          const statsRes = await fetch("/api/stats/site", { cache: "no-store" });
           const statsData = await statsRes.json();
           if (!cancelled) setStats(statsData);
         }

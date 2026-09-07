@@ -12,6 +12,7 @@ import {
   DEFAULT_ALIGN,
   SIZE_OPTIONS,
   BODY_LINES_OPTIONS,
+  KICKER_STYLE_OPTIONS,
   normalizeBlocks,
 } from "../../components/Banners/SlideBanner/blocks";
 
@@ -201,11 +202,15 @@ export default function BannersPage() {
   const [siteStats, setSiteStats] = useState(null);
 
   const [formData, setFormData] = useState(getBlankForm);
+  // Índice del bloque que se está arrastrando para reordenar (drag & drop
+  // nativo, sin librería nueva) — null cuando no hay drag en curso.
+  const [dragIndex, setDragIndex] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   useEffect(() => {
     fetchBanners();
     // Stats reales del sitio, para que la vista previa del bloque "stats" no muestre solo "…"
-    fetch("/api/stats/site")
+    fetch("/api/stats/site", { cache: "no-store" })
       .then((res) => res.json())
       .then(setSiteStats)
       .catch(() => {});
@@ -361,6 +366,20 @@ export default function BannersPage() {
       if (target < 0 || target >= prev.blocks.items.length) return prev;
       const items = [...prev.blocks.items];
       [items[index], items[target]] = [items[target], items[index]];
+      return { ...prev, blocks: { ...prev.blocks, items } };
+    });
+  };
+
+  // Reordenar arrastrando (además de los botones ↑↓): mueve el bloque `from`
+  // a la posición `to` sin tocar nada del layout — sigue siendo el mismo
+  // flujo automático, esto solo cambia el ORDEN, no coordenadas libres (eso
+  // se descartó a propósito, ver historial de este feature en CLAUDE.md).
+  const reorderBlocks = (from, to) => {
+    setFormData((prev) => {
+      if (from === to || from < 0 || to < 0) return prev;
+      const items = [...prev.blocks.items];
+      const [moved] = items.splice(from, 1);
+      items.splice(to, 0, moved);
       return { ...prev, blocks: { ...prev.blocks, items } };
     });
   };
@@ -739,10 +758,44 @@ export default function BannersPage() {
                     {formData.blocks.items.map((block, index) => (
                       <div
                         key={index}
-                        className="rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          if (dragIndex !== null && dragIndex !== index) {
+                            setDragOverIndex(index);
+                          }
+                        }}
+                        onDragLeave={() =>
+                          setDragOverIndex((cur) => (cur === index ? null : cur))
+                        }
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          reorderBlocks(dragIndex, index);
+                          setDragIndex(null);
+                          setDragOverIndex(null);
+                        }}
+                        className={`rounded-lg border p-4 transition-colors ${
+                          dragOverIndex === index
+                            ? "border-red-400 border-dashed bg-red-50/50 dark:bg-red-900/10"
+                            : "border-gray-200 dark:border-gray-700"
+                        }`}
                       >
                         <div className="flex items-center justify-between mb-3">
-                          <span className="font-medium text-sm">
+                          <span className="flex items-center gap-2 font-medium text-sm">
+                            <span
+                              draggable
+                              onDragStart={(e) => {
+                                setDragIndex(index);
+                                e.dataTransfer.effectAllowed = "move";
+                              }}
+                              onDragEnd={() => {
+                                setDragIndex(null);
+                                setDragOverIndex(null);
+                              }}
+                              title="Arrastrar para reordenar"
+                              className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 select-none"
+                            >
+                              ⠿
+                            </span>
                             {index + 1}. {BLOCK_DEFS[block.type]?.label || block.type}
                           </span>
                           <div className="flex items-center gap-1">
@@ -832,6 +885,20 @@ export default function BannersPage() {
                                 placeholder="Kicker (ES)"
                               />
                             </div>
+                            <select
+                              value={block.kickerStyle || "plain"}
+                              onChange={(e) =>
+                                updateBlock(index, { kickerStyle: e.target.value })
+                              }
+                              className="w-full px-3 py-2 border rounded dark:bg-gray-700 text-sm"
+                              title="Estética del kicker"
+                            >
+                              {KICKER_STYLE_OPTIONS.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
                             <div className="grid grid-cols-2 gap-3">
                               <input
                                 type="text"

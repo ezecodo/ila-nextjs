@@ -79,6 +79,15 @@ function StatsBlock({ block, stats, locale }) {
   );
 }
 
+// Un poco más grande que STAT_LABEL_SIZE (mismo espíritu tipográfico: bold,
+// mayúsculas, tracking-wide) — pedido explícito: que el kicker "plain" se
+// vea como el texto que describe los números de stats, pero más grande.
+const KICKER_SIZE = {
+  sm: "text-[11px] md:text-xs",
+  md: "text-xs md:text-sm",
+  lg: "text-sm md:text-base",
+};
+
 const TEXT_TITLE_SIZE = {
   sm: "text-base md:text-lg",
   md: "text-lg md:text-xl",
@@ -107,14 +116,26 @@ function TextBlock({ block, locale }) {
   const bodyClamp = LINE_CLAMP[block.bodyLines] ?? LINE_CLAMP[3];
   return (
     <div className="flex flex-col gap-1 max-w-[320px]">
-      {kicker && (
-        <p
-          className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70"
+      {kicker && (block.kickerStyle === "chip" ? (
+        // Mismo espíritu que el chip de QuietSectionHeader (VERANSTALTUNGEN/
+        // AKTUELLES) pero blanco translúcido en vez de rojo sólido — un chip
+        // rojo se perdería en un banner que ya es rojo (ver blocks.js).
+        <span
+          className="self-start inline-block bg-white/15 border border-white/25 text-white text-[11px] font-bold uppercase tracking-[0.12em] px-3 py-1.5"
           style={futura}
         >
           {kicker}
+        </span>
+      ) : (
+        // Misma familia tipográfica y peso que STAT_LABEL_SIZE (sans del
+        // cuerpo, no Futura — acá no es un elemento de marca como el logo o
+        // el título, es un rótulo descriptivo) — solo un poco más grande.
+        <p
+          className={`-mt-6 ${sizeClass(block.size, KICKER_SIZE)} font-semibold uppercase tracking-wide text-white/80`}
+        >
+          {kicker}
         </p>
-      )}
+      ))}
       {title && (
         <h3
           className={`${sizeClass(block.size, TEXT_TITLE_SIZE)} font-extrabold leading-tight tracking-tight line-clamp-2`}
@@ -201,13 +222,18 @@ const LOGO_SIZE = { sm: "compact", md: "default", lg: "large" };
 
 function LogoBlock({ block }) {
   // Sin el "50": es un mark decorativo del banner, no algo atado al aniversario.
+  // w-full: el logo siempre ocupa la fila entera del flujo automático, así lo
+  // que venga después (un kicker, un texto) siempre cae en una línea nueva,
+  // debajo — nadie quiere algo apretado al costado del wordmark grande.
   return (
-    <IlaLogo50
-      size={LOGO_SIZE[block.size] || "default"}
-      show50={false}
-      isLink={false}
-      animated={false}
-    />
+    <div className="w-full flex justify-center">
+      <IlaLogo50
+        size={LOGO_SIZE[block.size] || "default"}
+        show50={false}
+        isLink={false}
+        animated={false}
+      />
+    </div>
   );
 }
 

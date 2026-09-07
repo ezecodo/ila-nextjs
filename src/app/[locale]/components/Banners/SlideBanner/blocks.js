@@ -39,6 +39,17 @@ export const SIZE_OPTIONS = [
   { value: "lg", label: "Grande" },
 ];
 
+// Estética del kicker del bloque "texto libre": "plain" (texto chico gris/blanco, el look
+// de siempre) o "chip" — caja tipo badge, misma idea que el encabezado "chip" de las
+// secciones de columna (VERANSTALTUNGEN/AKTUELLES, ver QuietSectionHeader.tsx) pero en
+// blanco translúcido en vez de rojo sólido, para que se vea bien sin importar el color de
+// fondo que tenga el banner (un chip rojo se perdería en un banner que ya es rojo).
+export const DEFAULT_KICKER_STYLE = "plain";
+export const KICKER_STYLE_OPTIONS = [
+  { value: "plain", label: "Texto simple" },
+  { value: "chip", label: "Chip (como los encabezados de sección)" },
+];
+
 // Cuánto texto del cuerpo se muestra en el bloque "texto libre" antes de recortar con "…".
 // Distinto de `size` (que es tamaño de fuente): esto controla cuánto ESPACIO VERTICAL ocupa
 // el bloque dentro del banner — un texto largo puede comerse el lugar de los bloques que
@@ -67,6 +78,7 @@ export const BLOCK_DEFS = {
       type: "text",
       kickerDe: "",
       kickerEs: "",
+      kickerStyle: DEFAULT_KICKER_STYLE,
       titleDe: "",
       titleEs: "",
       bodyDe: "",

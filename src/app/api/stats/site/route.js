@@ -3,7 +3,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export const revalidate = 300; // 5 min — son conteos pesados de todo el archivo, no hace falta calcularlos en cada visita
+// Sin cache: son 6 COUNT() sobre tablas chicas (~5100 artículos, 355
+// dossiers, el resto todavía menos) — milisegundos en MySQL, no hace falta
+// amortizarlos. Antes tenía 5 min de cache (revalidate + Cache-Control) para
+// "no calcularlos en cada visita", pero a este volumen de datos el ahorro no
+// vale la pena frente a mostrar siempre el número real (pedido explícito:
+// que el banner refleje contenido recién publicado, no algo de hace rato).
+export const dynamic = "force-dynamic";
 
 // ila publica su primer número en 1976 — usado para el contador "años de historia"
 const FOUNDING_YEAR = 1976;
@@ -23,9 +29,13 @@ export async function GET() {
       ]);
     const yearsActive = new Date().getFullYear() - FOUNDING_YEAR;
 
+    // no-store explícito: sin esto, el cache PRIVADO del navegador (el único
+    // cache real acá — SlideBanner.jsx/banners/page.jsx hacen fetch() plano
+    // desde el cliente) puede quedarse con una respuesta vieja por su cuenta
+    // aunque el servidor ya no la esté cacheando.
     return NextResponse.json(
       { articles, editions, translatedEs, authors, regions, topics, yearsActive },
-      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } },
+      { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
     console.error("❌ Error en /api/stats/site:", error);
