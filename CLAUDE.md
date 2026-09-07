@@ -252,6 +252,53 @@ Antes "Die Redaktion" (nombres+bios de las 15 personas del equipo) estaba hardco
 - El link a la web personal de Werner Rätz (único caso con link embebido en la bio original) quedó como texto plano, no clickeable — se decidió no agregar un campo `website` dedicado solo por ese caso, para mantener el modelo mínimo pedido.
 - Los 15 miembros existentes se migraron una sola vez con un script puntual fuera del repo (no se guardó nada en `scripts/`, que está en la lista de archivos que nunca se deben modificar).
 
+## Sistema de Banners configurables (`/dashboard/banners`)
+
+Reemplaza el viejo banner "ILA 50" (invitación a la fiesta de cumpleaños, hardcodeado) por un sistema donde el equipo de ila arma banners a medida sin tocar código. Reusa el modelo `Banner` que ya existía para el CTA de donación arriba de página — un solo modelo, `type` decide el shape.
+
+### `type: "cta"` — banner de campaña (arriba de página, sin cambios)
+El de siempre: `DynamicBanner.jsx` lo renderiza en `position="top"` con los campos clásicos (`title`/`subtitle`/`description`/`buttonText`/`buttonUrl`/`imageUrl`, gradiente, `hasPromoForm`). No tocado por este feature.
+
+### `type: "custom"` — banner por bloques (sidebar de la edición actual)
+Reemplaza a los antiguos `SideBanner50` + `PartyBanner` (componentes hardcodeados, ya borrados). El campo `blocks` (Json) guarda `{ align: "left"|"center"|"right", items: [ {type, ...campos}, ... ] }`.
+
+- **Registro único de tipos de bloque**: `components/Banners/SlideBanner/blocks.js` (`BLOCK_DEFS`) — lo usan tanto el editor (`/dashboard/banners`) como el renderer público (`BannerSlide.jsx`). Agregar un bloque nuevo (ej. testimonios) es tocar un solo archivo, sin migración (todo vive en el JSON).
+- **Bloques v1**: `logo` (wordmark `IlaLogo50`, sin el "50" — no es time-bound), `stats` (contadores en vivo de `/api/stats/site`, eligiendo cuáles de 7 métricas mostrar), `text` (kicker/título/cuerpo libre DE/ES), `cta` (botón label+url), `eventDate` (badge de fecha), `digiAbo` (promo verde del Digital-Abo, reusa `DigiAboMark` de `order/digital-abo/Wordmark.jsx`, linkea siempre a `/order/digital-abo`).
+- **Cada bloque tiene, independiente del tipo**: `size` (`sm`/`md`/`lg` — tamaño de fuente/ícono) y, solo el bloque `text`, `bodyLines` (2/3/5/0="todo" — cuántas líneas de cuerpo se ven antes de recortar con "…"; el título siempre clampea a 2 líneas fijo). `size` no es "cuánto espacio ocupa" — eso lo resuelve el layout solo (ver abajo).
+- **Layout: flujo automático** (`flex-wrap`), **no** posiciones ni tamaños manuales — los bloques se acomodan solos uno al lado del otro y bajan de línea cuando no entran, así nunca se pisan. El equipo solo controla el **orden** (↑↓ en el editor) y la **alineación general** del banner (`blocks.align`, tres botones ⬅/⬛/➡).
+  - **Iteraciones descartadas, no volver a intentar**: se probó (a) un editor de campos fijos por `type` ("stats"/"announcement" con checkboxes y booleanos `statShow*`) — reemplazado por bloques porque no era "abarcativo". Luego (b) posicionamiento libre con **grilla de 9 zonas fijas** (drag & drop nativo + snap a zona + control de ancho en columnas) — funcionaba pero Eze lo rechazó explícitamente ("no sé si me gusta... necesito que los elementos convivan entre sí") porque bloques con distinto ancho podían superponerse. El flujo automático (flexbox) fue la 3ª vuelta y es la que quedó — garantiza "nunca se pisan" por construcción (motor de layout del navegador), no por reglas a mano.
+- **Altura SIEMPRE fija** (`BANNER_HEIGHT = 356` + `overflow-hidden` en `BannerSlide.jsx`) — pedido explícito de Eze para que no haya desfaces de layout entre banners/slides; si el contenido no entra, se recorta (mismo comportamiento en la preview del dashboard que en la web, visible en vivo mientras lo arman).
+- **Textura + viñeta automáticas** (dot pattern al 10% + radial-gradient oscureciendo bordes) en todo banner `custom`, para que un fondo de color sólido no quede plano — sin config, aplicado siempre.
+
+### Posición del banner por bloques: carrusel vs. apilado
+`position` (ya era texto libre, sin migración para esto) tiene dos valores para el sidebar:
+- `"edition-sidebar"` — **carrusel**: si hay 2+ banners activos ahí, rotan uno a la vez (`react-slick`, autoplay 6s).
+- `"edition-sidebar-stacked"` — **apilado**: todos los banners activos se muestran juntos, uno debajo del otro, siempre visibles (comportamiento por defecto elegido — es el que reemplaza al viejo SideBanner50+PartyBanner apilados).
+
+`SlideBanner.jsx` (el componente público, usado en `LatestEdition1.js`) trae **ambos grupos** en paralelo y renderiza: primero todos los `stacked`, después el carrusel de los `edition-sidebar` (si hay). Se pueden combinar.
+
+### Stats del sitio — `GET /api/stats/site`
+Conteos globales (artículos publicados, dossiers, traducidos ES, autores, regiones, temas, `yearsActive` = año actual − `FOUNDING_YEAR` hardcodeado en 1976), cacheado 5 min (`export const revalidate = 300`). Solo se pide si algún banner activo tiene un bloque `stats`.
+
+### Preview y miniaturas — un solo render para todo
+- `BannerSlide.jsx` es **presentacional puro** (recibe `banner` + `stats` resueltas, sin fetch propio) — lo usan `SlideBanner` (público), la preview en vivo de `/dashboard/banners`, y `BannerThumb` (miniatura en la lista del dashboard). Evita duplicar el render en varios lugares a propósito (ver gotcha de las 4 copias de `wrapInlineImagesWithCaption` en este mismo archivo).
+- `CtaPreviewCard` (en `dashboard/banners/page.jsx`) es el análogo para `type: "cta"` — mismo criterio, la preview en vivo y la miniatura de lista usan el mismo componente.
+- `BannerThumb` escala el render real a 180px de ancho vía CSS `transform: scale()` (no un componente aparte reimplementado) — así la lista de banners en el dashboard muestra cómo se ve cada uno, no solo texto.
+
+### Gotcha: `<input type="url">` con rutas internas
+Los bloques `cta` suelen apuntar a rutas relativas del propio sitio (`/order/abo`, `/support/donations`). Un `<input type="url">` de HTML **exige una URL absoluta con esquema** y, si el valor no cumple, el navegador lo **vacía en silencio** (value sanitization algorithm) — el campo se veía vacío en el editor aunque el dato siguiera bien guardado en la base. Los campos de URL de banners (`buttonUrl` del tipo `cta`, `url` del bloque `cta`) usan `type="text"`, no `type="url"`.
+
+### Archivos clave
+- `components/Banners/SlideBanner/blocks.js` — registro de bloques, `normalizeBlocks()` (acepta forma vieja array-plano por compatibilidad hacia atrás)
+- `components/Banners/SlideBanner/BannerSlide.jsx` — render puro, exporta `BANNER_HEIGHT`
+- `components/Banners/SlideBanner/SlideBanner.jsx` — fetch (stacked + carrusel) para la web pública
+- `dashboard/banners/page.jsx` — editor (tabs Contenido/Diseño/Configuración, columna de preview fija a la izquierda + configuración scrolleable a la derecha — ver gotcha de sticky con offset hardcodeado más abajo)
+- `api/banners/route.js`, `api/banners/[id]/route.js` — CRUD, `blocks` es `Json?` sin validación de forma más allá de `typeof === "object"`
+- `api/stats/site/route.js`
+
+### Gotcha: sticky con offset hardcodeado (ya resuelto, no reintroducir)
+La primera versión del editor tenía la preview en un `<div sticky top-0>` y la barra de tabs debajo en `<div sticky top-[240px]>` (asumiendo que la preview siempre medía ~240px). Al crecer la preview (selector de tipo + banner real de 356px) el offset quedó desactualizado y la barra de tabs terminaba **pisada por la preview** al hacer scroll — nada del formulario se veía, solo el Tip y los botones. Se resolvió con un layout de **dos columnas** (`grid grid-cols-[380px_1fr]`): preview en `lg:sticky lg:top-6` a la izquierda, tabs+formulario scrolleando normal a la derecha — sin offsets hardcodeados que dependan de la altura de un sibling.
+
 ## Internacionalización (next-intl)
 
 - Siempre usar `useTranslations("namespace")` en componentes cliente (`"use client"`)
