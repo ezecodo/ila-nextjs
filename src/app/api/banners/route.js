@@ -21,7 +21,7 @@ export async function GET(request) {
 
     const banners = await prisma.banner.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
 
     return NextResponse.json(banners);
@@ -41,15 +41,16 @@ export async function POST(request) {
 
     const banner = await prisma.banner.create({
       data: {
-        title: body.title,
+        // el schema exige estos como NOT NULL aunque el tipo "custom" no los use — "" es válido
+        title: body.title || "",
         titleEs: body.titleEs || null,
-        subtitle: body.subtitle,
+        subtitle: body.subtitle || "",
         subtitleEs: body.subtitleEs || null,
-        description: body.description,
+        description: body.description || "",
         descriptionEs: body.descriptionEs || null,
-        buttonText: body.buttonText,
+        buttonText: body.buttonText || "",
         buttonTextEs: body.buttonTextEs || null,
-        buttonUrl: body.buttonUrl,
+        buttonUrl: body.buttonUrl || "",
         imageUrl: body.imageUrl || null,
         bgGradientFrom: body.bgGradientFrom || "#dc2626",
         bgGradientTo: body.bgGradientTo || "#b91c1c",
@@ -63,6 +64,10 @@ export async function POST(request) {
         endDate: new Date(body.endDate),
         isActive: body.isActive !== undefined ? body.isActive : true,
         position: body.position || "top",
+        type: body.type || "cta",
+        order: body.order !== undefined ? parseInt(body.order, 10) || 0 : 0,
+        // { align, items } (o, por compatibilidad, un array plano de bloques)
+        blocks: body.blocks && typeof body.blocks === "object" ? body.blocks : null,
       },
     });
 

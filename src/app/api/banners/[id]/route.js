@@ -5,21 +5,21 @@ import { prisma } from "@/lib/prisma";
 // PUT - Actualizar banner
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const banner = await prisma.banner.update({
       where: { id },
       data: {
-        title: body.title,
+        title: body.title || "",
         titleEs: body.titleEs || null,
-        subtitle: body.subtitle,
+        subtitle: body.subtitle || "",
         subtitleEs: body.subtitleEs || null,
-        description: body.description,
+        description: body.description || "",
         descriptionEs: body.descriptionEs || null,
-        buttonText: body.buttonText,
+        buttonText: body.buttonText || "",
         buttonTextEs: body.buttonTextEs || null,
-        buttonUrl: body.buttonUrl,
+        buttonUrl: body.buttonUrl || "",
         imageUrl: body.imageUrl || null,
         bgGradientFrom: body.bgGradientFrom || "#dc2626",
         bgGradientTo: body.bgGradientTo || "#b91c1c",
@@ -33,6 +33,10 @@ export async function PUT(request, { params }) {
         endDate: new Date(body.endDate),
         isActive: body.isActive !== undefined ? body.isActive : true,
         position: body.position || "top",
+        type: body.type || "cta",
+        order: body.order !== undefined ? parseInt(body.order, 10) || 0 : 0,
+        // { align, items } (o, por compatibilidad, un array plano de bloques)
+        blocks: body.blocks && typeof body.blocks === "object" ? body.blocks : null,
       },
     });
 
@@ -49,7 +53,7 @@ export async function PUT(request, { params }) {
 // DELETE - Eliminar banner
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     await prisma.banner.delete({
       where: { id },

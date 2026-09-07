@@ -13,8 +13,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { PrevArrow, NextArrow } from "../Articles/CustomArrows/CustomArrows";
 import Slider from "../SafeSlick/SafeSlick";
 import { useRouter, useSearchParams } from "next/navigation";
-import SideBanner50 from "../Banners/Side50Banner/Side50Banner";
-import PartyBanner from "../Banners/PartyBanner/PartyBanner";
+import SlideBanner from "../Banners/SlideBanner/SlideBanner";
 
 import NoArticlesAvailable from "../../components/NoArticlesAvailable/NoArticlesAvailable";
 import IlaLoader from "../IlaLoader/IlaLoader";
@@ -1142,8 +1141,7 @@ export default function LatestEditionWithArticles() {
                 <div className="hidden lg:flex flex-col gap-4 w-full order-7">
                   <AktuellesPreview />
                   <Events />
-                  <SideBanner50 />
-                  <PartyBanner />
+                  <SlideBanner />
                 </div>
               </div>
             </div>
@@ -1379,8 +1377,7 @@ export default function LatestEditionWithArticles() {
                 <AktuellesPreview />
                 <Events />
                 <div className="flex flex-col gap-4">
-                  <SideBanner50 />
-                  <PartyBanner />
+                  <SlideBanner />
                 </div>
               </div>
             </div>

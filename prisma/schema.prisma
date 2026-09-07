@@ -244,6 +244,13 @@ model Banner {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  // 🧩 Banner configurable (slideshow del sidebar de edición): tipo "custom" = por bloques.
+  // Cada bloque es { type: "stats"|"text"|"cta"|"eventDate"|"digiAbo", ...campos propios del tipo },
+  // ver STAT_REGISTRY y BLOCK_DEFS en components/Banners/SlideBanner/blocks.js
+  type   String @default("cta") // "cta" | "custom"
+  order  Int    @default(0)
+  blocks Json?
+
   @@map("banners")
 }
 

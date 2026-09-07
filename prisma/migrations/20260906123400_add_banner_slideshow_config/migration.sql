@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE `banners` ADD COLUMN `eventDate` DATETIME(3) NULL,
+    ADD COLUMN `order` INTEGER NOT NULL DEFAULT 0,
+    ADD COLUMN `statShowArticles` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `statShowAuthors` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `statShowEditions` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `statShowTranslatedEs` BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN `type` VARCHAR(191) NOT NULL DEFAULT 'cta';
