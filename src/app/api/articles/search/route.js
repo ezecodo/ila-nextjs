@@ -17,33 +17,37 @@ export async function GET(req) {
     const typesFilter =
       searchParams.get("types")?.split(",").map(Number).filter(Boolean) || [];
     const yearFilter = searchParams.get("year");
+    // Rango de años para la línea de tiempo (YearTimeline, mismo componente que
+    // /related/[articleId]) — tiene prioridad sobre `year` (el <select> clásico de
+    // AdvancedSearchFilters) si vinieran los dos.
+    const yearFromFilter = searchParams.get("yearFrom");
+    const yearToFilter = searchParams.get("yearTo");
 
-    if (!query || query.trim() === "") {
-      return new Response(
-        JSON.stringify({ error: "Se requiere un término de búsqueda" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const searchQuery = query.trim();
+    // Sin query = listado de todos los artículos publicados (click en el stat "Artikel"
+    // del banner de archivo, ver STAT_HREF en blocks.js) — antes tiraba 400 y no había
+    // forma de "ver todos" sin escribir algo en el buscador.
+    const searchQuery = (query || "").trim();
+    const hasQuery = searchQuery !== "";
 
     // 🔨 Construir condiciones base según locale
     let whereConditions = {
       isPublished: true,
     };
 
-    // Condiciones de búsqueda de texto según idioma
+    // Condiciones de búsqueda de texto según idioma (solo si hay término)
     if (locale === "es") {
       whereConditions.isTranslatedES = true;
       whereConditions.needsReviewES = false;
-      whereConditions.OR = [
-        { titleES: { contains: searchQuery } },
-        { subtitleES: { contains: searchQuery } },
-        { contentES: { contains: searchQuery } },
-        { authors: { some: { name: { contains: searchQuery } } } },
-        { interviewees: { some: { name: { contains: searchQuery } } } },
-      ];
-    } else {
+      if (hasQuery) {
+        whereConditions.OR = [
+          { titleES: { contains: searchQuery } },
+          { subtitleES: { contains: searchQuery } },
+          { contentES: { contains: searchQuery } },
+          { authors: { some: { name: { contains: searchQuery } } } },
+          { interviewees: { some: { name: { contains: searchQuery } } } },
+        ];
+      }
+    } else if (hasQuery) {
       whereConditions.OR = [
         { title: { contains: searchQuery } },
         { subtitle: { contains: searchQuery } },
@@ -72,7 +76,41 @@ export async function GET(req) {
       };
     }
 
-    if (yearFilter) {
+    // 📊 Histograma de años para la timeline (YearTimeline) — se calcula ANTES de aplicar
+    // el filtro de año, sobre las mismas condiciones de texto/región/tema/tipo, para que
+    // el histograma siempre muestre la distribución completa aunque el rango esté acotado
+    // (mismo criterio que /api/articles/related en modo "all"). Consulta liviana (solo
+    // fecha) — el tope es generoso a propósito: hoy el archivo entero son ~5300
+    // artículos publicados, lejos del límite.
+    const yearRows = await prisma.article.findMany({
+      where: whereConditions,
+      select: { publicationDate: true },
+      take: 20000,
+    });
+    // ila existe desde 1976 (mismo FOUNDING_YEAR que /api/stats/site) — año-piso para
+    // filtrar fechas basura de datos migrados (ej. artículo 22813, publicationDate quedó
+    // en el año 0014 en vez de 2014). No se toca el dato en sí, solo se lo saca del
+    // histograma para no reventar el rango de la timeline.
+    const FOUNDING_YEAR = 1976;
+    const currentYear = new Date().getFullYear();
+    const yearCountMap = {};
+    for (const row of yearRows) {
+      if (!row.publicationDate) continue;
+      const y = new Date(row.publicationDate).getFullYear();
+      if (y < FOUNDING_YEAR || y > currentYear + 1) continue;
+      yearCountMap[y] = (yearCountMap[y] || 0) + 1;
+    }
+    const yearCounts = Object.keys(yearCountMap)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map((year) => ({ year, count: yearCountMap[year] }));
+
+    if (yearFromFilter || yearToFilter) {
+      whereConditions.publicationDate = {
+        ...(yearFromFilter && { gte: new Date(`${yearFromFilter}-01-01`) }),
+        ...(yearToFilter && { lte: new Date(`${yearToFilter}-12-31`) }),
+      };
+    } else if (yearFilter) {
       const year = parseInt(yearFilter);
       const startDate = new Date(`${year}-01-01`);
       const endDate = new Date(`${year}-12-31`);
@@ -157,6 +195,7 @@ export async function GET(req) {
         totalArticles,
         currentPage: page,
         totalPages: Math.ceil(totalArticles / limit),
+        yearCounts,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );

@@ -48,7 +48,9 @@
     "year": "Año",
     "allYears": "Todos los años",
     "clearAll": "Limpiar todo",
-    "clearAllFilters": "Limpiar todos los filtros"
+    "clearAllFilters": "Limpiar todos los filtros",
+    "allArticlesTitle": "Todos los artículos",
+    "yearFilter": "Filtrar por año"
   },
   "navMenu": {
     "index": "Inicio",
@@ -1537,5 +1539,13 @@
     "formTitle": "Completá tu Suscripción Digital",
     "formSubtitle": "Llená el formulario y nos encargamos del resto.",
     "heroPrice": "Solo 52 € al año — apenas 5,20 € al mes."
+  },
+  "entitiesIndex": {
+    "authorsTitle": "Todas las autorías",
+    "topicsTitle": "Todos los temas",
+    "regionsTitle": "Todas las regiones",
+    "articleCount": "{count} artículos",
+    "loading": "Cargando...",
+    "error": "Error al cargar"
   }
 }

@@ -18,7 +18,7 @@ import Link from "next/link";
 import { FaRegCalendarAlt } from "react-icons/fa";
 import { DigiAboMark } from "../../../order/digital-abo/Wordmark";
 import IlaLogo50 from "../../IlaLogo/ilaLogo50";
-import { STAT_REGISTRY, DIGIABO_DEFAULT_PITCH, normalizeBlocks } from "./blocks";
+import { STAT_REGISTRY, STAT_HREF, DIGIABO_DEFAULT_PITCH, normalizeBlocks } from "./blocks";
 
 export const BANNER_HEIGHT = 356;
 
@@ -60,21 +60,40 @@ function StatsBlock({ block, stats, locale }) {
   if (keys.length === 0) return null;
   return (
     <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
-      {keys.map((key) => (
-        <div key={key} className="flex flex-col items-center">
-          <span
-            className={`${sizeClass(block.size, STAT_VALUE_SIZE)} font-extrabold leading-none`}
-            style={futura}
-          >
-            {stats?.[key] ?? "…"}
-          </span>
-          <span
-            className={`mt-1 ${sizeClass(block.size, STAT_LABEL_SIZE)} font-semibold uppercase tracking-wide text-white/80 text-center`}
-          >
-            {STAT_REGISTRY[key][locale === "es" ? "es" : "de"]}
-          </span>
-        </div>
-      ))}
+      {keys.map((key) => {
+        const href = STAT_HREF[key]?.(locale);
+        const content = (
+          <>
+            <span
+              className={`${sizeClass(block.size, STAT_VALUE_SIZE)} font-extrabold leading-none`}
+              style={futura}
+            >
+              {stats?.[key] ?? "…"}
+            </span>
+            <span
+              className={`mt-1 ${sizeClass(block.size, STAT_LABEL_SIZE)} font-semibold uppercase tracking-wide text-white/80 text-center ${href ? "group-hover:underline" : ""}`}
+            >
+              {STAT_REGISTRY[key][locale === "es" ? "es" : "de"]}
+            </span>
+          </>
+        );
+        if (href) {
+          return (
+            <Link
+              key={key}
+              href={href}
+              className="group flex flex-col items-center transition-opacity hover:opacity-80"
+            >
+              {content}
+            </Link>
+          );
+        }
+        return (
+          <div key={key} className="flex flex-col items-center">
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }

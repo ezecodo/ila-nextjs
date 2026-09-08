@@ -21,6 +21,24 @@ export const STAT_REGISTRY = {
   yearsActive: { de: "Jahre Geschichte", es: "Años de historia" },
 };
 
+// A qué listado lleva el click en cada métrica del bloque "stats" (feedback del equipo:
+// los números eran decorativos, sin destino). Solo las métricas con una página de
+// resultados real entran acá — `yearsActive` no tiene ningún listado al que mandar (es
+// un conteo de años, no hay nada que "ver"), así que queda sin link a propósito.
+export const STAT_HREF = {
+  articles: (locale) => `/${locale}/search`,
+  editions: (locale) => `/${locale}/archive`,
+  authors: (locale) => `/${locale}/authors`,
+  topics: (locale) => `/${locale}/entities/topics`,
+  regions: (locale) => `/${locale}/entities/regions`,
+  // Siempre a la versión ES del buscador, sin importar en qué locale se vea el banner —
+  // /api/articles/search ya fuerza isTranslatedES:true + needsReviewES:false cuando
+  // locale=es (mismo criterio que usa /es/search siempre), así que no hace falta ningún
+  // filtro nuevo. Mismo patrón que el stat "auf Spanisch" del dossier individual en
+  // LatestEdition1.js, que también cruza a /es/....
+  translatedEs: () => `/es/search`,
+};
+
 export const STAT_KEYS = Object.keys(STAT_REGISTRY);
 
 export const DEFAULT_ALIGN = "center";

@@ -9,6 +9,7 @@ import Pagination from "../Pagination/Pagination"; // ✅ Importar componente de
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import AdvancedSearchFilters from "./Search/AdvancedSearchFilters/AdvancedSearchFilters";
+import YearTimeline from "../RelatedArticles/YearTimeline";
 
 const SearchResults = () => {
   const locale = useLocale();
@@ -28,6 +29,10 @@ const SearchResults = () => {
     year: "",
   });
   const [searchInput, setSearchInput] = useState(query);
+  // Línea de tiempo (mismo componente que /related/[articleId]): range = null → todos
+  // los años; { from, to } → rango acotado arrastrando la timeline.
+  const [range, setRange] = useState(null);
+  const [yearCounts, setYearCounts] = useState([]);
   const router = useRouter();
   const handleSearch = (e) => {
     e.preventDefault();
@@ -36,9 +41,10 @@ const SearchResults = () => {
   };
 
   useEffect(() => {
-    if (!query) return;
-
-    const fetchResults = async () => {
+    // Debounce: arrastrar la timeline dispara muchos cambios de `range` — esperamos a
+    // que el usuario suelte antes de pegarle a la API (mismo criterio que
+    // /related/[articleId]).
+    const timer = setTimeout(async () => {
       try {
         setLoading(true);
 
@@ -62,6 +68,10 @@ const SearchResults = () => {
         if (filters.year) {
           params.append("year", filters.year);
         }
+        if (range) {
+          params.append("yearFrom", range.from);
+          params.append("yearTo", range.to);
+        }
 
         const response = await fetch(
           `/api/articles/search?${params.toString()}`
@@ -70,23 +80,53 @@ const SearchResults = () => {
         const data = await response.json();
         setArticles(data.articles);
         setTotalPages(data.totalPages);
+        setYearCounts(data.yearCounts || []);
       } catch (error) {
         console.error("Error cargando resultados:", error);
       } finally {
         setLoading(false);
       }
-    };
+    }, 300);
 
-    fetchResults();
-  }, [query, currentPage, locale, filters]); // ✅ Se ejecuta cuando cambia la búsqueda o la página
+    return () => clearTimeout(timer);
+  }, [query, currentPage, locale, filters, range]); // ✅ Se ejecuta cuando cambia la búsqueda, la página o el rango de años
   // 🔁 Reiniciar a la página 1 si cambia el idioma
   useEffect(() => {
     setSearchInput(query);
     setCurrentPage(1);
+    setRange(null);
   }, [query, locale]);
+
+  // Si cambian los filtros y el rango marcado queda fuera de los años disponibles (o los
+  // cubre por completo), lo recortamos o lo limpiamos — mismo criterio que
+  // /related/[articleId].
+  useEffect(() => {
+    if (!range || yearCounts.length === 0) return;
+    const minYear = yearCounts[0].year;
+    const maxYear = yearCounts[yearCounts.length - 1].year;
+    const from = Math.max(range.from, minYear);
+    const to = Math.min(range.to, maxYear);
+    if (from > to || (from <= minYear && to >= maxYear)) setRange(null);
+    else if (from !== range.from || to !== range.to) setRange({ from, to });
+  }, [yearCounts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const minYear = yearCounts[0]?.year;
+  const maxYear = yearCounts[yearCounts.length - 1]?.year;
+  const displayFrom = range?.from ?? minYear;
+  const displayTo = range?.to ?? maxYear;
+
+  const onTimelineChange = (from, to) => {
+    if (from <= minYear && to >= maxYear) setRange(null);
+    else setRange({ from, to });
+    setCurrentPage(1);
+  };
 
   return (
     <div>
+      <h2 className="text-xl font-bold mb-4">
+        {query ? t("resultstitle") : t("allArticlesTitle")}
+      </h2>
+
       {/* Barra de búsqueda editable */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-4 border border-gray-200 dark:border-gray-700">
         <form onSubmit={handleSearch} className="flex gap-3">
@@ -122,6 +162,33 @@ const SearchResults = () => {
       </div>
 
       <AdvancedSearchFilters onFiltersChange={setFilters} locale={locale} />
+
+      {yearCounts.length > 1 && (
+        <div className="mb-4 border-b border-gray-200 pb-5 dark:border-gray-700">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[12px] font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              {t("yearFilter")}
+            </span>
+            {range && (
+              <button
+                onClick={() => {
+                  setRange(null);
+                  setCurrentPage(1);
+                }}
+                className="text-[12px] font-bold text-[#BD0E0D] hover:underline"
+              >
+                {t("allYears")}
+              </button>
+            )}
+          </div>
+          <YearTimeline
+            yearCounts={yearCounts}
+            from={displayFrom}
+            to={displayTo}
+            onChange={onTimelineChange}
+          />
+        </div>
+      )}
 
       {loading ? (
         <p>{t("loading")}</p>

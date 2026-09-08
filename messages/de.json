@@ -48,7 +48,9 @@
     "year": "Jahr",
     "allYears": "Alle Jahre",
     "clearAll": "Alles löschen",
-    "clearAllFilters": "Alle Filter löschen"
+    "clearAllFilters": "Alle Filter löschen",
+    "allArticlesTitle": "Alle Artikel",
+    "yearFilter": "Nach Jahr filtern"
   },
   "navMenu": {
     "index": "Home",
@@ -1538,5 +1540,13 @@
     "formTitle": "Digital-Abo abschließen",
     "formSubtitle": "Fülle das Formular aus – um den Rest kümmern wir uns.",
     "heroPrice": "Nur 52 € im Jahr — gerade mal 5,20 € im Monat."
+  },
+  "entitiesIndex": {
+    "authorsTitle": "Alle Autor*innen",
+    "topicsTitle": "Alle Themen",
+    "regionsTitle": "Alle Regionen",
+    "articleCount": "{count} Artikel",
+    "loading": "Wird geladen...",
+    "error": "Fehler beim Laden"
   }
 }

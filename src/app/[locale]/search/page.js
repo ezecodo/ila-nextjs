@@ -15,7 +15,8 @@ export default function SearchPage() {
   const t = useTranslations("search");
   return (
     <div className="container mx-auto px-4 py-6">
-      <h2 className="text-xl font-bold mb-4">{t("resultstitle")}</h2>
+      {/* El título (resultstitle / allArticlesTitle) vive dentro de SearchResults, que es
+          quien sabe si hay query o no — así no se duplica la lógica acá. */}
       <Suspense fallback={<p>{t("loading")}</p>}>
         <SearchResults />
       </Suspense>
