@@ -142,31 +142,108 @@ export async function GET(req) {
       JSON.stringify(whereConditions, null, 2)
     );
 
-    // 📊 Buscar artículos
-    const articles = await prisma.article.findMany({
-      where: whereConditions,
-      orderBy: { publicationDate: "desc" },
-      skip: offset,
-      take: limit,
-      include: {
-        regions: true,
-        topics: true,
-        authors: { select: { id: true, name: true } },
-        interviewees: { select: { id: true, name: true } },
-        categories: true,
-        beitragstyp: { select: { id: true, name: true } },
-        edition: { select: { title: true, number: true } },
-      },
-    });
+    const INCLUDE_FULL = {
+      regions: true,
+      topics: true,
+      authors: { select: { id: true, name: true } },
+      interviewees: { select: { id: true, name: true } },
+      categories: true,
+      beitragstyp: { select: { id: true, name: true } },
+      edition: { select: { title: true, number: true } },
+    };
 
-    // ✅ LOG TEMPORAL: Ver fechas de artículos encontrados
-    if (articles.length > 0) {
-      console.log("📰 Primeros 3 artículos encontrados con sus fechas:");
-      articles.slice(0, 3).forEach((article) => {
-        console.log(
-          `  - ${article.title?.substring(0, 50)}... → ${article.publicationDate}`
-        );
+    let articles;
+    let totalArticles;
+
+    if (hasQuery) {
+      // 🎯 Relevancia — sin esto, ordenar solo por fecha hace que una mención de pasada
+      // (una bibliografía, un exilio nombrado al margen) le gane a un artículo realmente
+      // sobre el tema buscado con solo que sea más reciente. Feedback real: buscar
+      // "uruguay" devolvía primero artículos sobre Kuba/Brasil que solo lo nombraban una
+      // vez en el cuerpo, antes que los artículos etiquetados con la región Uruguay.
+      //
+      // Estrategia: traer los candidatos livianos (sin el campo `content`, pesado — HTML
+      // completo del artículo) que ya matchearon por el WHERE de arriba, puntuarlos según
+      // EN QUÉ CAMPO apareció el término, y recién ahí paginar. Si el término no aparece en
+      // ninguno de los campos livianos que chequeamos (título/subtítulo/autor/entrevistado),
+      // tiene que haber matcheado por `content` — es el único campo del OR que no
+      // revisamos acá, así que no hace falta traerlo para confirmarlo. El campo pesado
+      // (con imágenes) recién se trae después, solo para los IDs de la página actual —
+      // igual que ya hacía este endpoint para la paginación.
+      const candidates = await prisma.article.findMany({
+        where: whereConditions,
+        select: {
+          id: true,
+          title: true,
+          titleES: true,
+          subtitle: true,
+          subtitleES: true,
+          publicationDate: true,
+          authors: { select: { name: true } },
+          interviewees: { select: { name: true } },
+          regions: { select: { name: true, nameES: true } },
+          topics: { select: { name: true, nameES: true } },
+        },
+        take: 20000, // mismo tope generoso que el histograma de años, arriba
       });
+
+      const norm = (s) => (s || "").toLowerCase();
+      const nq = norm(searchQuery);
+      const titleOf = (a) => (locale === "es" ? a.titleES || a.title : a.title);
+      const subtitleOf = (a) => (locale === "es" ? a.subtitleES || a.subtitle : a.subtitle);
+      const entityNameOf = (e) => (locale === "es" ? e.nameES || e.name : e.name);
+
+      // Título > etiqueta de región/tema > subtítulo > autor/entrevistado > solo en el
+      // cuerpo. Un match de título es la señal más fuerte de "esto es sobre lo buscado";
+      // una etiqueta de región/tema es casi tan fuerte (alguien clasificó el artículo así
+      // a propósito); el cuerpo es la señal más débil (puede ser una mención al pasar).
+      const SCORE = { title: 100, tag: 80, subtitle: 50, person: 40, content: 10 };
+
+      const scored = candidates.map((a) => {
+        let score = 0;
+        if (norm(titleOf(a)).includes(nq)) score = Math.max(score, SCORE.title);
+        if (
+          a.regions.some((r) => norm(entityNameOf(r)).includes(nq)) ||
+          a.topics.some((t) => norm(entityNameOf(t)).includes(nq))
+        )
+          score = Math.max(score, SCORE.tag);
+        if (norm(subtitleOf(a)).includes(nq)) score = Math.max(score, SCORE.subtitle);
+        if (
+          a.authors.some((p) => norm(p.name).includes(nq)) ||
+          a.interviewees.some((p) => norm(p.name).includes(nq))
+        )
+          score = Math.max(score, SCORE.person);
+        if (score === 0) score = SCORE.content;
+        return { id: a.id, score, publicationDate: a.publicationDate };
+      });
+
+      scored.sort((x, y) => {
+        if (y.score !== x.score) return y.score - x.score;
+        return new Date(y.publicationDate) - new Date(x.publicationDate);
+      });
+
+      totalArticles = scored.length;
+      const pageIds = scored.slice(offset, offset + limit).map((s) => s.id);
+
+      const pageArticles = await prisma.article.findMany({
+        where: { id: { in: pageIds } },
+        include: INCLUDE_FULL,
+      });
+      // findMany con id:{in:[...]} no conserva el orden de la lista — reordenar según el
+      // puntaje ya calculado arriba.
+      const orderOf = new Map(pageIds.map((id, i) => [id, i]));
+      articles = pageArticles.sort((a, b) => orderOf.get(a.id) - orderOf.get(b.id));
+    } else {
+      // Sin texto de búsqueda no hay relevancia que calcular (no hay término contra el
+      // cual puntuar) — orden cronológico simple, como antes, paginado directo en la DB.
+      articles = await prisma.article.findMany({
+        where: whereConditions,
+        orderBy: { publicationDate: "desc" },
+        skip: offset,
+        take: limit,
+        include: INCLUDE_FULL,
+      });
+      totalArticles = await prisma.article.count({ where: whereConditions });
     }
 
     // 📸 Agregar imágenes
@@ -181,11 +258,6 @@ export async function GET(req) {
         return { ...article, images };
       })
     );
-
-    // 🔢 Contar total
-    const totalArticles = await prisma.article.count({
-      where: whereConditions,
-    });
 
     console.log("✅ Resultados encontrados:", totalArticles);
 
