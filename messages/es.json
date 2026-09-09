@@ -50,7 +50,21 @@
     "clearAll": "Limpiar todo",
     "clearAllFilters": "Limpiar todos los filtros",
     "allArticlesTitle": "Todos los artículos",
-    "yearFilter": "Filtrar por año"
+    "yearFilter": "Filtrar por año",
+    "activeFiltersCount": "{count, plural, one {# activo} other {# activos}}",
+    "addRegions": "Agregar regiones",
+    "selectRegionsTitle": "Seleccionar regiones",
+    "addTopics": "Agregar temas",
+    "selectTopicsTitle": "Seleccionar temas",
+    "addMore": "Agregar más",
+    "modalSearchPlaceholder": "Buscar...",
+    "selectedCount": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+    "selectedHeading": "Seleccionados ({count})",
+    "availableHeading": "Disponibles ({count})",
+    "noResultsFound": "No se encontraron resultados",
+    "noOptionsAvailable": "No hay opciones disponibles",
+    "countOfTotal": "{count} de {total} seleccionados",
+    "done": "Listo"
   },
   "navMenu": {
     "index": "Inicio",

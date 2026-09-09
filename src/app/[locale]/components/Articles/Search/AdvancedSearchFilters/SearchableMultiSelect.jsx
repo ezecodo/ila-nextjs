@@ -1,20 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { FaSearch, FaTimes, FaPlus, FaCheck } from "react-icons/fa";
 
 export default function SearchableMultiSelect({
   options = [],
   selectedIds = [],
   onToggle,
-  placeholder = "Buscar...",
+  placeholder,
   locale = "de",
   icon = "🏷️",
   color = "blue",
-  title = "Seleccionar opciones",
+  title,
 }) {
+  const t = useTranslations("search");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  // Los callers (AdvancedSearchFilters) siempre pasan placeholder/title propios — estos
+  // son solo el fallback genérico si algún uso futuro no los pasa.
+  const effectivePlaceholder = placeholder ?? t("modalSearchPlaceholder");
+  const effectiveTitle = title ?? t("advancedSearch");
 
   // Filtrar opciones según búsqueda
   const filteredOptions = options.filter((option) => {
@@ -83,7 +89,7 @@ export default function SearchableMultiSelect({
           className={`inline-flex items-center gap-2 px-4 py-1.5 ${colors.button} text-white rounded-full text-sm font-medium transition-all hover:shadow-lg`}
         >
           <FaPlus size={12} />
-          {selectedIds.length === 0 ? placeholder : "Agregar más"}
+          {selectedIds.length === 0 ? effectivePlaceholder : t("addMore")}
         </button>
       </div>
 
@@ -94,7 +100,7 @@ export default function SearchableMultiSelect({
             {/* Header del modal */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                {icon} {title}
+                {icon} {effectiveTitle}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -112,7 +118,7 @@ export default function SearchableMultiSelect({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar..."
+                  placeholder={t("modalSearchPlaceholder")}
                   className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
                   autoFocus
                 />
@@ -130,10 +136,7 @@ export default function SearchableMultiSelect({
               {selectedIds.length > 0 && (
                 <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                   <FaCheck className="text-green-500" />
-                  <span>
-                    {selectedIds.length} seleccionado
-                    {selectedIds.length !== 1 ? "s" : ""}
-                  </span>
+                  <span>{t("selectedCount", { count: selectedIds.length })}</span>
                 </div>
               )}
             </div>
@@ -145,7 +148,7 @@ export default function SearchableMultiSelect({
                 <div className="mb-6">
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                     <FaCheck className="text-green-500" />
-                    Seleccionados ({selectedOptions.length})
+                    {t("selectedHeading", { count: selectedOptions.length })}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {selectedOptions.map((option) => (
@@ -180,7 +183,7 @@ export default function SearchableMultiSelect({
               {unselectedOptions.length > 0 ? (
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Disponibles ({unselectedOptions.length})
+                    {t("availableHeading", { count: unselectedOptions.length })}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {unselectedOptions.map((option) => (
@@ -209,9 +212,7 @@ export default function SearchableMultiSelect({
                 <div className="py-12 text-center">
                   <div className="text-5xl mb-4">🔍</div>
                   <p className="text-gray-500 dark:text-gray-400">
-                    {searchQuery
-                      ? "No se encontraron resultados"
-                      : "No hay opciones disponibles"}
+                    {searchQuery ? t("noResultsFound") : t("noOptionsAvailable")}
                   </p>
                 </div>
               )}
@@ -220,13 +221,13 @@ export default function SearchableMultiSelect({
             {/* Footer */}
             <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex justify-between items-center">
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {selectedIds.length} de {options.length} seleccionados
+                {t("countOfTotal", { count: selectedIds.length, total: options.length })}
               </span>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
               >
-                Listo
+                {t("done")}
               </button>
             </div>
           </div>

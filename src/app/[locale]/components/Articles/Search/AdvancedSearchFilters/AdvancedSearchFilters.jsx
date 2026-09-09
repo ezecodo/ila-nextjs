@@ -111,11 +111,13 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
           </span>
           {hasActiveFilters && (
             <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium rounded-full">
-              {selectedRegions.length +
-                selectedTopics.length +
-                selectedTypes.length +
-                (selectedYear ? 1 : 0)}{" "}
-              activos
+              {t("activeFiltersCount", {
+                count:
+                  selectedRegions.length +
+                  selectedTopics.length +
+                  selectedTypes.length +
+                  (selectedYear ? 1 : 0),
+              })}
             </span>
           )}
         </div>
@@ -196,7 +198,7 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
             onClick={clearFilters}
             className="px-3 py-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full text-sm font-medium"
           >
-            Limpiar todo
+            {t("clearAll")}
           </button>
         </div>
       )}
@@ -213,8 +215,8 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
               options={regions}
               selectedIds={selectedRegions}
               onToggle={toggleRegion}
-              placeholder="Agregar regiones"
-              title="Seleccionar Regiones"
+              placeholder={t("addRegions")}
+              title={t("selectRegionsTitle")}
               locale={locale}
               icon="🌎"
               color="blue"
@@ -230,8 +232,8 @@ export default function AdvancedSearchFilters({ onFiltersChange, locale }) {
               options={topics}
               selectedIds={selectedTopics}
               onToggle={toggleTopic}
-              placeholder="Agregar temas"
-              title="Seleccionar Temas"
+              placeholder={t("addTopics")}
+              title={t("selectTopicsTitle")}
               locale={locale}
               icon="🏷️"
               color="green"
