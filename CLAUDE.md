@@ -280,6 +280,18 @@ Reemplaza a los antiguos `SideBanner50` + `PartyBanner` (componentes hardcodeado
 ### Stats del sitio — `GET /api/stats/site`
 Conteos globales (artículos publicados, dossiers, traducidos ES, autores, regiones, temas, `yearsActive` = año actual − `FOUNDING_YEAR` hardcodeado en 1976), cacheado 5 min (`export const revalidate = 300`). Solo se pide si algún banner activo tiene un bloque `stats`.
 
+### Stats clicables → listados
+Feedback del equipo: los números del bloque `stats` eran decorativos, sin destino. `STAT_HREF` en `blocks.js` (junto a `STAT_REGISTRY`) mapea cada métrica a su listado — `StatsBlock` en `BannerSlide.jsx` envuelve el número+label en un `<Link>` si hay `href`, si no queda como antes (`div` sin link):
+- `editions` (Dossiers) → `/archive` (ya existía)
+- `articles` (Artikel) → `/search` (modo "todos los artículos", ver sección "Búsqueda del sitio")
+- `authors` (Autor\*innen) → `/authors` (**página nueva**, índice de todos los autores con conteo, reusa `/api/entities/authors`)
+- `topics` (Themen) → `/entities/topics` (**página nueva**, índice, reusa `/api/entities/topics`)
+- `regions` (Regionen) → `/entities/regions` (**página nueva**, índice, reusa `/api/regions?leafOnly=true` filtrado a `count > 0` en el cliente — mismo gotcha del `leafOnly` que en "Búsqueda del sitio")
+- `translatedEs` (Auf Spanisch) → siempre a `/es/search` sin importar el locale del banner — `/api/articles/search` ya fuerza `isTranslatedES:true` + `needsReviewES:false` cuando `locale=es`, así que no hace falta ningún filtro nuevo. Mismo patrón que el stat "auf Spanisch" del dossier individual en `LatestEdition1.js`.
+- `yearsActive` queda **sin link a propósito** — es un cálculo, no hay ningún listado que mostrar.
+
+Los índices nuevos (`/authors`, `/entities/topics`, `/entities/regions`) son solo listas que linkean a las páginas de resultado por entidad que **ya existían** (`/authors/[id]`, `/entities/topics/[id]`, `/entities/regions/[id]`, vía `ArticlesByEntity`) — no se reinventó esa parte.
+
 ### Preview y miniaturas — un solo render para todo
 - `BannerSlide.jsx` es **presentacional puro** (recibe `banner` + `stats` resueltas, sin fetch propio) — lo usan `SlideBanner` (público), la preview en vivo de `/dashboard/banners`, y `BannerThumb` (miniatura en la lista del dashboard). Evita duplicar el render en varios lugares a propósito (ver gotcha de las 4 copias de `wrapInlineImagesWithCaption` en este mismo archivo).
 - `CtaPreviewCard` (en `dashboard/banners/page.jsx`) es el análogo para `type: "cta"` — mismo criterio, la preview en vivo y la miniatura de lista usan el mismo componente.
@@ -418,6 +430,37 @@ export default function MiPaginaDashboard() {
 - **Modo `all=true`**: devuelve `{ items, total, years, page, pageSize, source }`. Params: `yearFrom`/`yearTo` (filtran por `edition.datePublished`), `page`, `pageSize` (default 24, cap 48). `years` = años disponibles para poblar los selects; `source` = título + `legacyPath` del artículo origen (para header y back-link).
 - El escaneo de años/total usa `take: 1000` como tope de seguridad — si una región muy grande del archivo lo supera, subir el tope o migrar a `count` + `groupBy` por año.
 - Helper `attachImage` adjunta la primera imagen (`contentType: "ARTICLE"`, `contentId = beitragsId || id`).
+
+## Búsqueda del sitio (`/search`)
+
+### Modo "todos los artículos" (sin query)
+`SearchResults.js` ya no exige texto — sin `query` muestra todos los artículos publicados, paginado (era el destino del stat "Artikel" del banner de archivo, ver más abajo). El backend (`/api/articles/search/route.js`) antes tiraba 400 sin query; ahora solo omite el filtro `OR` de texto si `query` viene vacío. El título de la página (`h2` dentro de `SearchResults.js`, no en `search/page.js`) cambia entre `t("resultstitle")` y `t("allArticlesTitle")` según haya query o no.
+
+### Relevancia de resultados (con query)
+**Antes ordenaba solo por `publicationDate desc`** — un artículo que mencionaba el término de pasada (una bibliografía, un exilio nombrado al margen de otro tema) le ganaba a uno realmente relevante con solo ser más reciente. Feedback real: buscar "uruguay" devolvía primero artículos sobre Kuba/Brasil que solo lo nombraban una vez en el cuerpo, antes que los artículos etiquetados con la región Uruguay.
+
+Ahora, cuando hay `query`, `/api/articles/search/route.js`:
+1. Trae los candidatos livianos que ya matchearon por el `WHERE` (sin el campo `content`/`contentES`, pesado — HTML completo del artículo), tope de seguridad `take: 20000`.
+2. Puntúa cada uno según **en qué campo** apareció el término: título `100` > etiqueta de región o tema `80` > subtítulo `50` > autor/entrevistado `40` > solo en el cuerpo `10`. Si no matcheó en ninguno de los campos livianos revisados, por descarte tiene que haber sido `content` — no hace falta traerlo para confirmarlo.
+3. Ordena por puntaje desc (fecha desc como desempate) y recién ahí pagina en memoria.
+4. Trae el detalle completo (con imágenes) solo para los IDs de la página actual.
+
+Sin `query` (modo "todos los artículos" o solo filtros) no hay relevancia que calcular — sigue siendo `orderBy: publicationDate desc` + `skip`/`take` directo en la DB, sin este paso extra.
+
+### Línea de tiempo (`YearTimeline`)
+Mismo componente que `/related/[articleId]` (`components/RelatedArticles/YearTimeline.jsx` — histograma arrastrable, sin dependencias). El endpoint devuelve `yearCounts` (calculado sobre las mismas condiciones de texto/región/tema/tipo, **antes** de aplicar el filtro de año, para que el histograma muestre siempre la distribución completa aunque el rango esté acotado — mismo criterio que `related` en modo `all`). Acepta `yearFrom`/`yearTo` (con prioridad sobre el `year` exacto que manda `AdvancedSearchFilters`).
+- **Gotcha de datos ya resuelto**: el histograma filtra años fuera de `1976`–`año actual + 1` (mismo `FOUNDING_YEAR` que `/api/stats/site`) — hay un artículo (id 22813) con `publicationDate` migrado mal, en el año `0014` en vez de `2014`, que sin este filtro reventaba el rango de la timeline. No se tocó el dato en la base, solo se lo excluye del histograma.
+
+### `AdvancedSearchFilters.jsx` — filtros de Regionen/Themen/Artikeltypen
+Regiones y temas usan `react-select/async` (`AsyncSelect`, `ssr: false` — mismo patrón que Autor:in/Gesprächspartner:in en `ArticleFormV2.jsx`, pero acá `loadOptions` filtra en memoria sobre la lista ya traída, sin ida y vuelta al servidor por letra, porque no hace falta "crear nuevo"). Reemplazó un modal de checkboxes (`SearchableMultiSelect.jsx`, borrado) que tardaba 3 clicks para agregar un filtro.
+- **`hideSelectedOptions={false}` es necesario**: sin esto, react-select saca la opción ya elegida de la lista al reabrir el dropdown — el diseño (ver abajo) depende de que la opción elegida siga visible, resaltada, con el check.
+- **Color**: rojo de marca (`#BD0E0D`) para todo estado activo/seleccionado en las tres categorías (región/tema/tipo) — antes cada una tenía su propio color genérico de Tailwind (azul/verde/púrpura), lo que además chocaba con la regla de marca "un color = un significado" (el verde está reservado para el Digital-Abo, ver Brand Kit). El color ya no distingue el tipo de filtro — eso lo hace el ícono (`react-icons`, no emoji) — y el rojo es siempre "esto está activo". El verde de marca (`#89B881`) queda como acento sutil y puntual: solo el check ✓ de una opción ya elegida dentro del dropdown (mismo significado "éxito/confirmado" que ya tiene en `SubmitFeedback`).
+- **Memoización obligatoria** (`useMemo`/`useCallback` en `regionOptions`/`topicOptions`/`loadRegionOptions`/`loadTopicOptions`/`labelOf`): sin esto, cada tilde de un filtro re-renderiza el componente entero → nuevas referencias de array/función en cada `AsyncSelect` → react-select las toma como "cambiaron las opciones" y puede cerrar el desplegable o perder lo tipeado a mitad de búsqueda en el OTRO select.
+- **Artikeltypen se quedó como pills de toggle directo** (sin `AsyncSelect`) — son ~6-10 opciones, un desplegable ahí sería más fricción, no menos.
+- El `<select>` de año único (clásico) se sacó del panel — quedaba redundante con la `YearTimeline`, que hace lo mismo pero mejor (rango, no año exacto). El campo `year` se sigue mandando vacío en `onFiltersChange` para no tocar el contrato que ya consume `SearchResults.js`.
+
+### ⚠️ Pendiente: `leafOnly=true` excluye países/macro-regiones enteras
+El fetch de regiones (`/api/regions?leafOnly=true`) solo devuelve regiones **sin hijos**. Como casi todos los países tienen al menos una ciudad como sub-región (Uruguay → Montevideo, Brasilien → São Paulo/Rio, Chile → Santiago, etc.), **24 países y macro-regiones enteras no son filtrables** (lista completa: Südamerika, Uruguay, Chile, Brasilien, Argentinien, Bolivien, Ecuador, Peru, Venezuela, Kolumbien, Mittelamerika, Mexiko, El Salvador, Nicaragua, Karibik, Dominikanische Republik, Cuba, Nordamerika, Länderübergreifende Regionen, Europa, EU, Großbritannien, Deutschland, Afrika, Asien). Alguien escribe "Uruguay" en el filtro nuevo y no aparece nada — la limitación ya existía con el modal viejo (misma API), pero con el `AsyncSelect` se nota mucho más porque invita justo a escribir nombres de país. Arreglo pendiente (acordado, no implementado): dejar de usar `leafOnly=true` y traer el árbol completo aplanado (países + ciudades como opciones separadas).
 
 ## Sistema de traducción ES
 

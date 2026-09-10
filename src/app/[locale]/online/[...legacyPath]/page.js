@@ -445,6 +445,28 @@ export default function LegacyArticlePage() {
             >
               {showES ? article.titleES : article.title}
             </h1>
+            {/* 🔁 Aviso: versión original disponible en alemán */}
+            {showES && (
+              <div className="text-right mb-3">
+                <Link
+                  href={`/de${fullPath}`}
+                  className="text-sm text-blue-700 underline font-medium"
+                >
+                  Original auf Deutsch verfügbar →
+                </Link>
+              </div>
+            )}
+            {/* 🔁 Hinweis: Artikel ist auch auf Spanisch verfügbar */}
+            {!isES && esApproved && (
+              <div className="text-right mb-3">
+                <Link
+                  href={`/es${fullPath}`}
+                  className="text-sm text-blue-700 underline font-medium"
+                >
+                  También disponible en español →
+                </Link>
+              </div>
+            )}
 
             {/* SUBTITULO */}
             {(showES ? article.subtitleES : article.subtitle) && (
@@ -790,6 +812,16 @@ export default function LegacyArticlePage() {
                 }}
               />
             </div>
+          )}
+          {/* 👇 Créditos de traducción al final del artículo */}
+
+          {showES && !article.esIsOriginal && (
+            <p className="text-sm text-gray-500 italic mt-10 text-right">
+              Traducción realizada con la ayuda de DeepL
+              {article.translator && (
+                <> y editada por {article.translator.name}</>
+              )}
+            </p>
           )}
 
           {article.edition?.id && (
