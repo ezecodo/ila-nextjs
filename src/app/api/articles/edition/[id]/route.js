@@ -40,6 +40,17 @@ export async function GET(req, context) {
     // Digital ABO ven además los artículos programados (con fecha futura).
     const session = await auth();
     const role = session?.user?.role;
+    const userId = session?.user?.id;
+
+    // 🔒 Dossier en borrador (isPublished: false): sin artículos para nadie
+    // salvo admin/traductor asignado, mientras el equipo lo va armando.
+    const hasEditionAccess =
+      edition.isPublished ||
+      role === "admin" ||
+      edition.translatorId === userId;
+    if (!hasEditionAccess) {
+      return new Response(JSON.stringify([]), { status: 200 });
+    }
 
     let where;
     if (role === "admin") {

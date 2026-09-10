@@ -5,6 +5,9 @@ export async function GET() {
     const articles = await prisma.article.findMany({
       where: {
         isPublished: true, // Filtra solo los artículos publicados
+        // 🔒 Si pertenece a un Dossier, ese Dossier debe estar publicado
+        // (dossiers en borrador se cargan de antemano, ver Edition.isPublished)
+        OR: [{ editionId: null }, { edition: { isPublished: true } }],
       },
       include: {
         beitragstyp: true,

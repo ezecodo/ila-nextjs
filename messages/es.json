@@ -1088,6 +1088,7 @@
     "editorialLabel": "Editorial (opcional)",
     "tocLabel": "Tabla de Contenidos",
     "tocPh": "Ingrese la tabla de contenidos (opcional)",
+    "isPublished": "¿Publicado? (destildar para dejar el dossier en borrador)",
     "isCurrent": "¿Es la edición actual?",
     "isAvailable": "¿Disponible para pedir?",
     "topicsLabel": "Tema/s:",

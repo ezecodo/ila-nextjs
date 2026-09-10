@@ -23,6 +23,11 @@ export async function GET(req: NextRequest) {
           { publicationDate: { lte: new Date() } },
         ],
       },
+      // 🔒 Si pertenece a un Dossier, ese Dossier debe estar publicado
+      // (dossiers en borrador se cargan de antemano, ver Edition.isPublished)
+      {
+        OR: [{ editionId: null }, { edition: { isPublished: true } }],
+      },
     ];
 
     if (onlineOnly) {

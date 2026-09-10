@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { uploadFile, toSlug } from "@/lib/localUpload";
+import { auth } from "@/app/auth";
 
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
 export async function GET(req) {
@@ -8,12 +9,21 @@ export async function GET(req) {
 
     // flags / filtros
     const current = searchParams.get("current");
-    const admin = searchParams.get("admin") === "true";
+    const adminRequested = searchParams.get("admin") === "true";
     const year = searchParams.get("year");
+
+    // 🔒 El modo admin=true devuelve dossiers en borrador (isPublished:false)
+    // y datos internos (traductor asignado, etc.) — sin este chequeo, cualquiera
+    // podía pedir ?admin=true sin sesión y esquivar el gate de publicación.
+    const session = await auth();
+    const admin = adminRequested && session?.user?.role === "admin";
+    if (adminRequested && !admin) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
 
     if (current === "true") {
       const edition = await prisma.edition.findFirst({
-        where: { isCurrent: true },
+        where: { isCurrent: true, isPublished: true },
         include: {
           regions: { select: { id: true, name: true, nameES: true } },
           topics: { select: { id: true, name: true, nameES: true } },
@@ -71,6 +81,14 @@ export async function GET(req) {
     const orderBy = allowedSortFields.has(sortField)
       ? { [sortField]: sortOrder === "asc" ? "asc" : "desc" }
       : { number: "desc" };
+
+    // 🔒 Dossiers en borrador ocultos salvo para admin — ya sea vía ?admin=true
+    // (listado paginado del dashboard) o una sesión admin normal navegando la
+    // lista plana (p. ej. el selector "Magazinausgabe" al cargar un artículo,
+    // que necesita poder elegir un dossier todavía en borrador).
+    if (!admin && session?.user?.role !== "admin") {
+      where.isPublished = true;
+    }
 
     // Si viene admin=true → devolvemos paginado { items, totalPages }
     if (admin) {
@@ -141,6 +159,10 @@ export async function POST(req) {
     const summary = formData.get("summary") || ""; // Editorial es opcional al crear
     const tableOfContents = formData.get("tableOfContents") || null;
     const isCurrent = formData.get("isCurrent") === "true";
+    // 🔒 Si el campo no viene (formularios viejos/otros clientes), por defecto
+    // publicado — mismo comportamiento de siempre. Solo queda en borrador si
+    // se manda explícitamente "false" (checkbox destildado a propósito).
+    const isPublished = formData.get("isPublished") !== "false";
 
     const regions = JSON.parse(formData.get("regions") || "[]");
     const topics = JSON.parse(formData.get("topics") || "[]");
@@ -190,6 +212,8 @@ export async function POST(req) {
         isCurrent,
         coverImage: coverImagePath, // Guardar URL de Cloudinary
         isAvailableToOrder,
+        isPublished,
+        publishedAt: isPublished ? new Date() : null,
         regions: regions.length
           ? { connect: regions.map((id) => ({ id })) }
           : undefined,

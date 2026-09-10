@@ -16,6 +16,9 @@ export async function GET(request) {
       where: {
         id: { in: ids },
         isPublished: true,
+        // 🔒 Si pertenece a un Dossier, ese Dossier debe estar publicado
+        // (dossiers en borrador se cargan de antemano, ver Edition.isPublished)
+        OR: [{ editionId: null }, { edition: { isPublished: true } }],
       },
       select: {
         id: true,

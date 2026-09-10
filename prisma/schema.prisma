@@ -165,6 +165,8 @@ model Edition {
   reviewedAt         DateTime?
   translationStatus  String           @default("not_assigned")
   translatorId       String?
+  isPublished        Boolean          @default(true)
+  publishedAt        DateTime?
   activityLogs       ActivityLog[]
   articles           Article[]
   translator         User?            @relation("EditionTranslator", fields: [translatorId], references: [id])

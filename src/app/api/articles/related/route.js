@@ -98,6 +98,10 @@ export async function GET(req) {
       isPublished: true,
       id: { not: articleId },
       OR: [{ publicationDate: null }, { publicationDate: { lte: now } }],
+      // 🔒 Si pertenece a un Dossier, ese Dossier debe estar publicado
+      // (dossiers en borrador se cargan de antemano, ver Edition.isPublished).
+      // Va en AND aparte porque OR ya se usa arriba para publicationDate.
+      AND: [{ OR: [{ editionId: null }, { edition: { isPublished: true } }] }],
       ...(locale === "es"
         ? { isTranslatedES: true, needsReviewES: false }
         : {}),

@@ -40,6 +40,8 @@ export async function GET(req, context) {
         coverImage: true,
         isAvailableToOrder: true,
         isCurrent: true,
+        isPublished: true,
+        publishedAt: true,
         datePublished: true,
         // Campos en español
         titleES: true,
@@ -141,6 +143,15 @@ export async function GET(req, context) {
     // 🔍 Verificar si el usuario tiene acceso a campos privados
     const hasFullAccess =
       userRole === "admin" || edition.translatorId === userId;
+
+    // 🔒 Dossier en borrador (isPublished: false): oculto para el público,
+    // visible para admin/traductor asignado mientras lo arman.
+    if (!edition.isPublished && !hasFullAccess) {
+      return new Response(JSON.stringify({ error: "Edición no encontrada" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     // Si el locale es español y hay traducción, mezclar los campos
     const responseData = { ...edition };
@@ -293,6 +304,7 @@ export async function PUT(req, context) {
         tableOfContents: jsonData.tableOfContents || null,
         isCurrent: jsonData.isCurrent,
         isAvailableToOrder: jsonData.isAvailableToOrder,
+        isPublished: jsonData.isPublished,
         regions: jsonData.regions || [],
         topics: jsonData.topics || [],
         // 🆕 Traducciones ES
@@ -321,6 +333,9 @@ export async function PUT(req, context) {
         tableOfContents: formData.get("tableOfContents") || null,
         isCurrent: formData.get("isCurrent") === "true",
         isAvailableToOrder: formData.get("isAvailableToOrder") === "true",
+        isPublished: formData.has("isPublished")
+          ? formData.get("isPublished") === "true"
+          : undefined,
         regions: JSON.parse(formData.get("regions") || "[]"),
         topics: JSON.parse(formData.get("topics") || "[]"),
         // 🆕 Traducciones ES
@@ -364,6 +379,12 @@ export async function PUT(req, context) {
       coverImageUrl = existing?.coverImage || null;
     }
 
+    // Estado actual (para no pisar publishedAt si ya estaba publicado)
+    const currentEdition = await prisma.edition.findUnique({
+      where: { id: editionId },
+      select: { publishedAt: true },
+    });
+
     // ✅ Construir objeto de actualización (solo campos que vienen)
     const updateData = {};
 
@@ -382,6 +403,14 @@ export async function PUT(req, context) {
     if (data.isCurrent !== undefined) updateData.isCurrent = data.isCurrent;
     if (data.isAvailableToOrder !== undefined)
       updateData.isAvailableToOrder = data.isAvailableToOrder;
+    if (data.isPublished !== undefined) {
+      updateData.isPublished = data.isPublished;
+      // 🔒 Solo registrar publishedAt la primera vez que pasa a publicado
+      // (no lo pisa si ya estaba publicado y se vuelve a guardar el form).
+      if (data.isPublished && !currentEdition?.publishedAt) {
+        updateData.publishedAt = new Date();
+      }
+    }
 
     // 🆕 Traducciones ES
     if (data.titleES !== undefined) updateData.titleES = data.titleES;

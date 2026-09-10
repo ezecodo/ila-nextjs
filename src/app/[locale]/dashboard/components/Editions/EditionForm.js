@@ -53,6 +53,12 @@ export default function EditionForm({ edition = null }) {
     edition?.tableOfContents || ""
   );
   const [isCurrent, setIsCurrent] = useState(edition?.isCurrent || false);
+  // 🔒 Gate de publicación del dossier — tildado por defecto (dossiers nuevos
+  // se publican como siempre); se destilda a propósito para armar un dossier
+  // en borrador (subir artículos ya asignados sin que se vean todavía).
+  const [isPublished, setIsPublished] = useState(
+    edition ? edition.isPublished !== false : true
+  );
   const [coverImage, setCoverImage] = useState(null);
   const [removeCover, setRemoveCover] = useState(false);
   const [regions, setRegions] = useState(
@@ -196,6 +202,7 @@ export default function EditionForm({ edition = null }) {
     formData.append("summary", summary);
     formData.append("tableOfContents", tableOfContents);
     formData.append("isCurrent", isCurrent);
+    formData.append("isPublished", isPublished);
 
     if (removeCover) {
       formData.append("removeCover", "true");
@@ -316,6 +323,12 @@ export default function EditionForm({ edition = null }) {
           value={tableOfContents}
           onChange={(e) => setTableOfContents(e.target.value)}
           placeholder={t("tocPh")}
+        />
+        <ToggleSwitch
+          id="isPublished"
+          label={t("isPublished")}
+          checked={isPublished}
+          onChange={(e) => setIsPublished(e.target.checked)}
         />
         <ToggleSwitch
           id="isCurrent"

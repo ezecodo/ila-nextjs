@@ -32,6 +32,11 @@ export async function GET(req) {
     // 🔨 Construir condiciones base según locale
     let whereConditions = {
       isPublished: true,
+      // 🔒 Si pertenece a un Dossier, ese Dossier debe estar publicado
+      // (dossiers en borrador se cargan de antemano, ver Edition.isPublished).
+      // Va en AND aparte porque más abajo whereConditions.OR se usa para el
+      // texto de búsqueda — no se pueden pisar los dos usando la misma key.
+      AND: [{ OR: [{ editionId: null }, { edition: { isPublished: true } }] }],
     };
 
     // Condiciones de búsqueda de texto según idioma (solo si hay término)
