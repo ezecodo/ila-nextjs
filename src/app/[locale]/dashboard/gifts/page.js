@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import GiftForm from "../components/GiftsForm/GiftsForm";
 import { useTranslations, useLocale } from "next-intl";
-import { FaPlus, FaTimes, FaEdit, FaGift, FaImage } from "react-icons/fa";
+import {
+  FaPlus,
+  FaTimes,
+  FaEdit,
+  FaGift,
+  FaImage,
+  FaQuestionCircle,
+} from "react-icons/fa";
 
 export default function AdminGiftsPage() {
   const [gifts, setGifts] = useState([]);
@@ -12,6 +19,7 @@ export default function AdminGiftsPage() {
   const [editingGift, setEditingGift] = useState(null);
   const [formVisible, setFormVisible] = useState(false);
   const [gallery, setGallery] = useState([]);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [newGift, setNewGift] = useState({
     name: "",
     subtitle: "",
@@ -198,6 +206,13 @@ export default function AdminGiftsPage() {
                   <FaGift className="text-white text-xl" />
                 </div>
                 {t("title")}
+                <button
+                  onClick={() => setShowHelpModal(true)}
+                  className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full border border-gray-200 dark:border-gray-700 transition-colors"
+                  title={t("help_modal.trigger_tooltip")}
+                >
+                  <FaQuestionCircle className="text-lg" />
+                </button>
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-2">
                 {t("subtitle") ||
@@ -422,6 +437,52 @@ export default function AdminGiftsPage() {
           </div>
         )}
       </div>
+
+      {/* Modal de ayuda del módulo */}
+      {showHelpModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 rounded-t-2xl">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                {t("help_modal.title")}
+              </h2>
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {[
+                "what",
+                "create",
+                "translation",
+                "image",
+                "deactivate",
+                "delete",
+              ].map((key) => (
+                <p
+                  key={key}
+                  className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                >
+                  {t(`help_modal.items.${key}`)}
+                </p>
+              ))}
+            </div>
+
+            <div className="p-6 pt-0 flex justify-end">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-medium transition-colors text-sm"
+              >
+                {t("help_modal.close")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes fadeIn {

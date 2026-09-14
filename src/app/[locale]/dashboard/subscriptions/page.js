@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaQuestionCircle } from "react-icons/fa";
 import { useTranslations } from "next-intl";
 
 export default function SubscriptionsPage() {
@@ -12,6 +12,7 @@ export default function SubscriptionsPage() {
   const [exporting, setExporting] = useState(false);
   const [selectedSub, setSelectedSub] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
   const [search, setSearch] = useState("");
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef(null);
@@ -113,8 +114,15 @@ export default function SubscriptionsPage() {
       <div className="max-w-7xl mx-auto py-6 px-4 md:py-10 md:px-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 md:mb-8 gap-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
             {t("title")}
+            <button
+              onClick={() => setShowHelpModal(true)}
+              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-full border border-gray-200 dark:border-gray-700 transition-colors"
+              title={t("help_modal.trigger_tooltip")}
+            >
+              <FaQuestionCircle className="text-base" />
+            </button>
           </h1>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button
@@ -578,6 +586,45 @@ export default function SubscriptionsPage() {
                       )}
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de ayuda del módulo */}
+        {showHelpModal && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[999] p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto relative">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="absolute top-4 right-4 z-50 text-gray-500 hover:text-red-600 transition-all duration-200 text-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:shadow-lg hover:scale-105"
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+
+              <div className="p-6 md:p-8 pt-12">
+                <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-100">
+                  {t("help_modal.title")}
+                </h2>
+
+                <div className="space-y-4">
+                  {[
+                    "status",
+                    "search",
+                    "export",
+                    "details",
+                    "gift_vs_reward",
+                    "mark_processed",
+                  ].map((key) => (
+                    <p
+                      key={key}
+                      className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                    >
+                      {t(`help_modal.items.${key}`)}
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>

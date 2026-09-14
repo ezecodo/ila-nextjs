@@ -253,7 +253,20 @@
     "markAsInactive": "Marcar como agotado",
     "markAsActive": "Activar nuevamente",
     "confirmDeactivate": "¿Marcar este premio como agotado?",
-    "confirmActivate": "¿Volver a activar este premio?"
+    "confirmActivate": "¿Volver a activar este premio?",
+    "help_modal": {
+      "title": "¿Qué podés hacer en este módulo?",
+      "trigger_tooltip": "Ayuda",
+      "close": "Cerrar",
+      "items": {
+        "what": "🎁 Qué es: el regalo que el suscriptor puede elegir al darse de alta en /order/abo — lo que cargues acá es lo que aparece en ese selector.",
+        "create": "➕ Crear o editar: nombre y descripción en alemán son la base del premio; el subtítulo es opcional.",
+        "translation": "🇪🇸 Versión en español: opcional. Si completás cualquier campo ES (nombre, subtítulo o descripción), el premio se muestra traducido a quien navegue el sitio en español — si los dejás vacíos, se muestra siempre en alemán.",
+        "image": "🖼️ Imagen: una sola foto por premio, se sube con el mismo cargador que usás en el resto del panel.",
+        "deactivate": "🟡 Marcar como agotado: lo oculta del selector público sin borrarlo — las suscripciones que ya lo eligieron no se ven afectadas. Se puede reactivar cuando quieras.",
+        "delete": "🗑️ Eliminar definitivamente: borra el premio y su imagen del servidor para siempre. No se puede deshacer — usalo solo si el premio nunca se usó o ya no hace falta ningún registro de él."
+      }
+    }
   },
   "redaktionTeam": {
     "title": "👥 Gestionar Redacción",
@@ -1185,7 +1198,20 @@
     "recipientShipmentTitle": "📦 Envío al destinatario {n}",
     "exportCsvButton": "📥 Exportar pedidos nuevos ({count})",
     "exportCsvEmpty": "No hay pedidos nuevos para exportar",
-    "exportCsvError": "Error al exportar los pedidos"
+    "exportCsvError": "Error al exportar los pedidos",
+    "help_modal": {
+      "title": "¿Qué podés hacer en este módulo?",
+      "trigger_tooltip": "Ayuda",
+      "items": {
+        "status": "🟢 Punto verde parpadeando: todavía no se procesó. 🔴 Rojo: ya se marcó como procesado.",
+        "search": "🔍 Buscá por nombre, apellido o email.",
+        "export": "📥 Exportar nuevos: descarga un CSV solo con los pedidos nuevos (sin procesar), para cargarlos a mano en CiviCRM. No marca nada como procesado — podés reexportar las veces que quieras.",
+        "details": "👁️ Ver detalles: muestra los dossiers pedidos, dirección y teléfono de quien hizo el pedido.",
+        "recipients": "📦 Varias direcciones de envío: si alguien manda dossiers a distintos destinatarios, cada envío aparece en su propio recuadro — con su dirección y sus artículos por separado.",
+        "reply": "💬 Responder mensaje: si dejaron un comentario al hacer el pedido, se le puede responder directo por email desde acá, sin salir del dashboard.",
+        "mark_processed": "✅ Marcar como procesado: recién ahí sale de la lista de pendientes. A diferencia de los Abos, no dispara ninguna otra acción automática."
+      }
+    }
   },
   "abo": {
     "title": "Suscripción a ila",
@@ -1344,7 +1370,19 @@
       "processedLabel": "Procesada el",
       "exportCsvButton": "📥 Exportar suscripciones nuevas ({count})",
       "exportCsvEmpty": "No hay suscripciones nuevas para exportar",
-      "exportCsvError": "Error al exportar las suscripciones"
+      "exportCsvError": "Error al exportar las suscripciones",
+      "help_modal": {
+        "title": "¿Qué podés hacer en este módulo?",
+        "trigger_tooltip": "Ayuda",
+        "items": {
+          "status": "🟢 Punto verde parpadeando: todavía no se procesó. 🔴 Rojo: ya se marcó como procesada.",
+          "search": "🔍 Buscá por nombre, apellido o email.",
+          "export": "📥 Exportar nuevas: descarga un CSV solo con las suscripciones nuevas (sin procesar), para cargarlas a mano en CiviCRM. No marca nada como procesado — podés reexportar las veces que quieras antes de cerrar en CiviCRM.",
+          "details": "👁️ Ver detalles: abre toda la info del pedido — dirección, y si es un abono regalado (🎁 Geschenkabo), los datos del destinatario aparecen en una sección aparte.",
+          "gift_vs_reward": "🏅 Prämie ≠ 🎁 Geschenkabo: la Prämie es el premio físico que elige la persona; el Geschenkabo es que el abono en sí se lo regala a otra persona. Son cosas independientes entre sí.",
+          "mark_processed": "✅ Marcar como procesada: recién ahí sale de la lista de pendientes. Si es un Digital-Abo (PDF), además da de alta automáticamente a la persona en el módulo PDF-Abo y le manda la invitación — no hace falta cargarla ahí a mano."
+        }
+      }
     },
     "popularLabel": "Popular",
     "heroSubtitle": "Independiente. Crítico. Solidario.",

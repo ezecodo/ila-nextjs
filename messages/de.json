@@ -253,7 +253,20 @@
     "markAsInactive": "Als vergriffen markieren",
     "markAsActive": "Wieder aktivieren",
     "confirmDeactivate": "Dieses Geschenk als vergriffen markieren?",
-    "confirmActivate": "Dieses Geschenk wieder aktivieren?"
+    "confirmActivate": "Dieses Geschenk wieder aktivieren?",
+    "help_modal": {
+      "title": "Was kann dieses Modul?",
+      "trigger_tooltip": "Hilfe",
+      "close": "Schließen",
+      "items": {
+        "what": "🎁 Was ist das: das Geschenk, das Abonnent:innen bei der Anmeldung unter /order/abo auswählen können — was hier eingetragen wird, erscheint dort zur Auswahl.",
+        "create": "➕ Erstellen oder bearbeiten: Name und Beschreibung auf Deutsch sind die Basis der Prämie; der Untertitel ist optional.",
+        "translation": "🇪🇸 Spanische Version: optional. Wird irgendein ES-Feld (Name, Untertitel oder Beschreibung) ausgefüllt, wird die Prämie auf Spanisch angezeigt — bleiben sie leer, wird immer die deutsche Version gezeigt.",
+        "image": "🖼️ Bild: ein einzelnes Foto pro Prämie, hochgeladen mit demselben Uploader wie im restlichen Dashboard.",
+        "deactivate": "🟡 Als vergriffen markieren: blendet die Prämie in der öffentlichen Auswahl aus, ohne sie zu löschen — bestehende Abos, die sie schon gewählt haben, sind nicht betroffen. Kann jederzeit wieder aktiviert werden.",
+        "delete": "🗑️ Endgültig löschen: entfernt die Prämie und ihr Bild dauerhaft vom Server. Kann nicht rückgängig gemacht werden — nur verwenden, wenn die Prämie nie benutzt wurde oder keine Aufzeichnung mehr gebraucht wird."
+      }
+    }
   },
   "redaktionTeam": {
     "title": "👥 Redaktion verwalten",
@@ -1186,7 +1199,20 @@
     "recipientShipmentTitle": "📦 Lieferung an Empfänger {n}",
     "exportCsvButton": "📥 Neue Bestellungen exportieren ({count})",
     "exportCsvEmpty": "Keine neuen Bestellungen zum Exportieren",
-    "exportCsvError": "Fehler beim Exportieren der Bestellungen"
+    "exportCsvError": "Fehler beim Exportieren der Bestellungen",
+    "help_modal": {
+      "title": "Was kann dieses Modul?",
+      "trigger_tooltip": "Hilfe",
+      "items": {
+        "status": "🟢 Blinkender grüner Punkt: noch nicht bearbeitet. 🔴 Rot: bereits als bearbeitet markiert.",
+        "search": "🔍 Suche nach Vorname, Nachname oder E-Mail.",
+        "export": "📥 Neue exportieren: lädt eine CSV nur mit den neuen (unbearbeiteten) Bestellungen herunter, zum manuellen Eintragen in CiviCRM. Markiert dabei nichts als bearbeitet — kann beliebig oft erneut exportiert werden.",
+        "details": "👁️ Details ansehen: zeigt die bestellten Dossiers, Adresse und Telefonnummer des Bestellers.",
+        "recipients": "📦 Mehrere Lieferadressen: wenn jemand Dossiers an verschiedene Empfänger verschicken lässt, wird jede Lieferung in einem eigenen Kasten aufgeführt — mit eigener Adresse und eigenen Artikeln.",
+        "reply": "💬 Nachricht beantworten: wenn beim Bestellen ein Kommentar hinterlassen wurde, kann hier direkt per E-Mail geantwortet werden, ohne das Dashboard zu verlassen.",
+        "mark_processed": "✅ Als bearbeitet markieren: erst dann verschwindet die Bestellung aus der Liste der offenen. Löst — anders als bei den Abos — keine weitere automatische Aktion aus."
+      }
+    }
   },
   "abo": {
     "title": "Abonnement abschließen",
@@ -1345,7 +1371,19 @@
       "processedLabel": "Bearbeitet am",
       "exportCsvButton": "📥 Neue Abos exportieren ({count})",
       "exportCsvEmpty": "Keine neuen Abos zum Exportieren",
-      "exportCsvError": "Fehler beim Exportieren der Abos"
+      "exportCsvError": "Fehler beim Exportieren der Abos",
+      "help_modal": {
+        "title": "Was kann dieses Modul?",
+        "trigger_tooltip": "Hilfe",
+        "items": {
+          "status": "🟢 Blinkender grüner Punkt: noch nicht bearbeitet. 🔴 Rot: bereits als bearbeitet markiert.",
+          "search": "🔍 Suche nach Vorname, Nachname oder E-Mail.",
+          "export": "📥 Neue exportieren: lädt eine CSV nur mit den neuen (unbearbeiteten) Abos herunter, zum manuellen Eintragen in CiviCRM. Markiert dabei nichts als bearbeitet — kann beliebig oft erneut exportiert werden, bevor in CiviCRM abgeschlossen wird.",
+          "details": "👁️ Details ansehen: zeigt alle Angaben zur Bestellung — Adresse, und bei einem Geschenkabo (🎁) stehen die Daten des Empfängers in einem eigenen Abschnitt.",
+          "gift_vs_reward": "🏅 Prämie ≠ 🎁 Geschenkabo: die Prämie ist das physische Geschenk, das sich die Person aussucht; das Geschenkabo bedeutet, dass das Abo selbst an eine andere Person verschenkt wird. Beides ist unabhängig voneinander.",
+          "mark_processed": "✅ Als bearbeitet markieren: erst dann verschwindet das Abo aus der Liste der offenen. Bei einem Digital-Abo (PDF) wird die Person außerdem automatisch im PDF-Abo-Modul angelegt und bekommt die Einladung zugeschickt — dort muss nichts mehr manuell eingetragen werden."
+        }
+      }
     },
     "popularLabel": "Beliebt",
     "heroSubtitle": "Unabhängig. Kritisch. Solidarisch.",
