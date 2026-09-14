@@ -1393,6 +1393,7 @@
       "uploading": "Subiendo...",
       "resend": "Reenviar invitación",
       "delete": "Eliminar",
+      "edit_email": "Cambiar email",
       "remind_all": "Recordar a pendientes ({count})",
       "reminding": "Enviando..."
     },
@@ -1418,6 +1419,30 @@
       "cancel": "Cancelar",
       "submit": "Añadir Invitación"
     },
+    "help_modal": {
+      "title": "¿Qué podés hacer en este módulo?",
+      "trigger_tooltip": "Ayuda",
+      "close": "Cerrar",
+      "items": {
+        "add": "➕ Añadir suscriptor: cargá un email a mano, o subí un CSV para varios de una vez.",
+        "search": "🔍 Buscá por email y filtrá entre Todos / Pendientes / Activados.",
+        "resend": "✈️ Reenviar invitación: para alguien que todavía no se registró — le vuelve a llegar el link.",
+        "remind_all": "🔔 Recordar a pendientes: manda un recordatorio a todos los que no activaron su cuenta, de una sola vez.",
+        "edit_email_active": "✏️ Cambiar email (Activado): la persona ya tiene cuenta — el cambio actualiza también su login, y a partir de ahí entra con la dirección nueva.",
+        "edit_email_pending": "✏️ Cambiar email (Pendiente): la persona todavía no se registró — buscá su email viejo, cambialo por el nuevo, y te va a preguntar si querés reenviarle la invitación a esa dirección.",
+        "date": "📅 Fecha de inicio: hacé click sobre la fecha en la tabla para editarla.",
+        "delete": "🗑️ Eliminar: borra la invitación por completo (no se puede deshacer)."
+      }
+    },
+    "edit_email_modal": {
+      "title": "Cambiar email",
+      "label": "Nueva dirección de email",
+      "placeholder": "nueva@email.com",
+      "warning_redeemed": "Este suscriptor ya se registró — el cambio también actualiza su inicio de sesión. De ahora en más deberá entrar con la nueva dirección.",
+      "info_pending": "Esta invitación todavía no fue activada. Al guardar te vamos a preguntar si querés reenviarle la invitación a la dirección nueva.",
+      "cancel": "Cancelar",
+      "submit": "Guardar email"
+    },
     "remind_modal": {
       "title": "¿Enviar recordatorio?",
       "body": "Se enviará un email recordatorio a los {count} suscriptores pendientes para que activen su Digitalabo. El proceso puede tardar unos {seconds} segundos.",
@@ -1437,7 +1462,11 @@
       "connection_error": "Error de conexión",
       "date_saved": "Fecha de inicio guardada",
       "save_error": "Error al guardar",
+      "email_saved": "Email actualizado correctamente",
+      "email_duplicate": "Ese email ya está en uso",
+      "email_error": "Error al cambiar el email",
       "confirm_delete": "¿Estás seguro de eliminar esta invitación?",
+      "confirm_send_invitation": "¿Enviar una invitación a {email}?",
       "remind_all_success": "Recordatorios enviados: {sent} de {total}",
       "remind_all_partial": "Recordatorios enviados: {sent} de {total}. Fallaron: {failed}",
       "remind_all_error": "Error al enviar los recordatorios",

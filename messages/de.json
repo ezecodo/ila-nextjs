@@ -1394,6 +1394,7 @@
       "uploading": "Hochladen...",
       "resend": "Einladung erneut senden",
       "delete": "Löschen",
+      "edit_email": "E-Mail ändern",
       "remind_all": "Erinnerung an Ausstehende ({count})",
       "reminding": "Wird gesendet..."
     },
@@ -1419,6 +1420,30 @@
       "cancel": "Abbrechen",
       "submit": "Einladung hinzufügen"
     },
+    "help_modal": {
+      "title": "Was kann dieses Modul?",
+      "trigger_tooltip": "Hilfe",
+      "close": "Schließen",
+      "items": {
+        "add": "➕ Abonnent hinzufügen: eine E-Mail manuell eintragen oder eine CSV für mehrere auf einmal hochladen.",
+        "search": "🔍 Nach E-Mail suchen und zwischen Alle / Ausstehend / Aktiviert filtern.",
+        "resend": "✈️ Einladung erneut senden: für Personen, die sich noch nicht registriert haben — der Link kommt erneut an.",
+        "remind_all": "🔔 Erinnerung an Ausstehende: sendet allen, die ihr Konto noch nicht aktiviert haben, auf einmal eine Erinnerung.",
+        "edit_email_active": "✏️ E-Mail ändern (Aktiviert): die Person hat schon ein Konto — die Änderung aktualisiert auch den Login, danach meldet sie sich mit der neuen Adresse an.",
+        "edit_email_pending": "✏️ E-Mail ändern (Ausstehend): die Person hat sich noch nicht registriert — alte E-Mail suchen, ändern, und das System fragt, ob die Einladung an die neue Adresse gesendet werden soll.",
+        "date": "📅 Startdatum: auf das Datum in der Tabelle klicken, um es zu bearbeiten.",
+        "delete": "🗑️ Löschen: entfernt die Einladung endgültig (kann nicht rückgängig gemacht werden)."
+      }
+    },
+    "edit_email_modal": {
+      "title": "E-Mail ändern",
+      "label": "Neue E-Mail-Adresse",
+      "placeholder": "neue@email.com",
+      "warning_redeemed": "Dieser Abonnent hat sich bereits registriert — die Änderung aktualisiert auch seinen Login. Er muss sich künftig mit der neuen E-Mail-Adresse anmelden.",
+      "info_pending": "Diese Einladung wurde noch nicht aktiviert. Beim Speichern fragen wir Sie, ob die Einladung an die neue Adresse gesendet werden soll.",
+      "cancel": "Abbrechen",
+      "submit": "E-Mail speichern"
+    },
     "remind_modal": {
       "title": "Erinnerung senden?",
       "body": "Es wird eine Erinnerungs-E-Mail an alle {count} ausstehenden Abonnenten gesendet, ihr Digitalabo zu aktivieren. Dieser Vorgang kann etwa {seconds} Sekunden dauern.",
@@ -1438,7 +1463,11 @@
       "connection_error": "Verbindungsfehler",
       "date_saved": "Startdatum gespeichert",
       "save_error": "Fehler beim Speichern",
+      "email_saved": "E-Mail-Adresse aktualisiert",
+      "email_duplicate": "Diese E-Mail-Adresse wird bereits verwendet",
+      "email_error": "Fehler beim Ändern der E-Mail-Adresse",
       "confirm_delete": "Sind Sie sicher, dass Sie diese Einladung löschen möchten?",
+      "confirm_send_invitation": "Einladung an {email} senden?",
       "remind_all_success": "Erinnerungen gesendet: {sent} von {total}",
       "remind_all_partial": "Erinnerungen gesendet: {sent} von {total}. Fehler bei: {failed}",
       "remind_all_error": "Fehler beim Senden der Erinnerungen",

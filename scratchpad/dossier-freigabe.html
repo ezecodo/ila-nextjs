@@ -1,0 +1,479 @@
+<title>Dossier-Freigabe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #fdfbf8;
+    --paper-raised: #ffffff;
+    --ink: #1f2937;
+    --ink-dim: #6b6560;
+    --line: #e6e1da;
+    --red: #BD0E0D;
+    --red-dim: #8f0b0a;
+    --red-wash: #fdf1f0;
+    --green: #89B881;
+    --green-ink: #365a30;
+    --green-wash: #f0f6ee;
+    --mono-chip-bg: #f4f1eb;
+    --mono-chip-ink: #52493f;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14120f;
+      --paper-raised: #1c1a16;
+      --ink: #eceae6;
+      --ink-dim: #a39c92;
+      --line: #33302a;
+      --red: #e94a3f;
+      --red-dim: #ff8078;
+      --red-wash: #2a1613;
+      --green: #9fcf98;
+      --green-ink: #cdeac7;
+      --green-wash: #16211a;
+      --mono-chip-bg: #24211c;
+      --mono-chip-ink: #cbc3b6;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14120f;
+    --paper-raised: #1c1a16;
+    --ink: #eceae6;
+    --ink-dim: #a39c92;
+    --line: #33302a;
+    --red: #e94a3f;
+    --red-dim: #ff8078;
+    --red-wash: #2a1613;
+    --green: #9fcf98;
+    --green-ink: #cdeac7;
+    --green-wash: #16211a;
+    --mono-chip-bg: #24211c;
+    --mono-chip-ink: #cbc3b6;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Geist', 'Geist Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3.5rem 1.5rem 5rem;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Jost', 'Futura PT', Futura, sans-serif;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  code, .chip-mono {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+  }
+
+  /* ── Masthead ─────────────────────────────────────────── */
+  .masthead {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 2.75rem;
+  }
+  .ila-mark {
+    background: var(--red);
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    padding: 0.4rem 0.65rem;
+    border-radius: 0;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .masthead-meta {
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 2.6rem);
+    font-weight: 700;
+    margin: 0 0 0.6rem;
+    color: var(--ink);
+  }
+
+  .dek {
+    font-size: 1.15rem;
+    color: var(--ink-dim);
+    margin: 0 0 1.1rem;
+    max-width: 42ch;
+    font-weight: 400;
+  }
+
+  .byline {
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+  }
+  .byline strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Prose ────────────────────────────────────────────── */
+  section { margin-top: 3rem; }
+  h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+  }
+  p { margin: 0 0 1rem; max-width: 66ch; }
+  p:last-child { margin-bottom: 0; }
+
+  blockquote {
+    margin: 1.5rem 0 0;
+    padding: 1.1rem 1.4rem;
+    background: var(--paper-raised);
+    border-left: 3px solid var(--red);
+    font-size: 0.98rem;
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+  blockquote cite {
+    display: block;
+    margin-top: 0.6rem;
+    font-style: normal;
+    font-size: 0.8rem;
+    color: var(--ink-dim);
+    letter-spacing: 0.03em;
+  }
+
+  .chip-mono {
+    display: inline-block;
+    background: var(--mono-chip-bg);
+    color: var(--mono-chip-ink);
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+    white-space: nowrap;
+  }
+
+  /* ── Toggle illustration ──────────────────────────────── */
+  .toggle-demo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.4rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    width: fit-content;
+  }
+  .switch {
+    width: 34px; height: 20px;
+    background: var(--line);
+    border-radius: 999px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--paper-raised);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+  .switch.on { background: var(--red); }
+  .switch.on::after { left: auto; right: 2px; }
+  .toggle-demo span { font-size: 0.92rem; }
+  .toggle-demo .field-label { font-weight: 500; }
+
+  /* ── Steps ────────────────────────────────────────────── */
+  .steps {
+    margin-top: 1.6rem;
+    position: relative;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    gap: 0 1.1rem;
+    position: relative;
+  }
+  .step:not(:last-child) { padding-bottom: 2rem; }
+  .step-num-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .step-num {
+    width: 2.2rem; height: 2.2rem;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Jost', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .step-line {
+    flex: 1;
+    width: 2px;
+    background: var(--line);
+    margin-top: 0.25rem;
+  }
+  .step-body { padding-top: 0.15rem; }
+  .step-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.35rem;
+  }
+  .step-title {
+    font-weight: 600;
+    font-size: 1.05rem;
+  }
+  .who {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--red);
+    background: var(--red-wash);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+  }
+  .step-body p { color: var(--ink-dim); font-size: 0.96rem; }
+
+  /* ── Before / after ───────────────────────────────────── */
+  .compare {
+    margin-top: 1.5rem;
+    border: 1px solid var(--line);
+    overflow-x: auto;
+  }
+  .compare table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 480px;
+  }
+  .compare th {
+    text-align: left;
+    font-family: 'Jost', sans-serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.75rem 1rem;
+    background: var(--paper-raised);
+    border-bottom: 1px solid var(--line);
+  }
+  .compare th:not(:first-child) { color: var(--ink-dim); }
+  .compare th.now { color: var(--red); }
+  .compare td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    color: var(--ink-dim);
+  }
+  .compare tr:last-child td { border-bottom: none; }
+  .compare td.row-label {
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .compare td.now { color: var(--ink); }
+
+  /* ── Callout ──────────────────────────────────────────── */
+  .callout {
+    margin-top: 1.5rem;
+    background: var(--green-wash);
+    border: 1px solid var(--green);
+    padding: 1.3rem 1.5rem;
+  }
+  .callout h3 {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--green-ink);
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .callout h3::before {
+    content: "";
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .callout p { font-size: 0.94rem; color: var(--ink); margin-bottom: 0.7rem; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ── Footer ───────────────────────────────────────────── */
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="ila-mark">ıla</div>
+    <div class="masthead-meta">Redaktion · Interne Notiz</div>
+  </div>
+
+  <p class="eyebrow">Workflow-Update</p>
+  <h1>Dossier-Freigabe</h1>
+  <p class="dek">Der „online"-Umweg fällt weg — neue Ausgaben werden ab jetzt direkt im Entwurf vorbereitet, unsichtbar bis alles fertig ist.</p>
+  <p class="byline">10. September 2026 · von <strong>Eze</strong> · für <strong>Henry &amp; Ralf</strong></p>
+
+  <section>
+    <h2>Das alte Problem</h2>
+    <p>Bisher musstet ihr Artikel eines neuen Dossiers als „online" hochladen, damit die Ausgabe nicht halbleer auf der Seite steht — und erst später, wenn genug beisammen war, richtig zuordnen. Henry hat den Ablauf so beschrieben:</p>
+    <blockquote>
+      „Ich lade sie nur online mit unterschiedlichen Daten hoch. Ralf lädt das Editorial und den Inhalt später hoch und ändert/ergänzt in jedem Artikel Gedruckte Ausgabe / Magazinausgabe, die Seiten und die Kategorie."
+      <cite>— Henry</cite>
+    </blockquote>
+    <p style="margin-top:1rem">Nebeneffekt: die URL blieb dauerhaft auf <span class="chip-mono">online/…</span> stehen statt auf dem richtigen Ausgaben-Pfad, bis jemand das von Hand korrigierte.</p>
+  </section>
+
+  <section>
+    <h2>Was neu ist</h2>
+    <p>Jede Ausgabe (Edition) hat jetzt einen eigenen Schalter. Solange er aus ist, ist das <strong>ganze Dossier unsichtbar</strong> — für alle, egal welches Datum die einzelnen Artikel haben.</p>
+    <div class="toggle-demo">
+      <div class="switch"></div>
+      <span class="field-label">Veröffentlicht?</span>
+      <span style="color:var(--ink-dim); font-size:0.85rem;">— aus, solange das Dossier im Aufbau ist</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Der neue Ablauf</h2>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num-col">
+          <div class="step-num">1</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-head">
+            <span class="step-title">Dossier anlegen</span>
+            <span class="who">Verwaltung</span>
+          </div>
+          <p>Neue Ausgabe anlegen, sobald Nummer &amp; Datum feststehen — mit <span class="chip-mono">Veröffentlicht?</span> ausgeschaltet.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num-col">
+          <div class="step-num">2</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-head">
+            <span class="step-title">Artikel hochladen — wie gewohnt gestaffelt</span>
+            <span class="who">Henry</span>
+          </div>
+          <p>Direkt dem neuen Dossier zuordnen: <span class="chip-mono">In gedruckter Ausgabe?</span> an, <span class="chip-mono">Magazinausgabe</span> auswählen (das Dossier taucht im Entwurf ganz normal in der Liste auf). Datum pro Artikel wie bisher gestaffelt — das Dossier bleibt trotzdem unsichtbar.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num-col">
+          <div class="step-num">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <div class="step-head">
+            <span class="step-title">Seiten &amp; Kategorie eintragen — in Ruhe</span>
+            <span class="who">Ralf</span>
+          </div>
+          <p>Kein Zeitdruck mehr: da nichts live ist, könnt ihr Seitenzahlen und Kategorie eintragen, wann es passt — nicht mehr „möglichst vor Erscheinen".</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num-col">
+          <div class="step-num">4</div>
+        </div>
+        <div class="step-body">
+          <div class="step-head">
+            <span class="step-title">Dossier freigeben</span>
+            <span class="who">Verwaltung</span>
+          </div>
+          <p><span class="chip-mono">Veröffentlicht?</span> an → das ganze Dossier geht auf einmal live. Ab da entscheidet wie immer das Datum jedes einzelnen Artikels, ob er sofort öffentlich ist oder zunächst nur für Digital-Abo sichtbar.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Vorher &amp; Jetzt</h2>
+    <div class="compare">
+      <table>
+        <thead>
+          <tr><th></th><th>Bisher</th><th class="now">Jetzt</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Artikel-URL</td>
+            <td><span class="chip-mono">online/…</span>, bis jemand es manuell korrigiert</td>
+            <td class="now"><span class="chip-mono">ausgaben/462/…</span> von Anfang an richtig</td>
+          </tr>
+          <tr>
+            <td class="row-label">Sichtbarkeit im Aufbau</td>
+            <td>Einzeln öffentlich, sobald das Artikel-Datum erreicht ist</td>
+            <td class="now">Komplett unsichtbar, bis das Dossier freigegeben wird</td>
+          </tr>
+          <tr>
+            <td class="row-label">Ralfs Zeitfenster</td>
+            <td>Unter Druck — Artikel sind ja schon online</td>
+            <td class="now">Beliebig, nichts ist live</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="callout">
+      <h3>Digital-Abo-Vorsprung bleibt pro Artikel steuerbar</h3>
+      <p>Henry hatte die Sorge, dass Digital-Abo-Leser*innen dann die <em>ganze</em> ila auf einmal Tage vor der gedruckten Ausgabe lesen könnten. Das passiert nicht automatisch.</p>
+      <p>Solange das Dossier im Entwurf steht, sieht niemand etwas — auch Digital-Abo nicht. Erst wenn ihr es freigebt, gilt wieder die normale Regel pro Artikel: ein Artikel mit vergangenem Datum ist sofort für alle sichtbar; ein Artikel mit <em>zukünftigem</em> Datum bleibt bis dahin exklusiv für Digital-Abo. Ob und wie viele Artikel diesen Vorsprung bekommen, entscheidet also weiterhin ihr — Datum für Datum, nicht alles auf einmal.</p>
+    </div>
+  </section>
+
+  <footer>
+    Fragen dazu? Einfach bei Eze melden.
+  </footer>
+
+</div>

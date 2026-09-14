@@ -15,6 +15,8 @@ import {
   FaUsers,
   FaInbox,
   FaBell,
+  FaPencilAlt,
+  FaQuestionCircle,
 } from "react-icons/fa";
 // IMPORTA TU SISTEMA DE TRADUCCIÓN AQUÍ.
 // Ejemplo para next-intl:
@@ -45,6 +47,10 @@ export default function PdfAboAdmin() {
   const [editingDate, setEditingDate] = useState(null); // { id, value }
   const [showReminderModal, setShowReminderModal] = useState(false);
   const [isSendingReminders, setIsSendingReminders] = useState(false);
+  const [emailModalInvitation, setEmailModalInvitation] = useState(null); // invitación siendo editada
+  const [emailInputValue, setEmailInputValue] = useState("");
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   const showToast = (key, type = "success", values = {}) => {
     const id = Date.now();
@@ -170,6 +176,61 @@ export default function PdfAboAdmin() {
     }
   };
 
+  const openEmailModal = (inv) => {
+    setEmailModalInvitation(inv);
+    setEmailInputValue(inv.email);
+  };
+
+  const handleSaveEmail = async (e) => {
+    e.preventDefault();
+    if (!emailModalInvitation) return;
+    const trimmed = emailInputValue.trim().toLowerCase();
+    if (!trimmed) return;
+
+    setIsSavingEmail(true);
+    try {
+      const res = await fetch(
+        `/api/admin/pdf-abo-invitations/${emailModalInvitation.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmed }),
+        },
+      );
+
+      if (res.ok) {
+        const updated = await res.json();
+        const wasRedeemed = emailModalInvitation.isRedeemed;
+        setInvitations((prev) =>
+          prev.map((inv) =>
+            inv.id === updated.id ? { ...inv, email: updated.email } : inv,
+          ),
+        );
+        setEmailModalInvitation(null);
+        showToast("toasts.email_saved");
+
+        // Si todavía no se había registrado, no la reenviamos solos: le
+        // preguntamos al admin si quiere mandar la invitación a la
+        // dirección nueva (reusa el mismo endpoint del botón ✈️ Reenviar).
+        if (
+          !wasRedeemed &&
+          confirm(t("toasts.confirm_send_invitation", { email: updated.email }))
+        ) {
+          handleResend(updated.id, updated.email);
+        }
+      } else if (res.status === 409) {
+        showToast("toasts.email_duplicate", "error");
+      } else {
+        showToast("toasts.email_error", "error");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showToast("toasts.connection_error", "error");
+    } finally {
+      setIsSavingEmail(false);
+    }
+  };
+
   const handleResend = async (id, email) => {
     try {
       const res = await fetch(`/api/admin/pdf-abo-invitations/${id}/resend`, {
@@ -281,14 +342,23 @@ export default function PdfAboAdmin() {
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-10 pb-6 border-b border-gray-200">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900 tracking-tight">
-            {t("header.title")}{" "}
-            <span style={{ color: BRAND_RED }}>
-              {t("header.title").split(" ").pop()}
-            </span>
-          </h1>
-          <p className="text-gray-500 text-lg">{t("header.subtitle")}</p>
+        <div className="mb-10 pb-6 border-b border-gray-200 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gray-900 tracking-tight">
+              {t("header.title")}{" "}
+              <span style={{ color: BRAND_RED }}>
+                {t("header.title").split(" ").pop()}
+              </span>
+            </h1>
+            <p className="text-gray-500 text-lg">{t("header.subtitle")}</p>
+          </div>
+          <button
+            onClick={() => setShowHelpModal(true)}
+            className="shrink-0 p-3 text-gray-400 hover:text-[#BD0E0D] hover:bg-red-50 rounded-full border border-gray-200 hover:border-red-100 transition-colors"
+            title={t("help_modal.trigger_tooltip")}
+          >
+            <FaQuestionCircle className="text-xl" />
+          </button>
         </div>
 
         {/* Estadísticas - Versión Compacta */}
@@ -581,6 +651,13 @@ export default function PdfAboAdmin() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEmailModal(inv)}
+                            className="p-2.5 text-gray-400 hover:text-[#BD0E0D] hover:bg-red-50 rounded-lg transition-all duration-200"
+                            title={t("actions.edit_email")}
+                          >
+                            <FaPencilAlt />
+                          </button>
                           {!inv.isRedeemed && (
                             <button
                               onClick={() => handleResend(inv.id, inv.email)}
@@ -678,6 +755,130 @@ export default function PdfAboAdmin() {
                   }
                 >
                   {t("modal.submit")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de ayuda del módulo */}
+      {showHelpModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity opacity-100 animate-in fade-in duration-200">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
+              <h2 className="text-xl font-bold text-gray-900">
+                {t("help_modal.title")}
+              </h2>
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {[
+                "add",
+                "search",
+                "resend",
+                "remind_all",
+                "edit_email_active",
+                "edit_email_pending",
+                "date",
+                "delete",
+              ].map((key) => (
+                <p key={key} className="text-sm text-gray-700 leading-relaxed">
+                  {t(`help_modal.items.${key}`)}
+                </p>
+              ))}
+            </div>
+
+            <div className="p-6 pt-0 flex justify-end">
+              <button
+                onClick={() => setShowHelpModal(false)}
+                className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors text-sm"
+              >
+                {t("help_modal.close")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de edición de email */}
+      {emailModalInvitation && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity opacity-100 animate-in fade-in duration-200">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md shadow-2xl transform transition-all scale-100 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-900">
+                {t("edit_email_modal.title")}
+              </h2>
+              <button
+                onClick={() => setEmailModalInvitation(null)}
+                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEmail} className="p-6">
+              {emailModalInvitation.isRedeemed ? (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-100 rounded-xl text-sm text-yellow-800">
+                  {t("edit_email_modal.warning_redeemed")}
+                </div>
+              ) : (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-800">
+                  {t("edit_email_modal.info_pending")}
+                </div>
+              )}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("edit_email_modal.label")}
+                </label>
+                <div className="relative">
+                  <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    value={emailInputValue}
+                    onChange={(e) => setEmailInputValue(e.target.value)}
+                    placeholder={t("edit_email_modal.placeholder")}
+                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#BD0E0D] focus:ring-1 focus:ring-[#BD0E0D] transition-all"
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEmailModalInvitation(null)}
+                  disabled={isSavingEmail}
+                  className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors disabled:opacity-50"
+                >
+                  {t("edit_email_modal.cancel")}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingEmail}
+                  className="flex-1 px-4 py-3 text-white rounded-xl font-medium transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+                  style={{ backgroundColor: BRAND_RED }}
+                  onMouseEnter={(e) => {
+                    if (!isSavingEmail)
+                      e.currentTarget.style.backgroundColor = BRAND_RED_HOVER;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSavingEmail)
+                      e.currentTarget.style.backgroundColor = BRAND_RED;
+                  }}
+                >
+                  {isSavingEmail ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  ) : (
+                    t("edit_email_modal.submit")
+                  )}
                 </button>
               </div>
             </form>
