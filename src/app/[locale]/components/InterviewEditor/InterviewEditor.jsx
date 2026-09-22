@@ -224,7 +224,7 @@ export function htmlToQa(html) {
 
   for (const el of elements) {
     const tag = el.tagName;
-    const allowed = ["P", "H1", "H2", "H3", "H4", "UL", "OL", "DIV"];
+    const allowed = ["P", "H1", "H2", "H3", "H4", "UL", "OL", "DIV", "BLOCKQUOTE"];
     if (!allowed.includes(tag)) continue;
 
     // Image block: <p><img ...></p>
@@ -262,6 +262,24 @@ export function htmlToQa(html) {
         isListBlock: true,
         items,
         ordered: tag === "OL",
+      });
+      currentPair = null;
+      continue;
+    }
+
+    // Kasten/Zitat: <blockquote> — ver toggle ❝ en DarkAnswerBlock y el paso
+    // "Kasten" del ciclo de tipos (cycleBlockType). Sin este caso, quedaba
+    // fuera de `allowed` y htmlToQa lo descartaba entero al reabrir el
+    // artículo para editar — no solo sin badge, el texto desaparecía del
+    // Publilab (y si se guardaba de nuevo, se perdía también en la BD).
+    if (tag === "BLOCKQUOTE") {
+      if (currentPair) pairs.push(currentPair);
+      const inner = el.innerHTML.trim();
+      pairs.push({
+        id: genId(),
+        question: "",
+        answer: /<(p|h[1-6]|ul|ol)\b/i.test(inner) ? inner : `<p>${inner}</p>`,
+        isQuote: true,
       });
       currentPair = null;
       continue;
@@ -585,7 +603,10 @@ export function parseToBlocks(plainText, html) {
   return blocks.length ? blocks : [{ text: plainText.trim(), type: "answer" }];
 }
 
-/// cycle: answer → question(H3) → subtitle(H2) → subtitle(H3) → subtitle(H4) → answer
+/// cycle: answer → question(H3) → subtitle(H2) → subtitle(H3) → subtitle(H4)
+/// → Kasten (answer+quote) → answer. Los dos pasos con Kasten se manejan
+/// aparte en cycleBlockType (necesitan envolver/desenvolver el <blockquote>
+/// del texto, no solo cambiar el type) — acá solo las transiciones "planas".
 function nextBlockType(type, block) {
   if (type === "answer") return "question";
   if (type === "question") return "subtitle"; // → H2
@@ -593,7 +614,22 @@ function nextBlockType(type, block) {
     return "subtitle"; // → H3
   if (type === "subtitle" && (block?.headingLevel || 3) === 3)
     return "subtitle"; // → H4
-  return "answer"; // subtitle(H4) → answer
+  return "answer"; // subtitle(H4) → Kasten (ver cycleBlockType)
+}
+
+// Kasten vía el ciclo de tipos: envuelve/desenvuelve TODO el contenido del
+// bloque en <blockquote> (mismo tag que el toggle ❝ por párrafo de
+// DarkAnswerBlock — el estilo de caja lo pone `.article-content blockquote`
+// en globals.css, no hace falta nada nuevo ahí).
+function wrapBlockAsQuote(html) {
+  const text = html || "";
+  if (/^\s*<blockquote>/i.test(text)) return text;
+  return `<blockquote>${text}</blockquote>`;
+}
+function unwrapBlockQuote(html) {
+  const text = html || "";
+  const m = text.trim().match(/^<blockquote>([\s\S]*)<\/blockquote>$/i);
+  return m ? m[1] : text;
 }
 
 function blocksToQa(blocks) {
@@ -681,6 +717,12 @@ function pairsToBlocks(pairs) {
       });
     } else if (pair.isPoemBlock) {
       blocks.push({ type: "poem", text: pair.text || "" });
+    } else if (pair.isQuote) {
+      blocks.push({
+        type: "answer",
+        text: wrapBlockAsQuote(pair.answer || ""),
+        quote: true,
+      });
     } else if (pair.isSubtitle) {
       blocks.push({
         type: "subtitle",
@@ -803,9 +845,28 @@ function stripInlineColors(html) {
 }
 
 function normalizeAnswerHtml(html) {
-  return html
+  let out = html
     .replace(/<div>/gi, "<p>")
     .replace(/<\/div>/gi, "</p>");
+  // Al presionar Enter al final de un Zitat (blockquote), el navegador no
+  // sale del formato solo: agrega un <p> vacío nuevo DENTRO del blockquote
+  // en vez de uno normal afuera. Si la persona lo deja así (sin tipear nada
+  // ahí, o sin volver a tocar el toggle ❝ para salir), queda un <blockquote>
+  // vacío colgando — se ve como una barra roja sin texto debajo del Zitat.
+  // Se limpia acá, en cada resync, en vez de intentar adivinar la tecla
+  // exacta que hay que interceptar.
+  if (typeof window !== "undefined" && out.includes("<blockquote")) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = out;
+    tmp.querySelectorAll("blockquote").forEach((bq) => {
+      Array.from(bq.children).forEach((p) => {
+        if (!p.textContent.trim()) p.remove();
+      });
+      if (!bq.textContent.trim()) bq.remove();
+    });
+    out = tmp.innerHTML;
+  }
+  return out;
 }
 
 // Elimina <p> vacíos al inicio y final (residuo del extractContents al dividir
@@ -1063,6 +1124,30 @@ function DarkAnswerBlock({
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
   };
 
+  // "Kasten"/Zitat del impreso: un párrafo destacado dentro del cuerpo, NO un
+  // título — antes se marcaba como Zwischentitel (Fett+grande) y en el sitio
+  // quedaba con la misma jerarquía visual que un h3 real. Envuelve el párrafo
+  // activo en <blockquote> (toggle: si ya es blockquote, vuelve a <p>) — se
+  // queda dentro del mismo bloque "answer", el estilo de caja lo pone
+  // `.article-content blockquote` en globals.css. Un tag real (no una clase)
+  // sobrevive a stripInlineColors, que borra class/style en cada resync.
+  const toggleQuote = () => {
+    const sel = window.getSelection();
+    const liveInDiv =
+      sel && sel.rangeCount > 0 && divRef.current?.contains(sel.anchorNode);
+    if (!liveInDiv && !restoreSelection()) divRef.current?.focus();
+    const activeSel = window.getSelection();
+    const anchor = activeSel?.anchorNode;
+    const anchorEl = anchor
+      ? anchor.nodeType === 3
+        ? anchor.parentElement
+        : anchor
+      : null;
+    const isQuote = !!anchorEl?.closest("blockquote");
+    document.execCommand("formatBlock", false, isQuote ? "<p>" : "<blockquote>");
+    onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+  };
+
   const handleDossierClick = async (e) => {
     e.preventDefault();
     saveSelection();
@@ -1157,6 +1242,17 @@ function DarkAnswerBlock({
         title="ila Dossier"
       >
         📕
+      </button>
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          toggleQuote();
+        }}
+        className={btnCls}
+        title="Zitat / Kasten (kein Zwischentitel)"
+      >
+        ❝
       </button>
     </div>
   );
@@ -1623,6 +1719,21 @@ function PasteImportPanel({
     setBlocks((prev) =>
       prev.map((b, idx) => {
         if (idx !== i) return b;
+        // subtitle(H4) → Kasten: mismo type "answer", pero con TODO el texto
+        // envuelto en <blockquote> y marcado con quote:true (badge ❝).
+        if (b.type === "subtitle" && (b.headingLevel || 3) === 4) {
+          return {
+            ...b,
+            type: "answer",
+            text: wrapBlockAsQuote(b.text),
+            headingLevel: undefined,
+            quote: true,
+          };
+        }
+        // Kasten → answer normal: desenvuelve el <blockquote>.
+        if (b.type === "answer" && b.quote) {
+          return { ...b, text: unwrapBlockQuote(b.text), quote: false };
+        }
         const nextType = nextBlockType(b.type, b);
         // When going from answer (HTML) to question/subtitle (plain text), strip tags
         const text =
@@ -2517,9 +2628,13 @@ function PasteImportPanel({
                         type="button"
                         onClick={() => cycleBlockType(i)}
                         title="Typ wechseln"
-                        className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${s.badgeClass}`}
+                        className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${
+                          block.quote
+                            ? "bg-white text-[#BD0E0D] border-2 border-[#BD0E0D]"
+                            : s.badgeClass
+                        }`}
                       >
-                        {s.badge}
+                        {block.quote ? "❝" : s.badge}
                       </button>
                       <DarkAnswerBlock
                         value={block.text}
@@ -2774,6 +2889,17 @@ function PasteImportPanel({
               });
               html = tmp.innerHTML;
             }
+            // Un Zitat/Kasten (<blockquote>) suele tener un texto corto —
+            // justo el patrón que buscan los pasos 1 y 2 de abajo. Sin
+            // protegerlo, el <p> de adentro se convertía en <h3>/<h4> y la
+            // Vorschau mostraba el Kasten con bold de título en vez del
+            // estilo de caja real. Se saca antes de esos dos pasos y se
+            // restaura después (mismo mecanismo que la página del artículo).
+            const bqStash = [];
+            html = html.replace(/<blockquote>[\s\S]*?<\/blockquote>/gi, (m) => {
+              bqStash.push(m);
+              return `\u0000BQ${bqStash.length - 1}\u0000`;
+            });
             // 1. autoFormatHeadings: <p><strong>Title</strong></p> → <h3>
             html = html.replace(
               /<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi,
@@ -2804,6 +2930,10 @@ function PasteImportPanel({
                 return `<h3>${text}</h3>`;
               return m;
             });
+            html = html.replace(
+              /\u0000BQ(\d+)\u0000/g,
+              (_, i) => bqStash[Number(i)],
+            );
             // 3. wrapInlineImagesWithCaption
             html = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
               const caption = attrs.match(/alt="([^"]*)"/)?.[1]?.trim() || "";

@@ -10,6 +10,11 @@ export function htmlToBlocks(html) {
   doc.body
     .querySelectorAll("p, h1, h2, h3, h4, h5, h6, li, blockquote")
     .forEach((el) => {
+      // El selector incluye "p" Y "blockquote" a propósito, pero un Zitat es
+      // <blockquote><p>…</p></blockquote> — sin este filtro el <p> de adentro
+      // matchea TAMBIÉN por su cuenta y el texto del Kasten se lee dos veces
+      // seguidas (una vez como blockquote, otra como su propio párrafo).
+      if (el.tagName !== "BLOCKQUOTE" && el.closest("blockquote")) return;
       const text = el.textContent.trim();
       if (text) blocks.push(text);
     });

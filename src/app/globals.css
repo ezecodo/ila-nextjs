@@ -412,6 +412,50 @@ body {
   padding-top: 0 !important;
 }
 
+/* Zitat/Kasten: párrafo destacado del impreso (NO un título) — ver botón
+   "❝" en InterviewEditor/DarkAnswerBlock, envuelve el párrafo en <blockquote>
+   en vez de marcarlo como Zwischentitel (que antes lo hacía indistinguible
+   de un h3 real). A propósito SIN border-left rojo (eso ya lo usa el
+   Vorspann, ver ausgaben/[...legacyPath]/page.js — con eso se confundían a
+   simple vista): filetes arriba/abajo + comilla grande decorativa en su
+   lugar, centrado, sin cursiva (el Vorspann tampoco es cursiva, pero así
+   se aleja del todo del resto de estilos con texto en itálica del sitio,
+   como los pies de foto). Rectángulo puro, sin redondear (Brand Kit). */
+.article-content blockquote {
+  position: relative;
+  margin: 2rem 0 !important;
+  padding: 1.5rem 2.5rem !important;
+  border-top: 2px solid #BD0E0D !important;
+  border-bottom: 2px solid #BD0E0D !important;
+  background-color: rgba(189, 14, 13, 0.04);
+  font-style: normal !important;
+  color: #1f2937 !important;
+  font-size: 1.1rem !important;
+  line-height: 1.6 !important;
+  text-align: center;
+}
+.article-content blockquote::before {
+  content: "„";
+  position: absolute;
+  top: 0.6rem;
+  left: 0.9rem;
+  font-family: Georgia, serif;
+  font-size: 2.75rem;
+  line-height: 1;
+  color: #BD0E0D;
+  opacity: 0.55;
+}
+.article-content blockquote p {
+  margin-bottom: 0.5rem !important;
+}
+.article-content blockquote p:last-child {
+  margin-bottom: 0 !important;
+}
+.dark .article-content blockquote {
+  color: #f3f4f6 !important;
+  background-color: rgba(189, 14, 13, 0.08);
+}
+
 /* Hipervínculos */
 .article-content a {
   color: #2563eb;

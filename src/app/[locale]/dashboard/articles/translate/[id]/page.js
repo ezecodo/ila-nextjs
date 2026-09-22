@@ -20,6 +20,16 @@ function normalizeForDisplay(html, { wrapImages = true } = {}) {
   });
   // 2. Remove empty paragraphs
   html = html.replace(/<p[^>]*>\s*(<br\s*\/?>)?\s*<\/p>/gi, "");
+  // Un Zitat/Kasten (<blockquote>) suele tener un texto corto — justo el
+  // patrón que buscan los pasos 3 y 4 de abajo. Sin protegerlo, el <p> de
+  // adentro se convertía en <h3>/<h4>, heredando el bold/color !important de
+  // los títulos y arruinando el estilo de caja (mismo mecanismo que en la
+  // página pública del artículo, ver ausgaben/[...legacyPath]/page.js).
+  const bqStash = [];
+  html = html.replace(/<blockquote>[\s\S]*?<\/blockquote>/gi, (m) => {
+    bqStash.push(m);
+    return `\u0000BQ${bqStash.length - 1}\u0000`;
+  });
   // 3. <p><strong>Title</strong></p> → <h3>
   html = html.replace(
     /<p>\s*<strong>([^<>]{3,120})<\/strong>\s*<\/p>/gi,
@@ -47,6 +57,7 @@ function normalizeForDisplay(html, { wrapImages = true } = {}) {
     if (isShort && startsWithUpper && endsAsHeading && fewSentences) return `<h3>${text}</h3>`;
     return m;
   });
+  html = html.replace(/\u0000BQ(\d+)\u0000/g, (_, i) => bqStash[Number(i)]);
   // 5. <img> → <figure> with figcaption (alt + title) — only for read-only display
   if (!wrapImages) return html;
   html = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
@@ -1293,6 +1304,14 @@ const TranslateArticlePage = () => {
                       className={`px-1.5 h-6 flex items-center justify-center rounded text-[10px] transition-colors ${activeFormats.block === "p" ? "bg-purple-200 text-purple-900" : "text-gray-500 hover:text-gray-900 hover:bg-purple-100"}`}
                     >
                       ¶
+                    </button>
+                    <button
+                      type="button"
+                      title="Zitat / Kasten (kein Zwischentitel)"
+                      onMouseDown={(e) => { e.preventDefault(); setBlockTag(activeFormats.block === "blockquote" ? "p" : "blockquote"); }}
+                      className={`w-6 h-6 flex items-center justify-center rounded text-xs transition-colors ${activeFormats.block === "blockquote" ? "bg-purple-200 text-purple-900" : "text-gray-500 hover:text-gray-900 hover:bg-purple-100"}`}
+                    >
+                      ❝
                     </button>
                     <span className="w-px h-3.5 bg-gray-300 mx-0.5" />
                     <button

@@ -86,7 +86,7 @@ export async function POST(req) {
       return chunks;
     }
 
-    async function callDeepl(text, isHtml) {
+    async function callDeepl(text, isHtml, ignoreTags = "img") {
       const params = {
         text,
         target_lang: "ES",
@@ -96,7 +96,7 @@ export async function POST(req) {
         // tag_handling=html: DeepL translates text inside tags (incl. <a>)
         // while preserving all tag attributes (href, class, etc.)
         params.tag_handling = "html";
-        params.ignore_tags = "img";
+        params.ignore_tags = ignoreTags;
       }
       const res = await fetch(`${DEEPL_API_BASE}/translate`, {
         method: "POST",
@@ -114,13 +114,13 @@ export async function POST(req) {
       return data.translations?.[0]?.text || "";
     }
 
-    async function translateText(text, isHtml = false) {
+    async function translateText(text, isHtml = false, ignoreTags = "img") {
       if (!text) return "";
 
       const chunks = splitIntoChunks(text, 50000);
 
       if (chunks.length === 1) {
-        return await callDeepl(text, isHtml);
+        return await callDeepl(text, isHtml, ignoreTags);
       }
 
       // Texto largo: traducir por chunks
@@ -128,18 +128,52 @@ export async function POST(req) {
       const translatedChunks = [];
       for (let i = 0; i < chunks.length; i++) {
         console.log(`🔄 Traduciendo chunk ${i + 1}/${chunks.length}...`);
-        translatedChunks.push(await callDeepl(chunks[i], isHtml));
+        translatedChunks.push(await callDeepl(chunks[i], isHtml, ignoreTags));
       }
 
       console.log(`✅ Traducción completada`);
       return translatedChunks.join("\n");
     }
 
+    // DeepL preserva bien <p>/<a>/<img> en tag_handling=html (por eso los
+    // links y las imágenes sobreviven la traducción), pero en la práctica
+    // DESCARTA el tag <blockquote> — el Kasten volvía traducido pero
+    // aplanado a un párrafo normal, sin la caja. Se lo saca del HTML antes
+    // de mandarlo (reemplazado por un tag propio <x-bq> que SÍ sobrevive,
+    // vía ignore_tags — mismo mecanismo que ya protege a <img>), se traduce
+    // el contenido de cada Kasten en una llamada aparte, y se reinserta
+    // envuelto en <blockquote> al final.
+    async function translateContentPreservingKasten(html) {
+      if (!html) return "";
+      const stash = [];
+      const withPlaceholders = html.replace(
+        /<blockquote>([\s\S]*?)<\/blockquote>/gi,
+        (m, inner) => {
+          stash.push(inner);
+          return `<x-bq id="${stash.length - 1}"></x-bq>`;
+        },
+      );
+      if (!stash.length) return translateText(html, true);
+
+      const translatedOuter = await translateText(
+        withPlaceholders,
+        true,
+        "img,x-bq",
+      );
+      const translatedInners = await Promise.all(
+        stash.map((inner) => translateText(inner, true)),
+      );
+      return translatedOuter.replace(
+        /<x-bq\s+id="(\d+)"\s*\/?>(?:\s*<\/x-bq>)?/gi,
+        (_, i) => `<blockquote>${translatedInners[Number(i)]}</blockquote>`,
+      );
+    }
+
     const translations = {
       titleES: await translateText(article.title),
       subtitleES: await translateText(article.subtitle, true),
       previewTextES: await translateText(article.previewText, true),
-      contentES: await translateText(article.content, true),
+      contentES: await translateContentPreservingKasten(article.content),
       additionalInfoES: await translateText(article.additionalInfo, true),
     };
     // 🖼️ Traducir imágenes

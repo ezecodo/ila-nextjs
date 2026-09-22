@@ -136,11 +136,34 @@ export default function LegacyArticlePage() {
     const localeCode = locale === "es" ? "es-ES" : "de-DE";
     return new Date(dateString).toLocaleDateString(localeCode, options);
   }
+  // El texto de un Zitat/Kasten (<blockquote>) suele ser corto — exactamente
+  // el patrón que buscan autoFormatHeadings/autoDetectHeadings más abajo.
+  // Sin protegerlo, el <p> de adentro del blockquote se convertía en <h3>/
+  // <h4>, heredando el bold/color !important de los títulos (ver globals.css)
+  // y arruinando el estilo de caja del Kasten. Ambas funciones son un regex
+  // sobre el HTML crudo (no conocen la jerarquía del DOM), así que se saca el
+  // contenido del blockquote antes de correr el regex y se restaura después.
+  function protectBlockquotes(html) {
+    const stash = [];
+    const protectedHtml = html.replace(
+      /<blockquote>[\s\S]*?<\/blockquote>/gi,
+      (m) => {
+        stash.push(m);
+        return `\u0000BQ${stash.length - 1}\u0000`;
+      },
+    );
+    return {
+      protectedHtml,
+      restore: (h) =>
+        h.replace(/\u0000BQ(\d+)\u0000/g, (_, i) => stash[Number(i)]),
+    };
+  }
   function autoFormatHeadings(html) {
     if (!html) return "";
+    const { protectedHtml, restore } = protectBlockquotes(html);
 
     // Solo transformar si NO hay otros estilos además de <strong>
-    return html.replace(
+    const out = protectedHtml.replace(
       /<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi,
       (m, inner) => {
         // Heurística: si es cortito y parece un subtítulo, h3
@@ -153,6 +176,7 @@ export default function LegacyArticlePage() {
         return isHeadingLike ? `<h3>${inner}</h3>` : m;
       },
     );
+    return restore(out);
   }
   function normalizeContentForRender(html) {
     if (!html) return "";
@@ -160,8 +184,8 @@ export default function LegacyArticlePage() {
   }
   function autoDetectHeadings(html) {
     if (!html) return "";
-    const hasH4 = /<h4\b/i.test(html);
-    return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
+    const { protectedHtml, restore } = protectBlockquotes(html);
+    const out = protectedHtml.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
       const text = inner
         .replace(/<br\s*\/?>/gi, " ")
         .replace(/\s+/g, " ")
@@ -175,6 +199,7 @@ export default function LegacyArticlePage() {
       if (isShort && startsWithUpper && endsAsHeading && fewSentences) return `<h3>${text}</h3>`;
       return m;
     });
+    return restore(out);
   }
   function wrapInlineImagesWithCaption(html) {
     if (!html) return "";

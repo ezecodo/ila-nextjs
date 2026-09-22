@@ -109,6 +109,28 @@ export default function LegacyArticlePage() {
   const showES = isES && esApproved;
   const showOriginal =
     wantsOriginal && !!article.originalLanguage && !!article.originalContent;
+  // El texto de un Zitat/Kasten (<blockquote>) suele ser corto — exactamente
+  // el patrón que buscan autoDetectHeadings/autoFormatHeadings más abajo. Sin
+  // protegerlo, el <p> de adentro del blockquote se convertía en <h3>,
+  // heredando el bold/color !important de los títulos (ver globals.css) y
+  // arruinando el estilo de caja del Kasten. Ambas funciones son un regex
+  // sobre el HTML crudo (no conocen la jerarquía del DOM), así que se saca el
+  // contenido del blockquote antes de correr el regex y se restaura después.
+  function protectBlockquotes(html) {
+    const stash = [];
+    const protectedHtml = html.replace(
+      /<blockquote>[\s\S]*?<\/blockquote>/gi,
+      (m) => {
+        stash.push(m);
+        return `\u0000BQ${stash.length - 1}\u0000`;
+      },
+    );
+    return {
+      protectedHtml,
+      restore: (h) =>
+        h.replace(/\u0000BQ(\d+)\u0000/g, (_, i) => stash[Number(i)]),
+    };
+  }
   // ✅ Función auxiliar para detectar títulos en párrafos normales
   function autoDetectHeadings(html) {
     if (!html) return "";
@@ -116,7 +138,8 @@ export default function LegacyArticlePage() {
     // Si ya hay h3, no tocamos nada
     /* if (/<h3\b/i.test(html)) return html; */
 
-    return html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
+    const { protectedHtml, restore } = protectBlockquotes(html);
+    const out = protectedHtml.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
       // quitar <br> y normalizar espacios
       const text = inner
         .replace(/<br\s*\/?>/gi, " ")
@@ -142,6 +165,7 @@ export default function LegacyArticlePage() {
 
       return m;
     });
+    return restore(out);
   }
 
   function formatDate(dateString, locale) {
@@ -151,9 +175,10 @@ export default function LegacyArticlePage() {
   }
   function autoFormatHeadings(html) {
     if (!html) return "";
+    const { protectedHtml, restore } = protectBlockquotes(html);
 
     // Solo transformar si NO hay otros estilos además de <strong>
-    return html.replace(
+    const out = protectedHtml.replace(
       /<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi,
       (m, inner) => {
         // Heurística: si es cortito y parece un subtítulo, h3
@@ -166,6 +191,7 @@ export default function LegacyArticlePage() {
         return isHeadingLike ? `<h3>${inner}</h3>` : m;
       }
     );
+    return restore(out);
   }
   function wrapInlineImagesWithCaption(html) {
     if (!html) return "";

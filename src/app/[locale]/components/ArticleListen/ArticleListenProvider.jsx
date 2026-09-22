@@ -23,6 +23,13 @@ const SUPER_ADMIN_EMAIL = "e.zeangeloni@gmail.com";
 const ArticleListenContext = createContext(null);
 export const useArticleListen = () => useContext(ArticleListenContext);
 
+// Un Zitat/Kasten es <blockquote><p>…</p></blockquote> — el selector de abajo
+// incluye "p" Y "blockquote" a propósito (blockquote sueltos, p normales),
+// pero eso hace que el <p> de adentro de un Kasten matchee DOS VECES (como
+// blockquote y como su propio párrafo): se leería y resaltaría por duplicado.
+const isNestedInBlockquote = (el) =>
+  el.tagName !== "BLOCKQUOTE" && el.closest("blockquote");
+
 // Recolecta del DOM los elementos legibles en orden: título, subtítulo,
 // Vorspann (standfirst) y cada bloque del cuerpo. Cada bloque hablado es un
 // elemento real → se puede resaltar mientras se lee.
@@ -34,9 +41,9 @@ function collectTargets() {
   if (subEl) targets.push(subEl);
   const vorspann = document.querySelector('[data-tts="vorspann"]');
   if (vorspann) {
-    const vBlocks = vorspann.querySelectorAll(
-      "p, h1, h2, h3, h4, h5, h6, li, blockquote"
-    );
+    const vBlocks = Array.from(
+      vorspann.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li, blockquote"),
+    ).filter((el) => !isNestedInBlockquote(el));
     if (vBlocks.length) vBlocks.forEach((el) => targets.push(el));
     else targets.push(vorspann);
   }
@@ -46,7 +53,9 @@ function collectTargets() {
   if (body) {
     body
       .querySelectorAll("p, h1, h2, h3, h4, h5, h6, li, blockquote")
-      .forEach((el) => targets.push(el));
+      .forEach((el) => {
+        if (!isNestedInBlockquote(el)) targets.push(el);
+      });
   }
   return targets.filter((el) => el.textContent.trim());
 }
