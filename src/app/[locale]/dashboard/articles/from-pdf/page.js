@@ -1993,16 +1993,22 @@ export default function FromPdfPage() {
       if (editionId) refreshExistingArticles(editionId);
 
       // Página donde terminó el artículo recién creado (o donde empezó, si no
-      // se cargó "Bis") — el siguiente suele arrancar ahí mismo o poco después,
-      // así el editor solo tiene que scrollear un poco en vez de re-elegir el
-      // dossier y buscar la página de nuevo. Se guarda ANTES de resetear el
-      // formulario, porque "Seiten" (bodyFrom/bodyTo) no se limpia abajo.
+      // se cargó "Bis") — el siguiente casi siempre arranca en la página
+      // siguiente. Se guarda ANTES de resetear el formulario.
       const lastPage = Number(bodyTo) || Number(bodyFrom) || null;
+      const nextPage = lastPage
+        ? Math.min(numPages || lastPage + 1, lastPage + 1)
+        : null;
 
-      // Deja el dossier/PDF abiertos (pdfDoc, editionId, "Seiten") y solo
-      // limpia los campos propios del artículo — mismo criterio que tenía el
-      // viejo botón "+ Nächster Artikel", ahora automático en cada creación.
-      setPublicationDate(new Date().toISOString().slice(0, 10));
+      // Deja el dossier/PDF abiertos (pdfDoc, editionId) y solo limpia los
+      // campos propios del artículo — mismo criterio que tenía el viejo botón
+      // "+ Nächster Artikel", ahora automático en cada creación.
+      // "Seiten" (Von) se precarga con la página siguiente a donde terminó
+      // este artículo — el siguiente suele arrancar ahí; "Bis" queda vacío
+      // para que se cargue solo si el artículo ocupa más de una página.
+      // "Datum" NO se resetea a hoy: casi todos los artículos de un mismo
+      // dossier comparten fecha, así se evita reabrir el date picker cada vez.
+      if (nextPage) { setBodyFrom(String(nextPage)); setBodyTo(""); }
       setTitle(""); setSubtitle(""); setPreviewText("");
       setAdditionalInfo(""); setContent("");
       setPublilabOn(false); setContentHtml("");
@@ -2019,7 +2025,7 @@ export default function FromPdfPage() {
       bannerTimersRef.current.push(
         setTimeout(() => {
           setBannerPhase("returning");
-          if (lastPage) scrollToPage(scrollRef, lastPage);
+          if (nextPage) scrollToPage(scrollRef, nextPage);
         }, 900)
       );
       bannerTimersRef.current.push(setTimeout(() => setBannerFading(true), 1900));
