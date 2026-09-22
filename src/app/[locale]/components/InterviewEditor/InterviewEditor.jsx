@@ -604,9 +604,9 @@ export function parseToBlocks(plainText, html) {
 }
 
 /// cycle: answer → question(H3) → subtitle(H2) → subtitle(H3) → subtitle(H4)
-/// → Kasten (answer+quote) → answer. Los dos pasos con Kasten se manejan
-/// aparte en cycleBlockType (necesitan envolver/desenvolver el <blockquote>
-/// del texto, no solo cambiar el type) — acá solo las transiciones "planas".
+/// → answer. Kasten NO es parte de este ciclo (ver toggleBlockKasten) — si
+/// el bloque está en Kasten, cycleBlockType lo desenvuelve primero y arranca
+/// el ciclo desde "answer" plano.
 function nextBlockType(type, block) {
   if (type === "answer") return "question";
   if (type === "question") return "subtitle"; // → H2
@@ -614,7 +614,7 @@ function nextBlockType(type, block) {
     return "subtitle"; // → H3
   if (type === "subtitle" && (block?.headingLevel || 3) === 3)
     return "subtitle"; // → H4
-  return "answer"; // subtitle(H4) → Kasten (ver cycleBlockType)
+  return "answer"; // subtitle(H4) → answer
 }
 
 // Kasten vía el ciclo de tipos: envuelve/desenvuelve TODO el contenido del
@@ -1708,50 +1708,50 @@ function PasteImportPanel({
     analyse(text, "");
   };
 
+  // Antes de descartar el HTML (Frage/Zwischentitel son texto plano), un
+  // <br> se convierte en espacio — si no, dos líneas quedan pegadas sin
+  // separador ("...der ilaIm April..." en vez de "...der ila Im April...").
+  // textContent ignora los <br> por completo, no inserta nada en su lugar.
   const stripHtml = (html) => {
     if (!html || !/</.test(html)) return html || "";
     const tmp = document.createElement("div");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
+    tmp.innerHTML = html.replace(/<br\s*\/?>/gi, " ");
+    return (tmp.textContent || tmp.innerText || "").replace(/\s+/g, " ").trim();
   };
 
   const cycleBlockType = (i) => {
     setBlocks((prev) =>
       prev.map((b, idx) => {
         if (idx !== i) return b;
-        // subtitle(H4) → Kasten: mismo type "answer", pero con TODO el texto
-        // envuelto en <blockquote> y marcado con quote:true (badge ❝).
-        if (b.type === "subtitle" && (b.headingLevel || 3) === 4) {
-          return {
-            ...b,
-            type: "answer",
-            text: wrapBlockAsQuote(b.text),
-            headingLevel: undefined,
-            quote: true,
-          };
-        }
-        // Kasten → answer normal: desenvuelve el <blockquote>.
-        if (b.type === "answer" && b.quote) {
-          return { ...b, text: unwrapBlockQuote(b.text), quote: false };
-        }
-        const nextType = nextBlockType(b.type, b);
+        // Si el bloque está en Kasten, el ciclo de tipos arranca desde
+        // "answer" plano (desenvuelve el <blockquote>, sin stripHtml) — así
+        // no hace falta salir del Kasten a mano antes de poder cambiar de
+        // tipo. Kasten ↔ answer plano tiene su PROPIO botón (toggleBlockKasten,
+        // al lado de este) porque necesita ser directo en los dos sentidos;
+        // meterlo en este ciclo lineal rompía uno de los dos sentidos (el que
+        // no fuera "el próximo paso"), perdiendo negrita/saltos de línea.
+        const current = b.quote
+          ? { ...b, text: unwrapBlockQuote(b.text), quote: false }
+          : b;
+        const nextType = nextBlockType(current.type, current);
         // When going from answer (HTML) to question/subtitle (plain text), strip tags
         const text =
-          b.type === "answer" &&
+          current.type === "answer" &&
           (nextType === "question" || nextType === "subtitle")
-            ? stripHtml(b.text)
-            : b.text;
+            ? stripHtml(current.text)
+            : current.text;
         // Determine headingLevel for type transitions
-        let headingLevel = b.headingLevel;
-        if (nextType === "question" && b.type === "answer") headingLevel = 3; // A → F default H3
+        let headingLevel = current.headingLevel;
+        if (nextType === "question" && current.type === "answer")
+          headingLevel = 3; // A → F default H3
         if (nextType === "subtitle") {
-          if (b.type === "question")
+          if (current.type === "question")
             headingLevel = 2; // F → T H2
-          else if ((b.headingLevel || 3) === 2)
+          else if ((current.headingLevel || 3) === 2)
             headingLevel = 3; // T H2 → T H3
-          else if ((b.headingLevel || 3) === 3) headingLevel = 4; // T H3 → T H4
+          else if ((current.headingLevel || 3) === 3) headingLevel = 4; // T H3 → T H4
         }
-        return { ...b, type: nextType, text, headingLevel };
+        return { ...current, type: nextType, text, headingLevel };
       }),
     );
     // Resize textarea after type change (rows=1 doesn't auto-expand otherwise)
@@ -1762,6 +1762,21 @@ function PasteImportPanel({
         el.style.height = el.scrollHeight + "px";
       }
     });
+  };
+
+  // Kasten ↔ answer plano: directo en los dos sentidos, nunca pasa por
+  // stripHtml — la negrita y los saltos de línea del bloque sobreviven
+  // siempre. Separado del ciclo de tipos de arriba a propósito (ver
+  // comentario en cycleBlockType).
+  const toggleBlockKasten = (i) => {
+    setBlocks((prev) =>
+      prev.map((b, idx) => {
+        if (idx !== i || b.type !== "answer") return b;
+        return b.quote
+          ? { ...b, text: unwrapBlockQuote(b.text), quote: false }
+          : { ...b, text: wrapBlockAsQuote(b.text), quote: true };
+      }),
+    );
   };
 
   const updateBlockText = (i, text) =>
@@ -2330,7 +2345,9 @@ function PasteImportPanel({
               <span className="text-amber-600 font-bold">H3</span> →{" "}
               <span className="text-amber-600 font-bold">H4</span> →{" "}
               <span className="text-gray-600">A</span>) · F-Blöcke: H2/H3/H4
-              wählen{" · "}
+              wählen ·{" "}
+              <span className="text-[#BD0E0D] font-bold">❝</span> = Zitat/
+              Kasten (A ↔ Kasten, eigener Button){" · "}
               <span className="text-gray-600 font-semibold">Enter</span> = neuer
               Block {" · "}
               <span className="text-gray-600 font-semibold">
@@ -2624,18 +2641,28 @@ function PasteImportPanel({
                     <div
                       className={`w-full rounded-xl border px-4 py-3 transition-colors flex items-start gap-3 ${s.rowClass}`}
                     >
-                      <button
-                        type="button"
-                        onClick={() => cycleBlockType(i)}
-                        title="Typ wechseln"
-                        className={`shrink-0 mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${
-                          block.quote
-                            ? "bg-white text-[#BD0E0D] border-2 border-[#BD0E0D]"
-                            : s.badgeClass
-                        }`}
-                      >
-                        {block.quote ? "❝" : s.badge}
-                      </button>
+                      <div className="shrink-0 flex flex-col items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => cycleBlockType(i)}
+                          title="Typ wechseln (A → F → H2 → H3 → H4 → A)"
+                          className={`mt-0.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black transition-opacity hover:opacity-75 ${s.badgeClass}`}
+                        >
+                          {s.badge}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggleBlockKasten(i)}
+                          title="Zitat / Kasten (A ↔ Kasten, directo en los dos sentidos)"
+                          className={`w-7 h-7 flex items-center justify-center rounded-full text-xs transition-opacity hover:opacity-75 ${
+                            block.quote
+                              ? "bg-white text-[#BD0E0D] border-2 border-[#BD0E0D]"
+                              : "bg-gray-100 text-gray-400 border border-gray-200"
+                          }`}
+                        >
+                          ❝
+                        </button>
+                      </div>
                       <DarkAnswerBlock
                         value={block.text}
                         onChange={(html) => updateBlockText(i, html)}
