@@ -433,6 +433,10 @@ body {
   font-size: 1.1rem !important;
   line-height: 1.6 !important;
   text-align: center;
+  /* Una imagen que fluye con el texto (float) adentro del Kasten necesita
+     esto para quedar contenida en la caja — mismo motivo que .article-content
+     ya lo usa para el cuerpo del artículo (ver esa regla, más arriba). */
+  display: flow-root;
 }
 .article-content blockquote::before {
   content: "„";

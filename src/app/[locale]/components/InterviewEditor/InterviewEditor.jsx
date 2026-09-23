@@ -860,9 +860,17 @@ function normalizeAnswerHtml(html) {
     tmp.innerHTML = out;
     tmp.querySelectorAll("blockquote").forEach((bq) => {
       Array.from(bq.children).forEach((p) => {
-        if (!p.textContent.trim()) p.remove();
+        // Un <p><img></p> (foto que fluye con el texto, ver insertInlineImageAt)
+        // tiene textContent vacío igual que un párrafo realmente vacío — sin
+        // este chequeo, la limpieza de arriba borraba la imagen apenas se
+        // insertaba (el DOM en pantalla la seguía mostrando porque el resync
+        // solo pisa el div cuando pierde el foco, pero el estado guardado ya
+        // la había perdido, y por eso desaparecía en la Vorschau/al guardar).
+        if (!p.textContent.trim() && !p.querySelector("img, figure, video, iframe"))
+          p.remove();
       });
-      if (!bq.textContent.trim()) bq.remove();
+      if (!bq.textContent.trim() && !bq.querySelector("img, figure, video, iframe"))
+        bq.remove();
     });
     out = tmp.innerHTML;
   }
@@ -1007,6 +1015,14 @@ function DarkAnswerBlock({
   const [loadingEditions, setLoadingEditions] = useState(false);
   // Caret personalizado (más grueso que el nativo). Posición relativa al wrapper.
   const [caret, setCaret] = useState(null);
+  // Imagen que fluye con el texto DENTRO del propio párrafo (a diferencia del
+  // bloque "image" de siempre, que es un bloque aparte entre párrafos) — para
+  // que quepa una foto flotando dentro de un Kasten, tiene que vivir en el
+  // mismo HTML que el texto del bloque, no al lado.
+  const inlineImageInputRef = useRef(null);
+  const [uploadingInline, setUploadingInline] = useState(false);
+  // Popover de tamaño/alineación al hacer click en una imagen ya insertada.
+  const [imgPopover, setImgPopover] = useState(null);
 
   const updateCaret = () => {
     const div = divRef.current;
@@ -1148,6 +1164,130 @@ function DarkAnswerBlock({
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
   };
 
+  // Inserta la imagen ya subida como su propio <p> en el caret — mismo shape
+  // que produce el bloque "image" de siempre (<p><img style="width:X%"
+  // data-align="left|right"></p>), así wrapInlineImagesWithCaption la detecta
+  // y la flota igual. La diferencia es que vive DENTRO del HTML de este
+  // bloque (no como bloque aparte), así puede quedar adentro de un Kasten.
+  // Abre el popover de edición (tamaño/alineación/alt/title) para un <img> ya
+  // en el DOM — mismo cálculo de posición que el click manual, factorizado
+  // para poder abrirlo también automáticamente apenas se inserta la imagen.
+  const openImgPopoverFor = (img) => {
+    if (!img || !wrapRef.current) return;
+    const wrapRect = wrapRef.current.getBoundingClientRect();
+    const imgRect = img.getBoundingClientRect();
+    setImgPopover({
+      el: img,
+      left: imgRect.left - wrapRect.left,
+      top: imgRect.bottom - wrapRect.top + 6,
+    });
+  };
+
+  const insertInlineImageAt = (url) => {
+    const div = divRef.current;
+    if (!div) return;
+    const sel = window.getSelection();
+    const liveInDiv = sel && sel.rangeCount > 0 && div.contains(sel.anchorNode);
+    if (!liveInDiv && !restoreSelection()) {
+      // Ni selección viva ni guardada (típico si el picker de archivos se
+      // llevó el foco entre el click y la subida) — en vez de que
+      // insertHTML no haga nada en silencio, se arma un caret propio al
+      // final del bloque.
+      div.focus();
+      const range = document.createRange();
+      range.selectNodeContents(div);
+      range.collapse(false);
+      const sel2 = window.getSelection();
+      sel2.removeAllRanges();
+      sel2.addRange(range);
+    }
+    document.execCommand(
+      "insertHTML",
+      false,
+      `<p><img src="${url}" alt="" style="width:25%" data-align="right" /></p>`,
+    );
+    onChange(normalizeAnswerHtml(div.innerHTML));
+    // Abrir el popover en el momento, para no depender de que la persona
+    // "descubra" que hay que volver a hacer click en la imagen para elegir
+    // tamaño/posición/alt — se pregunta ahí mismo, apenas se inserta.
+    const inserted = div.querySelector(`img[src="${CSS.escape(url)}"]`);
+    if (inserted) openImgPopoverFor(inserted);
+  };
+
+  const handleInlineImageFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    saveSelection();
+    setUploadingInline(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.url) insertInlineImageAt(data.url);
+      else console.error("Inline image upload: sin URL en la respuesta", data);
+    } catch (err) {
+      console.error("Inline image upload error:", err);
+    } finally {
+      setUploadingInline(false);
+    }
+  };
+
+  // Click en una imagen ya insertada → mismo popover, para volver a editarla.
+  const handleContentClick = (e) => {
+    updateCaret();
+    const img = e.target.closest?.("img");
+    if (!img || !divRef.current?.contains(img)) {
+      setImgPopover(null);
+      return;
+    }
+    openImgPopoverFor(img);
+  };
+
+  const applyImgStyle = (widthPct) => {
+    const img = imgPopover?.el;
+    if (!img) return;
+    img.style.width = `${widthPct}%`;
+    onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+    setImgPopover((p) => (p ? { ...p } : p));
+  };
+
+  const applyImgAlign = (align) => {
+    const img = imgPopover?.el;
+    if (!img) return;
+    if (align === "center") img.removeAttribute("data-align");
+    else img.setAttribute("data-align", align);
+    onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+    setImgPopover((p) => (p ? { ...p } : p));
+  };
+
+  const applyImgAlt = (text) => {
+    const img = imgPopover?.el;
+    if (!img) return;
+    img.alt = text;
+    onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+    setImgPopover((p) => (p ? { ...p } : p));
+  };
+
+  const applyImgTitle = (text) => {
+    const img = imgPopover?.el;
+    if (!img) return;
+    if (text) img.title = text;
+    else img.removeAttribute("title");
+    onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+    setImgPopover((p) => (p ? { ...p } : p));
+  };
+
+  const removeImgFromPopover = () => {
+    const img = imgPopover?.el;
+    if (!img) return;
+    const p = img.closest("p");
+    (p && p.children.length === 1 ? p : img).remove();
+    onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+    setImgPopover(null);
+  };
+
   const handleDossierClick = async (e) => {
     e.preventDefault();
     saveSelection();
@@ -1254,6 +1394,19 @@ function DarkAnswerBlock({
       >
         ❝
       </button>
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          saveSelection();
+        }}
+        onClick={() => inlineImageInputRef.current?.click()}
+        disabled={uploadingInline}
+        className={`${btnCls} disabled:opacity-40`}
+        title="Bild einfügen (fließt mit dem Text, auch im Kasten)"
+      >
+        {uploadingInline ? "…" : "🖼️"}
+      </button>
     </div>
   );
 
@@ -1283,9 +1436,14 @@ function DarkAnswerBlock({
         }}
         onFocus={updateCaret}
         onKeyUp={updateCaret}
-        onClick={updateCaret}
-        onBlur={() => {
+        onClick={handleContentClick}
+        onBlur={(e) => {
+          // Si el foco se va al popover de la imagen (inputs de alt/title,
+          // botones de tamaño/alineación) no hay que cerrar nada — son parte
+          // de la misma interacción, solo viven fuera del contentEditable.
+          if (wrapRef.current?.contains(e.relatedTarget)) return;
           setCaret(null);
+          setImgPopover(null);
           const el = divRef.current;
           setTimeout(() => {
             if (el && !el.isConnected) return; // element was removed from DOM
@@ -1366,7 +1524,83 @@ function DarkAnswerBlock({
             }}
           />
         )}
+        {imgPopover && (
+          <div
+            className="absolute z-30 flex flex-col gap-1.5 bg-white border border-gray-200 rounded-lg shadow-md px-2 py-1.5 w-56"
+            style={{ left: imgPopover.left, top: imgPopover.top }}
+          >
+            <input
+              type="text"
+              value={imgPopover.el?.alt || ""}
+              onChange={(e) => applyImgAlt(e.target.value)}
+              placeholder="Alt-Text (Beschreibung)…"
+              className="w-full border border-gray-200 rounded px-1.5 py-1 text-[11px] text-gray-700 outline-none focus:border-blue-400"
+            />
+            <input
+              type="text"
+              value={imgPopover.el?.title || ""}
+              onChange={(e) => applyImgTitle(e.target.value)}
+              placeholder="Title (Tooltip)…"
+              className="w-full border border-gray-100 rounded px-1.5 py-1 text-[11px] text-gray-500 outline-none focus:border-blue-300"
+            />
+            <div className="flex items-center gap-1">
+              {[
+                ["25", "S"],
+                ["50", "M"],
+                ["75", "L"],
+              ].map(([w, label]) => (
+                <button
+                  key={w}
+                  type="button"
+                  onClick={() => applyImgStyle(w)}
+                  className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-colors ${
+                    imgPopover.el?.style.width === `${w}%`
+                      ? "bg-blue-600 text-white"
+                      : "border border-blue-200 text-blue-600 hover:border-blue-400"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+              <span className="w-px h-3.5 bg-gray-200 mx-0.5" />
+              {[
+                ["left", "⬅"],
+                ["center", "⬛"],
+                ["right", "➡"],
+              ].map(([a, label]) => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => applyImgAlign(a)}
+                  className={`w-6 h-6 flex items-center justify-center rounded text-[10px] transition-colors ${
+                    (imgPopover.el?.getAttribute("data-align") || "center") === a
+                      ? "bg-blue-600 text-white"
+                      : "border border-blue-200 text-blue-600 hover:border-blue-400"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+              <span className="w-px h-3.5 bg-gray-200 mx-0.5" />
+              <button
+                type="button"
+                onClick={removeImgFromPopover}
+                className="w-6 h-6 flex items-center justify-center rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                title="Bild entfernen"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+      <input
+        ref={inlineImageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleInlineImageFile}
+      />
       {showDossier && (
         <DossierModal
           editions={editions}
