@@ -67,6 +67,38 @@ export default function LegacyArticlePage() {
   });
   const [hasPdfAbo, setHasPdfAbo] = useState(false);
   const [readerOpen, setReaderOpen] = useState(false);
+  // Orientación de cada imagen del artículo (por id) — mismo criterio que ya
+  // usa MiniArticleCardGrid para las tarjetas. La caja fija aspect-[3/2] +
+  // object-cover recorta mal una foto cuadrada/vertical (p. ej. le comía
+  // arriba/abajo a un tablero de Monopoly, dejando solo la franja del medio
+  // agrandada) — landscape sigue usando esa caja porque ahí funciona bien
+  // (la mayoría de las fotos de la revista son horizontales); cuadrada o
+  // vertical se muestra completa, sin recortar.
+  // Guarda la proporción REAL (no solo "es vertical/horizontal") — para
+  // cuadrada/vertical hace falta el número exacto para mostrar la foto
+  // completa sin adivinar una caja fija que igual la recorte distinto.
+  const [imageRatio, setImageRatio] = useState({});
+
+  useEffect(() => {
+    const imgs = article?.images;
+    if (!imgs?.length) return;
+    let active = true;
+    imgs.forEach((image) => {
+      if (!image?.url || image?.id == null) return;
+      const probe = new window.Image();
+      probe.onload = () => {
+        if (!active || !probe.naturalWidth || !probe.naturalHeight) return;
+        setImageRatio((prev) => ({
+          ...prev,
+          [image.id]: probe.naturalWidth / probe.naturalHeight,
+        }));
+      };
+      probe.src = image.url;
+    });
+    return () => {
+      active = false;
+    };
+  }, [article?.images]);
 
   useEffect(() => {
     let aborted = false;
@@ -624,13 +656,41 @@ export default function LegacyArticlePage() {
 
           {remainingImages?.length > 0 && (
             <div className="flex flex-col items-center mb-6 gap-2">
-              {remainingImages.map((image) => (
+              {remainingImages.map((image) => {
+                const ratio = imageRatio[image.id];
+                // Sin dato todavía (recién está cargando) o realmente
+                // horizontal: caja fija de siempre, funciona bien para la
+                // mayoría de las fotos de la revista (recorte centrado).
+                // Cuadrada/vertical (ratio <= 1.05): se muestra COMPLETA con
+                // su proporción real — antes aspect-[3/2] + cover le comía
+                // arriba/abajo, dejando solo una franja agrandada del medio.
+                const isNonLandscape = ratio != null && ratio <= 1.05;
+                return (
                 <div key={image.id} className="w-full max-w-3xl">
                   <div
                     className="cursor-pointer overflow-hidden shadow-md"
                     onClick={() => openPopup(image)}
                   >
-                    <div className="relative w-full aspect-[3/2]">
+                    <div
+                      className={
+                        isNonLandscape
+                          ? "relative w-full mx-auto"
+                          : "relative w-full aspect-[3/2]"
+                      }
+                      style={
+                        isNonLandscape
+                          ? {
+                              aspectRatio: String(ratio),
+                              maxHeight: "80vh",
+                              // Ancho tope = el que le corresponde a una altura
+                              // de 80vh con esta proporción — así nunca fuerza
+                              // la altura a más de 80vh sin achicar el ancho
+                              // en simultáneo (mismo aspect-ratio siempre).
+                              maxWidth: `min(100%, calc(80vh * ${ratio}))`,
+                            }
+                          : undefined
+                      }
+                    >
                       <Image
                         src={image.url}
                         alt={
@@ -639,7 +699,7 @@ export default function LegacyArticlePage() {
                           "Imagen del artículo"
                         }
                         fill
-                        className="object-cover"
+                        className={isNonLandscape ? "object-contain" : "object-cover"}
                         sizes="(max-width: 800px) 100vw, 768px"
                       />
                     </div>
@@ -663,7 +723,8 @@ export default function LegacyArticlePage() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

@@ -538,6 +538,20 @@ body {
   word-break: break-all; /* URLs sin espacios -> que sí se corten */
 }
 
+/* Imagen suelta centrada (sin flotar) dentro de un <p> — "centro" en el
+   picker de tamaño/posición (S/M/L + izq/centro/der) se guarda SIN
+   data-align (mismo criterio que left/right, que sí lo escriben), y
+   wrapInlineImagesWithCaption solo envuelve en <figure> cuando hay
+   caption/credit o floatClass — sin ninguno de los dos dejaba el <img>
+   suelto, que por default es inline y queda pegado a la izquierda pese a
+   que el picker mostraba "centro" como activo. Bug preexistente del
+   bloque de imagen de siempre (no solo del picker nuevo del Kasten/inline).
+   width:X% ya lo trae el estilo inline del <img> — esto solo lo centra. */
+.article-content p > img {
+  display: block;
+  margin: 0 auto;
+}
+
 /* Inline images with captions */
 .article-content figure.inline-image-figure {
   margin: 1.5rem auto;

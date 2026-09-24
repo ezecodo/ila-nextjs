@@ -64,6 +64,31 @@ export default function LegacyArticlePage() {
     alt: "",
     title: "",
   });
+  // Proporción real de cada imagen del artículo (por id) — ver mismo
+  // mecanismo y motivo en ausgaben/[...legacyPath]/page.js: la caja fija
+  // aspect-[3/2] + object-cover recorta mal fotos cuadradas/verticales.
+  const [imageRatio, setImageRatio] = useState({});
+
+  useEffect(() => {
+    const imgs = article?.images;
+    if (!imgs?.length) return;
+    let active = true;
+    imgs.forEach((image) => {
+      if (!image?.url || image?.id == null) return;
+      const probe = new window.Image();
+      probe.onload = () => {
+        if (!active || !probe.naturalWidth || !probe.naturalHeight) return;
+        setImageRatio((prev) => ({
+          ...prev,
+          [image.id]: probe.naturalWidth / probe.naturalHeight,
+        }));
+      };
+      probe.src = image.url;
+    });
+    return () => {
+      active = false;
+    };
+  }, [article?.images]);
 
   const openPopup = (image) => {
     setPopupImage({
@@ -596,18 +621,36 @@ export default function LegacyArticlePage() {
 
           {remainingImages?.length > 0 && (
             <div className="flex flex-col items-center mb-6 gap-2">
-              {remainingImages.map((image) => (
+              {remainingImages.map((image) => {
+                const ratio = imageRatio[image.id];
+                const isNonLandscape = ratio != null && ratio <= 1.05;
+                return (
                 <div key={image.id} className="w-full max-w-3xl">
                   <div
                     className="cursor-pointer overflow-hidden shadow-md"
                     onClick={() => openPopup(image)}
                   >
-                    <div className="relative w-full aspect-[3/2]">
+                    <div
+                      className={
+                        isNonLandscape
+                          ? "relative w-full mx-auto"
+                          : "relative w-full aspect-[3/2]"
+                      }
+                      style={
+                        isNonLandscape
+                          ? {
+                              aspectRatio: String(ratio),
+                              maxHeight: "80vh",
+                              maxWidth: `min(100%, calc(80vh * ${ratio}))`,
+                            }
+                          : undefined
+                      }
+                    >
                       <Image
                         src={image.url}
                         alt={image.alt || "Imagen del artículo"}
                         fill
-                        className="object-cover"
+                        className={isNonLandscape ? "object-contain" : "object-cover"}
                         sizes="(max-width: 800px) 100vw, 768px"
                       />
                     </div>
@@ -629,7 +672,8 @@ export default function LegacyArticlePage() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
