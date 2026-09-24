@@ -271,7 +271,7 @@ export async function POST(request) {
       // Detectar índices de gallery presentes en el FormData: gallery[0][file], gallery[0][title], etc.
       const galleryIndices = new Set();
       for (const key of formData.keys()) {
-        const m = key.match(/^gallery\[(\d+)\]\[(file|title|alt|isCover)\]$/);
+        const m = key.match(/^gallery\[(\d+)\]\[(file|title|alt|isCover|displayMode)\]$/);
         if (m) galleryIndices.add(parseInt(m[1], 10));
       }
 
@@ -282,6 +282,7 @@ export async function POST(request) {
         const file = formData.get(`gallery[${idx}][file]`);
         const title = formData.get(`gallery[${idx}][title]`) || null;
         const alt = formData.get(`gallery[${idx}][alt]`) || null;
+        const displayMode = formData.get(`gallery[${idx}][displayMode]`) || null;
 
         if (!file || !file.name) continue;
 
@@ -297,6 +298,7 @@ export async function POST(request) {
               url,
               title,
               alt,
+              displayMode,
             },
           });
 

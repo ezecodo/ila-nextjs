@@ -623,7 +623,19 @@ export default function LegacyArticlePage() {
             <div className="flex flex-col items-center mb-6 gap-2">
               {remainingImages.map((image) => {
                 const ratio = imageRatio[image.id];
-                const isNonLandscape = ratio != null && ratio <= 1.05;
+                // Ver mismo mecanismo y comentario largo en
+                // ausgaben/[...legacyPath]/page.js — displayMode (picker en
+                // "Autoren & Bilder") pisa la detección automática.
+                const mode = image.displayMode || "";
+                const forcedCover = mode === "cover";
+                const forcedContain = mode.startsWith("contain-");
+                const maxHeightVh = forcedContain
+                  ? { s: 40, m: 60, l: 80 }[mode.slice(8)] || 80
+                  : 80;
+                const isNonLandscape =
+                  !forcedCover &&
+                  ratio != null &&
+                  (forcedContain || ratio <= 1.05);
                 return (
                 <div key={image.id} className="w-full max-w-3xl">
                   <div
@@ -640,8 +652,8 @@ export default function LegacyArticlePage() {
                         isNonLandscape
                           ? {
                               aspectRatio: String(ratio),
-                              maxHeight: "80vh",
-                              maxWidth: `min(100%, calc(80vh * ${ratio}))`,
+                              maxHeight: `${maxHeightVh}vh`,
+                              maxWidth: `min(100%, calc(${maxHeightVh}vh * ${ratio}))`,
                             }
                           : undefined
                       }

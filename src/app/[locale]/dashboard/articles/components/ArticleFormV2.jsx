@@ -425,6 +425,7 @@ export default function ArticleFormV2({ articleId }) {
               url: img.url,
               title: img.title || "",
               alt: img.alt || "",
+              displayMode: img.displayMode || "",
               isCover: index === 0,
               order: index + 1,
             }))
@@ -577,6 +578,7 @@ export default function ArticleFormV2({ articleId }) {
       if (img.id) formData.append(`gallery[${idx}][id]`, img.id);
       formData.append(`gallery[${idx}][title]`, img.title || "");
       formData.append(`gallery[${idx}][alt]`, img.alt || "");
+      formData.append(`gallery[${idx}][displayMode]`, img.displayMode || "");
       formData.append(`gallery[${idx}][isCover]`, img.isCover ? "true" : "false");
       formData.append(`gallery[${idx}][order]`, String(idx));
     });

@@ -667,7 +667,7 @@ export async function PUT(req, context) {
       // 📤 Procesar nuevas imágenes de la galería
       const galleryIndices = new Set();
       for (const key of formData.keys()) {
-        const m = key.match(/^gallery\[(\d+)\]\[(file|title|alt|isCover)\]$/);
+        const m = key.match(/^gallery\[(\d+)\]\[(file|title|alt|isCover|displayMode)\]$/);
         if (m) galleryIndices.add(parseInt(m[1], 10));
       }
 
@@ -678,6 +678,7 @@ export async function PUT(req, context) {
         const title = formData.get(`gallery[${idx}][title]`) || null;
         const alt = formData.get(`gallery[${idx}][alt]`) || null;
         const imgId = formData.get(`gallery[${idx}][id]`);
+        const displayMode = formData.get(`gallery[${idx}][displayMode]`) || null;
 
         if (file && file.name) {
           // caso: imagen nueva → create
@@ -690,13 +691,14 @@ export async function PUT(req, context) {
               url,
               title,
               alt,
+              displayMode,
             },
           });
         } else if (imgId) {
-          // caso: imagen existente → update solo title y alt
+          // caso: imagen existente → update title, alt y displayMode
           await prisma.image.update({
             where: { id: parseInt(imgId, 10) },
-            data: { title, alt },
+            data: { title, alt, displayMode },
           });
         }
       }

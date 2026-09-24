@@ -658,13 +658,24 @@ export default function LegacyArticlePage() {
             <div className="flex flex-col items-center mb-6 gap-2">
               {remainingImages.map((image) => {
                 const ratio = imageRatio[image.id];
-                // Sin dato todavía (recién está cargando) o realmente
-                // horizontal: caja fija de siempre, funciona bien para la
-                // mayoría de las fotos de la revista (recorte centrado).
-                // Cuadrada/vertical (ratio <= 1.05): se muestra COMPLETA con
-                // su proporción real — antes aspect-[3/2] + cover le comía
-                // arriba/abajo, dejando solo una franja agrandada del medio.
-                const isNonLandscape = ratio != null && ratio <= 1.05;
+                // displayMode (picker en "Autoren & Bilder") pisa la
+                // detección automática por orientación: "cover" fuerza
+                // siempre la caja 3:2 recortada; "contain-s/m/l" fuerza
+                // mostrarla completa con un tope de alto chico/mediano/
+                // grande. Sin displayMode (o "auto"), sigue como antes:
+                // horizontal recorta, cuadrada/vertical se muestra completa
+                // con tope de 80vh — evita que una foto muy vertical/vieja
+                // (o forzada a "grande") tape toda la pantalla.
+                const mode = image.displayMode || "";
+                const forcedCover = mode === "cover";
+                const forcedContain = mode.startsWith("contain-");
+                const maxHeightVh = forcedContain
+                  ? { s: 40, m: 60, l: 80 }[mode.slice(8)] || 80
+                  : 80;
+                const isNonLandscape =
+                  !forcedCover &&
+                  ratio != null &&
+                  (forcedContain || ratio <= 1.05);
                 return (
                 <div key={image.id} className="w-full max-w-3xl">
                   <div
@@ -681,12 +692,12 @@ export default function LegacyArticlePage() {
                         isNonLandscape
                           ? {
                               aspectRatio: String(ratio),
-                              maxHeight: "80vh",
-                              // Ancho tope = el que le corresponde a una altura
-                              // de 80vh con esta proporción — así nunca fuerza
-                              // la altura a más de 80vh sin achicar el ancho
-                              // en simultáneo (mismo aspect-ratio siempre).
-                              maxWidth: `min(100%, calc(80vh * ${ratio}))`,
+                              maxHeight: `${maxHeightVh}vh`,
+                              // Ancho tope = el que le corresponde a esa altura
+                              // con esta proporción — así nunca fuerza la
+                              // altura a más del tope sin achicar el ancho en
+                              // simultáneo (mismo aspect-ratio siempre).
+                              maxWidth: `min(100%, calc(${maxHeightVh}vh * ${ratio}))`,
                             }
                           : undefined
                       }

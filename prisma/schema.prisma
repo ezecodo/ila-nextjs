@@ -569,6 +569,15 @@ model Image {
   titleES     String?  @db.VarChar(750)
   originalAlt   String?
   originalTitle String?  @db.VarChar(750)
+  // Cómo mostrar esta imagen en el cuerpo del artículo (ausgaben/online):
+  // null/"auto" = detección automática por orientación (default — landscape
+  // recorta a 3:2, cuadrada/vertical se muestra completa con tope de 80vh);
+  // "cover" = fuerza la caja 3:2 recortada aunque no sea horizontal;
+  // "contain-s"/"contain-m"/"contain-l" = fuerza mostrarla completa, con
+  // tope de 40vh/60vh/80vh respectivamente. Solo aplica a las imágenes
+  // adicionales del cuerpo, no a tarjetas/grillas (esas tienen su propia
+  // detección de orientación, ya resuelta, sin relación con este campo).
+  displayMode String?
 
   @@index([contentType, contentId])
 }

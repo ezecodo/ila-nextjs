@@ -113,6 +113,19 @@ export default function ImageGalleryManager({ gallery, setGallery, mode }) {
     );
   };
 
+  // Cómo se muestra esta imagen en el cuerpo del artículo (ausgaben/online) —
+  // por defecto ("Auto") se detecta la orientación sola: horizontal se
+  // recorta a 3:2, cuadrada/vertical se muestra completa. Acá se puede
+  // forzar el modo cuando la automática no da el resultado que se quiere
+  // (p. ej. una foto que igual se ve "enorme" con el tope automático de 80vh).
+  const DISPLAY_MODES = [
+    { value: "", label: "Auto" },
+    { value: "cover", label: "Recortada" },
+    { value: "contain-s", label: "Completa · chica" },
+    { value: "contain-m", label: "Completa · mediana" },
+    { value: "contain-l", label: "Completa · grande" },
+  ];
+
   return (
     <div className={styles.formGroup}>
       <label className={styles.formLabel}>{t("sectionTitle")}</label>
@@ -193,6 +206,27 @@ export default function ImageGalleryManager({ gallery, setGallery, mode }) {
                       onChange={(e) => handleEdit(index, "alt", e.target.value)}
                       placeholder={t("descriptionCreditsPlaceholder")}
                     />
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 block mb-1">
+                        Größe im Artikel
+                      </label>
+                      <div className="flex flex-wrap gap-1">
+                        {DISPLAY_MODES.map((m) => (
+                          <button
+                            key={m.value}
+                            type="button"
+                            onClick={() => handleEdit(index, "displayMode", m.value)}
+                            className={`px-2 py-1 rounded text-xs border transition-colors ${
+                              (img.displayMode || "") === m.value
+                                ? "bg-[#BD0E0D] text-white border-[#BD0E0D]"
+                                : "border-gray-300 text-gray-600 hover:border-gray-400"
+                            }`}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   <button
