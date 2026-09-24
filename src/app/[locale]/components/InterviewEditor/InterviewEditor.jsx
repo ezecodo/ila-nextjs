@@ -1023,6 +1023,22 @@ function DarkAnswerBlock({
   const [uploadingInline, setUploadingInline] = useState(false);
   // Popover de tamaño/alineación al hacer click en una imagen ya insertada.
   const [imgPopover, setImgPopover] = useState(null);
+  // "✓ gespeichert" transitorio en el popover — cada cambio (título, alt,
+  // tamaño, posición) ya queda aplicado al estado del bloque al toque, pero
+  // eso no se ve a simple vista; este flash confirma que sí se guardó.
+  const [imgSavedFlash, setImgSavedFlash] = useState(false);
+  const imgSavedTimerRef = useRef(null);
+  const flashImgSaved = () => {
+    setImgSavedFlash(true);
+    clearTimeout(imgSavedTimerRef.current);
+    imgSavedTimerRef.current = setTimeout(() => setImgSavedFlash(false), 1100);
+  };
+  useEffect(() => () => clearTimeout(imgSavedTimerRef.current), []);
+  // Alt-Text/Title son borrador local: NO se aplican letra por letra (eso
+  // guardaba a medio escribir, sin control) — recién se escriben al <img> al
+  // tocar "💾 Guardar" en el popover.
+  const [imgAltDraft, setImgAltDraft] = useState("");
+  const [imgTitleDraft, setImgTitleDraft] = useState("");
 
   const updateCaret = () => {
     const div = divRef.current;
@@ -1181,6 +1197,8 @@ function DarkAnswerBlock({
       left: imgRect.left - wrapRect.left,
       top: imgRect.bottom - wrapRect.top + 6,
     });
+    setImgAltDraft(img.alt || "");
+    setImgTitleDraft(img.title || "");
   };
 
   const insertInlineImageAt = (url) => {
@@ -1251,6 +1269,7 @@ function DarkAnswerBlock({
     img.style.width = `${widthPct}%`;
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
     setImgPopover((p) => (p ? { ...p } : p));
+    flashImgSaved();
   };
 
   const applyImgAlign = (align) => {
@@ -1260,23 +1279,38 @@ function DarkAnswerBlock({
     else img.setAttribute("data-align", align);
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
     setImgPopover((p) => (p ? { ...p } : p));
+    flashImgSaved();
   };
 
-  const applyImgAlt = (text) => {
+  // "Ecke": además de la alineación, manda el <p> de la imagen al principio
+  // del contenedor (blockquote u otro) — combinado con izquierda/derecha da
+  // el efecto de foto anclada arriba a la izquierda/derecha, como en la
+  // maqueta impresa original, sin importar dónde estaba el caret al insertar.
+  const moveImgToCorner = (align) => {
     const img = imgPopover?.el;
     if (!img) return;
-    img.alt = text;
+    const p = img.closest("p");
+    const container = p?.parentElement;
+    if (!p || !container) return;
+    if (container.firstChild !== p) container.insertBefore(p, container.firstChild);
+    img.setAttribute("data-align", align);
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
-    setImgPopover((p) => (p ? { ...p } : p));
+    flashImgSaved();
+    // Reposicionar el popover: la imagen se movió de lugar en la pantalla.
+    requestAnimationFrame(() => openImgPopoverFor(img));
   };
 
-  const applyImgTitle = (text) => {
+  // Aplica Alt-Text/Title recién al tocar "💾 Guardar" — no letra por letra
+  // (eso guardaba texto a medio escribir sin ningún control).
+  const saveImgTextFields = () => {
     const img = imgPopover?.el;
     if (!img) return;
-    if (text) img.title = text;
+    img.alt = imgAltDraft;
+    if (imgTitleDraft) img.title = imgTitleDraft;
     else img.removeAttribute("title");
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
     setImgPopover((p) => (p ? { ...p } : p));
+    flashImgSaved();
   };
 
   const removeImgFromPopover = () => {
@@ -1529,20 +1563,43 @@ function DarkAnswerBlock({
             className="absolute z-30 flex flex-col gap-1.5 bg-white border border-gray-200 rounded-lg shadow-md px-2 py-1.5 w-56"
             style={{ left: imgPopover.left, top: imgPopover.top }}
           >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-gray-400">Bild</span>
+              <span
+                className={`text-[10px] font-medium text-green-600 transition-opacity ${
+                  imgSavedFlash ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                ✓ gespeichert
+              </span>
+            </div>
             <input
               type="text"
-              value={imgPopover.el?.alt || ""}
-              onChange={(e) => applyImgAlt(e.target.value)}
+              value={imgAltDraft}
+              onChange={(e) => setImgAltDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveImgTextFields();
+              }}
               placeholder="Alt-Text (Beschreibung)…"
               className="w-full border border-gray-200 rounded px-1.5 py-1 text-[11px] text-gray-700 outline-none focus:border-blue-400"
             />
             <input
               type="text"
-              value={imgPopover.el?.title || ""}
-              onChange={(e) => applyImgTitle(e.target.value)}
+              value={imgTitleDraft}
+              onChange={(e) => setImgTitleDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveImgTextFields();
+              }}
               placeholder="Title (Tooltip)…"
               className="w-full border border-gray-100 rounded px-1.5 py-1 text-[11px] text-gray-500 outline-none focus:border-blue-300"
             />
+            <button
+              type="button"
+              onClick={saveImgTextFields}
+              className="w-full flex items-center justify-center gap-1 rounded bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium py-1 transition-colors"
+            >
+              💾 Guardar
+            </button>
             <div className="flex items-center gap-1">
               {[
                 ["25", "S"],
@@ -1591,6 +1648,25 @@ function DarkAnswerBlock({
                 ✕
               </button>
             </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-gray-400 mr-0.5">Ecke:</span>
+              <button
+                type="button"
+                onClick={() => moveImgToCorner("left")}
+                className="w-6 h-6 flex items-center justify-center rounded text-[11px] border border-blue-200 text-blue-600 hover:border-blue-400 transition-colors"
+                title="Oben links anpinnen"
+              >
+                ↖
+              </button>
+              <button
+                type="button"
+                onClick={() => moveImgToCorner("right")}
+                className="w-6 h-6 flex items-center justify-center rounded text-[11px] border border-blue-200 text-blue-600 hover:border-blue-400 transition-colors"
+                title="Oben rechts anpinnen"
+              >
+                ↗
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -1636,7 +1712,26 @@ function PasteImportPanel({
 }) {
   const [pastedHtml, setPastedHtml] = useState("");
   const [pastedText, setPastedText] = useState("");
-  const [blocks, setBlocks] = useState(initialBlocks);
+  // Ningún sitio que crea bloques (appendText, appendHeading, splitBlock,
+  // pairsToBlocks, etc. — son ~30 en este archivo) les pone un id propio, así
+  // que el render de abajo usaba el ÍNDICE como key de React. Con una lista
+  // que se reordena/achica (Backspace fusiona dos bloques, Enter la parte)
+  // eso hace que React reutilice mal el DOM de un contenteditable por otro
+  // al desplazarse los índices — el síntoma real: después de fusionar con
+  // Backspace, un bloque de más abajo queda mostrando el contenido VIEJO de
+  // otro bloque (texto "fantasma"/duplicado) en vez del suyo propio, porque
+  // el componente reciclado nunca se resincroniza si en ese momento cree
+  // tener el foco. setBlocksSafe le pone un id estable a cualquier bloque
+  // que no lo tenga, en cada escritura, sin tocar los ~30 sitios de creación.
+  const withBlockIds = (arr) =>
+    (arr || []).map((b) => (b.id != null ? b : { ...b, id: genId() }));
+  const [blocks, setBlocks] = useState(() => withBlockIds(initialBlocks));
+  const setBlocksSafe = (updater) => {
+    setBlocks((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      return next == null ? next : withBlockIds(next);
+    });
+  };
   // Ancho (%) del panel izquierdo en modo split; arrastrable con el divisor.
   const [leftPct, setLeftPct] = useState(50);
   const [showPreview, setShowPreview] = useState(false);
@@ -1658,9 +1753,9 @@ function PasteImportPanel({
       if (targetLang === "es") {
         const cleanedES = contentES ? stripInlineColors(contentES) : null;
         const esBlocks = cleanedES ? pairsToBlocks(htmlToQa(cleanedES)) : null;
-        setBlocks(esBlocks);
+        setBlocksSafe(esBlocks);
       } else {
-        setBlocks(savedDeBlocksRef.current);
+        setBlocksSafe(savedDeBlocksRef.current);
       }
       setLangSplash(false);
     }, 950);
@@ -1717,7 +1812,7 @@ function PasteImportPanel({
   // Selector de imágenes recortadas (PDF). Abierto cuando hay availableImages.
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const analyse = (text, html) => setBlocks(parseToBlocks(text, html));
+  const analyse = (text, html) => setBlocksSafe(parseToBlocks(text, html));
 
   // ── API de inserción para modo split (from-pdf) ──────────────────────────
   // Inserta la selección del PDF como bloques. `appendText` añade un bloque de
@@ -1740,7 +1835,7 @@ function PasteImportPanel({
       // Solo puede haber UNA marca de costura visible a la vez: sacar
       // cualquier resabio de lotes anteriores antes de meter la nueva.
       setInsertStartMark(null);
-      setBlocks((prev) =>
+      setBlocksSafe((prev) =>
         (prev || []).map((b) =>
           b.type === "answer" ? { ...b, text: stripSeamMarks(b.text) } : b
         )
@@ -1773,7 +1868,7 @@ function PasteImportPanel({
       const at = batchInsertRef.current;
       batchInsertRef.current = at + 1;
       lastInsertedIdxRef.current = at;
-      setBlocks((prev) => {
+      setBlocksSafe((prev) => {
         const next = [...(prev || [])];
         next.splice(at, 0, {
           type: "answer",
@@ -1783,7 +1878,7 @@ function PasteImportPanel({
       });
       return;
     }
-    setBlocks((prev) => {
+    setBlocksSafe((prev) => {
       const arr = prev || [];
       const last = arr[arr.length - 1];
       // Acumular el cuerpo en UN solo bloque: así Enter (nuevo párrafo) y
@@ -1815,7 +1910,7 @@ function PasteImportPanel({
       const at = batchInsertRef.current;
       batchInsertRef.current = at + 1;
       lastInsertedIdxRef.current = at;
-      setBlocks((prev) => {
+      setBlocksSafe((prev) => {
         const next = [...(prev || [])];
         next.splice(at, 0, {
           type: "subtitle",
@@ -1826,7 +1921,7 @@ function PasteImportPanel({
       });
       return;
     }
-    setBlocks((prev) => [
+    setBlocksSafe((prev) => [
       ...(prev || []),
       { type: "subtitle", text: text.trim(), headingLevel: level },
     ]);
@@ -1842,14 +1937,14 @@ function PasteImportPanel({
       const at = batchInsertRef.current;
       batchInsertRef.current = at + 1;
       lastInsertedIdxRef.current = at;
-      setBlocks((prev) => {
+      setBlocksSafe((prev) => {
         const next = [...(prev || [])];
         next.splice(at, 0, { type: "question", text: text.trim(), headingLevel: 4 });
         return next;
       });
       return;
     }
-    setBlocks((prev) => [...(prev || []), { type: "question", text: text.trim(), headingLevel: 4 }]);
+    setBlocksSafe((prev) => [...(prev || []), { type: "question", text: text.trim(), headingLevel: 4 }]);
   };
   useEffect(() => {
     if (apiRef) apiRef.current = { appendText, appendHeading, appendQuestion };
@@ -1954,7 +2049,7 @@ function PasteImportPanel({
   };
 
   const cycleBlockType = (i) => {
-    setBlocks((prev) =>
+    setBlocksSafe((prev) =>
       prev.map((b, idx) => {
         if (idx !== i) return b;
         // Si el bloque está en Kasten, el ciclo de tipos arranca desde
@@ -2003,7 +2098,7 @@ function PasteImportPanel({
   // siempre. Separado del ciclo de tipos de arriba a propósito (ver
   // comentario en cycleBlockType).
   const toggleBlockKasten = (i) => {
-    setBlocks((prev) =>
+    setBlocksSafe((prev) =>
       prev.map((b, idx) => {
         if (idx !== i || b.type !== "answer") return b;
         return b.quote
@@ -2014,18 +2109,18 @@ function PasteImportPanel({
   };
 
   const updateBlockText = (i, text) =>
-    setBlocks((prev) => prev.map((b, idx) => (idx === i ? { ...b, text } : b)));
+    setBlocksSafe((prev) => prev.map((b, idx) => (idx === i ? { ...b, text } : b)));
 
   const updateBlockSize = (i, size) =>
-    setBlocks((prev) => prev.map((b, idx) => (idx === i ? { ...b, size } : b)));
+    setBlocksSafe((prev) => prev.map((b, idx) => (idx === i ? { ...b, size } : b)));
 
   const updateBlockField = (i, field, value) =>
-    setBlocks((prev) =>
+    setBlocksSafe((prev) =>
       prev.map((b, idx) => (idx === i ? { ...b, [field]: value } : b)),
     );
 
   const updateBlockListItem = (blockIdx, itemIdx, val) =>
-    setBlocks((prev) =>
+    setBlocksSafe((prev) =>
       prev.map((b, idx) => {
         if (idx !== blockIdx) return b;
         const items = [...b.items];
@@ -2035,7 +2130,7 @@ function PasteImportPanel({
     );
 
   const addBlockListItem = (blockIdx, afterItemIdx) =>
-    setBlocks((prev) =>
+    setBlocksSafe((prev) =>
       prev.map((b, idx) => {
         if (idx !== blockIdx) return b;
         const items = [...b.items];
@@ -2045,7 +2140,7 @@ function PasteImportPanel({
     );
 
   const removeBlockListItem = (blockIdx, itemIdx) =>
-    setBlocks((prev) =>
+    setBlocksSafe((prev) =>
       prev.map((b, idx) => {
         if (idx !== blockIdx || b.items.length <= 1) return b;
         return { ...b, items: b.items.filter((_, i) => i !== itemIdx) };
@@ -2053,7 +2148,7 @@ function PasteImportPanel({
     );
 
   const splitBlock = (i, cursorPos) => {
-    setBlocks((prev) => {
+    setBlocksSafe((prev) => {
       const block = prev[i];
       const before = block.text.slice(0, cursorPos).trim();
       const after = block.text.slice(cursorPos).trim();
@@ -2072,17 +2167,22 @@ function PasteImportPanel({
   };
 
   const deleteBlock = (i) => {
-    setBlocks((prev) =>
+    setBlocksSafe((prev) =>
       prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i),
     );
     focusTargetRef.current = Math.max(0, i - 1);
+    // insertStartMark guarda un índice fijo — borrar un bloque corre los que
+    // vienen después, así que ese índice pasaría a señalar OTRO bloque
+    // distinto del que se insertó desde el PDF. Se apaga en vez de arrastrar
+    // el error (ya es una marca de un solo uso, se pisa con el próximo lote).
+    setInsertStartMark(null);
   };
 
   // Reordena un bloque hacia arriba (-1) o abajo (+1). Útil para posicionar una
   // imagen antes del párrafo que debe envolverla (el float solo afecta al texto
   // que viene DESPUÉS de la imagen).
   const moveBlock = (i, dir) => {
-    setBlocks((prev) => {
+    setBlocksSafe((prev) => {
       if (!prev) return prev;
       const j = i + dir;
       if (j < 0 || j >= prev.length) return prev;
@@ -2090,6 +2190,7 @@ function PasteImportPanel({
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
+    setInsertStartMark(null);
   };
 
   const addBlock = (type, afterIdx) => {
@@ -2099,7 +2200,7 @@ function PasteImportPanel({
         : type === "poem"
           ? { type: "poem", text: "" }
           : { type, text: "" };
-    setBlocks((prev) => {
+    setBlocksSafe((prev) => {
       const next = [...(prev || [])];
       next.splice(afterIdx + 1, 0, newBlock);
       return next;
@@ -2152,7 +2253,7 @@ function PasteImportPanel({
     // bloque original seguiría mostrando el texto completo (el seleccionado
     // quedaría duplicado debajo del nuevo título). Lo extraído ya está calculado.
     div.blur();
-    setBlocks((prev) => {
+    setBlocksSafe((prev) => {
       const next = [...prev];
       const repl = [];
       if (beforeHtml) repl.push({ type: "answer", text: beforeHtml });
@@ -2186,7 +2287,7 @@ function PasteImportPanel({
       imageAlign: "center",
     };
     const insertAt = insertAtRef.current ?? (blocks ? blocks.length : 0);
-    setBlocks((prev) => {
+    setBlocksSafe((prev) => {
       const next = [...(prev || [])];
       next.splice(insertAt, 0, newBlock);
       return next;
@@ -2234,7 +2335,7 @@ function PasteImportPanel({
           imageAlign: "center",
         };
         const insertAt = insertAtRef.current ?? (blocks ? blocks.length : 0);
-        setBlocks((prev) => {
+        setBlocksSafe((prev) => {
           const next = [...(prev || [])];
           next.splice(insertAt, 0, newBlock);
           return next;
@@ -2295,7 +2396,7 @@ function PasteImportPanel({
   }, [blocks]);
 
   const reset = () => {
-    setBlocks(null);
+    setBlocksSafe(null);
     setPastedHtml("");
     setPastedText("");
     if (textareaRef.current) textareaRef.current.value = "";
@@ -2612,7 +2713,7 @@ function PasteImportPanel({
 
               return (
                 <div
-                  key={`${lang}-${i}`}
+                  key={block.id ?? `${lang}-${i}`}
                   className={`mb-0.5 relative ${isInsertStart ? "ring-2 ring-amber-400" : ""}`}
                   onFocus={() => {
                     lastFocusedBlockRef.current = i;
@@ -2912,7 +3013,7 @@ function PasteImportPanel({
                           // entre ambos para insertar una imagen). Shift+Enter =
                           // salto suave dentro del bloque; Backspace al inicio los
                           // vuelve a unir (onMergeUp).
-                          setBlocks((prev) => {
+                          setBlocksSafe((prev) => {
                             const next = [...prev];
                             next[i] = { ...next[i], text: beforeHtml };
                             next.splice(i + 1, 0, {
@@ -2922,12 +3023,16 @@ function PasteImportPanel({
                             return next;
                           });
                           focusTargetRef.current = i + 1;
+                          // Partir un bloque corre los índices de todo lo que
+                          // viene después — la marca "PDF-Einfügung" (índice
+                          // fijo) quedaría señalando otro bloque.
+                          setInsertStartMark(null);
                         }}
                         onMergeUp={
                           i === 0
                             ? null
                             : (html) => {
-                                setBlocks((prev) => {
+                                setBlocksSafe((prev) => {
                                   if (i === 0) return prev;
                                   const prevBlock = prev[i - 1];
                                   // Solo permitir merge si el bloque anterior es
@@ -2954,6 +3059,11 @@ function PasteImportPanel({
                                 focusCaretOffsetRef.current = (
                                   tmp.textContent || ""
                                 ).length;
+                                // Fusionar quita un bloque del medio — el
+                                // índice fijo de "PDF-Einfügung" quedaría
+                                // señalando el bloque que se corrió a ese
+                                // lugar, no el que realmente se insertó.
+                                setInsertStartMark(null);
                               }
                         }
                       />
@@ -3000,7 +3110,7 @@ function PasteImportPanel({
                               // sumar su texto al bloque de respuesta anterior.
                               e.preventDefault();
                               const subtitleText = block.text;
-                              setBlocks((prev) => {
+                              setBlocksSafe((prev) => {
                                 const next = [...prev];
                                 const prevBlock = next[i - 1];
                                 next[i - 1] = {
@@ -3037,7 +3147,7 @@ function PasteImportPanel({
                                 key={hl}
                                 type="button"
                                 onClick={() =>
-                                  setBlocks((prev) =>
+                                  setBlocksSafe((prev) =>
                                     prev.map((b, idx) =>
                                       idx === i
                                         ? { ...b, headingLevel: hl }
