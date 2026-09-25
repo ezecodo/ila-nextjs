@@ -1826,6 +1826,29 @@ function PasteImportPanel({
   // heading/question son texto plano en un <textarea> — ahí no se puede
   // incrustar un <span>, así que siguen usando el anillo de bloque
   // (insertStartMark) de siempre.
+  // Si el bloque enfocado es un H3/Frage/Poem VACÍO (p. ej. recién creado con
+  // "↑H"/"↓H" o el "+F"/"+A"/"Poem" de la barra), llena ESE bloque en vez de
+  // crear uno nuevo al lado — sin esto, insertar desde el PDF con ese bloque
+  // vacío enfocado lo dejaba intacto y el texto terminaba en un bloque nuevo
+  // aparte (normalmente "answer", porque no siempre se clasifica como título
+  // automáticamente). Prioriza la intención de la persona (creó ESE bloque
+  // para ESO) por sobre la clasificación automática del texto entrante.
+  const fillFocusedEmptyBlock = (blockType, text, extra = {}) => {
+    const fi = lastFocusedBlockRef.current;
+    if (fi == null || !blocks || fi < 0 || fi >= blocks.length) return false;
+    const target = blocks[fi];
+    if (!target || target.type !== blockType) return false;
+    if ((target.text || "").trim()) return false; // no está vacío, no tocar
+    setBlocksSafe((prev) => {
+      const next = [...prev];
+      next[fi] = { ...next[fi], text, ...extra };
+      return next;
+    });
+    focusTargetRef.current = fi;
+    focusEndRef.current = true;
+    return true;
+  };
+
   const beginBatchPlacement = (kind) => {
     if (batchStartedRef.current) return batchInsertRef.current !== null;
     batchStartedRef.current = true;
@@ -1857,6 +1880,18 @@ function PasteImportPanel({
 
   const appendText = (html) => {
     if (!html || !html.trim()) return;
+    // El bloque enfocado puede ser un H3/Frage/Poem vacío esperando este
+    // texto (creado con ↑H/+F/Poem) aunque haya llegado acá como "answer"
+    // porque el clasificador automático no lo marcó como título/pregunta.
+    const flatForEmpty = stripHtml(html).replace(/\s+/g, " ").trim();
+    if (
+      flatForEmpty &&
+      (fillFocusedEmptyBlock("subtitle", flatForEmpty) ||
+        fillFocusedEmptyBlock("question", flatForEmpty, { headingLevel: 4 }) ||
+        fillFocusedEmptyBlock("poem", flatForEmpty))
+    ) {
+      return;
+    }
     const positional = beginBatchPlacement("answer");
     pendingScrollRef.current = true;
     // Solo el PRIMER párrafo de todo el lote es la costura con lo viejo — los
@@ -1904,6 +1939,8 @@ function PasteImportPanel({
   };
   const appendHeading = (text, level = 3) => {
     if (!text || !text.trim()) return;
+    if (fillFocusedEmptyBlock("subtitle", text.trim(), { headingLevel: level }))
+      return;
     const positional = beginBatchPlacement("heading");
     pendingScrollRef.current = true;
     if (positional) {
@@ -1931,6 +1968,8 @@ function PasteImportPanel({
   // terminada en "?" dentro de un artículo tipo entrevista.
   const appendQuestion = (text) => {
     if (!text || !text.trim()) return;
+    if (fillFocusedEmptyBlock("question", text.trim(), { headingLevel: 4 }))
+      return;
     const positional = beginBatchPlacement("question");
     pendingScrollRef.current = true;
     if (positional) {
@@ -1946,8 +1985,45 @@ function PasteImportPanel({
     }
     setBlocksSafe((prev) => [...(prev || []), { type: "question", text: text.trim(), headingLevel: 4 }]);
   };
+  // Poema (bloque "P"). A diferencia de appendText, NO fusiona oraciones ni
+  // reconstruye párrafos — conserva cada salto de línea tal cual llega (ver
+  // "Modo Poema"/linesFromItemsLiteral en from-pdf/page.js). Si el lote
+  // continúa un poema ya insertado (p. ej. varias estrofas seleccionadas por
+  // separado), se agrega al MISMO bloque separado por una línea en blanco
+  // (igual criterio que "Leerzeile = neue Strophe" del bloque Poem manual).
+  const appendPoem = (text) => {
+    if (!text || !text.trim()) return;
+    if (fillFocusedEmptyBlock("poem", text.trim())) return;
+    const positional = beginBatchPlacement("poem");
+    pendingScrollRef.current = true;
+    if (positional) {
+      const at = batchInsertRef.current;
+      batchInsertRef.current = at + 1;
+      lastInsertedIdxRef.current = at;
+      setBlocksSafe((prev) => {
+        const next = [...(prev || [])];
+        next.splice(at, 0, { type: "poem", text: text.trim() });
+        return next;
+      });
+      return;
+    }
+    setBlocksSafe((prev) => {
+      const arr = prev || [];
+      const last = arr[arr.length - 1];
+      if (last && last.type === "poem") {
+        const next = [...arr];
+        next[next.length - 1] = {
+          ...last,
+          text: (last.text || "") + "\n\n" + text.trim(),
+        };
+        return next;
+      }
+      return [...arr, { type: "poem", text: text.trim() }];
+    });
+  };
   useEffect(() => {
-    if (apiRef) apiRef.current = { appendText, appendHeading, appendQuestion };
+    if (apiRef)
+      apiRef.current = { appendText, appendHeading, appendQuestion, appendPoem };
   });
 
   // Tras insertar texto desde el PDF, llevar el caret y el scroll del editor
@@ -2361,7 +2437,14 @@ function PasteImportPanel({
       focusCaretOffsetRef.current = null;
       const el = blockRefsArr.current[idx];
       if (el) {
-        el.focus();
+        // preventScroll: sin esto, el navegador hace scroll automático para
+        // mostrar el elemento enfocado — en un artículo/poema largo, fusionar
+        // o borrar un bloque tiraba la vista arriba de todo (el bloque
+        // destino puede estar lejos en el DOM aunque visualmente esté al
+        // lado de donde se estaba escribiendo), obligando a volver a
+        // scrollear para abajo para seguir. El bloque destino ya suele estar
+        // visible (es el de arriba/abajo del que se acaba de editar).
+        el.focus({ preventScroll: true });
         if (caretOffset !== null && el.contentEditable === "true") {
           setCaretAtTextOffset(el, caretOffset);
         } else if (atEnd) {
@@ -2943,6 +3026,27 @@ function PasteImportPanel({
                         <span className="text-xs text-purple-600 flex-1">
                           Leerzeile = neue Strophe
                         </span>
+                        {/* No hay forma de pararse "antes" del bloque Poem
+                            para agregar un Zwischentitel (los botones +T/+F/
+                            +A de abajo siempre van al final de todo) — estos
+                            dos insertan un subtitle vacío justo arriba/abajo
+                            de ESTE poema puntual. */}
+                        <button
+                          type="button"
+                          onClick={() => addBlock("subtitle", i - 1)}
+                          title="Überschrift ÜBER diesem Gedicht einfügen"
+                          className="px-1.5 h-6 flex items-center justify-center rounded text-[10px] font-bold text-purple-400 hover:text-purple-700 hover:bg-purple-100 transition-colors"
+                        >
+                          ↑H
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addBlock("subtitle", i)}
+                          title="Überschrift UNTER diesem Gedicht einfügen"
+                          className="px-1.5 h-6 flex items-center justify-center rounded text-[10px] font-bold text-purple-400 hover:text-purple-700 hover:bg-purple-100 transition-colors"
+                        >
+                          ↓H
+                        </button>
                         <button
                           type="button"
                           onClick={() => deleteBlock(i)}

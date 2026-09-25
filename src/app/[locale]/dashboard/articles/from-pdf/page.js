@@ -350,8 +350,61 @@ function linesToParagraphs(items, domFont) {
 // separado se respeta el orden de lectura (cada columna de arriba a abajo,
 // columnas de izq. a der.). Lo usan tanto la selección nativa como el
 // rectángulo "Textbereich".
-function paragraphsFromItems(items) {
+//
+// "Modo Poema": desactiva TODO lo anterior (fusión de oraciones, detección
+// de títulos, separación de columnas por gutter) — para un poema cada salto
+// de línea es un verso intencional, no un accidente de maquetación a
+// arreglar. Solo agrupa en líneas por Y (una línea visual puede llegar
+// partida en varios spans de PDF.js) y las devuelve en el orden exacto de
+// arriba a abajo, izquierda a derecha. Nace del caso de un poema bilingüe a
+// dos columnas donde la columna alemana está alineada a la DERECHA (ragged-
+// left): eso rompe el supuesto del detector de gutter (una franja vacía
+// estable), así que en vez de intentar arreglar esa detección para un layout
+// tan particular, se selecciona cada columna por separado con "Textbereich"
+// y se inserta en modo literal — cero ambigüedad, sin arriesgar el detector
+// normal que funciona bien para el 99% del texto en prosa.
+function linesFromItemsLiteral(items) {
   if (!items || !items.length) return "";
+  const sorted = [...items].sort((a, b) => a.y - b.y || a.x - b.x);
+  const hs = sorted.map((i) => i.h).sort((a, b) => a - b);
+  const medH = hs[Math.floor(hs.length / 2)] || 10;
+
+  const lines = [];
+  let current = [];
+  let lastY = null;
+  for (const it of sorted) {
+    if (lastY == null || Math.abs(it.y - lastY) < medH * 0.5) {
+      current.push(it);
+    } else {
+      if (current.length) lines.push(current);
+      current = [it];
+    }
+    lastY = it.y;
+  }
+  if (current.length) lines.push(current);
+
+  const out = [];
+  let prevY = null;
+  for (const line of lines) {
+    line.sort((a, b) => a.x - b.x);
+    const text = line
+      .map((i) => i.str)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    const y = line[0].y;
+    // Salto de línea bien más grande que lo típico = estrofa nueva en el
+    // original (línea en blanco entre versos).
+    if (prevY != null && y - prevY > medH * 1.8) out.push("");
+    out.push(text);
+    prevY = y;
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n");
+}
+
+function paragraphsFromItems(items, literal = false) {
+  if (!items || !items.length) return "";
+  if (literal) return linesFromItemsLiteral(items);
 
   // Fuente dominante del cuerpo (ponderada por nº de caracteres). Los
   // entretítulos en negrita usan otra fontFamily → así se detectan.
@@ -432,7 +485,7 @@ function paragraphsFromItems(items) {
   return out.filter(Boolean).join("\n\n");
 }
 
-function getSelectionParagraphs() {
+function getSelectionParagraphs(literal = false) {
   if (typeof window === "undefined") return "";
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return "";
@@ -456,7 +509,7 @@ function getSelectionParagraphs() {
       font: s.style.fontFamily || "",
     };
   });
-  return paragraphsFromItems(items);
+  return paragraphsFromItems(items, literal);
 }
 
 // Aplana un árbol de regiones/temas a opciones { value, label } con etiqueta
@@ -1042,6 +1095,16 @@ export default function FromPdfPage() {
   // "Textbereich": arrastrar un rectángulo sobre el cuerpo → extrae el texto
   // dentro, lo reordena por columnas y lo inyecta como bloques en el publilab.
   const [textRegionMode, setTextRegionMode] = useState(false);
+  // "Modo Poema": ver comentario largo en linesFromItemsLiteral — desactiva
+  // fusión de párrafos/detección de columnas y manda todo a un bloque Poem,
+  // preservando cada salto de línea tal cual está en el PDF. Ref en paralelo
+  // porque getSelectionParagraphs se llama desde un listener registrado una
+  // sola vez (onSelChange, deps []) — leer el state ahí daría un valor stale.
+  const [poemMode, setPoemMode] = useState(false);
+  const poemModeRef = useRef(false);
+  useEffect(() => {
+    poemModeRef.current = poemMode;
+  }, [poemMode]);
 
   // Editor de cuerpo a pantalla completa (PDF | artículo).
   const [bodyFullscreen, setBodyFullscreen] = useState(false);
@@ -1114,7 +1177,7 @@ export default function FromPdfPage() {
         const el = node?.nodeType === 3 ? node.parentElement : node;
         if (el && el.closest(".pdfsel-textLayer")) {
           lastSelectionRef.current = text;
-          bodyParasRef.current = getSelectionParagraphs();
+          bodyParasRef.current = getSelectionParagraphs(poemModeRef.current);
           setSelectionPreview(cleanSelection(text).slice(0, 140));
         }
       }
@@ -1256,6 +1319,19 @@ export default function FromPdfPage() {
   // Inserta la selección del PDF como bloques en el publilab vía su API. Respeta
   // los párrafos y la detección de entretítulos de reflowBodySelection.
   const appendChunkToEditor = (raw) => {
+    // Modo Poema: el texto ya viene literal (getSelectionParagraphs con
+    // literal=true) — nada de reflowBodySelection (fusiona líneas en
+    // párrafos, pensado para prosa) ni detección de título/Frage. Va directo
+    // a un bloque Poem, preservando cada salto de línea tal cual.
+    if (poemModeRef.current) {
+      if (!raw || !raw.trim()) return;
+      if (!editorApi.current) {
+        setContent((prev) => (prev ? prev + "\n\n" : "") + raw.trim());
+        return;
+      }
+      editorApi.current.appendPoem(raw);
+      return;
+    }
     const chunk = reflowBodySelection(raw);
     if (!chunk) return;
     // En el Vollbild se inyecta como bloques del publilab; en la vista normal
@@ -1291,9 +1367,15 @@ export default function FromPdfPage() {
   // defecto, o Titel/Untertitel/Vorspann/Zusatzinfo si fue el último campo
   // enfocado.
   const takeTextRegion = (items) => {
-    const text = paragraphsFromItems(items);
+    const text = paragraphsFromItems(items, poemModeRef.current);
     if (!text) return;
     setSelectionPreview(cleanSelection(text).slice(0, 140));
+    // Modo Poema: siempre al cuerpo (bloque Poem), sin importar qué campo
+    // estaba enfocado — un poema no tiene sentido como Titel/Vorspann/etc.
+    if (poemModeRef.current) {
+      appendChunkToEditor(text);
+      return;
+    }
     const field = activeFieldRef.current;
     if (field === "title" || field === "subtitle") {
       // Titel/Untertitel son de una sola línea: aplanar todo a texto plano,
@@ -1711,6 +1793,18 @@ export default function FromPdfPage() {
         title="Ein Rechteck über den Artikeltext ziehen — der Text wird spaltenweise eingefügt"
       >
         📝 {textRegionMode ? "Textbereich aktiv — fertig" : "Textbereich"}
+      </button>
+      <button
+        type="button"
+        onClick={() => setPoemMode((m) => !m)}
+        className={`px-2 py-0.5 border transition-colors ${
+          poemMode
+            ? "bg-purple-600 text-white border-purple-600"
+            : "border-purple-600 text-purple-600 hover:bg-purple-600/10"
+        }`}
+        title="Gedicht-Modus: keine Absatz-/Spaltenrekonstruktion, jede Zeile wird 1:1 aus dem PDF übernommen (Zeilenumbrüche = Verse)"
+      >
+        📜 {poemMode ? "Gedicht-Modus aktiv" : "Gedicht-Modus"}
       </button>
       <button
         type="button"

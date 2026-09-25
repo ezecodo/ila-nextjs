@@ -119,11 +119,11 @@ export default function ImageGalleryManager({ gallery, setGallery, mode }) {
   // forzar el modo cuando la automática no da el resultado que se quiere
   // (p. ej. una foto que igual se ve "enorme" con el tope automático de 80vh).
   const DISPLAY_MODES = [
-    { value: "", label: "Auto" },
-    { value: "cover", label: "Recortada" },
-    { value: "contain-s", label: "Completa · chica" },
-    { value: "contain-m", label: "Completa · mediana" },
-    { value: "contain-l", label: "Completa · grande" },
+    { value: "", label: t("displaySizeAuto") },
+    { value: "cover", label: t("displaySizeCover") },
+    { value: "contain-s", label: t("displaySizeContainS") },
+    { value: "contain-m", label: t("displaySizeContainM") },
+    { value: "contain-l", label: t("displaySizeContainL") },
   ];
 
   return (
@@ -208,7 +208,7 @@ export default function ImageGalleryManager({ gallery, setGallery, mode }) {
                     />
                     <div>
                       <label className="text-xs font-medium text-gray-500 block mb-1">
-                        Größe im Artikel
+                        {t("displaySizeLabel")}
                       </label>
                       <div className="flex flex-wrap gap-1">
                         {DISPLAY_MODES.map((m) => (

@@ -955,7 +955,13 @@
     "coverBadge": "Portada",
     "delete": "Eliminar",
     "noAltText": "Sin alt-text",
-    "noCredits": "Sin créditos"
+    "noCredits": "Sin créditos",
+    "displaySizeLabel": "Tamaño en el artículo",
+    "displaySizeAuto": "Automático",
+    "displaySizeCover": "Recortada",
+    "displaySizeContainS": "Completa · chica",
+    "displaySizeContainM": "Completa · mediana",
+    "displaySizeContainL": "Completa · grande"
   },
   "favorites": {
     "modalTitle": "¡Guarda tus favoritos!",

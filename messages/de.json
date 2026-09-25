@@ -956,7 +956,13 @@
     "coverBadge": "Titelbild",
     "delete": "Löschen",
     "noAltText": "Ohne Alt-Text",
-    "noCredits": "Ohne Credits"
+    "noCredits": "Ohne Credits",
+    "displaySizeLabel": "Größe im Artikel",
+    "displaySizeAuto": "Automatisch",
+    "displaySizeCover": "Zugeschnitten",
+    "displaySizeContainS": "Vollständig · klein",
+    "displaySizeContainM": "Vollständig · mittel",
+    "displaySizeContainL": "Vollständig · groß"
   },
   "favorites": {
     "modalTitle": "Speichere deine Favoriten!",

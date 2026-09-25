@@ -646,6 +646,20 @@ body {
   }
 }
 
+/* Marco simple para diferenciarlo del resto del cuerpo — deliberadamente
+   discreto (sin comillas/filetes de color como el Kasten): un poema no es
+   una cita destacada, es contenido propio del artículo, solo necesita
+   despegarse un poco visualmente. Rectángulo sin redondear (Brand Kit). */
+.article-content .poem {
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem 1.75rem !important;
+  margin: 1.75rem 0 !important;
+  font-style: italic;
+}
+.dark .article-content .poem {
+  border-color: #374151;
+}
+
 .poem {
   font-family: inherit;
   line-height: 1.6;
