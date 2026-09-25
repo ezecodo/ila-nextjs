@@ -1452,6 +1452,11 @@ export default function FromPdfPage() {
   const closeBodyFullscreen = () => {
     setBodyFullscreen(false);
     setPublilabOn(true);
+    // El Modo Poema solo tiene sentido insertando texto en el cuerpo del
+    // Vollbild — nada lo apagaba solo, así que si te olvidabas de tocar el
+    // botón, seguía activo al volver al esqueleto del artículo (Titel,
+    // Zusatzinfo, etc.) y arruinaba la próxima extracción normal sin avisar.
+    setPoemMode(false);
   };
 
   // Añade un autor por nombre (lo crea si no existe). Reutilizable: lo usan
