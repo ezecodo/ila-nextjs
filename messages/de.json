@@ -1636,5 +1636,15 @@
     "articleCount": "{count} Artikel",
     "loading": "Wird geladen...",
     "error": "Fehler beim Laden"
+  },
+  "editionEs": {
+    "prevDossier": "Vorheriges Dossier auf Spanisch",
+    "nextDossier": "Nächstes Dossier auf Spanisch",
+    "noPrevDossier": "Kein früheres Dossier auf Spanisch",
+    "noNextDossier": "Kein neueres Dossier auf Spanisch",
+    "neighborLabel": "ila {number} · {count, plural, one {# Beitrag} other {# Beiträge}} auf Spanisch",
+    "dossierKicker": "Dossier · ila {number}",
+    "toDossier": "Zum Dossier ila {number}",
+    "esCountLine": "{count} von {total} Beiträgen auf Spanisch"
   }
 }

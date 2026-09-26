@@ -1635,5 +1635,15 @@
     "articleCount": "{count} artículos",
     "loading": "Cargando...",
     "error": "Error al cargar"
+  },
+  "editionEs": {
+    "prevDossier": "Dossier anterior en español",
+    "nextDossier": "Dossier siguiente en español",
+    "noPrevDossier": "No hay un dossier anterior en español",
+    "noNextDossier": "No hay un dossier más reciente en español",
+    "neighborLabel": "ila {number} · {count, plural, one {# artículo} other {# artículos}} en español",
+    "dossierKicker": "Dossier · ila {number}",
+    "toDossier": "Ir al dossier ila {number}",
+    "esCountLine": "{count} de {total} artículos en español"
   }
 }

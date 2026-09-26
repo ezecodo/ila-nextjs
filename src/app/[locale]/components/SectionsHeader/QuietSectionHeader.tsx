@@ -9,6 +9,9 @@ interface QuietSectionHeaderProps {
   rightElement?: React.ReactNode;
   className?: string;
   variant?: "line" | "chip";
+  // Solo variante "chip": elementos pegados a izquierda/derecha del chip (p. ej. flechas de navegación)
+  titleBefore?: React.ReactNode;
+  titleAfter?: React.ReactNode;
 }
 
 export default function QuietSectionHeader({
@@ -16,14 +19,18 @@ export default function QuietSectionHeader({
   rightElement,
   className = "",
   variant = "line",
+  titleBefore,
+  titleAfter,
 }: QuietSectionHeaderProps) {
   if (variant === "chip") {
     return (
       <div className={className}>
         <div className="flex items-start">
+          {titleBefore}
           <h2 className="min-w-0 inline-block bg-[#BD0E0D] text-white text-sm font-bold uppercase tracking-[0.12em] px-3 py-1.5 break-words">
             {title}
           </h2>
+          {titleAfter}
           {/* Línea que nace pegada al chip y abarca todo el ancho */}
           <span
             aria-hidden="true"
