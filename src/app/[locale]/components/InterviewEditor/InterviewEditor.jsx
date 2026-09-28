@@ -1108,11 +1108,18 @@ function DarkAnswerBlock({
   }, []);
 
   // Sync external value changes (e.g. merge from sibling block)
+  // Solo si el HTML realmente cambió: casi siempre `value` es el eco de lo que
+  // este mismo bloque acaba de emitir (p. ej. al tocar el tamaño de una imagen
+  // desde el popover, con el foco fuera del contentEditable). Reescribir el
+  // innerHTML igual reemplazaba el <img> por uno nuevo y el popover quedaba
+  // apuntando al viejo, ya fuera del DOM — los controles "no hacían nada"
+  // hasta recargar el artículo.
   useEffect(() => {
     if (divRef.current && document.activeElement !== divRef.current) {
       const html = stripInlineColors(value || "");
       const hasBlock = /<(p|div|ul|ol)\b/i.test(html);
-      divRef.current.innerHTML = html && !hasBlock ? `<p>${html}</p>` : html;
+      const next = html && !hasBlock ? `<p>${html}</p>` : html;
+      if (divRef.current.innerHTML !== next) divRef.current.innerHTML = next;
     }
   }, [value]);
 
@@ -1200,11 +1207,22 @@ function DarkAnswerBlock({
     const imgRect = img.getBoundingClientRect();
     setImgPopover({
       el: img,
+      // Posición entre las imágenes del bloque: si el DOM se re-sincroniza
+      // y el <img> original queda desconectado, se reubica el vivo por índice.
+      index: Array.from(divRef.current?.querySelectorAll("img") || []).indexOf(img),
       left: imgRect.left - wrapRect.left,
       top: imgRect.bottom - wrapRect.top + 6,
     });
     setImgAltDraft(img.alt || "");
     setImgTitleDraft(img.title || "");
+  };
+
+  // <img> que está editando el popover, siempre el que está en pantalla.
+  const getPopoverImg = () => {
+    const div = divRef.current;
+    if (!div || !imgPopover) return null;
+    if (imgPopover.el?.isConnected && div.contains(imgPopover.el)) return imgPopover.el;
+    return imgPopover.index >= 0 ? div.querySelectorAll("img")[imgPopover.index] || null : null;
   };
 
   const insertInlineImageAt = (url, { alt = "", title = "" } = {}) => {
@@ -1298,7 +1316,7 @@ function DarkAnswerBlock({
   };
 
   const applyImgStyle = (widthPct) => {
-    const img = imgPopover?.el;
+    const img = getPopoverImg();
     if (!img) return;
     img.style.width = `${widthPct}%`;
     onChange(normalizeAnswerHtml(divRef.current.innerHTML));
@@ -1307,7 +1325,7 @@ function DarkAnswerBlock({
   };
 
   const applyImgAlign = (align) => {
-    const img = imgPopover?.el;
+    const img = getPopoverImg();
     if (!img) return;
     if (align === "center") img.removeAttribute("data-align");
     else img.setAttribute("data-align", align);
@@ -1321,7 +1339,7 @@ function DarkAnswerBlock({
   // el efecto de foto anclada arriba a la izquierda/derecha, como en la
   // maqueta impresa original, sin importar dónde estaba el caret al insertar.
   const moveImgToCorner = (align) => {
-    const img = imgPopover?.el;
+    const img = getPopoverImg();
     if (!img) return;
     const p = img.closest("p");
     const container = p?.parentElement;
@@ -1337,7 +1355,7 @@ function DarkAnswerBlock({
   // Aplica Alt-Text/Title recién al tocar "💾 Guardar" — no letra por letra
   // (eso guardaba texto a medio escribir sin ningún control).
   const saveImgTextFields = () => {
-    const img = imgPopover?.el;
+    const img = getPopoverImg();
     if (!img) return;
     img.alt = imgAltDraft;
     if (imgTitleDraft) img.title = imgTitleDraft;
@@ -1348,7 +1366,7 @@ function DarkAnswerBlock({
   };
 
   const removeImgFromPopover = () => {
-    const img = imgPopover?.el;
+    const img = getPopoverImg();
     if (!img) return;
     const p = img.closest("p");
     (p && p.children.length === 1 ? p : img).remove();
@@ -1645,7 +1663,7 @@ function DarkAnswerBlock({
                   type="button"
                   onClick={() => applyImgStyle(w)}
                   className={`w-6 h-6 flex items-center justify-center rounded text-[10px] font-bold transition-colors ${
-                    imgPopover.el?.style.width === `${w}%`
+                    getPopoverImg()?.style.width === `${w}%`
                       ? "bg-blue-600 text-white"
                       : "border border-blue-200 text-blue-600 hover:border-blue-400"
                   }`}
@@ -1664,7 +1682,7 @@ function DarkAnswerBlock({
                   type="button"
                   onClick={() => applyImgAlign(a)}
                   className={`w-6 h-6 flex items-center justify-center rounded text-[10px] transition-colors ${
-                    (imgPopover.el?.getAttribute("data-align") || "center") === a
+                    (getPopoverImg()?.getAttribute("data-align") || "center") === a
                       ? "bg-blue-600 text-white"
                       : "border border-blue-200 text-blue-600 hover:border-blue-400"
                   }`}
