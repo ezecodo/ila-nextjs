@@ -778,7 +778,14 @@ export default function EditArticlePage() {
         />
 
         {/* 🔽 Galería de imágenes principales */}
-        <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+        {/* Con dossier elegido aparece "Aus Dossier-PDF ausschneiden" */}
+        <ImageGalleryManager
+          gallery={gallery}
+          setGallery={setGallery}
+          dossierEditionId={selectedEdition || null}
+          dossierStartPage={startPage}
+          dossierEndPage={endPage}
+        />
 
         <ToggleSwitch
           id="enablePreviewText"

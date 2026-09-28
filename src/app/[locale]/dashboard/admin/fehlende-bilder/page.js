@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import ImageGalleryManager from "../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
-import { loadPdfJs, cropPdfRegion } from "@/lib/pdfCrop";
-import PdfCropBox from "../../../components/PdfCropBox/PdfCropBox";
+import PdfCropViewer from "../../../components/PdfCropViewer/PdfCropViewer";
 
 // "Artikel ohne Bild": elegir un Dossier → lista de artículos sin imagen
 // principal → al lado, la página del Dossier-PDF donde está el artículo para
@@ -16,9 +15,6 @@ import PdfCropBox from "../../../components/PdfCropBox/PdfCropBox";
 // "Kein Bild nötig" (artículos que simplemente no llevan imagen) se guarda
 // solo en este navegador (localStorage) — no hay campo en la base para eso.
 const SKIP_KEY = "ila-fehlende-bilder-skip";
-const WIDTH_MIN = 400;
-const WIDTH_MAX = 1000;
-const WIDTH_STEP = 80;
 
 function readSkipped() {
   try {
@@ -34,135 +30,6 @@ function writeSkipped(set) {
   } catch {
     // sin storage (modo privado, etc.): el salto dura solo esta sesión
   }
-}
-
-// Una página del PDF en un canvas. Arrastrar dibuja un rectángulo que, al
-// soltar, queda como recuadro editable (PdfCropBox: mover, redimensionar,
-// girar); al confirmar llama a onCrop con el recuadro en coords PDF (escala 1,
-// origen arriba-izq), el formato que espera cropPdfRegion.
-function CropPage({ pdfDoc, pageNumber, width, onCrop, busy }) {
-  const canvasRef = useRef(null);
-  const [dims, setDims] = useState(null); // { scale, pageHeight }
-  const [drag, setDrag] = useState(null);
-  const [boxPdf, setBoxPdf] = useState(null); // recuadro en coords PDF
-
-  // Cambiar de página descarta el recuadro pendiente.
-  useEffect(() => setBoxPdf(null), [pageNumber]);
-
-  useEffect(() => {
-    if (!pdfDoc || !canvasRef.current) return;
-    let cancelled = false;
-    let renderTask = null;
-    pdfDoc.getPage(pageNumber).then((page) => {
-      if (cancelled) return;
-      const base = page.getViewport({ scale: 1 });
-      const scale = width / base.width;
-      const viewport = page.getViewport({ scale });
-      const ratio = window.devicePixelRatio || 1;
-      const renderViewport = page.getViewport({ scale: scale * ratio });
-      const canvas = canvasRef.current;
-      canvas.width = renderViewport.width;
-      canvas.height = renderViewport.height;
-      canvas.style.width = viewport.width + "px";
-      canvas.style.height = viewport.height + "px";
-      setDims({ scale, pageHeight: base.height });
-      renderTask = page.render({
-        canvasContext: canvas.getContext("2d"),
-        viewport: renderViewport,
-      });
-      renderTask.promise.catch(() => {}); // cancelado al cambiar de página/zoom
-    });
-    // Cancelar el render viejo: si no, puede terminar de pintar después de
-    // un cambio de escala (mismo gotcha que PdfReader/BookPage).
-    return () => {
-      cancelled = true;
-      renderTask?.cancel();
-    };
-  }, [pdfDoc, pageNumber, width]);
-
-  const localPx = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  };
-
-  const onDown = (e) => {
-    if (!dims) return;
-    e.preventDefault();
-    const { x, y } = localPx(e);
-    setDrag({ x0: x, y0: y, x1: x, y1: y });
-  };
-  const onMove = (e) => {
-    if (!drag) return;
-    const { x, y } = localPx(e);
-    setDrag((d) => (d ? { ...d, x1: x, y1: y } : d));
-  };
-  const onUp = () => {
-    if (!drag || !dims) return setDrag(null);
-    const left = Math.min(drag.x0, drag.x1);
-    const right = Math.max(drag.x0, drag.x1);
-    const top = Math.min(drag.y0, drag.y1);
-    const bottom = Math.max(drag.y0, drag.y1);
-    setDrag(null);
-    if (right - left < 8 || bottom - top < 8) return; // click accidental
-    const s = dims.scale;
-    setBoxPdf({
-      cx: (left + right) / 2 / s,
-      cy: (top + bottom) / 2 / s,
-      w: (right - left) / s,
-      h: (bottom - top) / s,
-      angle: 0,
-    });
-  };
-
-  const s = dims?.scale || 1;
-  const boxPx = boxPdf && {
-    cx: boxPdf.cx * s,
-    cy: boxPdf.cy * s,
-    w: boxPdf.w * s,
-    h: boxPdf.h * s,
-    angle: boxPdf.angle,
-  };
-
-  return (
-    <div
-      className="relative inline-block cursor-crosshair select-none"
-      onMouseDown={(e) => {
-        setBoxPdf(null); // un rectángulo nuevo reemplaza al pendiente
-        onDown(e);
-      }}
-      onMouseMove={onMove}
-      onMouseUp={onUp}
-      onMouseLeave={onUp}
-    >
-      <canvas ref={canvasRef} className="block bg-white shadow-lg" />
-      {boxPx && dims && (
-        <PdfCropBox
-          box={boxPx}
-          busy={busy}
-          onChange={(b) =>
-            setBoxPdf({ cx: b.cx / s, cy: b.cy / s, w: b.w / s, h: b.h / s, angle: b.angle })
-          }
-          onConfirm={async () => {
-            if (busy) return;
-            await onCrop(boxPdf);
-            setBoxPdf(null);
-          }}
-          onCancel={() => setBoxPdf(null)}
-        />
-      )}
-      {drag && (
-        <div
-          className="absolute border-2 border-[#BD0E0D] bg-[#BD0E0D]/10 pointer-events-none"
-          style={{
-            left: Math.min(drag.x0, drag.x1),
-            top: Math.min(drag.y0, drag.y1),
-            width: Math.abs(drag.x1 - drag.x0),
-            height: Math.abs(drag.y1 - drag.y0),
-          }}
-        />
-      )}
-    </div>
-  );
 }
 
 export default function FehlendeBilderPage() {
@@ -185,13 +52,6 @@ export default function FehlendeBilderPage() {
   const [toPage, setToPage] = useState("");
   const [pagesSaved, setPagesSaved] = useState(false);
 
-  const [pdfjs, setPdfjs] = useState(null);
-  const [pdfDoc, setPdfDoc] = useState(null);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [width, setWidth] = useState(640);
-  const [cropBusy, setCropBusy] = useState(false);
-
   const [gallery, setGallery] = useState([]);
   const [saving, setSaving] = useState(false);
 
@@ -201,8 +61,7 @@ export default function FehlendeBilderPage() {
 
   useEffect(() => {
     setSkipped(readSkipped());
-    loadPdfJs().then(setPdfjs).catch(() => setError(t("pdfError")));
-  }, [t]);
+  }, []);
 
   const loadEditions = useCallback(async () => {
     try {
@@ -226,7 +85,6 @@ export default function FehlendeBilderPage() {
     setSelectedId(null);
     setArticles([]);
     setEdition(null);
-    setPdfDoc(null);
     setError(null);
     fetch(`/api/admin/articles-without-images?editionId=${editionId}`)
       .then((res) => (res.ok ? res.json() : Promise.reject()))
@@ -242,21 +100,6 @@ export default function FehlendeBilderPage() {
     };
   }, [editionId, t]);
 
-  useEffect(() => {
-    if (!pdfjs || !edition?.pdfUrl) return;
-    let cancelled = false;
-    setPdfLoading(true);
-    fetch(edition.pdfUrl)
-      .then((res) => (res.ok ? res.arrayBuffer() : Promise.reject()))
-      .then((buffer) => pdfjs.getDocument({ data: buffer }).promise)
-      .then((doc) => !cancelled && setPdfDoc(doc))
-      .catch(() => !cancelled && setError(t("pdfError")))
-      .finally(() => !cancelled && setPdfLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [pdfjs, edition, t]);
-
   const visibleArticles = articles.filter(
     (a) => showSkipped || !skipped.has(a.id)
   );
@@ -268,7 +111,6 @@ export default function FehlendeBilderPage() {
     setFromPage(a.startPage ? String(a.startPage) : "");
     setToPage(a.endPage ? String(a.endPage) : "");
     setPagesSaved(false);
-    setPage(a.startPage || 1);
     setGallery([]);
   };
 
@@ -314,31 +156,17 @@ export default function FehlendeBilderPage() {
         )
       );
       setPagesSaved(true);
-      if (data.startPage) setPage(data.startPage);
     } catch (err) {
       setError(err.message || t("saveError"));
     }
   };
 
-  const handleCrop = async (box) => {
-    if (!pdfDoc) return;
-    setCropBusy(true);
-    try {
-      const blob = await cropPdfRegion(pdfDoc, page, box);
-      if (!blob) throw new Error();
-      const file = new File([blob], `pdf-bild-s${page}-${Date.now()}.jpg`, {
-        type: "image/jpeg",
-      });
-      setGallery((prev) => [
-        ...prev,
-        { file, title: "", alt: "", isCover: false, order: prev.length + 1 },
-      ]);
-    } catch {
-      setError(t("cropError"));
-    } finally {
-      setCropBusy(false);
-    }
-  };
+  // Cada recorte confirmado en el visor entra a la galería, igual que un archivo subido.
+  const addCroppedImage = (file) =>
+    setGallery((prev) => [
+      ...prev,
+      { file, title: "", alt: "", isCover: false, order: prev.length + 1 },
+    ]);
 
   const saveImages = async () => {
     if (!selected || gallery.length === 0) return;
@@ -381,12 +209,6 @@ export default function FehlendeBilderPage() {
         ? t("pagesRange", { from: a.startPage, to: a.endPage })
         : t("pageSingle", { from: a.startPage })
       : t("noPage");
-
-  const numPages = pdfDoc?.numPages || 0;
-  const inRange =
-    selected?.startPage &&
-    page >= selected.startPage &&
-    page <= (selected.endPage || selected.startPage);
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 text-gray-800">
@@ -547,65 +369,15 @@ export default function FehlendeBilderPage() {
                     <div className="bg-white border border-gray-200 p-3 min-w-0 max-w-full overflow-auto">
                       {!edition?.pdfUrl ? (
                         <p className="text-sm text-gray-500">{t("noPdf")}</p>
-                      ) : pdfLoading || !pdfDoc ? (
-                        <p className="text-sm text-gray-400">{t("loadingPdf")}</p>
                       ) : (
-                        <>
-                          <div className="flex flex-wrap items-center gap-2 mb-2 text-xs">
-                            <button
-                              type="button"
-                              onClick={() => setPage((p) => Math.max(1, p - 1))}
-                              disabled={page <= 1}
-                              className="px-2 py-1 border border-gray-300 disabled:opacity-40"
-                              aria-label={t("prevPage")}
-                            >
-                              ←
-                            </button>
-                            <span>
-                              {t("pageOf", { page, total: numPages })}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setPage((p) => Math.min(numPages, p + 1))}
-                              disabled={page >= numPages}
-                              className="px-2 py-1 border border-gray-300 disabled:opacity-40"
-                              aria-label={t("nextPage")}
-                            >
-                              →
-                            </button>
-                            {inRange && (
-                              <span className="text-green-700">{t("inArticle")}</span>
-                            )}
-                            <span className="ml-auto flex gap-1">
-                              <button
-                                type="button"
-                                onClick={() => setWidth((w) => Math.max(WIDTH_MIN, w - WIDTH_STEP))}
-                                className="px-2 py-1 border border-gray-300"
-                                aria-label={t("zoomOut")}
-                              >
-                                −
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setWidth((w) => Math.min(WIDTH_MAX, w + WIDTH_STEP))}
-                                className="px-2 py-1 border border-gray-300"
-                                aria-label={t("zoomIn")}
-                              >
-                                +
-                              </button>
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-500 mb-2">
-                            {cropBusy ? t("cropping") : t("cropHint")}
-                          </p>
-                          <CropPage
-                            pdfDoc={pdfDoc}
-                            pageNumber={page}
-                            width={width}
-                            onCrop={handleCrop}
-                            busy={cropBusy}
-                          />
-                        </>
+                        <PdfCropViewer
+                          key={selected.id}
+                          pdfUrl={edition.pdfUrl}
+                          initialPage={selected.startPage || 1}
+                          rangeFrom={selected.startPage}
+                          rangeTo={selected.endPage}
+                          onImage={addCroppedImage}
+                        />
                       )}
                     </div>
 

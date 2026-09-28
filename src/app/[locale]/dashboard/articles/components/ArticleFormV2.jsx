@@ -1062,7 +1062,14 @@ export default function ArticleFormV2({ articleId }) {
                 {t("newAuthor")}
               </button>
             </div>
-            <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+            {/* Con dossier elegido aparece "Aus Dossier-PDF ausschneiden" */}
+            <ImageGalleryManager
+              gallery={gallery}
+              setGallery={setGallery}
+              dossierEditionId={selectedEdition || null}
+              dossierStartPage={startPage}
+              dossierEndPage={endPage}
+            />
           </Section>
         )}
 

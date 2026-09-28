@@ -942,6 +942,12 @@
     }
   },
   "galleryManager": {
+    "fromDossierPdf": "📄 Recortar del PDF del dossier",
+    "fromDossierPdfTitle": "Imagen del PDF del dossier",
+    "noDossierPdf": "Este dossier todavía no tiene PDF subido (ver Dossiers PDF).",
+    "loadingDossierPdf": "Buscando el PDF…",
+    "dossierPdfDone": "Listo",
+    "dossierPdfAdded": "{count, plural, =0 {Todavía no agregaste ninguna imagen} one {# imagen agregada} other {# imágenes agregadas}} — se guarda con el artículo",
     "sectionTitle": "Galería de imágenes",
     "coverLabel": "Imagen de portada",
     "selectFileFirst": "Selecciona un archivo de imagen primero",
@@ -1696,5 +1702,18 @@
     "resetRotation": "Quitar el giro",
     "confirm": "Recortar",
     "cancel": "Cancelar"
+  },
+  "pdfCropViewer": {
+    "loadingPdf": "Cargando PDF…",
+    "pdfError": "No se pudo cargar el PDF del dossier.",
+    "cropError": "No se pudo recortar la imagen.",
+    "prevPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "pageOf": "Página {page} / {total}",
+    "inArticle": "● Página del artículo",
+    "zoomIn": "Agrandar",
+    "zoomOut": "Achicar",
+    "cropHint": "Arrastrá un rectángulo sobre la imagen → ajustalo con las manijas, giralo desde arriba (para imágenes inclinadas) → „✂ Recortar“ o Enter.",
+    "cropping": "Recortando…"
   }
 }

@@ -943,6 +943,12 @@
     }
   },
   "galleryManager": {
+    "fromDossierPdf": "📄 Aus Dossier-PDF ausschneiden",
+    "fromDossierPdfTitle": "Bild aus dem Dossier-PDF",
+    "noDossierPdf": "Für dieses Dossier ist noch kein PDF hochgeladen (siehe Dossiers PDF).",
+    "loadingDossierPdf": "PDF wird gesucht…",
+    "dossierPdfDone": "Fertig",
+    "dossierPdfAdded": "{count, plural, =0 {Noch kein Bild hinzugefügt} one {# Bild hinzugefügt} other {# Bilder hinzugefügt}} — mit dem Artikel speichern",
     "sectionTitle": "Bildergalerie",
     "coverLabel": "Titelbild",
     "selectFileFirst": "Bitte zuerst eine Bilddatei auswählen",
@@ -1697,5 +1703,18 @@
     "resetRotation": "Drehung zurücksetzen",
     "confirm": "Ausschneiden",
     "cancel": "Abbrechen"
+  },
+  "pdfCropViewer": {
+    "loadingPdf": "PDF wird geladen…",
+    "pdfError": "Das Dossier-PDF konnte nicht geladen werden.",
+    "cropError": "Das Bild konnte nicht ausgeschnitten werden.",
+    "prevPage": "Vorherige Seite",
+    "nextPage": "Nächste Seite",
+    "pageOf": "Seite {page} / {total}",
+    "inArticle": "● Seite des Artikels",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "cropHint": "Rechteck über das Bild ziehen → mit den Griffen anpassen, oben drehen (für schräge Bilder) → „✂ Ausschneiden“ oder Enter.",
+    "cropping": "Wird ausgeschnitten…"
   }
 }

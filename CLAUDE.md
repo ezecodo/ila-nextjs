@@ -193,6 +193,12 @@ Para imágenes **inclinadas** en la maqueta (texto envolviéndolas en diagonal).
 - `cropPdfRegion(pdfDoc, page, box)` renderiza la página a 3× y la rota al revés alrededor del centro → el JPEG sale **enderezado**. Fondo blanco por si el recuadro se sale de la página.
 - Con varios recuadros abiertos (Artikel aus PDF muestra todas las páginas), el teclado solo actúa sobre el último tocado (`activeBoxToken`).
 
+### Recortar del PDF al editar un artículo (`ImageGalleryManager` + `PdfCropViewer`)
+- `components/PdfCropViewer/PdfCropViewer.jsx` = visor de un Dossier-PDF página por página (navegación, zoom, indicador "Seite des Artikels") con `PdfCropBox`; cada recorte confirmado llega como `File` JPEG a `onImage`. Cachea el documento por URL (`docCache`) para no re-descargar el dossier al reabrir. Lo usan "Artikel ohne Bild" y el módulo de imágenes.
+- `ImageGalleryManager` acepta props **opcionales** `dossierEditionId`/`dossierStartPage`/`dossierEndPage`: si vienen, aparece "📄 Aus Dossier-PDF ausschneiden" → modal (portal a `body`) que busca el PDF vía `GET /api/editions/[id]/pdf-abo` y abre en `startPage`. Los recortes entran a la galería del formulario como un archivo más y se guardan con el **botón normal** del editor — sin endpoints aparte ni riesgo con `keepImages`.
+- Pasan esas props el editor clásico (`edit/[id]/page.js`) y `ArticleFormV2`; los demás usos del módulo (Aktuelles, eventos, Geschenke, Redaktion) no las pasan y quedan iguales.
+- Artikel aus PDF sigue con su propio visor (`PdfPageView` + `PdfCropBox`), porque muestra el dossier entero con capa de texto.
+
 ## Artikel aus PDF (`/dashboard/articles/from-pdf`)
 
 Herramienta para digitalizar el archivo histórico de ila (50 años de dossiers, muchos escaneados con OCR): se abre un PDF, se selecciona texto directo sobre la página y se arma el artículo sin tipear de nuevo. Link "➕ Artikel aus PDF" en `/dashboard/articles` (promovido de "en pruebas" a link normal). Archivo principal: `src/app/[locale]/dashboard/articles/from-pdf/page.js`.
