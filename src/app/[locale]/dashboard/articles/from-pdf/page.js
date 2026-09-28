@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
 import ImageGalleryManager from "../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
 import { loadPdfJs, cropPdfRegion } from "@/lib/pdfCrop";
+import PdfCropBox from "../../../components/PdfCropBox/PdfCropBox";
 
 // El publilab (InterviewEditor) usa el DOM; igual que en ArticleFormV2 se carga
 // sin SSR.
@@ -587,7 +588,7 @@ function bodyTextToHtml(text) {
 // (IntersectionObserver con `rootRef` como root). Al alejarse se libera la
 // memoria y queda un placeholder con la altura estimada (`aspect`). Así se puede
 // scrollear un dossier entero sin reventar la memoria del navegador.
-function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, textRegionMode, onTextRegion, aspect, rootRef }) {
+function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, cropBusy, textRegionMode, onTextRegion, aspect, rootRef }) {
   const wrapRef = useRef(null);
   const canvasRef = useRef(null);
   const textLayerRef = useRef(null);
@@ -604,10 +605,19 @@ function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, textR
   // de "hasta acá copié" para no perder el hilo. Persiste aunque se salga del modo.
   const [lastInserted, setLastInserted] = useState(null);
 
+  // Modo imagen: el rectángulo queda como recuadro editable (PdfCropBox:
+  // mover, redimensionar, GIRAR para imágenes inclinadas) hasta confirmar.
+  // Guardado en coords PDF (escala 1, origen arriba-izq) para que el zoom no
+  // lo desalinee.
+  const [cropBox, setCropBox] = useState(null);
+
   // Al salir del modo texto se descarta el rectángulo pendiente (no el marcador).
   useEffect(() => {
     if (!textRegionMode) setCommitted(null);
   }, [textRegionMode]);
+  useEffect(() => {
+    if (!cropMode) setCropBox(null);
+  }, [cropMode]);
 
   // Renderiza cuando la página entra (o se acerca) al viewport; libera al salir.
   useEffect(() => {
@@ -682,8 +692,9 @@ function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, textR
   const onDragStart = (e) => {
     if (!dragMode || !dims || !canvasRef.current) return;
     e.preventDefault();
-    // Un nuevo arrastre en modo texto descarta el rectángulo fijo anterior.
+    // Un nuevo arrastre descarta el rectángulo/recuadro pendiente anterior.
     if (textRegionMode) setCommitted(null);
+    if (cropMode) setCropBox(null);
     const { x, y } = localPx(e);
     setDrag({ x0: x, y0: y, x1: x, y1: y });
   };
@@ -741,13 +752,24 @@ function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, textR
       setCommitted({ left, top, right, bottom });
       return;
     }
-    // px (top-izq) → coords PDF a escala 1, origen abajo-izquierda.
-    const toPdf = (px, py) => ({
-      page: pageNumber,
-      x: px / dims.scale,
-      y: dims.pageHeight - py / dims.scale,
+    // Modo imagen: no recorta aún — queda el recuadro editable.
+    const s = dims.scale;
+    setCropBox({
+      cx: (left + right) / 2 / s,
+      cy: (top + bottom) / 2 / s,
+      w: (right - left) / s,
+      h: (bottom - top) / s,
+      angle: 0,
     });
-    onCrop?.(toPdf(left, top), toPdf(right, bottom));
+  };
+
+  const cropScale = dims?.scale || 1;
+  const cropBoxPx = cropBox && {
+    cx: cropBox.cx * cropScale,
+    cy: cropBox.cy * cropScale,
+    w: cropBox.w * cropScale,
+    h: cropBox.h * cropScale,
+    angle: cropBox.angle,
   };
 
   // Altura del placeholder mientras no está renderizada (ratio de la pág. 1).
@@ -798,6 +820,27 @@ function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, textR
                 width: dragRect.width,
                 height: dragRect.height,
               }}
+            />
+          )}
+          {cropMode && cropBoxPx && !drag && (
+            <PdfCropBox
+              box={cropBoxPx}
+              busy={cropBusy}
+              onChange={(b) =>
+                setCropBox({
+                  cx: b.cx / cropScale,
+                  cy: b.cy / cropScale,
+                  w: b.w / cropScale,
+                  h: b.h / cropScale,
+                  angle: b.angle,
+                })
+              }
+              onConfirm={async () => {
+                if (cropBusy) return;
+                await onCrop?.(pageNumber, cropBox);
+                setCropBox(null);
+              }}
+              onCancel={() => setCropBox(null)}
             />
           )}
           {/* Marcador de progreso: última región insertada en el editor. Queda
@@ -1680,13 +1723,13 @@ export default function FromPdfPage() {
     }
   };
 
-  // Recorta la región entre dos esquinas y la añade a la galería.
+  // Recorta el recuadro (posiblemente girado) de una página y lo añade a la galería.
   const cropAndAdd = useCallback(
-    async (a, b) => {
+    async (pageNumber, box) => {
       if (!pdfDoc) return;
       setCropBusy(true);
       try {
-        const blob = await cropPdfRegion(pdfDoc, a.page, a, b);
+        const blob = await cropPdfRegion(pdfDoc, pageNumber, box);
         if (!blob) throw new Error("crop failed");
         const file = new File([blob], `pdf-bild-${Date.now()}.jpg`, {
           type: "image/jpeg",
@@ -1695,7 +1738,7 @@ export default function FromPdfPage() {
         setImages((prev) => [
           ...prev,
           // role: "haupt" = imagen principal (galería) | "text" = insertada inline.
-          { id: Date.now(), file, url, page: a.page, title: "", alt: "", role: "haupt" },
+          { id: Date.now(), file, url, page: pageNumber, title: "", alt: "", role: "haupt" },
         ]);
       } catch (err) {
         console.error(err);
@@ -1757,7 +1800,7 @@ export default function FromPdfPage() {
         {textRegionMode
           ? "Rechteck über den Artikeltext ziehen → bleibt stehen; mit „Text einfügen“ übernehmen (oder neu ziehen)."
           : cropMode
-            ? "Rechteck über das Bild ziehen → wird ausgeschnitten."
+            ? "Rechteck über das Bild ziehen → anpassen/drehen → „✂ Ausschneiden“ (oder Enter)."
             : "Text markieren & rechts zuweisen — oder „Textbereich“ für ganze Spalten."}
       </span>
       <span className="text-gray-300">|</span>
@@ -1984,6 +2027,7 @@ export default function FromPdfPage() {
             width={width}
             cropMode={cropMode}
             onCrop={cropAndAdd}
+            cropBusy={cropBusy}
             textRegionMode={textRegionMode}
             onTextRegion={takeTextRegion}
             aspect={pageAspect}

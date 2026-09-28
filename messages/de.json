@@ -1686,9 +1686,16 @@
     "inArticle": "● Seite des Artikels",
     "zoomIn": "Vergrößern",
     "zoomOut": "Verkleinern",
-    "cropHint": "Rechteck über das Bild ziehen → wird ausgeschnitten und rechts hinzugefügt.",
+    "cropHint": "Rechteck über das Bild ziehen → mit den Griffen anpassen, oben drehen (für schräge Bilder) → „✂ Ausschneiden“ oder Enter.",
     "cropping": "Wird ausgeschnitten…",
     "saving": "Wird gespeichert…",
     "saveImages": "💾 {count, plural, one {Bild} other {# Bilder}} speichern"
+  },
+  "cropBox": {
+    "rotate": "Drehen",
+    "rotateHint": "Ziehen zum Drehen · Shift = ganze Grad · Tasten [ ]",
+    "resetRotation": "Drehung zurücksetzen",
+    "confirm": "Ausschneiden",
+    "cancel": "Abbrechen"
   }
 }

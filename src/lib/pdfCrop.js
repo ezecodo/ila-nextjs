@@ -19,29 +19,34 @@ export function loadPdfJs() {
   });
 }
 
-// Recorta una región de una página del PDF a un JPEG. Las esquinas vienen en
-// coords PDF a escala 1, origen abajo-izquierda (igual que las anclas). Re-renderiza
-// la página a alta resolución (`scale`) para que el recorte salga nítido.
-export async function cropPdfRegion(pdfDoc, pageNumber, a, b, scale = 3) {
+// Recorta una región (posiblemente girada) de una página del PDF a un JPEG
+// derecho. `box` va en coords PDF a escala 1 con origen ARRIBA-izquierda:
+// { cx, cy, w, h, angle } — centro, tamaño y giro en grados (horario, el
+// mismo sentido que CSS rotate). Re-renderiza la página a alta resolución
+// (`scale`) y la rota al revés alrededor del centro del recuadro, así una
+// imagen inclinada en la maqueta sale enderezada y sin el texto alrededor.
+export async function cropPdfRegion(pdfDoc, pageNumber, box, scale = 3) {
   const page = await pdfDoc.getPage(pageNumber);
-  const base = page.getViewport({ scale: 1 });
   const viewport = page.getViewport({ scale });
   const full = document.createElement("canvas");
   full.width = Math.ceil(viewport.width);
   full.height = Math.ceil(viewport.height);
   await page.render({ canvasContext: full.getContext("2d"), viewport }).promise;
 
-  const left = Math.min(a.x, b.x) * scale;
-  const right = Math.max(a.x, b.x) * scale;
-  const top = (base.height - Math.max(a.y, b.y)) * scale; // y abajo-izq → top-izq
-  const bottom = (base.height - Math.min(a.y, b.y)) * scale;
-  const w = Math.max(1, Math.round(right - left));
-  const h = Math.max(1, Math.round(bottom - top));
-
+  const w = Math.max(1, Math.round(box.w * scale));
+  const h = Math.max(1, Math.round(box.h * scale));
   const out = document.createElement("canvas");
   out.width = w;
   out.height = h;
-  out.getContext("2d").drawImage(full, left, top, w, h, 0, 0, w, h);
+  const ctx = out.getContext("2d");
+  // Fondo blanco: si el recuadro girado se sale de la página, esas esquinas
+  // quedarían transparentes (negras en JPEG).
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, w, h);
+  // Pixel de salida p ↔ punto de página q = centro + R(angle)·(p − centroSalida).
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate((-(box.angle || 0) * Math.PI) / 180);
+  ctx.drawImage(full, -box.cx * scale, -box.cy * scale);
   return new Promise((resolve) =>
     out.toBlob((blob) => resolve(blob), "image/jpeg", 0.92)
   );

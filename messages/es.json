@@ -1685,9 +1685,16 @@
     "inArticle": "● Página del artículo",
     "zoomIn": "Agrandar",
     "zoomOut": "Achicar",
-    "cropHint": "Arrastrá un rectángulo sobre la imagen → se recorta y se agrega a la derecha.",
+    "cropHint": "Arrastrá un rectángulo sobre la imagen → ajustalo con las manijas, giralo desde arriba (para imágenes inclinadas) → „✂ Recortar“ o Enter.",
     "cropping": "Recortando…",
     "saving": "Guardando…",
     "saveImages": "💾 Guardar {count, plural, one {imagen} other {# imágenes}}"
+  },
+  "cropBox": {
+    "rotate": "Girar",
+    "rotateHint": "Arrastrá para girar · Shift = grados enteros · teclas [ ]",
+    "resetRotation": "Quitar el giro",
+    "confirm": "Recortar",
+    "cancel": "Cancelar"
   }
 }

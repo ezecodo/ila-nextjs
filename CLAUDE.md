@@ -187,6 +187,12 @@ Herramienta para completar imágenes faltantes por dossier. Link en "Verwaltung"
 - **"Kein Bild nötig"** (artículos que no llevan imagen) se guarda **solo en localStorage** (`ila-fehlende-bilder-skip`) — no hay campo en la base; por eso el `missingCount` del selector los sigue contando.
 - `loadPdfJs`/`cropPdfRegion` viven en `src/lib/pdfCrop.js`, compartidos con Artikel aus PDF.
 
+### Recorte girable (`PdfCropBox`, ambas herramientas)
+Para imágenes **inclinadas** en la maqueta (texto envolviéndolas en diagonal). Al soltar el rectángulo **no se recorta todavía**: queda un recuadro editable (`components/PdfCropBox/PdfCropBox.jsx`) — mover (arrastrar adentro), 8 manijas de tamaño (trabajan en el marco girado), manija redonda arriba para girar (Shift = grados enteros, teclas `[`/`]` ±1°, Shift+tecla ±0,1°), confirmar con "✂ Ausschneiden"/Enter, cancelar con ✕/Esc.
+- El padre guarda el recuadro en **coords PDF escala 1, origen arriba-izq** `{ cx, cy, w, h, angle }` y lo pasa a px al renderizar — así un cambio de zoom no lo desalinea.
+- `cropPdfRegion(pdfDoc, page, box)` renderiza la página a 3× y la rota al revés alrededor del centro → el JPEG sale **enderezado**. Fondo blanco por si el recuadro se sale de la página.
+- Con varios recuadros abiertos (Artikel aus PDF muestra todas las páginas), el teclado solo actúa sobre el último tocado (`activeBoxToken`).
+
 ## Artikel aus PDF (`/dashboard/articles/from-pdf`)
 
 Herramienta para digitalizar el archivo histórico de ila (50 años de dossiers, muchos escaneados con OCR): se abre un PDF, se selecciona texto directo sobre la página y se arma el artículo sin tipear de nuevo. Link "➕ Artikel aus PDF" en `/dashboard/articles` (promovido de "en pruebas" a link normal). Archivo principal: `src/app/[locale]/dashboard/articles/from-pdf/page.js`.

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import ImageGalleryManager from "../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
 import { loadPdfJs, cropPdfRegion } from "@/lib/pdfCrop";
+import PdfCropBox from "../../../components/PdfCropBox/PdfCropBox";
 
 // "Artikel ohne Bild": elegir un Dossier → lista de artículos sin imagen
 // principal → al lado, la página del Dossier-PDF donde está el artículo para
@@ -35,13 +36,18 @@ function writeSkipped(set) {
   }
 }
 
-// Una página del PDF en un canvas. Arrastrar dibuja un rectángulo y, al
-// soltar, devuelve las esquinas en coords PDF (escala 1, origen abajo-izq),
-// el formato que espera cropPdfRegion.
-function CropPage({ pdfDoc, pageNumber, width, onCrop }) {
+// Una página del PDF en un canvas. Arrastrar dibuja un rectángulo que, al
+// soltar, queda como recuadro editable (PdfCropBox: mover, redimensionar,
+// girar); al confirmar llama a onCrop con el recuadro en coords PDF (escala 1,
+// origen arriba-izq), el formato que espera cropPdfRegion.
+function CropPage({ pdfDoc, pageNumber, width, onCrop, busy }) {
   const canvasRef = useRef(null);
   const [dims, setDims] = useState(null); // { scale, pageHeight }
   const [drag, setDrag] = useState(null);
+  const [boxPdf, setBoxPdf] = useState(null); // recuadro en coords PDF
+
+  // Cambiar de página descarta el recuadro pendiente.
+  useEffect(() => setBoxPdf(null), [pageNumber]);
 
   useEffect(() => {
     if (!pdfDoc || !canvasRef.current) return;
@@ -98,22 +104,52 @@ function CropPage({ pdfDoc, pageNumber, width, onCrop }) {
     const bottom = Math.max(drag.y0, drag.y1);
     setDrag(null);
     if (right - left < 8 || bottom - top < 8) return; // click accidental
-    const toPdf = (px, py) => ({
-      x: px / dims.scale,
-      y: dims.pageHeight - py / dims.scale,
+    const s = dims.scale;
+    setBoxPdf({
+      cx: (left + right) / 2 / s,
+      cy: (top + bottom) / 2 / s,
+      w: (right - left) / s,
+      h: (bottom - top) / s,
+      angle: 0,
     });
-    onCrop(toPdf(left, top), toPdf(right, bottom));
+  };
+
+  const s = dims?.scale || 1;
+  const boxPx = boxPdf && {
+    cx: boxPdf.cx * s,
+    cy: boxPdf.cy * s,
+    w: boxPdf.w * s,
+    h: boxPdf.h * s,
+    angle: boxPdf.angle,
   };
 
   return (
     <div
       className="relative inline-block cursor-crosshair select-none"
-      onMouseDown={onDown}
+      onMouseDown={(e) => {
+        setBoxPdf(null); // un rectángulo nuevo reemplaza al pendiente
+        onDown(e);
+      }}
       onMouseMove={onMove}
       onMouseUp={onUp}
       onMouseLeave={onUp}
     >
       <canvas ref={canvasRef} className="block bg-white shadow-lg" />
+      {boxPx && dims && (
+        <PdfCropBox
+          box={boxPx}
+          busy={busy}
+          onChange={(b) =>
+            setBoxPdf({ cx: b.cx / s, cy: b.cy / s, w: b.w / s, h: b.h / s, angle: b.angle })
+          }
+          onConfirm={async () => {
+            if (busy) return;
+            await onCrop(boxPdf);
+            setBoxPdf(null);
+          }}
+          onCancel={() => setBoxPdf(null)}
+        />
+      )}
       {drag && (
         <div
           className="absolute border-2 border-[#BD0E0D] bg-[#BD0E0D]/10 pointer-events-none"
@@ -284,11 +320,11 @@ export default function FehlendeBilderPage() {
     }
   };
 
-  const handleCrop = async (a, b) => {
+  const handleCrop = async (box) => {
     if (!pdfDoc) return;
     setCropBusy(true);
     try {
-      const blob = await cropPdfRegion(pdfDoc, page, a, b);
+      const blob = await cropPdfRegion(pdfDoc, page, box);
       if (!blob) throw new Error();
       const file = new File([blob], `pdf-bild-s${page}-${Date.now()}.jpg`, {
         type: "image/jpeg",
@@ -567,6 +603,7 @@ export default function FehlendeBilderPage() {
                             pageNumber={page}
                             width={width}
                             onCrop={handleCrop}
+                            busy={cropBusy}
                           />
                         </>
                       )}
