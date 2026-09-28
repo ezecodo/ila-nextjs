@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -145,6 +145,52 @@ export default function ArticleFormV2({ articleId }) {
   const [mediaTitle, setMediaTitle] = useState("");
   const [gallery, setGallery] = useState([]);
   const [inlineImageUrls, setInlineImageUrls] = useState([]);
+
+  // Imágenes nuevas de la galería (recortadas del Dossier-PDF o subidas, aún
+  // sin guardar) que el Publilab ofrece en su selector "Bild einfügen" para
+  // meterlas DENTRO del texto (p. ej. una tabla del PDF tras un "…:"). Antes
+  // el selector solo permitía subir desde la compu.
+  const availableImages = useMemo(
+    () =>
+      gallery
+        .filter((img) => img.file && img._localId)
+        .map((img) => ({
+          id: img._localId,
+          url: URL.createObjectURL(img.file),
+          title: img.title || "",
+          alt: img.alt || "",
+        })),
+    [gallery]
+  );
+  useEffect(
+    () => () => availableImages.forEach((img) => URL.revokeObjectURL(img.url)),
+    [availableImages]
+  );
+
+  // Elegida en el Publilab: se sube, se registra como imagen inline
+  // (ARTICLE_INLINE vía inlineImageUrls, igual que un upload desde el propio
+  // Publilab) y sale de la galería — ahora vive en el texto, no es imagen
+  // principal. Devuelve la URL final (contrato de onInsertAvailable).
+  const handleInsertAvailable = useCallback(
+    async (localId) => {
+      const img = gallery.find((x) => x._localId === localId);
+      if (!img?.file) return null;
+      try {
+        const fd = new FormData();
+        fd.append("file", img.file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok || !data.url) throw new Error(data.error || "upload failed");
+        setInlineImageUrls((prev) => [...prev, data.url]);
+        setGallery((prev) => prev.filter((x) => x._localId !== localId));
+        return data.url;
+      } catch (err) {
+        console.error("Inline-Upload fehlgeschlagen:", err);
+        return null;
+      }
+    },
+    [gallery]
+  );
 
   // PDFs: existingPdfs comes from backend (edit mode); newPdfs are added in form
   const [existingPdfs, setExistingPdfs] = useState([]);
@@ -783,6 +829,8 @@ export default function ArticleFormV2({ articleId }) {
                 value={content}
                 onChange={setContent}
                 onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
+                availableImages={availableImages}
+                onInsertAvailable={handleInsertAvailable}
                 title={title}
                 subtitle={subtitle}
                 articleLegacyPath={legacyPath}
@@ -986,6 +1034,8 @@ export default function ArticleFormV2({ articleId }) {
                   value={content}
                   onChange={setContent}
                   onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
+                  availableImages={availableImages}
+                  onInsertAvailable={handleInsertAvailable}
                   title={title}
                   subtitle={subtitle}
                   articleLegacyPath={legacyPath}
@@ -1024,6 +1074,8 @@ export default function ArticleFormV2({ articleId }) {
                 value={content}
                 onChange={setContent}
                 onUrlInserted={(url) => setInlineImageUrls((prev) => [...prev, url])}
+                availableImages={availableImages}
+                onInsertAvailable={handleInsertAvailable}
                 title={title}
                 subtitle={subtitle}
                 articleLegacyPath={legacyPath}

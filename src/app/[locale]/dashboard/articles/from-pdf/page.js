@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
@@ -1097,6 +1097,25 @@ export default function FromPdfPage() {
   // del scan. Van ANTES que los recortes al crear el artículo, así la primera
   // subida acá es la imagen principal.
   const [gallery, setGallery] = useState([]);
+  // URLs de imágenes del módulo estándar que se insertaron DENTRO del texto
+  // desde el Publilab (salen de `gallery`); van en inlineImageUrls al crear.
+  const [inlineGalleryUrls, setInlineGalleryUrls] = useState([]);
+  const galleryPreviews = useMemo(
+    () =>
+      gallery
+        .filter((img) => img.file && img._localId)
+        .map((img) => ({
+          id: img._localId,
+          url: URL.createObjectURL(img.file),
+          title: img.title || "",
+          alt: img.alt || "",
+        })),
+    [gallery]
+  );
+  useEffect(
+    () => () => galleryPreviews.forEach((img) => URL.revokeObjectURL(img.url)),
+    [galleryPreviews]
+  );
 
   // "Textbereich": arrastrar un rectángulo sobre el cuerpo → extrae el texto
   // dentro, lo reordena por columnas y lo inyecta como bloques en el publilab.
@@ -1793,6 +1812,26 @@ export default function FromPdfPage() {
   // y devolvemos la URL final para que el editor la embeba.
   const handleInsertAvailable = useCallback(
     async (id) => {
+      // Imagen del módulo estándar (id local "new-…"): subir, registrar como
+      // inline y sacarla de la galería (ya no es imagen principal).
+      if (typeof id === "string" && id.startsWith("new-")) {
+        const gImg = gallery.find((x) => x._localId === id);
+        if (!gImg?.file) return null;
+        try {
+          const fd = new FormData();
+          fd.append("file", gImg.file);
+          const res = await fetch("/api/upload", { method: "POST", body: fd });
+          const data = await res.json();
+          if (!res.ok || !data.url) throw new Error(data.error || "Upload-Fehler");
+          setInlineGalleryUrls((prev) => [...prev, data.url]);
+          setGallery((prev) => prev.filter((x) => x._localId !== id));
+          return data.url;
+        } catch (err) {
+          console.error("Inline-Upload fehlgeschlagen:", err);
+          setError("Das Bild konnte nicht hochgeladen werden.");
+          return null;
+        }
+      }
       const img = images.find((x) => x.id === id);
       if (!img) return null;
       try {
@@ -1813,47 +1852,64 @@ export default function FromPdfPage() {
         return null;
       }
     },
-    [images]
+    [images, gallery]
   );
 
   // Barra de herramientas del PDF: selección nativa de texto · "Textbereich"
   // (rectángulo → texto reordenado por columnas) · recorte de imágenes.
+  // Línea de ayuda sobre el visor: explica el modo activo. Los botones de
+  // modo viven en la barra vertical (toolRail) pegada al costado del PDF.
   const markBar = (
-    <div className="flex items-center gap-2 px-1 py-1.5 mb-2 text-xs flex-wrap">
-      <span className="text-gray-400">
-        {textRegionMode
-          ? "Rechteck über den Artikeltext ziehen → bleibt stehen; mit „Text einfügen“ übernehmen (oder neu ziehen)."
-          : cropMode
-            ? "Rechteck über das Bild ziehen → anpassen/drehen → „✂ Ausschneiden“ (oder Enter)."
-            : "Text markieren & rechts zuweisen — oder „Textbereich“ für ganze Spalten."}
-      </span>
-      <span className="text-gray-300">|</span>
+    <div className="px-1 py-1.5 mb-2 text-xs text-gray-400">
+      {textRegionMode
+        ? "Rechteck über den Artikeltext ziehen → bleibt stehen; mit „Text einfügen“ übernehmen (oder neu ziehen)."
+        : cropMode
+          ? "Rechteck über das Bild ziehen → anpassen/drehen → „✂ Ausschneiden“ (oder Enter)."
+          : "Text markieren & rechts zuweisen — oder „Textbereich“ für ganze Spalten."}
+    </div>
+  );
+
+  // Barra vertical de herramientas al costado del PDF, sticky: queda a mano
+  // mientras se scrollea el dossier (antes era una fila arriba del visor y
+  // había que volver a subir para cambiar de Textbereich a Bild y viceversa).
+  // Markieren / Textbereich / Bild son excluyentes; Gedicht se combina.
+  const railBtn = (active, activeCls, idleCls) =>
+    `w-12 flex flex-col items-center justify-center gap-0.5 py-1.5 border text-[10px] leading-tight transition-colors disabled:opacity-40 ${
+      active ? activeCls : idleCls
+    }`;
+  const toolRail = (
+    <div className="flex flex-col gap-1.5 bg-white border border-gray-200 shadow-sm p-1">
+      <button
+        type="button"
+        onClick={() => {
+          setTextRegionMode(false);
+          setCropMode(false);
+        }}
+        className={railBtn(
+          !textRegionMode && !cropMode,
+          "bg-gray-800 text-white border-gray-800",
+          "border-gray-300 text-gray-600 hover:bg-gray-100"
+        )}
+        title="Text frei markieren (normale Auswahl) und rechts einem Feld zuweisen"
+      >
+        <span className="text-base leading-none">𝐈</span>
+        Markieren
+      </button>
       <button
         type="button"
         onClick={() => {
           setTextRegionMode((m) => !m);
           setCropMode(false);
         }}
-        className={`px-2 py-0.5 border transition-colors ${
-          textRegionMode
-            ? "bg-[#BD0E0D] text-white border-[#BD0E0D]"
-            : "border-[#BD0E0D] text-[#BD0E0D] hover:bg-[#BD0E0D]/10"
-        }`}
-        title="Ein Rechteck über den Artikeltext ziehen — der Text wird spaltenweise eingefügt"
+        className={railBtn(
+          textRegionMode,
+          "bg-[#BD0E0D] text-white border-[#BD0E0D]",
+          "border-[#BD0E0D] text-[#BD0E0D] hover:bg-[#BD0E0D]/10"
+        )}
+        title="Textbereich: ein Rechteck über den Artikeltext ziehen — der Text wird spaltenweise eingefügt"
       >
-        📝 {textRegionMode ? "Textbereich aktiv — fertig" : "Textbereich"}
-      </button>
-      <button
-        type="button"
-        onClick={() => setPoemMode((m) => !m)}
-        className={`px-2 py-0.5 border transition-colors ${
-          poemMode
-            ? "bg-purple-600 text-white border-purple-600"
-            : "border-purple-600 text-purple-600 hover:bg-purple-600/10"
-        }`}
-        title="Gedicht-Modus: keine Absatz-/Spaltenrekonstruktion, jede Zeile wird 1:1 aus dem PDF übernommen (Zeilenumbrüche = Verse)"
-      >
-        📜 {poemMode ? "Gedicht-Modus aktiv" : "Gedicht-Modus"}
+        <span className="text-base leading-none">📝</span>
+        Text
       </button>
       <button
         type="button"
@@ -1862,14 +1918,29 @@ export default function FromPdfPage() {
           setTextRegionMode(false);
         }}
         disabled={cropBusy}
-        className={`px-2 py-0.5 border transition-colors disabled:opacity-40 ${
-          cropMode
-            ? "bg-blue-600 text-white border-blue-600"
-            : "border-blue-600 text-blue-700 hover:bg-blue-50"
-        }`}
-        title="Ein Rechteck über das Bild ziehen"
+        className={railBtn(
+          cropMode,
+          "bg-blue-600 text-white border-blue-600",
+          "border-blue-600 text-blue-700 hover:bg-blue-50"
+        )}
+        title="Bild ausschneiden: Rechteck über das Bild ziehen, anpassen/drehen, bestätigen"
       >
-        🖼 {cropBusy ? "…" : cropMode ? "Bildmodus aktiv — fertig" : "Bild ausschneiden"}
+        <span className="text-base leading-none">{cropBusy ? "…" : "🖼"}</span>
+        Bild
+      </button>
+      <span className="h-px bg-gray-200 my-0.5" aria-hidden="true" />
+      <button
+        type="button"
+        onClick={() => setPoemMode((m) => !m)}
+        className={railBtn(
+          poemMode,
+          "bg-purple-600 text-white border-purple-600",
+          "border-purple-600 text-purple-600 hover:bg-purple-600/10"
+        )}
+        title="Gedicht-Modus: keine Absatz-/Spaltenrekonstruktion, jede Zeile wird 1:1 aus dem PDF übernommen (Zeilenumbrüche = Verse)"
+      >
+        <span className="text-base leading-none">📜</span>
+        Gedicht
       </button>
     </div>
   );
@@ -2134,6 +2205,14 @@ export default function FromPdfPage() {
         if (img.alt.trim()) fd.append(`gallery[${i}][alt]`, img.alt.trim());
         if (img.displayMode) fd.append(`gallery[${i}][displayMode]`, img.displayMode);
       });
+      // Imágenes insertadas dentro del texto (recortes "Im Text" + módulo
+      // estándar) → Image ARTICLE_INLINE, como en el editor normal. Antes no
+      // se mandaba y esas imágenes quedaban sin registrar.
+      const inlineUrls = [
+        ...images.filter((img) => img.role === "text" && img.uploadedUrl).map((img) => img.uploadedUrl),
+        ...inlineGalleryUrls,
+      ];
+      if (inlineUrls.length > 0) fd.append("inlineImageUrls", JSON.stringify(inlineUrls));
       fd.append("authors", JSON.stringify(selAuthors.map((a) => a.id)));
       if (isInterview)
         fd.append(
@@ -2174,6 +2253,7 @@ export default function FromPdfPage() {
       images.forEach((img) => URL.revokeObjectURL(img.url));
       setImages([]);
       setGallery([]);
+      setInlineGalleryUrls([]);
 
       // Secuencia del bannerchen: "hinzugefügt!" un momento, después "zurück
       // zum Dossier" (recién ahí scrollea, para que el texto coincida con lo
@@ -2329,11 +2409,16 @@ export default function FromPdfPage() {
 
                 {markBar}
 
-                <div
-                  ref={scrollRef}
-                  className="overflow-auto border border-gray-100 bg-gray-50 p-3 max-h-[78vh]"
-                >
-                  {renderPageStack(pageWidth, scrollRef)}
+                <div className="flex gap-2 items-start">
+                  <div className="sticky top-20 self-start z-20 shrink-0">
+                    {toolRail}
+                  </div>
+                  <div
+                    ref={scrollRef}
+                    className="flex-1 min-w-0 overflow-auto border border-gray-100 bg-gray-50 p-3 max-h-[78vh]"
+                  >
+                    {renderPageStack(pageWidth, scrollRef)}
+                  </div>
                 </div>
 
                 <div className="mt-2 text-xs text-gray-500 min-h-[1.5em]">
@@ -2827,14 +2912,18 @@ export default function FromPdfPage() {
           onClose={closeBodyFullscreen}
           title={title}
           subtitle={subtitle}
-          availableImages={images
-            .filter((img) => img.role === "haupt")
-            .map((img) => ({
-              id: img.id,
-              url: img.url,
-              title: img.title,
-              alt: img.alt,
-            }))}
+          availableImages={[
+            ...images
+              .filter((img) => img.role === "haupt")
+              .map((img) => ({
+                id: img.id,
+                url: img.url,
+                title: img.title,
+                alt: img.alt,
+              })),
+            // Imágenes subidas con el módulo estándar (aún sin guardar).
+            ...galleryPreviews,
+          ]}
           onInsertAvailable={handleInsertAvailable}
           leftPanel={
             <div className="relative flex-1 flex flex-col min-h-0 bg-gray-50">
@@ -2842,8 +2931,13 @@ export default function FromPdfPage() {
                 {renderPageNav(fsScrollRef)}
               </div>
               {markBar}
-              <div ref={fsScrollRef} className="flex-1 overflow-auto p-3">
-                {renderPageStack(pageWidth, fsScrollRef)}
+              <div className="flex-1 flex min-h-0">
+                <div className="shrink-0 p-1.5 border-r border-gray-200 bg-gray-50">
+                  {toolRail}
+                </div>
+                <div ref={fsScrollRef} className="flex-1 min-w-0 overflow-auto p-3">
+                  {renderPageStack(pageWidth, fsScrollRef)}
+                </div>
               </div>
               <div className="px-3 py-1.5 border-t border-gray-200 bg-white text-xs text-gray-500 min-h-[1.6em]">
                 {selectionPreview ? (

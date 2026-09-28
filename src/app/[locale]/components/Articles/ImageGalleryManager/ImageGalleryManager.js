@@ -13,6 +13,12 @@ const PdfCropViewer = dynamic(
   { ssr: false }
 );
 
+// Id local de las imágenes nuevas (aún sin guardar, sin `id` de la BD): lo
+// usa el Publilab para ofrecerlas en su selector "insertar imagen en el texto"
+// (prop availableImages de InterviewEditor). El guardado lo ignora.
+let localIdSeq = 0;
+const newLocalId = () => `new-${Date.now()}-${++localIdSeq}`;
+
 // `dossierEditionId` / `dossierStartPage` / `dossierEndPage` (opcionales):
 // si el formulario los pasa (editores de artículos), aparece el botón
 // "📄 Aus Dossier-PDF ausschneiden" — abre el PDF del dossier en la página del
@@ -53,7 +59,7 @@ export default function ImageGalleryManager({
   const addCroppedImage = (file) => {
     setGallery((prev) => [
       ...prev,
-      { file, title: "", alt: "", isCover: false, order: prev.length + 1 },
+      { file, title: "", alt: "", isCover: false, order: prev.length + 1, _localId: newLocalId() },
     ]);
     setDossierPdf((d) => (d ? { ...d, added: d.added + 1 } : d));
   };
@@ -147,6 +153,7 @@ export default function ImageGalleryManager({
         alt: descCredits,
         isCover: false,
         order: prev.length + 1,
+        _localId: newLocalId(),
       },
     ]);
 
