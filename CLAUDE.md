@@ -177,6 +177,16 @@ Fila de botones/dropdowns fija arriba de todo el dashboard admin (`sticky top-0`
 - **No usar `/api/media/`** para PDFs privados hasta implementar auth — pendiente
 - Los PDFs públicos de artículos siguen en `pdfs-public/`
 
+## Artikel ohne Bild (`/dashboard/admin/fehlende-bilder`)
+
+Herramienta para completar imágenes faltantes por dossier. Link en "Verwaltung" de `DashboardStats.js` (desktop y mobile), key `stats.missingImages`, textos en el namespace `missingImages`.
+- **"Sin imagen"** = sin imagen principal (`Image.contentType: "ARTICLE"`, `contentId = beitragsId || id`); las `ARTICLE_INLINE` no cuentan. Lo calcula `GET /api/admin/articles-without-images` (sin params: dossiers con `missingCount`; con `?editionId=`: artículos faltantes ordenados por `startPage`, los sin página al final, + `pdfUrl` de `EditionPdf`).
+- Al elegir un artículo se abre el Dossier-PDF en su `startPage`: arrastrar un rectángulo recorta la imagen (`cropPdfRegion`), que entra al mismo `ImageGalleryManager` donde también se suben archivos (p. ej. los que manda el layout).
+- Guardar usa `POST /api/articles/[id]/images` (solo **agrega** una imagen, no toca nada más) — **no** el PUT de `/api/articles/[id]`, que es el guardado completo del editor clásico y puede borrar imágenes vía `keepImages`.
+- Artículos sin página: Von/Bis editables arriba del PDF → `PATCH /api/articles/[id]/pages` (solo `startPage`/`endPage`).
+- **"Kein Bild nötig"** (artículos que no llevan imagen) se guarda **solo en localStorage** (`ila-fehlende-bilder-skip`) — no hay campo en la base; por eso el `missingCount` del selector los sigue contando.
+- `loadPdfJs`/`cropPdfRegion` viven en `src/lib/pdfCrop.js`, compartidos con Artikel aus PDF.
+
 ## Artikel aus PDF (`/dashboard/articles/from-pdf`)
 
 Herramienta para digitalizar el archivo histórico de ila (50 años de dossiers, muchos escaneados con OCR): se abre un PDF, se selecciona texto directo sobre la página y se arma el artículo sin tipear de nuevo. Link "➕ Artikel aus PDF" en `/dashboard/articles` (promovido de "en pruebas" a link normal). Archivo principal: `src/app/[locale]/dashboard/articles/from-pdf/page.js`.

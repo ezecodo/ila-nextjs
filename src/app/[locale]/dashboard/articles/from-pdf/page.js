@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
+import ImageGalleryManager from "../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
+import { loadPdfJs, cropPdfRegion } from "@/lib/pdfCrop";
 
 // El publilab (InterviewEditor) usa el DOM; igual que en ArticleFormV2 se carga
 // sin SSR.
@@ -33,22 +35,6 @@ const ZOOM_MAX = 1000;
 const ZOOM_STEP = 40;
 const ZOOM_DEFAULT = 620;
 
-// Carga pdfjs desde CDN (mismo patrón que PdfReader).
-function loadPdfJs() {
-  return new Promise((resolve, reject) => {
-    if (typeof window === "undefined") return reject("SSR");
-    if (window.pdfjsLib) return resolve(window.pdfjsLib);
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
-    script.onload = () => {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-      resolve(window.pdfjsLib);
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
 
 // Limpia el texto seleccionado: de-guionado + drop-cap + juntar saltos.
 function cleanSelection(raw) {
@@ -590,34 +576,6 @@ function bodyTextToHtml(text) {
   return out.join("\n");
 }
 
-// Recorta una región de una página del PDF a un JPEG. Las esquinas vienen en
-// coords PDF a escala 1, origen abajo-izquierda (igual que las anclas). Re-renderiza
-// la página a alta resolución (`scale`) para que el recorte salga nítido.
-async function cropPdfRegion(pdfDoc, pageNumber, a, b, scale = 3) {
-  const page = await pdfDoc.getPage(pageNumber);
-  const base = page.getViewport({ scale: 1 });
-  const viewport = page.getViewport({ scale });
-  const full = document.createElement("canvas");
-  full.width = Math.ceil(viewport.width);
-  full.height = Math.ceil(viewport.height);
-  await page.render({ canvasContext: full.getContext("2d"), viewport }).promise;
-
-  const left = Math.min(a.x, b.x) * scale;
-  const right = Math.max(a.x, b.x) * scale;
-  const top = (base.height - Math.max(a.y, b.y)) * scale; // y abajo-izq → top-izq
-  const bottom = (base.height - Math.min(a.y, b.y)) * scale;
-  const w = Math.max(1, Math.round(right - left));
-  const h = Math.max(1, Math.round(bottom - top));
-
-  const out = document.createElement("canvas");
-  out.width = w;
-  out.height = h;
-  out.getContext("2d").drawImage(full, left, top, w, h, 0, 0, w, h);
-  return new Promise((resolve) =>
-    out.toBlob((blob) => resolve(blob), "image/jpeg", 0.92)
-  );
-}
-
 // ── Vista de una página: canvas + text-layer de pdfjs (selección nativa) ───
 // El texto se selecciona arrastrando, como cualquier texto. En modo recorte de
 // imagen (`cropMode`) el text-layer no captura el ratón y se dibuja un rectángulo
@@ -1091,6 +1049,11 @@ export default function FromPdfPage() {
   const [cropMode, setCropMode] = useState(false); // arrastrar para recortar
   const [images, setImages] = useState([]); // { id, file, url, page, title, alt }
   const [cropBusy, setCropBusy] = useState(false);
+  // Módulo estándar de imágenes (ImageGalleryManager, el mismo del editor
+  // normal) para fotos que ya existen como archivo — no hace falta recortarlas
+  // del scan. Van ANTES que los recortes al crear el artículo, así la primera
+  // subida acá es la imagen principal.
+  const [gallery, setGallery] = useState([]);
 
   // "Textbereich": arrastrar un rectángulo sobre el cuerpo → extrae el texto
   // dentro, lo reordena por columnas y lo inyecta como bloques en el publilab.
@@ -2067,15 +2030,28 @@ export default function FromPdfPage() {
         if (bodyFrom) fd.append("startPage", String(bodyFrom));
         if (bodyTo) fd.append("endPage", String(bodyTo));
       }
-      // Solo las imágenes "haupt" son imágenes principales del artículo; las
-      // "text" ya están subidas y embebidas en el contenido.
-      images
-        .filter((img) => img.role === "haupt")
-        .forEach((img, i) => {
-          fd.append(`gallery[${i}][file]`, img.file);
-          if (img.title.trim()) fd.append(`gallery[${i}][title]`, img.title.trim());
-          if (img.alt.trim()) fd.append(`gallery[${i}][alt]`, img.alt.trim());
-        });
+      // Primero las imágenes del módulo estándar (archivos subidos), después los
+      // recortes "haupt" del PDF — el orden define cuál es la imagen principal.
+      // Los recortes "text" ya están subidos y embebidos en el contenido.
+      const galleryEntries = [
+        ...gallery
+          .filter((img) => img.file)
+          .map((img) => ({
+            file: img.file,
+            title: img.title || "",
+            alt: img.alt || "",
+            displayMode: img.displayMode || "",
+          })),
+        ...images
+          .filter((img) => img.role === "haupt")
+          .map((img) => ({ file: img.file, title: img.title, alt: img.alt, displayMode: "" })),
+      ];
+      galleryEntries.forEach((img, i) => {
+        fd.append(`gallery[${i}][file]`, img.file);
+        if (img.title.trim()) fd.append(`gallery[${i}][title]`, img.title.trim());
+        if (img.alt.trim()) fd.append(`gallery[${i}][alt]`, img.alt.trim());
+        if (img.displayMode) fd.append(`gallery[${i}][displayMode]`, img.displayMode);
+      });
       fd.append("authors", JSON.stringify(selAuthors.map((a) => a.id)));
       if (isInterview)
         fd.append(
@@ -2115,6 +2091,7 @@ export default function FromPdfPage() {
       setCropMode(false);
       images.forEach((img) => URL.revokeObjectURL(img.url));
       setImages([]);
+      setGallery([]);
 
       // Secuencia del bannerchen: "hinzugefügt!" un momento, después "zurück
       // zum Dossier" (recién ahí scrollea, para que el texto coincida con lo
@@ -2517,14 +2494,18 @@ export default function FromPdfPage() {
               </div>
             )}
 
+            {/* Módulo estándar de imágenes (mismo que el editor normal) */}
+            <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+
             {/* Imágenes recortadas del PDF */}
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 Bilder (aus PDF){" "}
                 {images.length > 0 && (
                   <span className="text-gray-400 font-normal">
-                    · {images.length} · erstes „Hauptbild“ = Titelbild · „Im Text“
-                    = im publilab eingefügt
+                    · {images.length}
+                    {gallery.length === 0 && " · erstes „Hauptbild“ = Titelbild"}
+                    {" "}· „Im Text“ = im publilab eingefügt
                   </span>
                 )}
               </label>
@@ -2550,6 +2531,7 @@ export default function FromPdfPage() {
                             Im Text
                           </span>
                         ) : (
+                          gallery.length === 0 &&
                           images.find((x) => x.role === "haupt")?.id ===
                             img.id && (
                             <span className="absolute top-0 left-0 text-[10px] bg-[#BD0E0D] text-white px-1">
