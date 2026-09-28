@@ -1005,9 +1005,15 @@ function DarkAnswerBlock({
   onMergeUp,
   marginSlot,
   isActive,
+  // Imágenes ya recortadas del PDF / subidas y aún sin guardar (mismas que el
+  // selector entre bloques). Si hay, el botón 🖼️ de la barra del párrafo las
+  // ofrece antes de ir al selector de archivos. { id, url, title, alt }[]
+  availableImages = [],
+  onInsertAvailable,
 }) {
   const divRef = useRef(null);
   const wrapRef = useRef(null);
+  const [inlinePickerOpen, setInlinePickerOpen] = useState(false);
   const mountedRef = useRef(false);
   const savedRangeRef = useRef(null);
   const [showDossier, setShowDossier] = useState(false);
@@ -1201,7 +1207,7 @@ function DarkAnswerBlock({
     setImgTitleDraft(img.title || "");
   };
 
-  const insertInlineImageAt = (url) => {
+  const insertInlineImageAt = (url, { alt = "", title = "" } = {}) => {
     const div = divRef.current;
     if (!div) return;
     const sel = window.getSelection();
@@ -1229,7 +1235,35 @@ function DarkAnswerBlock({
     // "descubra" que hay que volver a hacer click en la imagen para elegir
     // tamaño/posición/alt — se pregunta ahí mismo, apenas se inserta.
     const inserted = div.querySelector(`img[src="${CSS.escape(url)}"]`);
-    if (inserted) openImgPopoverFor(inserted);
+    if (inserted) {
+      // Bildunterschrift/Alt ya cargados en el recorte: se traen tal cual.
+      if (alt) inserted.alt = alt;
+      if (title) inserted.title = title;
+      if (alt || title) onChange(normalizeAnswerHtml(div.innerHTML));
+      openImgPopoverFor(inserted);
+    }
+  };
+
+  // 🖼️ de la barra: con recortes disponibles abre el selector; si no, el
+  // selector de archivos de siempre.
+  const handleInlineImageButton = () => {
+    if (availableImages.length > 0 && onInsertAvailable) setInlinePickerOpen(true);
+    else inlineImageInputRef.current?.click();
+  };
+
+  // Recorte elegido: el padre lo sube/persiste y devuelve la URL final
+  // (mismo contrato que el selector entre bloques) → se inserta en el caret.
+  const pickAvailableInline = async (img) => {
+    setUploadingInline(true);
+    try {
+      const url = await onInsertAvailable(img.id);
+      if (url) insertInlineImageAt(url, { alt: img.alt, title: img.title });
+    } catch (err) {
+      console.error("Inline available image error:", err);
+    } finally {
+      setUploadingInline(false);
+      setInlinePickerOpen(false);
+    }
   };
 
   const handleInlineImageFile = async (e) => {
@@ -1434,7 +1468,7 @@ function DarkAnswerBlock({
           e.preventDefault();
           saveSelection();
         }}
-        onClick={() => inlineImageInputRef.current?.click()}
+        onClick={handleInlineImageButton}
         disabled={uploadingInline}
         className={`${btnCls} disabled:opacity-40`}
         title="Bild einfügen (fließt mit dem Text, auch im Kasten)"
@@ -1677,6 +1711,81 @@ function DarkAnswerBlock({
         className="hidden"
         onChange={handleInlineImageFile}
       />
+      {inlinePickerOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[10001] bg-black/40 flex items-center justify-center p-4"
+            onMouseDown={(e) => {
+              // mousedown (no click) + preventDefault: no robarle el foco /
+              // la selección guardada al párrafo antes de insertar.
+              if (e.target === e.currentTarget) {
+                e.preventDefault();
+                if (!uploadingInline) setInlinePickerOpen(false);
+              }
+            }}
+          >
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl p-5">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-bold text-gray-800">
+                  Bild in den Absatz einfügen
+                </h3>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setInlinePickerOpen(false)}
+                  disabled={uploadingInline}
+                  className="text-gray-400 hover:text-gray-700 disabled:opacity-40"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">
+                Ausgeschnittene Bilder — anklicken, um sie an der Cursor-Position einzufügen.
+              </p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {availableImages.map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => pickAvailableInline(img)}
+                    disabled={uploadingInline}
+                    className="relative border border-gray-200 hover:border-[#BD0E0D] rounded overflow-hidden aspect-square bg-gray-50 disabled:opacity-40"
+                    title={img.title || "Bild einfügen"}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.url}
+                      alt={img.alt || ""}
+                      className="w-full h-full object-contain"
+                    />
+                  </button>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setInlinePickerOpen(false);
+                    inlineImageInputRef.current?.click();
+                  }}
+                  disabled={uploadingInline}
+                  className="text-xs font-bold text-gray-500 hover:text-blue-600 px-3 py-1.5 border border-gray-300 hover:border-blue-300 rounded disabled:opacity-40"
+                >
+                  📁 Neue Datei hochladen
+                </button>
+                {uploadingInline && (
+                  <span className="text-xs text-gray-400 flex items-center gap-2">
+                    <span className="w-3 h-3 border border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                    wird eingefügt…
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
       {showDossier && (
         <DossierModal
           editions={editions}
@@ -3108,6 +3217,8 @@ function PasteImportPanel({
                         onDelete={() => deleteBlock(i)}
                         marginSlot={marginSlot}
                         isActive={activeAnswerIdx === i}
+                        availableImages={availableImages}
+                        onInsertAvailable={onInsertAvailable}
                         onRef={(el) => {
                           blockRefsArr.current[i] = el;
                         }}
