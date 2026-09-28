@@ -1591,7 +1591,21 @@ export default function FromPdfPage() {
       if (!res.ok) return [];
       const flat = flattenTreeOptions(await res.json());
       const q = (inputValue || "").trim();
-      return q ? rankOptions(flat, q) : flat.slice(0, 50);
+      if (!q) return flat.slice(0, 50);
+      // "➕ Neu anlegen" como en Themen/Autor:in (handleRegionChange ya sabía
+      // crearla, pero la opción nunca se ofrecía). El label trae la ruta
+      // completa ("Südamerika > Uruguay"): se compara también contra el
+      // último tramo para no ofrecer duplicar una región que ya existe.
+      const norm = (s) => (s || "").trim().toLowerCase();
+      const hasExact = flat.some(
+        (o) =>
+          norm(o.label) === norm(q) ||
+          norm(o.label.split(" > ").pop()) === norm(q)
+      );
+      const maybeCreate = hasExact
+        ? []
+        : [{ value: "new", label: `➕ Neu anlegen: "${q}"`, __inputValue: q }];
+      return [...maybeCreate, ...rankOptions(flat, q)];
     } catch {
       return [];
     }

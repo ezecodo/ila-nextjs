@@ -301,7 +301,16 @@ export default function ArticleFormV2({ articleId }) {
       const includes = flat.filter(
         (o) => norm(o.label).includes(nq) && !norm(o.label).startsWith(nq)
       );
-      return [...exact, ...starts, ...includes];
+      // Opción de crear (el handler de onChange ya la soportaba, pero nunca
+      // se ofrecía). Se compara también contra el último tramo de la ruta
+      // ("Südamerika > Uruguay") para no duplicar una región existente.
+      const hasExact = flat.some(
+        (o) => norm(o.label) === nq || norm(o.label.split(" > ").pop()) === nq
+      );
+      const maybeCreate = hasExact
+        ? []
+        : [{ value: "new", label: `${t("createRegionPrefix")}: "${inputValue.trim()}"`, __inputValue: inputValue.trim() }];
+      return [...maybeCreate, ...exact, ...starts, ...includes];
     } catch {
       return [];
     }
