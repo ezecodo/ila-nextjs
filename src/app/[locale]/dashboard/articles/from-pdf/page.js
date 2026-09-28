@@ -1397,6 +1397,30 @@ export default function FromPdfPage() {
       setter((prev) => (prev ? prev + " " + flat : flat));
       return;
     }
+    // Bildunterschrift / Alt-Text de una imagen (recortada del PDF o subida
+    // con el módulo estándar): una sola línea, se AGREGA al texto existente.
+    const imgTarget = /^(cropImg|galleryImg):([^:]+):(title|alt)$/.exec(field || "");
+    if (imgTarget) {
+      const flat = text
+        .split(/\n+/)
+        .map((p) => cleanSelection(p).replace(/^#{2,3}\s+/, ""))
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      if (!flat) return;
+      const [, kind, key, prop] = imgTarget;
+      const append = (prev) => (prev ? prev + " " + flat : flat);
+      if (kind === "cropImg") {
+        setImages((prev) =>
+          prev.map((x) => (String(x.id) === key ? { ...x, [prop]: append(x[prop]) } : x))
+        );
+      } else {
+        setGallery((prev) =>
+          prev.map((x, i) => (String(i) === key ? { ...x, [prop]: append(x[prop]) } : x))
+        );
+      }
+      return;
+    }
     if (field === "author" || field === "interviewee") {
       // Autor/Entrevistado son de una sola línea, y cleanAuthorName
       // (versalitas, prefijo "von"/"Text:"/"Interview:", etc.) ya hace su
@@ -2553,7 +2577,13 @@ export default function FromPdfPage() {
             )}
 
             {/* Módulo estándar de imágenes (mismo que el editor normal) */}
-            <ImageGalleryManager gallery={gallery} setGallery={setGallery} />
+            <ImageGalleryManager
+              gallery={gallery}
+              setGallery={setGallery}
+              onFieldFocus={(index, field) => {
+                activeFieldRef.current = `galleryImg:${index}:${field}`;
+              }}
+            />
 
             {/* Imágenes recortadas del PDF */}
             <div>
@@ -2618,6 +2648,9 @@ export default function FromPdfPage() {
                               onChange={(e) =>
                                 updateImageField(img.id, "title", e.target.value)
                               }
+                              onFocus={() => {
+                                activeFieldRef.current = `cropImg:${img.id}:title`;
+                              }}
                               placeholder="Titel (Bildunterschrift)"
                               className="w-full border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:border-[#BD0E0D]"
                             />
@@ -2626,6 +2659,9 @@ export default function FromPdfPage() {
                               onChange={(e) =>
                                 updateImageField(img.id, "alt", e.target.value)
                               }
+                              onFocus={() => {
+                                activeFieldRef.current = `cropImg:${img.id}:alt`;
+                              }}
                               placeholder="Alt-Text (Beschreibung für Screenreader)"
                               className="w-full border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:border-[#BD0E0D]"
                             />

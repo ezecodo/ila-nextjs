@@ -26,6 +26,9 @@ export default function ImageGalleryManager({
   dossierEditionId,
   dossierStartPage,
   dossierEndPage,
+  // Opcional: avisa qué campo de una imagen ya agregada se enfocó
+  // (index, "title" | "alt") — Artikel aus PDF lo usa como destino de "Textbereich".
+  onFieldFocus,
 }) {
   const t = useTranslations("galleryManager");
 
@@ -299,6 +302,7 @@ export default function ImageGalleryManager({
                   <div className="flex-1 space-y-2">
                     <InputField
                       id={`altText-${index}`}
+                      onFocus={() => onFieldFocus?.(index, "title")}
                       label={t("altTextLabel")}
                       value={img.title || ""}
                       onChange={(e) =>
@@ -308,6 +312,7 @@ export default function ImageGalleryManager({
                     />
                     <InputField
                       id={`descCredits-${index}`}
+                      onFocus={() => onFieldFocus?.(index, "alt")}
                       label={t("descriptionCreditsLabel")}
                       value={img.alt || ""}
                       onChange={(e) => handleEdit(index, "alt", e.target.value)}
