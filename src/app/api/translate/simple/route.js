@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/apiAuth";
 import { prisma } from "@/lib/prisma";
 
 const DEEPL_API_BASE = process.env.DEEPL_API_BASE || "https://api.deepl.com/v2";
@@ -28,6 +29,8 @@ async function translateText(text) {
 }
 
 export async function POST(req) {
+  const denied = await requireRole(["admin", "translator", "reviewer"]);
+  if (denied) return denied;
   try {
     const { text, type, id } = await req.json();
 

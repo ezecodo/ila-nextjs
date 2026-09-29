@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 import { uploadFile } from "@/lib/localUpload";
 
 // 🔹 Obtener todos los eventos (GET)
@@ -33,6 +34,8 @@ export async function GET(req) {
 
 // 📌 POST: crear nuevo evento
 export async function POST(req) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const formData = await req.formData();
     const title       = formData.get("title");

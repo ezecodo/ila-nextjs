@@ -18,3 +18,14 @@ export async function requireAdmin() {
   }
   return null;
 }
+
+// Como requireAdmin pero acepta una lista de roles (p. ej. el PUT de artículos
+// lo usan admin, translator y reviewer). Rechaza sin sesión o con un rol fuera
+// de la lista (suscriptores "user"/"k2", etc.).
+export async function requireRole(roles) {
+  const session = await auth();
+  if (!session || !roles.includes(session.user?.role)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  return null;
+}

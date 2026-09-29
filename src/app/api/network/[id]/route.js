@@ -1,9 +1,12 @@
 // app/api/network/[id]/route.js
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // PUT - Actualizar organización
 export async function PUT(request, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = params;
     const body = await request.json();
@@ -36,6 +39,8 @@ export async function PUT(request, { params }) {
 
 // DELETE - Eliminar organización
 export async function DELETE(request, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = params;
 

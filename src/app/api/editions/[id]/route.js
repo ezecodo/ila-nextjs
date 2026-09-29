@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
+import { requireRole } from "@/lib/apiAuth";
 import { uploadFile, deleteFile, toSlug } from "@/lib/localUpload";
 import { auth } from "../../../auth";
 
@@ -190,6 +191,9 @@ export async function GET(req, context) {
 
 // 📌 PUT (actualizar edición)
 export async function PUT(req, context) {
+  // Editar dossier / asignar traductor a la edición: admin o reviewer.
+  const denied = await requireRole(["admin", "reviewer"]);
+  if (denied) return denied;
   try {
     // ✅ FIX 1: Await params
     const params = await context.params;

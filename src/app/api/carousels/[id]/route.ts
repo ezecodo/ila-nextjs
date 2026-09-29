@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // 🔹 GET: obtener un carrusel por ID
 export async function GET(nextRequest: NextRequest) {
@@ -83,6 +84,8 @@ export async function GET(nextRequest: NextRequest) {
 // 🔹 PUT: actualizar un carrusel
 // 🔹 PUT: actualizar un carrusel
 export async function PUT(nextRequest: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   const url = new URL(nextRequest.url);
   const id = url.pathname.split("/").pop();
 
@@ -198,6 +201,8 @@ export async function PUT(nextRequest: NextRequest) {
 
 // 🔹 DELETE: eliminar un carrusel
 export async function DELETE(nextRequest: NextRequest) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   const url = new URL(nextRequest.url);
   const id = url.pathname.split("/").pop();
 

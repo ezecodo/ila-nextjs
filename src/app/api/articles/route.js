@@ -1,6 +1,7 @@
 import slugify from "@/lib/slugify";
 import * as Sentry from "@sentry/nextjs";
 import { uploadFile } from "@/lib/localUpload";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // Devuelve el subfolder de imágenes según si el artículo tiene edición o es online
 function getImageSubfolder(editionNumber) {
@@ -101,6 +102,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     // Leer datos desde FormData
     const formData = await request.formData();

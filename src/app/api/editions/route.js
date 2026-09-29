@@ -3,6 +3,7 @@ import { uploadFile, toSlug } from "@/lib/localUpload";
 import { auth } from "@/app/auth";
 
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
+import { requireAdmin } from "@/lib/apiAuth";
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
@@ -148,6 +149,8 @@ export async function GET(req) {
 }
 
 export async function POST(req) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const formData = await req.formData();
 

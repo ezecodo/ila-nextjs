@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/apiAuth";
 import { uploadFile } from "@/lib/localUpload";
 
 export async function POST(request) {
+  const denied = await requireRole(["admin", "translator", "reviewer"]);
+  if (denied) return denied;
   try {
     const formData = await request.formData();
     const file = formData.get("file");

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "../../../auth";
 import * as Sentry from "@sentry/nextjs";
 import { uploadFile, deleteFile } from "@/lib/localUpload";
+import { requireAdmin, requireRole } from "@/lib/apiAuth";
 
 function getImageSubfolder(editionNumber) {
   return editionNumber
@@ -153,6 +154,11 @@ export async function GET(req, context) {
 // Guardar traducción en campos ES
 export async function PUT(req, context) {
   const { id } = await context.params;
+  // Editar artículos: admin (contenido/original/PT/imágenes), translator
+  // (guarda/envía traducción ES) y reviewer (aprueba). Suscriptores y sin
+  // sesión, fuera. La lógica fina por caso vive más abajo.
+  const denied = await requireRole(["admin", "translator", "reviewer"]);
+  if (denied) return denied;
   const session = await auth();
   const userId = session?.user?.id || "system"; // fallback
 
@@ -173,6 +179,9 @@ export async function PUT(req, context) {
       // Totalmente independiente del flujo de traducción DE→ES (no toca
       // translationStatus/isTranslatedES/reviewedAt ni nada de ese pipeline).
       if (body.updateOriginalVersion) {
+        if (session?.user?.role !== "admin") {
+          return Response.json({ error: "No autorizado" }, { status: 401 });
+        }
         const updatedArticle = await prisma.article.update({
           where: { id: parseInt(id, 10) },
           data: {
@@ -1006,6 +1015,8 @@ export async function PUT(req, context) {
 }
 // Eliminar artículo
 export async function DELETE(req, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   const { id } = params;
 
   if (!id || isNaN(parseInt(id))) {

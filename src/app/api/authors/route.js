@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 export async function GET() {
   try {
@@ -31,6 +32,8 @@ export async function GET() {
 }
 
 export async function POST(req) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     // Verificar que el cuerpo de la solicitud contiene datos
     if (!req.body) {

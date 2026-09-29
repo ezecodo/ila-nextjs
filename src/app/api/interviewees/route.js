@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
+import { requireAdmin } from "@/lib/apiAuth";
 
 // Manejo del método GET
 export async function GET(req) {
@@ -40,6 +41,8 @@ export async function GET(req) {
 
 // Manejo del método POST
 export async function POST(request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { name, articleId } = await request.json();
 

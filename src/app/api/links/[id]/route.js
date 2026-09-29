@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 export async function PUT(request, context) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const params = await context?.params;
     const id = parseInt(params.id, 10);
@@ -58,6 +61,8 @@ export async function PUT(request, context) {
 }
 
 export async function DELETE(request, context) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const params = await context?.params;
     const id = parseInt(params.id, 10);

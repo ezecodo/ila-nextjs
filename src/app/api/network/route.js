@@ -1,6 +1,7 @@
 // app/api/admin/network/route.js
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // GET - Obtener todas las organizaciones
 export async function GET() {
@@ -21,6 +22,8 @@ export async function GET() {
 
 // POST - Crear nueva organización
 export async function POST(request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = await request.json();
 

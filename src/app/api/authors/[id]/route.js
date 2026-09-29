@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
+import { requireAdmin } from "@/lib/apiAuth";
 
 export async function GET(request, context) {
   try {
@@ -108,6 +109,8 @@ export async function GET(request, context) {
 }
 
 export async function PUT(request, context) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const params = await context?.params;
     if (!params || !params.id) {
@@ -162,6 +165,8 @@ export async function PUT(request, context) {
   }
 }
 export async function DELETE(request, context) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const params = await context?.params;
     if (!params || !params.id) {

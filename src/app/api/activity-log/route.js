@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 import { auth } from "../../auth"; // ✅ usa tu propia función
 
 export async function POST(req) {
@@ -48,6 +49,8 @@ export async function POST(req) {
 }
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const logs = await prisma.activityLog.findMany({
       orderBy: { createdAt: "desc" },

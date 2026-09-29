@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 /**
  * Construye un árbol de regiones a partir de datos planos
@@ -136,6 +137,8 @@ export async function GET(req) {
 
 // ✅ POST sin cambios
 export async function POST(req) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = await req.json();
     const { name } = body;

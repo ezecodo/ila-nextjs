@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/apiAuth";
 import { writeFile } from "fs/promises";
 import path from "path";
 
@@ -6,6 +7,8 @@ const UPLOAD_DIR = "/usr/home/ilaweb/ila-uploads/images";
 const BASE_URL = "https://www.ila-web.de/api/media/images";
 
 export async function POST(request) {
+  const denied = await requireRole(["admin", "translator", "reviewer"]);
+  if (denied) return denied;
   try {
     const formData = await request.formData();
     const file = formData.get("file");

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/apiAuth";
 
 // La extracción de texto del PDF puede ser larga → más margen que el default.
 export const maxDuration = 60;
@@ -51,6 +52,8 @@ const TOOL = {
 };
 
 export async function POST(request) {
+  const denied = await requireRole(["admin", "translator", "reviewer"]);
+  if (denied) return denied;
   try {
     const apiKey = (process.env.ANTHROPIC_API_KEY || "").trim();
     if (!apiKey) {

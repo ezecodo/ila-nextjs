@@ -1,7 +1,10 @@
 // app/api/translate/text/route.js
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/apiAuth";
 
 export async function POST(req) {
+  const denied = await requireRole(["admin", "translator", "reviewer"]);
+  if (denied) return denied;
   try {
     const { text, sourceLang, targetLang } = await req.json();
 

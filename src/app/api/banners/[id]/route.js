@@ -1,9 +1,12 @@
 // app/api/banners/[id]/route.js
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // PUT - Actualizar banner
 export async function PUT(request, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = await params;
     const body = await request.json();
@@ -52,6 +55,8 @@ export async function PUT(request, { params }) {
 
 // DELETE - Eliminar banner
 export async function DELETE(request, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = await params;
 

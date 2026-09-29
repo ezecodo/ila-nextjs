@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; // ✅ Usa la instancia compartida
+import { requireAdmin } from "@/lib/apiAuth";
 
 /**
  * Construye un árbol de temas a partir de datos planos
@@ -112,6 +113,8 @@ export async function GET(req) {
  * Maneja la solicitud POST para crear un nuevo tema
  */
 export async function POST(req) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { name, parentId } = await req.json();
 

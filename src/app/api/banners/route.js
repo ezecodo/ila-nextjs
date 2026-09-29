@@ -1,6 +1,7 @@
 // app/api/banners/route.js
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // GET - Obtener banners activos (con filtro por posición)
 export async function GET(request) {
@@ -36,6 +37,8 @@ export async function GET(request) {
 
 // POST - Crear banner
 export async function POST(request) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const body = await request.json();
 

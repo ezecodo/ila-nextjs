@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 import { uploadFile } from "@/lib/localUpload";
 
 export async function GET(req, { params }) {
@@ -30,6 +31,8 @@ export async function GET(req, { params }) {
 
 // 📌 PUT: actualizar evento
 export async function PUT(req, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = await params;
     if (!id) {
@@ -87,6 +90,8 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = params;
 

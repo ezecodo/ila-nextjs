@@ -1,8 +1,11 @@
 // app/api/translate/deepl/route.js
 import { NextResponse } from "next/server";
+import { requireRole } from "@/lib/apiAuth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req) {
+  const denied = await requireRole(["admin", "translator", "reviewer"]);
+  if (denied) return denied;
   try {
     const { articleId } = await req.json();
     if (!articleId) {

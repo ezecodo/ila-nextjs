@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const totalArticles = await prisma.article.count();
     const totalEditions = await prisma.edition.count();
