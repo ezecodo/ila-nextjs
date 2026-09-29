@@ -215,6 +215,57 @@ export async function PUT(req, context) {
         return Response.json(updatedArticle, { status: 200 });
       }
 
+      // 🇧🇷 Caso: guardar la versión en PORTUGUÉS (campos *PT). Carga directa,
+      // sin el workflow de traductor/revisión del español: no toca
+      // translationStatus/isTranslatedES ni nada de ese pipeline, ni los
+      // campos original*. Solo admin.
+      if (body.updatePortugueseVersion) {
+        if (session?.user?.role !== "admin") {
+          return Response.json({ error: "No autorizado" }, { status: 401 });
+        }
+        const articleId = parseInt(id, 10);
+        const updatedArticle = await prisma.article.update({
+          where: { id: articleId },
+          data: {
+            titlePT: body.titlePT?.trim() || null,
+            subtitlePT: body.subtitlePT?.trim() || null,
+            previewTextPT: body.previewTextPT || null,
+            contentPT: body.contentPT || null,
+            additionalInfoPT: body.additionalInfoPT || null,
+            translatorPT: body.translatorPT?.trim() || null,
+          },
+        });
+
+        if (body.imagesPT) {
+          for (const [imgId, vals] of Object.entries(body.imagesPT)) {
+            await prisma.image.update({
+              where: { id: parseInt(imgId, 10) },
+              data: {
+                titlePT: vals.titlePT?.trim() || null,
+                altPT: vals.altPT?.trim() || null,
+              },
+            });
+          }
+        }
+
+        // Imágenes insertadas en el cuerpo PT desde el Publilab → ARTICLE_INLINE
+        // (si no estaban ya registradas), igual que la versión original.
+        if (Array.isArray(body.inlineImageUrls) && body.inlineImageUrls.length > 0) {
+          const existing = await prisma.image.findMany({
+            where: { contentType: "ARTICLE_INLINE", contentId: articleId },
+            select: { url: true },
+          });
+          const existingUrls = new Set(existing.map((img) => img.url));
+          for (const url of body.inlineImageUrls.filter((u) => !existingUrls.has(u))) {
+            await prisma.image.create({
+              data: { contentType: "ARTICLE_INLINE", contentId: articleId, url },
+            });
+          }
+        }
+
+        return Response.json(updatedArticle, { status: 200 });
+      }
+
       // 🖼️ Caso: actualizar SOLO metadatos de imágenes (sin tocar estado de traducción)
       if (body.imageTranslationsOnly && body.imageTranslations) {
         for (const [imgId, translations] of Object.entries(

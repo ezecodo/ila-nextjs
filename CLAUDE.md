@@ -566,6 +566,27 @@ Algunos artículos tienen como fuente real un texto en español, portugués o in
 - Deliberadamente **no** se tocó el árbol de conditionals `showES ? x : y` que ya existía — el modo original es un `if (showOriginal) return (...)` temprano, para no arriesgar el flujo DE/ES que ya funciona
 - Función `originalLanguageLabel(code)` duplicada en ambos archivos (mismo patrón que las demás transforms de esta página — ver "Editor de artículos" más abajo)
 
+## Versión en portugués (campos `*PT`)
+
+Traducción al portugués de un artículo, pedida para casos puntuales (primer caso: reseña "Neuland betreten", id 23573, a pedido del autor del libro). **Separada de los otros dos sistemas**: no es la traducción ES (no tiene workflow de traductor/revisión/estados) ni la "versión original" (el portugués acá es una traducción, no el texto fuente — por eso no se reusaron los campos `original*`).
+
+### Modelo de datos (migración `20260929080324_add_portuguese_version`)
+- `Article`: `titlePT`, `subtitlePT`, `previewTextPT`, `contentPT`, `additionalInfoPT`, `translatorPT` (crédito, texto libre — quien traduce suele ser externo, sin cuenta en ila).
+- `Image`: `titlePT`, `altPT`.
+- **La versión existe si `titlePT` y `contentPT` tienen texto** — no hay booleano aparte (`isTranslatedPT`) a propósito, para que no se desincronice.
+- Se aplicó con `prisma migrate diff` (SQL revisado a mano, solo `ADD COLUMN … NULL`) + `prisma migrate deploy`, **no** con `migrate dev`: la BD es la de producción y `migrate dev` ofrece resetearla si detecta drift.
+
+### Carga
+- Botón 🇧🇷 por fila en `ArticlesList.js` (gris = no hay, a color = cargada) → `PortugueseVersionModal.jsx`: título/subtítulo (con el alemán de referencia), Vorspann y Zusatzinfo (Quill), cuerpo en el Publilab (`InterviewEditor`), "Traducido por", pies de foto PT. Botón "Quitar versión en portugués" (vacía todos los campos).
+- `PUT /api/articles/[id]` con `{ updatePortugueseVersion: true, titlePT, …, imagesPT: { [imageId]: { titlePT, altPT } }, inlineImageUrls }` — caso aparte al principio del endpoint, **solo admin**, no toca ES ni `original*`. Las imágenes insertadas en el cuerpo PT se registran como `ARTICLE_INLINE`.
+- Carga directa: se publica al guardar, sin revisión.
+
+### Lectura (`ausgaben` y `online`)
+- `components/ArticleLanguageBar/ArticleLanguageBar.jsx`: barra "Auch lesen auf: Español · Português" debajo del título, armada con los idiomas que existen (`es` solo si la traducción está `approved`, `pt` si `titlePT`+`contentPT`). **Reemplazó** los dos links sueltos "Original auf Deutsch verfügbar →" / "También disponible en español →". Nombres de idioma en su propio idioma (Deutsch/Español/Português), namespace `articleLanguages`.
+- `?lang=pt` → `components/ArticlePortugueseView/ArticlePortugueseView.jsx` (`<article lang="pt">`), early return antes del de `?original=true`. La página le pasa el HTML ya procesado con sus transforms locales (`ptHtml`, mismo pipeline que `originalHtml`). Buchbesprechung: tapa completa sin recortar. Crédito "Tradução: …" al final si hay `translatorPT`.
+- La "versión original" (`?original=true`) sigue con su link propio, sin cambios.
+- **Límite**: un solo idioma extra con columnas propias. Si aparecen más idiomas, evaluar una tabla aparte en vez de sumar columnas por idioma.
+
 ## Open Graph / previews al compartir (WhatsApp, redes)
 
 Las páginas que renderizan contenido son **client components** (`"use client"`), por lo que **no pueden exportar `metadata`/`generateMetadata`**. Sin metadata, WhatsApp y redes scrapean la URL y no encuentran imagen → preview sin portada.

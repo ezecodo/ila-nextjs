@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 const CSV_SEPARATOR = ";";
 const CSV_HEADERS = [
@@ -51,6 +52,8 @@ function buildRow(fields) {
 }
 
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const subs = await prisma.subscription.findMany({
       where: { isNew: true },

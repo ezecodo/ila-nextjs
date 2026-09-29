@@ -1716,5 +1716,41 @@
     "zoomOut": "Verkleinern",
     "cropHint": "Rechteck über das Bild ziehen → mit den Griffen anpassen, oben drehen (für schräge Bilder) → „✂ Ausschneiden“ oder Enter.",
     "cropping": "Wird ausgeschnitten…"
+  },
+  "articleLanguages": {
+    "label_de": "Auch lesen auf:",
+    "label_es": "Leer también en:",
+    "label_pt": "Ler também em:",
+    "name_de": "Deutsch",
+    "name_es": "Español",
+    "name_pt": "Português",
+    "translatedBy": "Tradução: {name}"
+  },
+  "portugueseVersion": {
+    "modalTitle": "Portugiesische Fassung — Artikel #{id}",
+    "intro": "Direkt eingegebene Übersetzung (ohne Übersetzungs-Workflow): nach dem Speichern sofort online. Erscheint im Artikel unter „Auch lesen auf“, sobald Titel und Text ausgefüllt sind.",
+    "loading": "Wird geladen…",
+    "loadError": "Artikel konnte nicht geladen werden.",
+    "title": "Titel (PT)",
+    "subtitle": "Untertitel (PT, optional)",
+    "previewText": "Vorspann (PT, optional)",
+    "content": "Text (PT)",
+    "additionalInfo": "Zusatzinfo (PT, optional)",
+    "additionalInfoHint": "Z. B. bibliografische Angaben zum Buch — wie die Zusatzinfo der deutschen Fassung.",
+    "translator": "Übersetzt von",
+    "translatorPlaceholder": "Name der Übersetzerin / des Übersetzers",
+    "translatorHint": "Erscheint am Ende der portugiesischen Fassung als „Tradução: …“.",
+    "imagesTitle": "Bildunterschriften auf Portugiesisch",
+    "imageCaption": "Bildunterschrift (PT)",
+    "imageAlt": "Beschreibung / Credits (PT)",
+    "titleRequired": "Bitte einen portugiesischen Titel eingeben.",
+    "save": "Portugiesische Fassung speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Portugiesische Fassung gespeichert.",
+    "saveError": "Fehler beim Speichern.",
+    "remove": "Portugiesische Fassung entfernen",
+    "removed": "Portugiesische Fassung entfernt.",
+    "confirmRemove": "Portugiesische Fassung dieses Artikels wirklich entfernen?",
+    "cancel": "Abbrechen"
   }
 }

@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendDossierOrderConfirmationEmail } from "@/lib/email";
+import { requireAdmin } from "@/lib/apiAuth";
 
 // 🔹 OBTENER TODOS LOS PEDIDOS + CONTADOR DE NUEVOS
+// GET — lista de pedidos con datos personales de compradores/destinatarios:
+// solo admin (lo consume el dashboard). El POST de más abajo es el formulario
+// público de pedido y queda abierto a propósito.
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const orders = await prisma.order.findMany({
       include: {

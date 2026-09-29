@@ -9,6 +9,8 @@ import Link from "next/link";
 import IlaLoader from "../../components/IlaLoader/IlaLoader";
 import HoverInfo from "../../components/HoverInfo/HoverInfo";
 import EntityBadges from "../../components/EntityBadges/EntityBadges";
+import ArticleLanguageBar from "../../components/ArticleLanguageBar/ArticleLanguageBar";
+import ArticlePortugueseView from "../../components/ArticlePortugueseView/ArticlePortugueseView";
 import DonationPopUp from "../../components/DonationPopUp/DonationPopUp";
 import DonationInlineBanner from "../../components/DonationInlineBanner/DonationInlineBanner";
 import ArticleDossierCTA from "../../components/ArticleDossierCTA/ArticleDossierCTA";
@@ -53,6 +55,8 @@ export default function LegacyArticlePage() {
   const fullPath = `/ausgaben/${legacyPath.join("/")}`;
   const searchParams = useSearchParams();
   const wantsOriginal = searchParams.get("original") === "true";
+  // 🇧🇷 Versión en portugués (campos *PT) — vista aparte con ?lang=pt.
+  const wantsPT = searchParams.get("lang") === "pt";
 
   const [article, setArticle] = useState(null);
   const [error, setError] = useState(null);
@@ -163,6 +167,17 @@ export default function LegacyArticlePage() {
   const showES = isES && esApproved;
   const showOriginal =
     wantsOriginal && !!article.originalLanguage && !!article.originalContent;
+  // Versión en portugués: existe si tiene título + cuerpo (carga directa,
+  // sin workflow de revisión — ver campos *PT en schema.prisma).
+  const hasPT = !!article.titlePT && !!article.contentPT;
+  const showPT = wantsPT && hasPT;
+  // Barra de idiomas: solo las versiones que existen de verdad. El ES solo
+  // con la traducción aprobada (mismo criterio que showES).
+  const languageLinks = {
+    de: `/de${fullPath}`,
+    es: esApproved ? `/es${fullPath}` : null,
+    pt: hasPT ? `/${locale}${fullPath}?lang=pt` : null,
+  };
   function formatDate(dateString, locale) {
     const options = { year: "numeric", month: "long", day: "numeric" };
     const localeCode = locale === "es" ? "es-ES" : "de-DE";
@@ -338,6 +353,16 @@ export default function LegacyArticlePage() {
       )
     : "";
 
+  // Mismo pipeline de formato para la versión en portugués.
+  const ptHtml = article.contentPT
+    ? wrapInlineImagesWithCaption(
+        rewriteEditionLinksWithLocale(
+          autoDetectHeadings(autoFormatHeadings(article.contentPT)),
+          locale,
+        ),
+      )
+    : "";
+
   const readerTitle = showES ? article.titleES : article.title;
   const readerSubtitle = showES ? article.subtitleES : article.subtitle;
   const readerAuthor = article.authors?.map((a) => a.name).join(", ");
@@ -365,6 +390,29 @@ export default function LegacyArticlePage() {
 
   // 📄 Vista aparte para la versión en el idioma original (?original=true).
   // Branch acotado y separado del resto — no toca la lógica DE/ES de abajo.
+  // 🇧🇷 Vista aparte para la versión en portugués (?lang=pt).
+  if (showPT) {
+    return (
+      <ArticlePortugueseView
+        article={article}
+        contentHtml={ptHtml}
+        previewHtml={
+          article.previewTextPT
+            ? rewriteEditionLinksWithLocale(article.previewTextPT, locale)
+            : ""
+        }
+        additionalInfoHtml={
+          article.additionalInfoPT
+            ? rewriteEditionLinksWithLocale(article.additionalInfoPT, locale)
+            : ""
+        }
+        languageBar={<ArticleLanguageBar current="pt" links={languageLinks} />}
+        dateLabel={formatDate(article.publicationDate, locale)}
+        locale={locale}
+      />
+    );
+  }
+
   if (showOriginal) {
     const cover = article.images?.[0];
     return (
@@ -550,28 +598,14 @@ export default function LegacyArticlePage() {
             >
               {showES ? article.titleES : article.title}
             </h1>
-            {/* 🔁 Aviso: versión original disponible en alemán */}
-            {showES && (
-              <div className="text-right mb-3">
-                <Link
-                  href={`/de${fullPath}`}
-                  className="text-sm text-blue-700 underline font-medium"
-                >
-                  Original auf Deutsch verfügbar →
-                </Link>
-              </div>
-            )}
-            {/* 🔁 Hinweis: Artikel ist auch auf Spanisch verfügbar */}
-            {!isES && esApproved && (
-              <div className="text-right mb-3">
-                <Link
-                  href={`/es${fullPath}`}
-                  className="text-sm text-blue-700 underline font-medium"
-                >
-                  También disponible en español →
-                </Link>
-              </div>
-            )}
+            {/* 🌐 Otros idiomas del artículo (alemán / español / portugués):
+                reemplaza los links sueltos "Original auf Deutsch verfügbar" y
+                "También disponible en español". */}
+            <ArticleLanguageBar
+              current={showES ? "es" : "de"}
+              links={languageLinks}
+              className="mb-3"
+            />
 
             {/* SUBTITULO */}
             {(showES ? article.subtitleES : article.subtitle) && (

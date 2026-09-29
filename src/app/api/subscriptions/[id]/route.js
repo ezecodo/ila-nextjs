@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/apiAuth";
 import { sendPdfAboInvitationEmail } from "@/lib/email";
 
 // 🔹 Obtener una suscripción por ID
 
 export async function GET(request, context) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const params = await context.params; // ✅ se espera primero
     const { id } = params; // luego se usa con seguridad
@@ -37,6 +40,8 @@ export async function GET(request, context) {
   }
 }
 export async function PATCH(req, context) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = await context.params;
 

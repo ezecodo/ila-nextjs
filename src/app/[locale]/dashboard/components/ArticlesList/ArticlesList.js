@@ -5,6 +5,7 @@ import { useLocale } from "next-intl";
 import { Check } from "lucide-react";
 import AssignTranslatorCell from "./AssignTranslatorCell";
 import OriginalVersionModal from "./OriginalVersionModal";
+import PortugueseVersionModal from "./PortugueseVersionModal";
 import { useSession } from "next-auth/react";
 
 /**
@@ -34,6 +35,7 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [editPickerId, setEditPickerId] = useState(null);
   const [originalVersionArticleId, setOriginalVersionArticleId] = useState(null);
+  const [portugueseVersionArticleId, setPortugueseVersionArticleId] = useState(null);
   const isSuperAdmin = session?.user?.email === "e.zeangeloni@gmail.com";
   const [selectedEdition, setSelectedEdition] = useState(initialFilter);
   const [editions, setEditions] = useState([]);
@@ -349,6 +351,7 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
                   </th>
                   <th className="px-5 py-3 text-center">Editar</th>
                   <th className="px-5 py-3 text-center" title="Versión en idioma original">🌎</th>
+                  <th className="px-5 py-3 text-center" title="Versión en portugués">🇧🇷</th>
                   <th className="px-5 py-3 text-center">Eliminar</th>
                 </>
               )}
@@ -517,6 +520,24 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
                         }
                       >
                         🌎
+                      </button>
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      {/* Versión en portugués (campos *PT): gris = no hay, a color = cargada */}
+                      <button
+                        onClick={() => setPortugueseVersionArticleId(article.id)}
+                        className={
+                          article.titlePT && article.contentPT
+                            ? "hover:scale-110 transition-transform"
+                            : "grayscale opacity-40 hover:opacity-100 hover:grayscale-0 transition"
+                        }
+                        title={
+                          article.titlePT && article.contentPT
+                            ? "Versión en portugués cargada"
+                            : "Agregar versión en portugués"
+                        }
+                      >
+                        🇧🇷
                       </button>
                     </td>
                     <td className="px-5 py-3 text-center">
@@ -862,6 +883,23 @@ const ArticlesList = ({ mode = "admin", initialFilter = "" }) => {
             <button onClick={() => setEditPickerId(null)} className="mt-4 text-xs text-gray-400 hover:text-gray-600 w-full text-center">Cancelar</button>
           </div>
         </div>
+      )}
+
+      {portugueseVersionArticleId && (
+        <PortugueseVersionModal
+          articleId={portugueseVersionArticleId}
+          onClose={() => setPortugueseVersionArticleId(null)}
+          onSaved={(hasPT) => {
+            // Solo para pintar el botón: la lista no necesita el texto completo.
+            setArticles((prev) =>
+              prev.map((a) =>
+                a.id === portugueseVersionArticleId
+                  ? { ...a, titlePT: hasPT ? a.titlePT || "✓" : null, contentPT: hasPT ? a.contentPT || "✓" : null }
+                  : a
+              )
+            );
+          }}
+        />
       )}
 
       {originalVersionArticleId && (

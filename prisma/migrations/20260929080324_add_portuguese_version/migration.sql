@@ -1,0 +1,12 @@
+-- AlterTable
+ALTER TABLE `Article` ADD COLUMN `additionalInfoPT` TEXT NULL,
+    ADD COLUMN `contentPT` LONGTEXT NULL,
+    ADD COLUMN `previewTextPT` LONGTEXT NULL,
+    ADD COLUMN `subtitlePT` VARCHAR(191) NULL,
+    ADD COLUMN `titlePT` VARCHAR(191) NULL,
+    ADD COLUMN `translatorPT` VARCHAR(191) NULL;
+
+-- AlterTable
+ALTER TABLE `Image` ADD COLUMN `altPT` VARCHAR(191) NULL,
+    ADD COLUMN `titlePT` VARCHAR(750) NULL;
+

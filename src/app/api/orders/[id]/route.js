@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/apiAuth";
 
 export async function GET(req, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = params;
 
@@ -31,6 +34,8 @@ export async function GET(req, { params }) {
 
 // 🔹 Marcar pedido como procesado (isNew = false)
 export async function PATCH(req, { params }) {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const { id } = params;
 

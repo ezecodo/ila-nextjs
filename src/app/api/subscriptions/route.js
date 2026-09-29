@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { sendSubscriptionConfirmationEmail } from "@/lib/email";
+import { requireAdmin } from "@/lib/apiAuth";
 
 export async function POST(req) {
   try {
@@ -78,7 +79,11 @@ export async function POST(req) {
   }
 }
 
+// GET — lista de suscripciones con datos personales: solo admin (dashboard).
+// El POST de arriba es el formulario público de suscripción, queda abierto.
 export async function GET() {
+  const denied = await requireAdmin();
+  if (denied) return denied;
   try {
     const subscriptions = await prisma.subscription.findMany({
       orderBy: { createdAt: "desc" },

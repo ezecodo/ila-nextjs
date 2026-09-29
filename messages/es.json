@@ -1715,5 +1715,41 @@
     "zoomOut": "Achicar",
     "cropHint": "Arrastrá un rectángulo sobre la imagen → ajustalo con las manijas, giralo desde arriba (para imágenes inclinadas) → „✂ Recortar“ o Enter.",
     "cropping": "Recortando…"
+  },
+  "articleLanguages": {
+    "label_de": "Auch lesen auf:",
+    "label_es": "Leer también en:",
+    "label_pt": "Ler também em:",
+    "name_de": "Deutsch",
+    "name_es": "Español",
+    "name_pt": "Português",
+    "translatedBy": "Tradução: {name}"
+  },
+  "portugueseVersion": {
+    "modalTitle": "Versión en portugués — Artículo #{id}",
+    "intro": "Traducción cargada directamente (sin workflow de traducción): se publica al guardar. Aparece en el artículo en „Leer también en“ cuando tiene título y cuerpo.",
+    "loading": "Cargando…",
+    "loadError": "No se pudo cargar el artículo.",
+    "title": "Título (PT)",
+    "subtitle": "Subtítulo (PT, opcional)",
+    "previewText": "Vorspann (PT, opcional)",
+    "content": "Cuerpo (PT)",
+    "additionalInfo": "Zusatzinfo (PT, opcional)",
+    "additionalInfoHint": "P. ej. los datos del libro — igual que la Zusatzinfo de la versión alemana.",
+    "translator": "Traducido por",
+    "translatorPlaceholder": "Nombre de quien tradujo",
+    "translatorHint": "Aparece al final de la versión en portugués como „Tradução: …“.",
+    "imagesTitle": "Pies de foto en portugués",
+    "imageCaption": "Pie de foto (PT)",
+    "imageAlt": "Descripción / créditos (PT)",
+    "titleRequired": "Falta el título en portugués.",
+    "save": "Guardar versión en portugués",
+    "saving": "Guardando…",
+    "saved": "Versión en portugués guardada.",
+    "saveError": "Error al guardar.",
+    "remove": "Quitar versión en portugués",
+    "removed": "Versión en portugués quitada.",
+    "confirmRemove": "¿Quitar la versión en portugués de este artículo?",
+    "cancel": "Cancelar"
   }
 }

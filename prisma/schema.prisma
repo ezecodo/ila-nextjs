@@ -79,6 +79,16 @@ model Article {
   originalSubtitle    String?
   originalPreviewText String?           @db.LongText
   originalContent     String?           @db.LongText
+  // Versión en portugués: traducción cargada directamente (sin el workflow
+  // de traductor/revisión del español). La versión existe si titlePT y
+  // contentPT tienen texto. translatorPT = crédito de quien tradujo (texto
+  // libre: suele ser alguien externo, sin cuenta en ila).
+  titlePT           String?
+  subtitlePT        String?
+  previewTextPT     String?           @db.LongText
+  contentPT         String?           @db.LongText
+  additionalInfoPT  String?           @db.Text
+  translatorPT      String?
   activityLogs      ActivityLog[]
   pdfs              ArticlePdf[]
   beitragssubtyp    Beitragssubtyp?   @relation(fields: [beitragssubtypId], references: [id])
@@ -569,6 +579,9 @@ model Image {
   titleES     String?  @db.VarChar(750)
   originalAlt   String?
   originalTitle String?  @db.VarChar(750)
+  // Pie de foto / alt de la versión en portugués (ver Article.titlePT).
+  altPT         String?
+  titlePT       String?  @db.VarChar(750)
   // Cómo mostrar esta imagen en el cuerpo del artículo (ausgaben/online):
   // null/"auto" = detección automática por orientación (default — landscape
   // recorta a 3:2, cuadrada/vertical se muestra completa con tope de 80vh);
