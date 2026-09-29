@@ -848,6 +848,27 @@ function normalizeAnswerHtml(html) {
   let out = html
     .replace(/<div>/gi, "<p>")
     .replace(/<\/div>/gi, "</p>");
+  // El contenteditable del cuerpo se muestra en text-sm con caret-color
+  // transparent; al pegar/insertar, el navegador cuela spans que capturan ese
+  // estilo (font-size:0.875rem; caret-color:transparent) y se guardaban en el
+  // contenido → en la web ese fragmento salía más chico. stripInlineColors solo
+  // corre al CARGAR, no al guardar, así que se limpia también acá, en cada
+  // resync/guardado. Se quitan sólo font-size y caret-color (se conserva el
+  // resto del style, p. ej. el width de las imágenes inline).
+  if (typeof window !== "undefined" && /font-size|caret-color/i.test(out)) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = out;
+    tmp.querySelectorAll("[style]").forEach((el) => {
+      const cleaned = (el.getAttribute("style") || "")
+        .replace(/(?:^|;)\s*(?:font-size|caret-color)\s*:[^;]*/gi, "")
+        .replace(/^;+|;+$/g, "")
+        .replace(/;\s*;+/g, ";")
+        .trim();
+      if (cleaned) el.setAttribute("style", cleaned);
+      else el.removeAttribute("style");
+    });
+    out = tmp.innerHTML;
+  }
   // Al presionar Enter al final de un Zitat (blockquote), el navegador no
   // sale del formato solo: agrega un <p> vacío nuevo DENTRO del blockquote
   // en vez de uno normal afuera. Si la persona lo deja así (sin tipear nada

@@ -503,6 +503,17 @@ body {
   line-height: 1.6;
 }
 
+/* Red de contención: el contenteditable del Publilab (text-sm +
+   caret-color:transparent) a veces cuela un <span style="font-size:0.875rem;
+   caret-color:transparent"> al pegar/insertar texto, y se guardaba en el
+   cuerpo — en la web achicaba ese fragmento porque .article-content p no fija
+   tamaño. Los títulos/Fragen usan <p style="font-size"> (no <span>), así que
+   resetear solo los <span> es seguro. Cubre los artículos ya guardados sin
+   tocar la base; el origen se corta al guardar (normalizeAnswerHtml). */
+.article-content span[style*="font-size"] {
+  font-size: inherit !important;
+}
+
 .article-content p + p {
   margin-top: 0;
 }
