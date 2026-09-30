@@ -26,8 +26,10 @@ const InterviewEditor = dynamic(
   () => import("../../../components/InterviewEditor/InterviewEditor"),
   { ssr: false }
 );
-const DossierPdfPanel = dynamic(
-  () => import("../../../components/DossierPdfPanel/DossierPdfPanel"),
+// Misma mesa de trabajo del Dossier-PDF que Artikel aus PDF (herramientas,
+// zoom, Gedicht, recorte de imágenes…).
+const DossierPdfWorkbench = dynamic(
+  () => import("../../../components/DossierWorkbench/DossierPdfWorkbench"),
   { ssr: false }
 );
 
@@ -233,10 +235,27 @@ export default function ArticleFormV2({ articleId }) {
   // editores del cuerpo (entrevista / artículo).
   const dossierLeftPanel =
     dossierMode && dossierPdfUrl ? (
-      <DossierPdfPanel
+      <DossierPdfWorkbench
         pdfUrl={dossierPdfUrl}
         articleTitle={title}
+        startPage={startPage}
         apiRef={dossierApiRef}
+        // Recortes → galería del formulario (igual que "Aus Dossier-PDF
+        // ausschneiden"): se guardan con el botón normal y el publilab los
+        // ofrece en "Bild einfügen" (availableImages).
+        onCropImage={(file) =>
+          setGallery((prev) => [
+            ...prev,
+            {
+              file,
+              title: "",
+              alt: "",
+              isCover: false,
+              order: prev.length + 1,
+              _localId: `new-${Date.now()}-crop`,
+            },
+          ])
+        }
       />
     ) : null;
 

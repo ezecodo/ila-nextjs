@@ -197,7 +197,7 @@ Para imágenes **inclinadas** en la maqueta (texto envolviéndolas en diagonal).
 - `components/PdfCropViewer/PdfCropViewer.jsx` = visor de un Dossier-PDF página por página (navegación, zoom, indicador "Seite des Artikels") con `PdfCropBox`; cada recorte confirmado llega como `File` JPEG a `onImage`. Cachea el documento por URL (`docCache`) para no re-descargar el dossier al reabrir. Lo usan "Artikel ohne Bild" y el módulo de imágenes.
 - `ImageGalleryManager` acepta props **opcionales** `dossierEditionId`/`dossierStartPage`/`dossierEndPage`: si vienen, aparece "📄 Aus Dossier-PDF ausschneiden" → modal (portal a `body`) que busca el PDF vía `GET /api/editions/[id]/pdf-abo` y abre en `startPage`. Los recortes entran a la galería del formulario como un archivo más y se guardan con el **botón normal** del editor — sin endpoints aparte ni riesgo con `keepImages`.
 - Pasan esas props el editor clásico (`edit/[id]/page.js`) y `ArticleFormV2`; los demás usos del módulo (Aktuelles, eventos, Geschenke, Redaktion) no las pasan y quedan iguales.
-- Artikel aus PDF sigue con su propio visor (`PdfPageView` + `PdfCropBox`), porque muestra el dossier entero con capa de texto.
+- Artikel aus PDF (y el Dossier-PDF del editor de artículos) usan la mesa de trabajo compartida `components/DossierWorkbench/` (`PdfPageView` + `PdfCropBox`), porque muestran el dossier entero con capa de texto — ver "Mesa de trabajo compartida" en Artikel aus PDF.
 
 ## Artikel aus PDF (`/dashboard/articles/from-pdf`)
 
@@ -209,6 +209,13 @@ La herramienta **no genera su propia capa de texto** — depende 100% de que el 
 - Se les corrió OCR retroactivo con `ocrmypdf -l deu --force-ocr archivo.pdf archivo_ocr.pdf` (herramienta CLI, `brew install ocrmypdf tesseract-lang` para el paquete de alemán) — pasó de 0 a ~54.000 caracteres extraíbles por dossier. El PDF resultante es el que va a Dossiers PDF, no el original.
 - DPI: los scans de Henry venían a **233 DPI** (no 96, que es resolución de pantalla) y el OCR salió razonablemente bien igual; lo recomendado para buen OCR es **300 DPI**.
 - Si vuelven a llegar dossiers viejos sin OCR, correrles `ocrmypdf` antes de subirlos es responsabilidad de quien los sube (hoy, manual) — ver "Backlog de producto" en la sección de Roadmap institucional para la idea de automatizar esto al subir el PDF.
+
+### Mesa de trabajo compartida (`components/DossierWorkbench/`)
+El visor del PDF con sus herramientas es **una sola implementación** para Artikel aus PDF y para el checkbox "📄 Dossier-PDF im Editor anzeigen" del editor de artículos (`ArticleFormV2`, hoy solo editor v2). Antes el editor tenía una copia recortada y vieja (`DossierPdfPanel`, borrado 2026-09-30) sin Bild/Gedicht/zoom/barra flotante, y `src/lib/pdfSelection.js` era otra copia desactualizada de la reconstrucción de texto — se fueron separando. **No volver a copiar**: cualquier cambio de herramienta/heurística va acá y vale para las dos.
+- `useDossierWorkbench` — estado + herramientas (Markieren/Text/Bild/Gedicht), zoom, navegación, selección, inserción al publilab. Opciones del llamador: `onCropImage(file, url, page)`, `routeTextRegion(text)` (from-pdf manda el Textbereich al campo activo — Titel/Vorspann/Autor:in…; devuelve true si lo tomó), `onTextWithoutEditor`, `floatBarActive`.
+- `DossierWorkbenchPanel` — layout del Vollbild (leftPanel del publilab); `navExtra` = botones propios (from-pdf: "🔁 Dossier wechseln").
+- `DossierPdfWorkbench` — wrapper para el editor de artículos: carga el PDF de la edición, abre en `startPage` (o donde encuentre el título), los recortes van a la galería del formulario.
+- `src/lib/pdfSelection.js` — **única** copia de limpieza/columnas/párrafos/entretítulos/Modo Poema (`paragraphsFromItems`, `linesFromItemsLiteral`, `reflowBodySelection`…).
 
 ### Elegir el dossier
 - "📚 Aus PDF-Abo wählen" trae el PDF desde `EditionPdf` (mismo storage que el módulo Digital-Abo) — **no hay upload manual** (se sacó el botón "Dossier-PDF hochladen"; el flujo es siempre a través de dossiers ya subidos en Dossiers PDF).
@@ -243,7 +250,7 @@ Dos modos, ambos pasan por la misma reconstrucción geométrica (`paragraphsFrom
 - **Backspace al inicio de un párrafo / Delete al final** (dentro de un bloque) usa una fusión propia (`mergeParagraphIntoPrevious` en `InterviewEditor.jsx`), no la nativa: Chrome parte el párrafo en su primer `<br>` al fusionar, lo que deshacía un Shift+Enter ya corregido más abajo al arreglar un salto de más arriba. Agrega espacio en la unión y deja el caret después (sin `&nbsp;` al hacer Shift+Enter ahí).
 - **Deshacer la última inserción** (botón "↶ Einfügung rückgängig" + ⌘Z/Strg+Z): cada lote que entra por `apiRef` guarda una foto de los bloques (`withUndo`, pila de 20). Cualquier edición a mano vacía la pila — así ⌘Z solo se intercepta si lo último fue una inserción; si no, es el deshacer nativo del campo.
 - **✕ por bloque** (Fließtext/Frage/Zwischentitel, visible al hover/foco) — imagen/lista/poema ya lo tenían.
-- **Modo Poema une versos cortados por la maqueta** (`isWrapped` en `linesFromItemsLiteral`): une una línea con la anterior si la primera palabra no habría entrado en la anterior (columna angosta) Y la línea sigue en minúscula o la anterior termina en guion (`Bräuti-`+`gams` → `Bräutigams`). Los versos que empiezan en mayúscula nunca se unen.
+- **Modo Poema une versos cortados por la maqueta** (`isWrapped` en `linesFromItemsLiteral`, `src/lib/pdfSelection.js`): une una línea con la anterior si la primera palabra no habría entrado en la anterior (columna angosta) Y la línea sigue en minúscula o la anterior termina en guion (`Bräuti-`+`gams` → `Bräutigams`). Los versos que empiezan en mayúscula nunca se unen.
 - Abrir el Vollbild salta directo a la página cargada en "Seiten" (`bodyFrom`), si hay — reintenta por `requestAnimationFrame` hasta que la página exista en el DOM en vez de asumir un delay fijo (el panel izquierdo, montado vía prop `leftPanel` de `InterviewEditor`, puede tardar más de un par de frames).
 
 ### Al crear el artículo

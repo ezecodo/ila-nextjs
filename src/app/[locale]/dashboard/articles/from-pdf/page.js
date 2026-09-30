@@ -5,8 +5,14 @@ import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import CheckboxField from "../../../components/Articles/NewArticle/CheckboxField";
 import ImageGalleryManager from "../../../components/Articles/ImageGalleryManager/ImageGalleryManager";
-import { loadPdfJs, cropPdfRegion } from "@/lib/pdfCrop";
-import PdfCropBox from "../../../components/PdfCropBox/PdfCropBox";
+import { loadPdfJs } from "@/lib/pdfCrop";
+import {
+  escapeHtml,
+  cleanSelection,
+  cleanAuthorName,
+} from "@/lib/pdfSelection";
+import useDossierWorkbench from "../../../components/DossierWorkbench/useDossierWorkbench";
+import DossierWorkbenchPanel from "../../../components/DossierWorkbench/DossierWorkbenchPanel";
 
 // El publilab (InterviewEditor) usa el DOM; igual que en ArticleFormV2 se carga
 // sin SSR.
@@ -27,517 +33,8 @@ const QuillEditor = dynamic(
 // toolbar se corta — acá alcanza con negrita/cursiva/link/dossier.
 const VORSPANN_TOOLBAR = [["bold", "italic"], ["link"], ["dossier"]];
 
-// Rango de zoom del visor de PDF (pageWidth, en px de render). ZOOM_DEFAULT
-// coincide con el useState inicial de pageWidth y es la referencia de "100%"
-// que se muestra en los controles — no es un tamaño "real" del PDF, sólo el
-// ancho de partida elegido para que la primera página entre cómoda.
-const ZOOM_MIN = 400;
-const ZOOM_MAX = 1000;
-const ZOOM_STEP = 40;
-const ZOOM_DEFAULT = 620;
 
 
-// Limpia el texto seleccionado: de-guionado + drop-cap + juntar saltos.
-function cleanSelection(raw) {
-  if (!raw) return "";
-  return raw
-    // De-guionado de fin de línea (alemán): "Wort-\nwort" → "Wortwort".
-    .replace(/([A-Za-zÄÖÜäöüß])-\s*\n\s*([a-zäöüß])/g, "$1$2")
-    // Drop-cap / Initiale: una mayúscula suelta + minúscula → misma palabra.
-    .replace(/(^|[\s\n])([A-ZÄÖÜ])[\s\n]+(?=[a-zäöüß])/g, "$1$2")
-    .replace(/\s*\n\s*/g, " ")
-    .replace(/[ \t]+/g, " ")
-    .trim();
-}
-
-// Línea de crédito (autor/foto) que se cuela al seleccionar el cuerpo.
-const BYLINE_RE = /^(von|text|fotos?|bilder?|grafik|illustration|interview)[:\s]/i;
-
-// Limpia un nombre de autor seleccionado del PDF. Los dossiers antiguos usan
-// versalitas con inicial drop-cap: "GERT EISENBÜRGER" se extrae como
-// "G ERT E ISENBÜRGER" (la inicial grande es un glifo suelto + el resto en
-// mayúsculas). Reconstruye y normaliza a Capitalización inicial.
-function cleanAuthorName(raw) {
-  let s = cleanSelection(raw);
-  if (!s) return "";
-  // Quita la línea de crédito inicial ("von", "Text:", "Interview:", …).
-  s = s.replace(
-    /^(von|text|fotos?|bilder?|grafik|illustration|interview)\s*:?\s+/i,
-    ""
-  );
-  // Versalitas: une una inicial suelta con la MAYÚSCULA que la sigue
-  // ("G ERT" → "GERT", "E ISENBÜRGER" → "EISENBÜRGER").
-  s = s.replace(/\b([A-ZÄÖÜ])\s+(?=[A-ZÄÖÜ])/g, "$1");
-  // Pasa palabras enteramente en mayúsculas a Capitalización inicial.
-  s = s.replace(/\p{Lu}[\p{Lu}ßẞ'’-]+/gu, (w) =>
-    w.charAt(0) + w.slice(1).toLowerCase()
-  );
-  return s.trim();
-}
-
-// Descarta líneas de crédito al principio de una selección de cuerpo.
-function stripLeadingBylines(raw) {
-  if (!raw) return "";
-  const lines = raw.split(/\n/);
-  while (lines.length) {
-    const t = lines[0].trim();
-    if (t === "" || (t.length <= 60 && BYLINE_RE.test(t))) lines.shift();
-    else break;
-  }
-  return lines.join("\n");
-}
-
-// Heurística del Publilab: ¿parece un entretítulo? (corto, sin punto final).
-function isHeadingLike(text) {
-  if (!text || text.length > 140) return false;
-  if (!/^[""'(\[]?[A-ZÄÖÜÑÁÉÍÓÚ¿]/.test(text)) return false;
-  // Corte de palabra a mitad de línea/columna (la selección terminó justo en
-  // "...Zerstö-"): es la CONTINUACIÓN de un párrafo de cuerpo cortada por el
-  // límite de lo que se copió, no un entretítulo — un título real nunca
-  // termina en una palabra partida con guión. Sin este check, cualquier
-  // selección que termine a mitad de palabra (muy común: el corte cae donde
-  // cae) queda marcada como título si además tiene ≤1 oración completa
-  // adentro (ver `fewSentences` abajo).
-  if (/[a-zäöüß]-\s*$/.test(text)) return false;
-  if (/:\s*$/.test(text)) return true;
-  const endsWithSentence = /[a-z][.!?]\s*$/.test(text);
-  const fewSentences = (text.match(/[a-z][.!?]/g) || []).length <= 1;
-  return !endsWithSentence && fewSentences;
-}
-
-// Prepara una selección de cuerpo: descarta créditos, conserva los párrafos
-// (líneas en blanco de la fuente) y marca entretítulos.
-function reflowBodySelection(raw) {
-  return stripLeadingBylines(raw)
-    .split(/\n[ \t]*\n+/)
-    .map((p) => cleanSelection(p))
-    .filter(Boolean)
-    .map((p) => {
-      if (/^##\s/.test(p)) return p; // ya marcado por fuente/geometría
-      return isHeadingLike(p) ? "## " + p : p;
-    })
-    .join("\n\n");
-}
-
-// Procesa los spans de UNA columna (ya aislada por X): agrupa en líneas por Y,
-// detecta entretítulos y corta párrafos en líneas cortas con fin de oración.
-// Devuelve un array de párrafos (entretítulos prefijados con "## ").
-function linesToParagraphs(items, domFont) {
-  items.sort((a, b) => a.y - b.y || a.x - b.x);
-  // Agrupar en líneas por baseline (Y). Tolerancia PROPORCIONAL a la altura
-  // del texto (no un píxel fijo): un número fijo asume una altura de línea
-  // "típica" (~12px) y con fuentes/zoom más chicos (dossiers escaneados con
-  // line-height más apretado) dos líneas físicas distintas pueden caer
-  // dentro de esa distancia fija y agruparse como una sola — ahí el orden
-  // por X mezcla palabras de líneas distintas y el espaciado intra-línea
-  // (más estricto que el salto de línea normal) se come el espacio real
-  // entre ellas. min(cur.h, it.h) evita que un drop cap ya agrupado infle la
-  // tolerancia. El factor 0.5 preserva el umbral de hoy en el caso ya
-  // calibrado (h≈12 → 6px) y solo escala para los demás.
-  const lines = [];
-  let cur = null;
-  for (const it of items) {
-    const yTol = cur ? Math.max(3, Math.min(cur.h, it.h) * 0.5) : 0;
-    if (cur && Math.abs(it.y - cur.y) <= yTol) {
-      cur.items.push(it);
-      cur.right = Math.max(cur.right, it.right);
-      cur.left = Math.min(cur.left, it.x);
-      cur.h = Math.max(cur.h, it.h);
-    } else {
-      cur = { y: it.y, left: it.x, right: it.right, h: it.h, items: [it] };
-      lines.push(cur);
-    }
-  }
-  // Texto + fuente dominante de cada línea.
-  for (const l of lines) {
-    l.items.sort((a, b) => a.x - b.x);
-    let text = "";
-    let lastRight = null;
-    const lf = {};
-    const hf = {}; // altura → nº de caracteres con esa altura (redondeada)
-    for (const it of l.items) {
-      // Umbral en base a la altura del span ACTUAL, no de toda la línea
-      // (l.h): si un drop cap (letra grande decorativa) cae en el mismo
-      // grupo de línea que el texto normal, l.h queda inflado por su altura
-      // y ningún espacio entre palabras comunes lo supera — todo el resto
-      // de la línea queda pegado sin espacios.
-      if (
-        text &&
-        lastRight !== null &&
-        !/\s$/.test(text) &&
-        !/^\s/.test(it.str) &&
-        it.x - lastRight > it.h * 0.2
-      ) {
-        text += " ";
-      }
-      text += it.str;
-      lastRight = it.right;
-      if (it.font) lf[it.font] = (lf[it.font] || 0) + it.str.length;
-      const hKey = Math.round(it.h);
-      hf[hKey] = (hf[hKey] || 0) + it.str.length;
-    }
-    l.text = text.replace(/\s+/g, " ").trim();
-    let lBest = 0;
-    let lFont = "";
-    for (const f in lf) {
-      if (lf[f] > lBest) {
-        lBest = lf[f];
-        lFont = f;
-      }
-    }
-    l.font = lFont;
-    // Altura DOMINANTE (la del texto que compone la mayor parte de la
-    // línea, ponderada por caracteres) — a diferencia de l.h (el máximo),
-    // no la infla un drop cap que comparte grupo de línea con texto normal.
-    let hBest = 0;
-    let hDominant = l.h;
-    for (const h in hf) {
-      if (hf[h] > hBest) {
-        hBest = hf[h];
-        hDominant = Number(h);
-      }
-    }
-    l.hDominant = hDominant;
-  }
-  const ls = lines.filter((l) => l.text);
-  if (!ls.length) return [];
-  // Fin de artículo: limpiar el cuadradito-leído-como-"n" ACÁ, antes de
-  // isHeading — si no, la puntuación final queda tapada por esa "n" suelta
-  // y la última línea del párrafo se toma como título en vez de cierre.
-  const lastLine = ls[ls.length - 1];
-  lastLine.text = lastLine.text.replace(/([.!?])\s*n\s*$/, "$1");
-
-  const colRight = Math.max(...ls.map((l) => l.right));
-  const colLeft = Math.min(...ls.map((l) => l.left));
-  const shortThreshold = (colRight - colLeft) * 0.06 + 4;
-  // hDominant (no l.h) para que una línea fusionada con un drop cap no
-  // infle la mediana de altura "típica" de la columna.
-  const sortedH = ls.map((l) => l.hDominant).sort((a, b) => a - b);
-  const medH = sortedH[Math.floor(sortedH.length / 2)] || 0;
-
-  // ¿Entretítulo? La fuente reportada por el OCR de dossiers escaneados suele
-  // ser la misma para todo el documento (una sola fuente "invisible" para
-  // permitir seleccionar texto sobre la imagen), así que `l.font !== domFont`
-  // casi nunca dispara ahí — no puede ser la única señal. Se agregan dos
-  // señales geométricas independientes entre sí (basta con que una se
-  // cumpla): una línea claramente más alta que el cuerpo (aunque ocupe todo
-  // el ancho — un título puede llenar la columna igual) o una línea
-  // marcadamente más corta que el ancho de columna (aunque no sea más alta —
-  // la altura del OCR no siempre refleja el tamaño real impreso).
-  // Señal de ancho: una línea angosta AISLADA (a lo sumo 2 seguidas) suele
-  // ser un título. Una TIRADA LARGA de líneas angostas consecutivas casi
-  // siempre es texto envolviendo una imagen incrustada en la columna, no un
-  // título — ahí el ancho no sirve como señal y hay que ignorarla.
-  const colWidth = colRight - colLeft;
-  const narrowMask = ls.map((l) => l.right - l.left < colWidth * 0.75);
-  const narrowRunLen = new Array(ls.length).fill(0);
-  for (let i = 0; i < ls.length; ) {
-    if (!narrowMask[i]) {
-      i++;
-      continue;
-    }
-    let j = i;
-    while (j < ls.length && narrowMask[j]) j++;
-    for (let k = i; k < j; k++) narrowRunLen[k] = j - i;
-    i = j;
-  }
-
-  const isHeading = (l, idx) => {
-    const text = l.text;
-    // eslint-disable-next-line no-console -- debug temporal, sacar después de calibrar
-    console.debug("[isHeading]", {
-      text: text.slice(0, 50),
-      hDominant: l.hDominant,
-      medH,
-      hRatio: medH ? +(l.hDominant / medH).toFixed(2) : null,
-      font: l.font,
-      domFont,
-      width: +(l.right - l.left).toFixed(1),
-      colWidth: +colWidth.toFixed(1),
-      widthRatio: +((l.right - l.left) / colWidth).toFixed(2),
-      narrowRunLen: narrowRunLen[idx],
-    });
-    if (text.length < 3 || text.length > 110) return false;
-    if (!/^["'(\[«¿¡]?[A-ZÄÖÜÑÁÉÍÓÚ0-9]/.test(text)) return false;
-    // Una línea que termina en "?" es una Frage (entrevista), no un
-    // Zwischentitel — se detecta aparte a nivel párrafo en
-    // appendChunkToEditor y debe ir siempre a H4, no acá.
-    if (/[.!?]["')\]]?\s*$/.test(text)) return false;
-    if (domFont && l.font && l.font !== domFont) return true;
-    // hDominant, no l.h: una línea fusionada con un drop cap (letra grande
-    // decorativa) tiene l.h inflado por esa letra, aunque el resto sea texto
-    // normal — hDominant refleja la altura del texto que en verdad compone
-    // la línea.
-    const tall = medH && l.hDominant >= medH * 1.08;
-    if (tall) return true;
-    return narrowRunLen[idx] > 0 && narrowRunLen[idx] <= 2;
-  };
-
-  const paras = [];
-  let buf = "";
-  let head = ""; // entretítulo en curso (puede ocupar varias líneas)
-  const flushBuf = () => {
-    if (buf.trim()) paras.push(buf.trim());
-    buf = "";
-  };
-  const flushHead = () => {
-    if (head.trim()) paras.push("## " + head.trim());
-    head = "";
-  };
-  for (let i = 0; i < ls.length; i++) {
-    const l = ls[i];
-    if (isHeading(l, i)) {
-      flushBuf();
-      head = head ? head + " " + l.text : l.text;
-      continue;
-    }
-    flushHead();
-    // Inicial decorativa (drop cap): una línea con una letra inicial mucho más
-    // alta que el cuerpo, pegada al margen izquierdo, marca el comienzo de un
-    // párrafo nuevo — aunque la línea anterior haya quedado a ancho completo
-    // (texto justificado) y por eso no disparase el corte por línea corta.
-    const isDropCapStart =
-      medH && l.h >= medH * 1.6 && l.left <= colLeft + shortThreshold;
-    if (isDropCapStart) flushBuf();
-    if (!buf) buf = l.text;
-    else if (/[A-Za-zÄÖÜäöüß]-$/.test(buf) && /^[a-zäöüß]/.test(l.text))
-      buf = buf.replace(/-$/, "") + l.text; // de-guionado
-    else buf += " " + l.text;
-    // Solo cortar párrafo si la línea queda corta Y termina en puntuación de fin
-    // de oración. Una línea corta sin punto final suele ser un corte de
-    // columna/página (la oración sigue) → no debe partir el párrafo.
-    const endsSentence = /[.!?][)"»”'\]]?\s*$/.test(l.text);
-    if (l.right < colRight - shortThreshold && endsSentence) flushBuf();
-  }
-  flushHead();
-  flushBuf();
-  const out = paras.filter(Boolean);
-  // Fin de artículo: muchos dossiers cierran con un cuadradito negro (■) que
-  // el OCR confunde con una "n" suelta pegada al punto final ("wechseln. n").
-  // Solo se quita si queda literalmente al final del texto seleccionado —
-  // nunca a mitad de palabra, porque ahí sí sería una "n" real.
-  const lastIdx = out.length - 1;
-  if (lastIdx >= 0) {
-    out[lastIdx] = out[lastIdx].replace(/([.!?])\s*n\s*$/, "$1");
-  }
-  return out;
-}
-
-// Reconstruye los párrafos de la selección por GEOMETRÍA. La selección puede
-// abarcar varias COLUMNAS (artículos a 2-3 columnas): primero se aíslan las
-// columnas por X (un gutter es un hueco vertical sin texto, mucho mayor que el
-// espacio entre palabras), y se lee cada columna entera de arriba a abajo, de
-// izquierda a derecha. Así no se mezcla el texto de columnas distintas.
-// La selección puede cruzar páginas (visor continuo); como se apilan en
-// vertical, ordenar por Y dentro de cada columna encadena las páginas.
-// Reconstruye párrafos en orden de lectura a partir de una lista de spans
-// ({ str, x, right, y, h, font }). Detecta columnas por huecos en X (gutters):
-// al ordenar todo por Y se entremezclan las columnas de un artículo
-// multi-columna; en cambio, agrupando por X y procesando cada columna por
-// separado se respeta el orden de lectura (cada columna de arriba a abajo,
-// columnas de izq. a der.). Lo usan tanto la selección nativa como el
-// rectángulo "Textbereich".
-//
-// "Modo Poema": desactiva TODO lo anterior (fusión de oraciones, detección
-// de títulos, separación de columnas por gutter) — para un poema cada salto
-// de línea es un verso intencional, no un accidente de maquetación a
-// arreglar. Solo agrupa en líneas por Y (una línea visual puede llegar
-// partida en varios spans de PDF.js) y las devuelve en el orden exacto de
-// arriba a abajo, izquierda a derecha. Nace del caso de un poema bilingüe a
-// dos columnas donde la columna alemana está alineada a la DERECHA (ragged-
-// left): eso rompe el supuesto del detector de gutter (una franja vacía
-// estable), así que en vez de intentar arreglar esa detección para un layout
-// tan particular, se selecciona cada columna por separado con "Textbereich"
-// y se inserta en modo literal — cero ambigüedad, sin arriesgar el detector
-// normal que funciona bien para el 99% del texto en prosa.
-function linesFromItemsLiteral(items) {
-  if (!items || !items.length) return "";
-  const sorted = [...items].sort((a, b) => a.y - b.y || a.x - b.x);
-  const hs = sorted.map((i) => i.h).sort((a, b) => a - b);
-  const medH = hs[Math.floor(hs.length / 2)] || 10;
-
-  const lines = [];
-  let current = [];
-  let lastY = null;
-  for (const it of sorted) {
-    if (lastY == null || Math.abs(it.y - lastY) < medH * 0.5) {
-      current.push(it);
-    } else {
-      if (current.length) lines.push(current);
-      current = [it];
-    }
-    lastY = it.y;
-  }
-  if (current.length) lines.push(current);
-
-  const rows = lines.map((line) => {
-    line.sort((a, b) => a.x - b.x);
-    return {
-      text: line
-        .map((i) => i.str)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim(),
-      left: Math.min(...line.map((i) => i.x)),
-      right: Math.max(...line.map((i) => i.right ?? i.x)),
-      y: line[0].y,
-    };
-  });
-  const colLeft = Math.min(...rows.map((r) => r.left));
-  const colRight = Math.max(...rows.map((r) => r.right));
-
-  // ¿`next` es la continuación de un verso que la maqueta cortó por falta de
-  // ancho (columnas angostas del impreso), y no un verso propio? Regla
-  // tipográfica: la primera palabra de `next` NO habría entrado al final de
-  // `prev` (por eso bajó de línea) — y además la línea sigue en minúscula
-  // (`Wenn du sie zum Weinen` / `bringst`) o `prev` corta con guion
-  // (`Bräuti-` / `gams`). Los versos de verdad suelen empezar en mayúscula,
-  // así que esa segunda condición es la que evita unir versos cortos.
-  const isWrapped = (prev, next) => {
-    if (!prev.text || !next.text) return false;
-    const hyphen = /[-\u00AD\u2010]$/.test(prev.text);
-    const lower = /^\p{Ll}/u.test(next.text);
-    if (!hyphen && !lower) return false;
-    const firstWord = next.text.split(" ")[0];
-    const nextW = next.right - next.left;
-    const firstWordW = (nextW * firstWord.length) / next.text.length;
-    const spaceW = medH * 0.25;
-    return prev.right + spaceW + firstWordW >= colLeft + (colRight - colLeft) * 0.95;
-  };
-
-  const out = [];
-  let prev = null;
-  for (const row of rows) {
-    // Salto de línea bien más grande que lo típico = estrofa nueva en el
-    // original (línea en blanco entre versos).
-    const stanzaBreak = prev != null && row.y - prev.y > medH * 1.8;
-    if (stanzaBreak) out.push("");
-    if (!stanzaBreak && prev && out.length && isWrapped(prev, row)) {
-      const last = out[out.length - 1];
-      // Guion de corte + minúscula = palabra partida (`Bräuti-gams` →
-      // `Bräutigams`); guion + mayúscula = compuesto (`Nord-Süd`), se deja.
-      out[out.length - 1] = /[-\u00AD\u2010]$/.test(last)
-        ? /^\p{Ll}/u.test(row.text)
-          ? last.slice(0, -1) + row.text
-          : last + row.text
-        : last + " " + row.text;
-    } else {
-      out.push(row.text);
-    }
-    prev = row;
-  }
-  return out.join("\n").replace(/\n{3,}/g, "\n\n");
-}
-
-function paragraphsFromItems(items, literal = false) {
-  if (!items || !items.length) return "";
-  if (literal) return linesFromItemsLiteral(items);
-
-  // Fuente dominante del cuerpo (ponderada por nº de caracteres). Los
-  // entretítulos en negrita usan otra fontFamily → así se detectan.
-  const fontWeight = {};
-  for (const it of items) {
-    if (it.font) fontWeight[it.font] = (fontWeight[it.font] || 0) + it.str.length;
-  }
-  let domFont = "";
-  let domBest = 0;
-  for (const f in fontWeight) {
-    if (fontWeight[f] > domBest) {
-      domBest = fontWeight[f];
-      domFont = f;
-    }
-  }
-
-  const minLeft = Math.min(...items.map((i) => i.x));
-  const maxRight = Math.max(...items.map((i) => i.right));
-  const totalW = maxRight - minLeft;
-
-  // Detección de columnas por PERFIL DE PROYECCIÓN (franjas verticales en
-  // blanco). Marcamos en un histograma horizontal qué tramos de X tienen texto;
-  // un gutter entre columnas es una franja sin texto en (casi) todas las líneas.
-  // A diferencia del umbral por ancho total, esto NO confunde el espacio ancho
-  // entre palabras del texto justificado con un gutter: en un hueco entre
-  // palabras otras líneas sí tienen texto en esa X, así que el tramo no queda
-  // vacío. Sólo el gutter real (banda blanca de arriba a abajo) lo está.
-  const splitColumns = () => {
-    if (totalW <= 1) return [items];
-    const BINS = 400;
-    const binW = totalW / BINS;
-    const occ = new Array(BINS).fill(0);
-    for (const it of items) {
-      const a = Math.max(0, Math.floor((it.x - minLeft) / binW));
-      const b = Math.min(BINS - 1, Math.ceil((it.right - minLeft) / binW) - 1);
-      for (let k = a; k <= b; k++) occ[k]++;
-    }
-    const maxOcc = Math.max(...occ);
-    // Un bin cuenta como "vacío" si casi ninguna línea lo cubre (tolera que un
-    // título suelto cruce el gutter). Y la franja debe tener cierto ancho mínimo
-    // (~0,6 em) para no partir por un hueco accidental de una sola línea.
-    const emptyThresh = Math.floor(maxOcc * 0.08);
-    const hs = items.map((i) => i.h).sort((a, b) => a - b);
-    const medH = hs[Math.floor(hs.length / 2)] || 10;
-    const minStripBins = Math.max(1, Math.floor((medH * 0.6) / binW));
-
-    const boundaries = [];
-    let runStart = -1;
-    for (let k = 0; k < BINS; k++) {
-      if (occ[k] <= emptyThresh) {
-        if (runStart < 0) runStart = k;
-      } else {
-        if (runStart >= 0 && k - runStart >= minStripBins) {
-          boundaries.push(minLeft + ((runStart + k) / 2) * binW);
-        }
-        runStart = -1;
-      }
-    }
-    if (!boundaries.length) return [items];
-
-    const colOf = (cx) => {
-      let i = 0;
-      while (i < boundaries.length && cx > boundaries[i]) i++;
-      return i;
-    };
-    const buckets = new Map();
-    for (const it of items) {
-      const ci = colOf((it.x + it.right) / 2);
-      if (!buckets.has(ci)) buckets.set(ci, []);
-      buckets.get(ci).push(it);
-    }
-    return [...buckets.keys()].sort((a, b) => a - b).map((k) => buckets.get(k));
-  };
-
-  const out = [];
-  for (const colItems of splitColumns())
-    out.push(...linesToParagraphs(colItems, domFont));
-  return out.filter(Boolean).join("\n\n");
-}
-
-function getSelectionParagraphs(literal = false) {
-  if (typeof window === "undefined") return "";
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return "";
-  const range = sel.getRangeAt(0);
-
-  const spans = Array.from(
-    document.querySelectorAll(".pdfsel-textLayer span")
-  ).filter(
-    (s) => s.textContent && s.textContent.trim() && range.intersectsNode(s)
-  );
-  if (!spans.length) return "";
-
-  const items = spans.map((s) => {
-    const r = s.getBoundingClientRect();
-    return {
-      str: s.textContent,
-      x: r.left,
-      right: r.right,
-      y: r.top,
-      h: r.height,
-      font: s.style.fontFamily || "",
-    };
-  });
-  return paragraphsFromItems(items, literal);
-}
 
 // Aplana un árbol de regiones/temas a opciones { value, label } con etiqueta
 // jerárquica ("Padre > Hijo"), igual que ArticleFormV2.
@@ -567,9 +64,6 @@ function rankOptions(flat, query) {
   return [...exact, ...starts, ...includes];
 }
 
-function escapeHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
 
 // Vaciar un QuillEditor a mano (seleccionar todo + borrar) no deja su value en
 // "" — Quill se queda con su bloque vacío ("<p><br></p>" o "<p></p>"). Si eso
@@ -615,353 +109,6 @@ function bodyTextToHtml(text) {
   }
   flushPara();
   return out.join("\n");
-}
-
-// ── Vista de una página: canvas + text-layer de pdfjs (selección nativa) ───
-// El texto se selecciona arrastrando, como cualquier texto. En modo recorte de
-// imagen (`cropMode`) el text-layer no captura el ratón y se dibuja un rectángulo
-// arrastrando (rubber-band): al soltar se recortan ambas esquinas (coords PDF a
-// escala 1, origen abajo-izquierda).
-//
-// Render LAZY: todas las páginas del PDF están en el DOM, pero el canvas +
-// text-layer sólo se renderizan cuando la página está cerca del viewport
-// (IntersectionObserver con `rootRef` como root). Al alejarse se libera la
-// memoria y queda un placeholder con la altura estimada (`aspect`). Así se puede
-// scrollear un dossier entero sin reventar la memoria del navegador.
-function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode, onCrop, cropBusy, textRegionMode, onTextRegion, aspect, rootRef }) {
-  const wrapRef = useRef(null);
-  const canvasRef = useRef(null);
-  const textLayerRef = useRef(null);
-  const renderRef = useRef(null);
-  const taskRef = useRef(null);
-  const [dims, setDims] = useState(null); // { scale, pageHeight } a escala 1
-  const [visible, setVisible] = useState(false);
-  // Rectángulo de arrastre en px relativos al canvas: { x0, y0, x1, y1 }.
-  const [drag, setDrag] = useState(null);
-  // En modo "Textbereich" el rectángulo queda fijo tras soltar (para poder
-  // rehacerlo) y sólo se transcribe al pulsar el botón. { left, top, right, bottom }.
-  const [committed, setCommitted] = useState(null);
-  // Última región ya insertada en el editor: queda marcada (verde) como referencia
-  // de "hasta acá copié" para no perder el hilo. Persiste aunque se salga del modo.
-  const [lastInserted, setLastInserted] = useState(null);
-
-  // Modo imagen: el rectángulo queda como recuadro editable (PdfCropBox:
-  // mover, redimensionar, GIRAR para imágenes inclinadas) hasta confirmar.
-  // Guardado en coords PDF (escala 1, origen arriba-izq) para que el zoom no
-  // lo desalinee.
-  const [cropBox, setCropBox] = useState(null);
-
-  // Al salir del modo texto se descarta el rectángulo pendiente (no el marcador).
-  useEffect(() => {
-    if (!textRegionMode) setCommitted(null);
-  }, [textRegionMode]);
-  useEffect(() => {
-    if (!cropMode) setCropBox(null);
-  }, [cropMode]);
-
-  // Renderiza cuando la página entra (o se acerca) al viewport; libera al salir.
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => setVisible(entry.isIntersecting),
-      { root: rootRef?.current || null, rootMargin: "1500px 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [rootRef]);
-
-  useEffect(() => {
-    if (!visible || !pdfDoc || !pdfjs || !canvasRef.current || !textLayerRef.current)
-      return;
-    let cancelled = false;
-
-    pdfDoc.getPage(pageNumber).then(async (page) => {
-      if (cancelled) return;
-      const base = page.getViewport({ scale: 1 });
-      const scale = width / base.width;
-      const viewport = page.getViewport({ scale });
-      const pixelRatio = window.devicePixelRatio || 1;
-
-      const canvas = canvasRef.current;
-      const renderViewport = page.getViewport({ scale: scale * pixelRatio });
-      canvas.width = renderViewport.width;
-      canvas.height = renderViewport.height;
-      canvas.style.width = viewport.width + "px";
-      canvas.style.height = viewport.height + "px";
-      if (renderRef.current) renderRef.current.cancel?.();
-      renderRef.current = page.render({
-        canvasContext: canvas.getContext("2d"),
-        viewport: renderViewport,
-      });
-
-      const textLayer = textLayerRef.current;
-      textLayer.innerHTML = "";
-      textLayer.style.width = viewport.width + "px";
-      textLayer.style.height = viewport.height + "px";
-      textLayer.style.setProperty("--scale-factor", String(scale));
-
-      setDims({ scale, pageHeight: base.height });
-
-      const textContent = await page.getTextContent();
-      if (cancelled) return;
-      if (taskRef.current) taskRef.current.cancel?.();
-      taskRef.current = pdfjs.renderTextLayer({
-        textContentSource: textContent,
-        container: textLayer,
-        viewport,
-      });
-    });
-
-    return () => {
-      cancelled = true;
-      if (renderRef.current) renderRef.current.cancel?.();
-      if (taskRef.current) taskRef.current.cancel?.();
-    };
-  }, [visible, pdfDoc, pdfjs, pageNumber, width]);
-
-  // Punto px relativo al canvas a partir de un evento de ratón.
-  const localPx = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-  };
-
-  // Ambos modos (recorte de imagen y "Textbereich") usan el mismo arrastre.
-  const dragMode = cropMode || textRegionMode;
-
-  const onDragStart = (e) => {
-    if (!dragMode || !dims || !canvasRef.current) return;
-    e.preventDefault();
-    // Un nuevo arrastre descarta el rectángulo/recuadro pendiente anterior.
-    if (textRegionMode) setCommitted(null);
-    if (cropMode) setCropBox(null);
-    const { x, y } = localPx(e);
-    setDrag({ x0: x, y0: y, x1: x, y1: y });
-  };
-
-  const onDragMove = (e) => {
-    if (!drag) return;
-    const { x, y } = localPx(e);
-    setDrag((d) => (d ? { ...d, x1: x, y1: y } : d));
-  };
-
-  // Spans del text-layer cuyo centro cae dentro del rectángulo (en px locales al
-  // canvas). Devuelve items con la forma que espera paragraphsFromItems.
-  const collectTextInRect = (left, top, right, bottom) => {
-    const layer = textLayerRef.current;
-    const canvas = canvasRef.current;
-    if (!layer || !canvas) return [];
-    const cRect = canvas.getBoundingClientRect();
-    const items = [];
-    layer.querySelectorAll("span").forEach((s) => {
-      if (!s.firstChild || !s.textContent || !s.textContent.trim()) return;
-      const r = s.getBoundingClientRect();
-      const x = r.left - cRect.left;
-      const y = r.top - cRect.top;
-      const cxx = x + r.width / 2;
-      const cyy = y + r.height / 2;
-      if (cxx >= left && cxx <= right && cyy >= top && cyy <= bottom) {
-        items.push({
-          str: s.textContent,
-          x,
-          right: x + r.width,
-          y,
-          h: r.height,
-          font: s.style.fontFamily || "",
-        });
-      }
-    });
-    return items;
-  };
-
-  const onDragEnd = () => {
-    if (!drag || !dims) {
-      setDrag(null);
-      return;
-    }
-    const left = Math.min(drag.x0, drag.x1);
-    const right = Math.max(drag.x0, drag.x1);
-    const top = Math.min(drag.y0, drag.y1);
-    const bottom = Math.max(drag.y0, drag.y1);
-    setDrag(null);
-    // Ignora arrastres minúsculos (clicks accidentales).
-    if (right - left < 8 || bottom - top < 8) return;
-    if (textRegionMode) {
-      // No transcribe aún: deja el rectángulo fijo para ajustarlo; se transcribe
-      // al pulsar el botón "einfügen".
-      setCommitted({ left, top, right, bottom });
-      return;
-    }
-    // Modo imagen: no recorta aún — queda el recuadro editable.
-    const s = dims.scale;
-    setCropBox({
-      cx: (left + right) / 2 / s,
-      cy: (top + bottom) / 2 / s,
-      w: (right - left) / s,
-      h: (bottom - top) / s,
-      angle: 0,
-    });
-  };
-
-  const cropScale = dims?.scale || 1;
-  const cropBoxPx = cropBox && {
-    cx: cropBox.cx * cropScale,
-    cy: cropBox.cy * cropScale,
-    w: cropBox.w * cropScale,
-    h: cropBox.h * cropScale,
-    angle: cropBox.angle,
-  };
-
-  // Altura del placeholder mientras no está renderizada (ratio de la pág. 1).
-  const placeholderHeight = width * (aspect || 1.414);
-
-  const dragRect = drag
-    ? {
-        left: Math.min(drag.x0, drag.x1),
-        top: Math.min(drag.y0, drag.y1),
-        width: Math.abs(drag.x1 - drag.x0),
-        height: Math.abs(drag.y1 - drag.y0),
-      }
-    : null;
-
-  return (
-    <div ref={wrapRef} data-page={pageNumber} style={{ width }}>
-      {visible ? (
-        <div
-          className="relative mx-auto"
-          style={{ width, cursor: dragMode ? "crosshair" : "auto" }}
-          onMouseDown={onDragStart}
-          onMouseMove={onDragMove}
-          onMouseUp={onDragEnd}
-          // Si el ratón sale del área (típico al seleccionar la última columna,
-          // pegada al borde derecho), confirmamos el arrastre en vez de
-          // cancelarlo — antes se perdía la selección de la columna del borde.
-          onMouseLeave={onDragEnd}
-        >
-          <canvas ref={canvasRef} className="block bg-white shadow-lg" />
-          <div
-            ref={textLayerRef}
-            className="pdfsel-textLayer absolute top-0 left-0"
-            style={{
-              lineHeight: 1,
-              pointerEvents: dragMode ? "none" : "auto",
-            }}
-          />
-          {dragRect && (
-            <div
-              className={`absolute border-2 pointer-events-none ${
-                textRegionMode
-                  ? "border-[#BD0E0D] bg-[#BD0E0D]/20"
-                  : "border-blue-600 bg-blue-500/20"
-              }`}
-              style={{
-                left: dragRect.left,
-                top: dragRect.top,
-                width: dragRect.width,
-                height: dragRect.height,
-              }}
-            />
-          )}
-          {cropMode && cropBoxPx && !drag && (
-            <PdfCropBox
-              box={cropBoxPx}
-              busy={cropBusy}
-              onChange={(b) =>
-                setCropBox({
-                  cx: b.cx / cropScale,
-                  cy: b.cy / cropScale,
-                  w: b.w / cropScale,
-                  h: b.h / cropScale,
-                  angle: b.angle,
-                })
-              }
-              onConfirm={async () => {
-                if (cropBusy) return;
-                await onCrop?.(pageNumber, cropBox);
-                setCropBox(null);
-              }}
-              onCancel={() => setCropBox(null)}
-            />
-          )}
-          {/* Marcador de progreso: última región insertada en el editor. Queda
-              verde como referencia de "hasta acá copié"; pointer-events ninguno. */}
-          {lastInserted && (
-            <div
-              className="absolute border-2 border-dashed border-green-600 bg-green-500/10 pointer-events-none"
-              style={{
-                left: lastInserted.left,
-                top: lastInserted.top,
-                width: lastInserted.right - lastInserted.left,
-                height: lastInserted.bottom - lastInserted.top,
-              }}
-            >
-              <span className="absolute -top-5 left-0 px-1.5 py-0.5 text-[10px] font-bold bg-green-600 text-white shadow whitespace-nowrap">
-                ✓ kopiert
-              </span>
-            </div>
-          )}
-          {/* Rectángulo fijo del modo texto: queda hasta pulsar "einfügen"
-              (o redibujar). El botón inserta el texto y limpia el rectángulo. */}
-          {textRegionMode && committed && !drag && (
-            <>
-              <div
-                className="absolute border-2 border-dashed border-[#BD0E0D] bg-[#BD0E0D]/10 pointer-events-none"
-                style={{
-                  left: committed.left,
-                  top: committed.top,
-                  width: committed.right - committed.left,
-                  height: committed.bottom - committed.top,
-                }}
-              />
-              <div
-                className="absolute z-20 flex gap-1"
-                style={{ left: committed.left, top: committed.bottom + 4 }}
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTextRegion?.(
-                      collectTextInRect(
-                        committed.left,
-                        committed.top,
-                        committed.right,
-                        committed.bottom
-                      )
-                    );
-                    setLastInserted(committed);
-                    setCommitted(null);
-                  }}
-                  className="px-2.5 py-1 text-xs bg-[#BD0E0D] text-white shadow hover:bg-[#a50c0b] transition-colors"
-                >
-                  📝 Text einfügen
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCommitted(null);
-                  }}
-                  className="px-2 py-1 text-xs bg-white border border-gray-300 text-gray-500 shadow hover:border-gray-500 transition-colors"
-                  title="Auswahl verwerfen"
-                >
-                  ✕
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      ) : (
-        <div
-          className="mx-auto bg-white shadow-lg flex items-center justify-center text-gray-300 text-xs"
-          style={{ width, height: placeholderHeight }}
-        >
-          Seite {pageNumber}
-        </div>
-      )}
-    </div>
-  );
 }
 
 // Campo de texto con botón "tomar selección del PDF".
@@ -1052,9 +199,7 @@ export default function FromPdfPage() {
   const [pageAspect, setPageAspect] = useState(1.414);
   const scrollRef = useRef(null);
   const fsScrollRef = useRef(null);
-  const floatBarRef = useRef(null); // barra flotante anclada al visualViewport
   const editorApi = useRef(null); // API del publilab en modo split: { appendText, appendHeading }
-  const [pageWidth, setPageWidth] = useState(ZOOM_DEFAULT);
   const [loading, setLoading] = useState(false);
 
   // Selector de dossiers ya subidos al módulo Digital-ABO (EditionPdf).
@@ -1063,10 +208,6 @@ export default function FromPdfPage() {
   const [dossierPickerOpen, setDossierPickerOpen] = useState(false);
   const [loadingDossiers, setLoadingDossiers] = useState(false);
 
-  // Selección actual del PDF.
-  const lastSelectionRef = useRef("");
-  const bodyParasRef = useRef(""); // párrafos reconstruidos por geometría
-  const [selectionPreview, setSelectionPreview] = useState("");
 
   // Último campo de texto enfocado ("body" | "vorspann") — decide a dónde va
   // el "Textbereich" al insertar. Nunca se resetea solo al perder foco (igual
@@ -1129,9 +270,7 @@ export default function FromPdfPage() {
   const [bodyTo, setBodyTo] = useState("");
 
   // Recorte de imágenes del PDF (dos esquinas → JPEG → galería).
-  const [cropMode, setCropMode] = useState(false); // arrastrar para recortar
   const [images, setImages] = useState([]); // { id, file, url, page, title, alt }
-  const [cropBusy, setCropBusy] = useState(false);
   // Módulo estándar de imágenes (ImageGalleryManager, el mismo del editor
   // normal) para fotos que ya existen como archivo — no hace falta recortarlas
   // del scan. Van ANTES que los recortes al crear el artículo, así la primera
@@ -1156,20 +295,6 @@ export default function FromPdfPage() {
     () => () => galleryPreviews.forEach((img) => URL.revokeObjectURL(img.url)),
     [galleryPreviews]
   );
-
-  // "Textbereich": arrastrar un rectángulo sobre el cuerpo → extrae el texto
-  // dentro, lo reordena por columnas y lo inyecta como bloques en el publilab.
-  const [textRegionMode, setTextRegionMode] = useState(false);
-  // "Modo Poema": ver comentario largo en linesFromItemsLiteral — desactiva
-  // fusión de párrafos/detección de columnas y manda todo a un bloque Poem,
-  // preservando cada salto de línea tal cual está en el PDF. Ref en paralelo
-  // porque getSelectionParagraphs se llama desde un listener registrado una
-  // sola vez (onSelChange, deps []) — leer el state ahí daría un valor stale.
-  const [poemMode, setPoemMode] = useState(false);
-  const poemModeRef = useRef(false);
-  useEffect(() => {
-    poemModeRef.current = poemMode;
-  }, [poemMode]);
 
   // Editor de cuerpo a pantalla completa (PDF | artículo).
   const [bodyFullscreen, setBodyFullscreen] = useState(false);
@@ -1232,25 +357,6 @@ export default function FromPdfPage() {
     refreshExistingArticles(editionId);
   }, [editionId, refreshExistingArticles]);
 
-  // Captura la selección nativa del usuario sobre el text layer.
-  useEffect(() => {
-    const onSelChange = () => {
-      const sel = window.getSelection();
-      const text = sel ? sel.toString() : "";
-      if (text && text.trim()) {
-        const node = sel.anchorNode;
-        const el = node?.nodeType === 3 ? node.parentElement : node;
-        if (el && el.closest(".pdfsel-textLayer")) {
-          lastSelectionRef.current = text;
-          bodyParasRef.current = getSelectionParagraphs(poemModeRef.current);
-          setSelectionPreview(cleanSelection(text).slice(0, 140));
-        }
-      }
-    };
-    document.addEventListener("selectionchange", onSelChange);
-    return () => document.removeEventListener("selectionchange", onSelChange);
-  }, []);
-
   // Esc cierra el modo pantalla completa del cuerpo.
   useEffect(() => {
     if (!bodyFullscreen) return;
@@ -1259,41 +365,6 @@ export default function FromPdfPage() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [bodyFullscreen]);
-
-  // Mantiene la barra flotante de inserción dentro del área visible aunque se
-  // haga pinch-zoom o zoom del navegador. position:fixed se ancla al layout
-  // viewport (que con el zoom queda fuera de vista), así que la reposicionamos
-  // según el visualViewport (lo que el usuario realmente ve).
-  useEffect(() => {
-    if (!bodyFullscreen) return;
-    const vv = window.visualViewport;
-    const update = () => {
-      const el = floatBarRef.current;
-      if (!el) return;
-      const w = vv ? vv.width : window.innerWidth;
-      const h = vv ? vv.height : window.innerHeight;
-      const ox = vv ? vv.offsetLeft : 0;
-      const oy = vv ? vv.offsetTop : 0;
-      el.style.bottom = "auto";
-      el.style.left = `${ox + w / 2}px`;
-      el.style.top = `${oy + h - 24}px`;
-    };
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    if (vv) {
-      vv.addEventListener("resize", update);
-      vv.addEventListener("scroll", update);
-    }
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-      if (vv) {
-        vv.removeEventListener("resize", update);
-        vv.removeEventListener("scroll", update);
-      }
-    };
   }, [bodyFullscreen]);
 
   // Carga un PDF (ya leído como ArrayBuffer) en el visor y reinicia el estado del
@@ -1380,67 +451,14 @@ export default function FromPdfPage() {
     if (clean) setter(clean);
   };
 
-  // ── Vollbild = publilab con el PDF acoplado a la izquierda (modo split) ─────
-  // Inserta la selección del PDF como bloques en el publilab vía su API. Respeta
-  // los párrafos y la detección de entretítulos de reflowBodySelection.
-  const appendChunkToEditor = (raw) => {
-    // Modo Poema: el texto ya viene literal (getSelectionParagraphs con
-    // literal=true) — nada de reflowBodySelection (fusiona líneas en
-    // párrafos, pensado para prosa) ni detección de título/Frage. Va directo
-    // a un bloque Poem, preservando cada salto de línea tal cual.
-    if (poemModeRef.current) {
-      if (!raw || !raw.trim()) return;
-      if (!editorApi.current) {
-        setContent((prev) => (prev ? prev + "\n\n" : "") + raw.trim());
-        return;
-      }
-      editorApi.current.appendPoem(raw);
-      return;
-    }
-    const chunk = reflowBodySelection(raw);
-    if (!chunk) return;
-    // En el Vollbild se inyecta como bloques del publilab; en la vista normal
-    // (sin editor abierto) se acumula en el texto plano del cuerpo.
-    if (!editorApi.current) {
-      setContent((prev) => (prev ? prev + "\n\n" : "") + chunk);
-      return;
-    }
-    chunk.split(/\n{2,}/).forEach((part) => {
-      const h = part.match(/^#{2,3}\s+(.+)$/);
-      const flat = part.replace(/\n/g, " ").trim();
-      if (h) {
-        editorApi.current.appendHeading(h[1].trim(), 3);
-      } else if (/\?["')\]]?\s*$/.test(flat) && flat.length <= 300) {
-        // Entrevista: un párrafo entero que termina en "?" es una Frage —
-        // suelen ser 1-2 oraciones bastante más largas que un Zwischentitel,
-        // por eso se detecta acá (a nivel párrafo) y no en isHeading (línea).
-        editorApi.current.appendQuestion(flat);
-      } else {
-        editorApi.current.appendText(`<p>${escapeHtml(flat)}</p>`);
-      }
-    });
-  };
-  const appendBodyToEditor = () =>
-    appendChunkToEditor(bodyParasRef.current || lastSelectionRef.current);
-  const appendHeadingToEditor = () => {
-    const clean = cleanSelection(lastSelectionRef.current);
-    if (clean && editorApi.current) editorApi.current.appendHeading(clean, 3);
-  };
-
-  // "Textbereich": recibe los spans dentro del rectángulo, los reordena por
-  // columnas (orden de lectura) y los anexa al campo activo — el cuerpo por
-  // defecto, o Titel/Untertitel/Vorspann/Zusatzinfo si fue el último campo
-  // enfocado.
-  const takeTextRegion = (items) => {
-    const text = paragraphsFromItems(items, poemModeRef.current);
-    if (!text) return;
-    setSelectionPreview(cleanSelection(text).slice(0, 140));
-    // Modo Poema: siempre al cuerpo (bloque Poem), sin importar qué campo
-    // estaba enfocado — un poema no tiene sentido como Titel/Vorspann/etc.
-    if (poemModeRef.current) {
-      appendChunkToEditor(text);
-      return;
-    }
+  // ── Mesa de trabajo del PDF (visor + herramientas + inserción al publilab) ──
+  // Compartida con el Dossier-PDF del editor de artículos — ver
+  // components/DossierWorkbench/useDossierWorkbench.
+  // "Textbereich" fuera del Modo Poema: va al campo activo — el cuerpo por
+  // defecto, o Titel/Untertitel/Vorspann/Zusatzinfo/Autor:in/pie de imagen si
+  // fue el último campo enfocado. Devuelve true si lo mandó a un campo (el
+  // hook no lo inserta en el cuerpo).
+  const routeTextRegionToField = (text) => {
     const field = activeFieldRef.current;
     if (field === "title" || field === "subtitle") {
       // Titel/Untertitel son de una sola línea: aplanar todo a texto plano,
@@ -1451,10 +469,10 @@ export default function FromPdfPage() {
         .filter(Boolean)
         .join(" ")
         .trim();
-      if (!flat) return;
+      if (!flat) return true;
       const setter = field === "title" ? setTitle : setSubtitle;
       setter((prev) => (prev ? prev + " " + flat : flat));
-      return;
+      return true;
     }
     // Bildunterschrift / Alt-Text de una imagen (recortada del PDF o subida
     // con el módulo estándar): una sola línea, se AGREGA al texto existente.
@@ -1466,7 +484,7 @@ export default function FromPdfPage() {
         .filter(Boolean)
         .join(" ")
         .trim();
-      if (!flat) return;
+      if (!flat) return true;
       const [, kind, key, prop] = imgTarget;
       const append = (prev) => (prev ? prev + " " + flat : flat);
       if (kind === "cropImg") {
@@ -1478,7 +496,7 @@ export default function FromPdfPage() {
           prev.map((x, i) => (String(i) === key ? { ...x, [prop]: append(x[prop]) } : x))
         );
       }
-      return;
+      return true;
     }
     if (field === "author" || field === "interviewee") {
       // Autor/Entrevistado son de una sola línea, y cleanAuthorName
@@ -1491,10 +509,10 @@ export default function FromPdfPage() {
         .filter(Boolean)
         .join(" ")
         .trim();
-      if (!flat) return;
+      if (!flat) return true;
       if (field === "author") addAuthorByName(cleanAuthorName(flat));
       else addIntervieweeByName(cleanAuthorName(flat));
-      return;
+      return true;
     }
     if (field === "vorspann" || field === "additionalInfo") {
       const html = text
@@ -1503,13 +521,44 @@ export default function FromPdfPage() {
         .filter(Boolean)
         .map((p) => `<p>${escapeHtml(p)}</p>`)
         .join("");
-      if (!html) return;
+      if (!html) return true;
       const setter = field === "vorspann" ? setPreviewText : setAdditionalInfo;
       setter((prev) => stripTrailingEmptyParagraph(prev) + html);
-      return;
+      return true;
     }
-    appendChunkToEditor(text);
+    return false;
   };
+
+  const wb = useDossierWorkbench({
+    pdfDoc,
+    pdfjs,
+    numPages,
+    pageAspect,
+    editorApiRef: editorApi,
+    // role: "haupt" = imagen principal (galería) | "text" = insertada inline.
+    onCropImage: (file, url, page) =>
+      setImages((prev) => [
+        ...prev,
+        { id: Date.now(), file, url, page, title: "", alt: "", role: "haupt" },
+      ]),
+    onError: setError,
+    routeTextRegion: routeTextRegionToField,
+    // Sin publilab abierto, el texto se acumula en el cuerpo plano.
+    onTextWithoutEditor: (chunk) =>
+      setContent((prev) => (prev ? prev + "\n\n" : "") + chunk),
+    floatBarActive: bodyFullscreen,
+  });
+  const {
+    lastSelectionRef,
+    selectionPreview,
+    setPoemMode,
+    setCropMode,
+    scrollToPage,
+    markBar,
+    toolRail,
+    renderPageNav,
+    renderPageStack,
+  } = wb;
 
   // Abre el Vollbild. Siembra contentHtml desde el textarea si el publilab aún
   // no es la fuente de verdad, para no perder lo ya recolectado.
@@ -1521,21 +570,8 @@ export default function FromPdfPage() {
     // activo, un "Textbereich" ahí adentro iría a un campo fuera de vista.
     activeFieldRef.current = "body";
     // Saltar directo a la página de inicio ya cargada en "Seiten", en vez de
-    // arrancar siempre en la página 1 y tener que scrollear a mano. El
-    // contenedor del Vollbild (dentro de InterviewEditor, vía leftPanel) puede
-    // tardar más de un par de frames en montarse — reintentar hasta que la
-    // página exista en el DOM en vez de asumir un delay fijo.
-    if (bodyFrom) {
-      const target = Number(bodyFrom) || 1;
-      let attempts = 0;
-      const tryScroll = () => {
-        attempts++;
-        const el = fsScrollRef.current?.querySelector(`[data-page="${target}"]`);
-        if (el) el.scrollIntoView({ behavior: "auto", block: "start" });
-        else if (attempts < 30) requestAnimationFrame(tryScroll);
-      };
-      requestAnimationFrame(tryScroll);
-    }
+    // arrancar siempre en la página 1 y tener que scrollear a mano.
+    if (bodyFrom) wb.jumpToPageWhenReady(fsScrollRef, bodyFrom);
   };
   // Al cerrar, el publilab pasa a ser la fuente de verdad en la vista normal.
   const closeBodyFullscreen = () => {
@@ -1585,7 +621,7 @@ export default function FromPdfPage() {
 
   const takeAuthor = useCallback(
     () => addAuthorByName(cleanAuthorName(lastSelectionRef.current)),
-    [addAuthorByName]
+    [addAuthorByName, lastSelectionRef]
   );
 
   // Añade un/a entrevistado/a por nombre (lo crea si no existe). Mismo patrón
@@ -1625,7 +661,7 @@ export default function FromPdfPage() {
   // seleccionado del PDF, no específico de autoría.
   const takeInterviewee = useCallback(
     () => addIntervieweeByName(cleanAuthorName(lastSelectionRef.current)),
-    [addIntervieweeByName]
+    [addIntervieweeByName, lastSelectionRef]
   );
 
   // Buscador de autores (igual que Regionen/Themen): si no hay match exacto,
@@ -1806,33 +842,6 @@ export default function FromPdfPage() {
     }
   };
 
-  // Recorta el recuadro (posiblemente girado) de una página y lo añade a la galería.
-  const cropAndAdd = useCallback(
-    async (pageNumber, box) => {
-      if (!pdfDoc) return;
-      setCropBusy(true);
-      try {
-        const blob = await cropPdfRegion(pdfDoc, pageNumber, box);
-        if (!blob) throw new Error("crop failed");
-        const file = new File([blob], `pdf-bild-${Date.now()}.jpg`, {
-          type: "image/jpeg",
-        });
-        const url = URL.createObjectURL(blob);
-        setImages((prev) => [
-          ...prev,
-          // role: "haupt" = imagen principal (galería) | "text" = insertada inline.
-          { id: Date.now(), file, url, page: pageNumber, title: "", alt: "", role: "haupt" },
-        ]);
-      } catch (err) {
-        console.error(err);
-        setError("Das Bild konnte nicht ausgeschnitten werden.");
-      } finally {
-        setCropBusy(false);
-      }
-    },
-    [pdfDoc]
-  );
-
   const removeImage = (id) => {
     setImages((prev) => {
       const img = prev.find((x) => x.id === id);
@@ -1895,282 +904,29 @@ export default function FromPdfPage() {
     [images, gallery]
   );
 
-  // Barra de herramientas del PDF: selección nativa de texto · "Textbereich"
-  // (rectángulo → texto reordenado por columnas) · recorte de imágenes.
-  // Línea de ayuda sobre el visor: explica el modo activo. Los botones de
-  // modo viven en la barra vertical (toolRail) pegada al costado del PDF.
-  const markBar = (
-    <div className="px-1 py-1.5 mb-2 text-xs text-gray-400">
-      {textRegionMode
-        ? "Rechteck über den Artikeltext ziehen → bleibt stehen; mit „Text einfügen“ übernehmen (oder neu ziehen)."
-        : cropMode
-          ? "Rechteck über das Bild ziehen → anpassen/drehen → „✂ Ausschneiden“ (oder Enter)."
-          : "Text markieren & rechts zuweisen — oder „Textbereich“ für ganze Spalten."}
-    </div>
-  );
-
-  // Barra vertical de herramientas al costado del PDF, sticky: queda a mano
-  // mientras se scrollea el dossier (antes era una fila arriba del visor y
-  // había que volver a subir para cambiar de Textbereich a Bild y viceversa).
-  // Markieren / Textbereich / Bild son excluyentes; Gedicht se combina.
-  const railBtn = (active, activeCls, idleCls) =>
-    `w-12 flex flex-col items-center justify-center gap-0.5 py-1.5 border text-[10px] leading-tight transition-colors disabled:opacity-40 ${
-      active ? activeCls : idleCls
-    }`;
-  const toolRail = (
-    <div className="flex flex-col gap-1.5 bg-white border border-gray-200 shadow-sm p-1">
-      <button
-        type="button"
-        onClick={() => {
-          setTextRegionMode(false);
-          setCropMode(false);
-        }}
-        className={railBtn(
-          !textRegionMode && !cropMode,
-          "bg-gray-800 text-white border-gray-800",
-          "border-gray-300 text-gray-600 hover:bg-gray-100"
-        )}
-        title="Text frei markieren (normale Auswahl) und rechts einem Feld zuweisen"
-      >
-        <span className="text-base leading-none">𝐈</span>
-        Markieren
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          setTextRegionMode((m) => !m);
-          setCropMode(false);
-        }}
-        className={railBtn(
-          textRegionMode,
-          "bg-[#BD0E0D] text-white border-[#BD0E0D]",
-          "border-[#BD0E0D] text-[#BD0E0D] hover:bg-[#BD0E0D]/10"
-        )}
-        title="Textbereich: ein Rechteck über den Artikeltext ziehen — der Text wird spaltenweise eingefügt"
-      >
-        <span className="text-base leading-none">📝</span>
-        Text
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          setCropMode((m) => !m);
-          setTextRegionMode(false);
-        }}
-        disabled={cropBusy}
-        className={railBtn(
-          cropMode,
-          "bg-blue-600 text-white border-blue-600",
-          "border-blue-600 text-blue-700 hover:bg-blue-50"
-        )}
-        title="Bild ausschneiden: Rechteck über das Bild ziehen, anpassen/drehen, bestätigen"
-      >
-        <span className="text-base leading-none">{cropBusy ? "…" : "🖼"}</span>
-        Bild
-      </button>
-      <span className="h-px bg-gray-200 my-0.5" aria-hidden="true" />
-      <button
-        type="button"
-        onClick={() => setPoemMode((m) => !m)}
-        className={railBtn(
-          poemMode,
-          "bg-purple-600 text-white border-purple-600",
-          "border-purple-600 text-purple-600 hover:bg-purple-600/10"
-        )}
-        title="Gedicht-Modus: keine Absatz-/Spaltenrekonstruktion, jede Zeile wird 1:1 aus dem PDF übernommen (Zeilenumbrüche = Verse)"
-      >
-        <span className="text-base leading-none">📜</span>
-        Gedicht
-      </button>
-    </div>
-  );
-
-  // Scrollea hasta una página dentro del contenedor indicado.
-  const scrollToPage = (rootRef, n) => {
-    const root = rootRef?.current;
-    if (!root) return;
-    const el = root.querySelector(`[data-page="${n}"]`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  // Cambia pageWidth preservando la página que se está leyendo. Sin esto: al
-  // hacer zoom cambia el alto de TODAS las páginas apiladas (misma pageWidth
-  // para todas), y el contenedor mantiene el mismo scrollTop en píxeles —
-  // que tras el resize cae en un punto distinto del documento, "saltando" a
-  // otra página. Ancla la página visible arriba del viewport y la fracción
-  // ya scrolleada dentro de ella ANTES del cambio, y la restaura una vez que
-  // el nuevo ancho ya se pintó. El resize del canvas ocurre dentro de un
-  // .then() (async) en PdfPageView, así que un solo rAF puede llegar antes
-  // de que termine — de ahí los dos anidados, no es descuido.
-  const setPageWidthPreserveScroll = (rootRef, newWidth) => {
-    const root = rootRef?.current;
-    if (!root) {
-      setPageWidth(newWidth);
-      return;
-    }
-    const rootRect = root.getBoundingClientRect();
-    const pageEls = Array.from(root.querySelectorAll("[data-page]"));
-    let anchor = null;
-    for (const el of pageEls) {
-      const r = el.getBoundingClientRect();
-      const relTop = r.top - rootRect.top;
-      if (relTop + r.height > 0) {
-        anchor = {
-          num: el.dataset.page,
-          fraction: relTop < 0 ? -relTop / r.height : 0,
-        };
-        break;
-      }
-    }
-    setPageWidth(newWidth);
-    if (!anchor) return;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const el = root.querySelector(`[data-page="${anchor.num}"]`);
-        if (!el) return;
-        const newRootRect = root.getBoundingClientRect();
-        const newElRect = el.getBoundingClientRect();
-        const currentRelTop = newElRect.top - newRootRect.top;
-        const desiredRelTop = -(anchor.fraction * newElRect.height);
-        root.scrollTop += currentRelTop - desiredRelTop;
-      });
-    });
-  };
-
-  // "Übersicht": calcula el ancho de render (pageWidth maneja el alto vía
-  // pageAspect) para que la página completa entre en el alto visible del
-  // contenedor, sin scrollear para verla entera. OJO: esto es solo para
-  // orientarse rápido en una página nueva — si el panel no es muy alto (caso
-  // típico del modo split), el ancho resultante achica la página en vez de
-  // agrandarla (no hay forma de mostrar el alto completo Y agrandar al mismo
-  // tiempo si el panel no tiene esa altura; es una restricción física, no un
-  // bug). Para seleccionar texto con precisión, usar los botones de Zoom
-  // (adjustZoom) en su lugar — feedback real de un usuario tras probar esto
-  // pensando que serviría para lo mismo. Clampeado al mismo rango que el
-  // stepper de zoom y reusa su mismo anclaje de scroll (no salta de página).
-  const fitPageToHeight = (rootRef) => {
-    const el = rootRef?.current;
-    if (!el) return;
-    const availableHeight = el.clientHeight - 24; // p-3 = 12px arriba y abajo
-    if (availableHeight <= 0) return;
-    const width = Math.round(availableHeight / pageAspect);
-    setPageWidthPreserveScroll(
-      rootRef,
-      Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, width))
-    );
-  };
-
-  // Botones −/+: un paso de zoom discreto (más fácil de acertar con el mouse
-  // o trackpad que arrastrar el slider nativo, sobre todo para ajustes chicos).
-  const adjustZoom = (rootRef, delta) => {
-    const next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, pageWidth + delta));
-    setPageWidthPreserveScroll(rootRef, next);
-  };
-
-  // Barra de navegación del visor continuo: ir a página + zoom.
-  const renderPageNav = (rootRef) => (
-    <div className="flex items-center gap-2 mb-2 flex-wrap text-sm">
-      <span className="text-gray-500 text-xs">Gehe zu Seite</span>
-      <input
-        type="number"
-        min={1}
-        max={numPages}
-        defaultValue={1}
-        onChange={(e) => {
-          const n = Math.max(1, Math.min(numPages, Number(e.target.value) || 1));
-          scrollToPage(rootRef, n);
-        }}
-        className="w-16 border border-gray-300 px-2 py-1 text-center"
-      />
-      <span className="text-gray-500">/ {numPages}</span>
-      {/* Stepper de zoom: botones grandes en vez del slider nativo (difícil de
-          acertar con precisión, sobre todo con trackpad, para ajustes chicos).
-          El porcentaje central es clickeable y resetea a 100% (= ZOOM_DEFAULT,
-          el ancho de partida). Grupo con bordes compartidos, mismo lenguaje
-          visual que los demás botones de esta barra. */}
-      <div className="flex items-center ml-2 border border-gray-300 divide-x divide-gray-300">
-        <button
-          type="button"
-          onClick={() => adjustZoom(rootRef, -ZOOM_STEP)}
-          disabled={pageWidth <= ZOOM_MIN}
-          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-base leading-none"
-          title="Verkleinern"
-        >
-          −
-        </button>
-        <button
-          type="button"
-          onClick={() => setPageWidthPreserveScroll(rootRef, ZOOM_DEFAULT)}
-          className="min-w-[3.25rem] h-7 flex items-center justify-center text-xs text-gray-600 hover:bg-gray-100 tabular-nums transition-colors"
-          title="Auf 100% zurücksetzen"
-        >
-          {Math.round((pageWidth / ZOOM_DEFAULT) * 100)}%
-        </button>
-        <button
-          type="button"
-          onClick={() => adjustZoom(rootRef, ZOOM_STEP)}
-          disabled={pageWidth >= ZOOM_MAX}
-          className="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors text-base leading-none"
-          title="Vergrößern"
-        >
-          +
-        </button>
-      </div>
-      <button
-        type="button"
-        onClick={() => fitPageToHeight(rootRef)}
-        className="text-xs px-2 py-1 border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
-        title="Schnelle Übersicht der Seite (zum Orientieren) — zum genauen Markieren die Zoom-Buttons benutzen"
-      >
-        📄 Übersicht
-      </button>
-      <button
-        type="button"
-        onClick={() => {
-          // El formulario (título/contenido/imágenes) NO se borra al cambiar
-          // de dossier — solo advertir si ya hay algo escrito, para no
-          // confundirse mirando un PDF distinto con datos de otro artículo.
-          if (
-            (title.trim() || hasBody) &&
-            !confirm(
-              "Es gibt schon Angaben für diesen Artikel. Trotzdem das Dossier wechseln?"
-            )
+  // Botón propio de from-pdf al final de la barra de navegación del visor.
+  const dossierSwitchButton = (
+    <button
+      type="button"
+      onClick={() => {
+        // El formulario (título/contenido/imágenes) NO se borra al cambiar
+        // de dossier — solo advertir si ya hay algo escrito, para no
+        // confundirse mirando un PDF distinto con datos de otro artículo.
+        if (
+          (title.trim() || hasBody) &&
+          !confirm(
+            "Es gibt schon Angaben für diesen Artikel. Trotzdem das Dossier wechseln?"
           )
-            return;
-          openDossierPicker();
-        }}
-        className="ml-auto text-xs px-2 py-1 border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
-        title="Anderes Dossier öffnen, ohne zurückzugehen"
-      >
-        🔁 Dossier wechseln
-      </button>
-    </div>
+        )
+          return;
+        openDossierPicker();
+      }}
+      className="ml-auto text-xs px-2 py-1 border border-gray-300 text-gray-600 hover:bg-gray-100 transition-colors"
+      title="Anderes Dossier öffnen, ohne zurückzugehen"
+    >
+      🔁 Dossier wechseln
+    </button>
   );
-
-  // Pila vertical con TODAS las páginas (scroll continuo). Render lazy: cada
-  // PdfPageView se dibuja sólo cerca del viewport. La selección nativa con Shift
-  // cruza las páginas que estén renderizadas en ese momento.
-  const renderPageStack = (width, rootRef) =>
-    pdfjs && numPages ? (
-      <div className="flex flex-col items-center gap-5">
-        {Array.from({ length: numPages }, (_, i) => i + 1).map((p) => (
-          <PdfPageView
-            key={p}
-            pdfDoc={pdfDoc}
-            pageNumber={p}
-            pdfjs={pdfjs}
-            width={width}
-            cropMode={cropMode}
-            onCrop={cropAndAdd}
-            cropBusy={cropBusy}
-            textRegionMode={textRegionMode}
-            onTextRegion={takeTextRegion}
-            aspect={pageAspect}
-            rootRef={rootRef}
-          />
-        ))}
-      </div>
-    ) : null;
 
   const selectedBeitragstyp = beitragstypen.find(
     (b) => String(b.id) === String(beitragstypId)
@@ -2445,7 +1201,7 @@ export default function FromPdfPage() {
                   </div>
                 )}
 
-                {renderPageNav(scrollRef)}
+                {renderPageNav(scrollRef, dossierSwitchButton)}
 
                 {markBar}
 
@@ -2457,7 +1213,7 @@ export default function FromPdfPage() {
                     ref={scrollRef}
                     className="flex-1 min-w-0 overflow-auto border border-gray-100 bg-gray-50 p-3 max-h-[78vh]"
                   >
-                    {renderPageStack(pageWidth, scrollRef)}
+                    {renderPageStack(scrollRef)}
                   </div>
                 </div>
 
@@ -2966,62 +1722,11 @@ export default function FromPdfPage() {
           ]}
           onInsertAvailable={handleInsertAvailable}
           leftPanel={
-            <div className="relative flex-1 flex flex-col min-h-0 bg-gray-50">
-              <div className="px-3 py-1.5 border-b border-gray-200 bg-white">
-                {renderPageNav(fsScrollRef)}
-              </div>
-              {markBar}
-              <div className="flex-1 flex min-h-0">
-                <div className="shrink-0 p-1.5 border-r border-gray-200 bg-gray-50">
-                  {toolRail}
-                </div>
-                <div ref={fsScrollRef} className="flex-1 min-w-0 overflow-auto p-3">
-                  {renderPageStack(pageWidth, fsScrollRef)}
-                </div>
-              </div>
-              <div className="px-3 py-1.5 border-t border-gray-200 bg-white text-xs text-gray-500 min-h-[1.6em]">
-                {selectionPreview ? (
-                  <>
-                    Auswahl:{" "}
-                    <span className="text-gray-700">
-                      “{selectionPreview}
-                      {selectionPreview.length >= 140 ? "…" : ""}”
-                    </span>
-                  </>
-                ) : (
-                  "Markiere Text im PDF und füge ihn rechts als Block ein."
-                )}
-              </div>
-              {/* Controles flotantes — anclados al visualViewport (persisten con zoom) */}
-              <div
-                ref={floatBarRef}
-                style={{
-                  position: "fixed",
-                  left: "50%",
-                  top: "auto",
-                  bottom: 20,
-                  transform: "translate(-50%, -100%)",
-                }}
-                className="z-[10000] flex items-center gap-2 bg-white/95 backdrop-blur border border-gray-300 shadow-lg rounded-full px-2 py-1.5"
-              >
-                <button
-                  type="button"
-                  onClick={appendBodyToEditor}
-                  className="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-full hover:bg-gray-700 transition-colors"
-                  title="Auswahl als Block(e) anhängen"
-                >
-                  → Auswahl anhängen
-                </button>
-                <button
-                  type="button"
-                  onClick={appendHeadingToEditor}
-                  className="text-xs px-3 py-1.5 border border-gray-800 text-gray-800 rounded-full hover:bg-gray-100 transition-colors"
-                  title="Auswahl als Zwischentitel anhängen"
-                >
-                  → Zwischentitel
-                </button>
-              </div>
-            </div>
+            <DossierWorkbenchPanel
+              wb={wb}
+              scrollRef={fsScrollRef}
+              navExtra={dossierSwitchButton}
+            />
           }
         />
       )}
