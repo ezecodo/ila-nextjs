@@ -733,6 +733,27 @@ body {
   color: #d1d5db;
   border-left-color: #374151;
 }
+/* Título opcional de toda la tabla (h2–h4, ancho completo, dentro del marco).
+   Doble clase + !important: `.article-content h4` trae margin-top 1.8rem con
+   !important, que lo despegaba del borde superior del marco. */
+.ila-columns .ila-columns-title,
+.article-content .ila-columns .ila-columns-title {
+  margin: 0 0 1rem 0 !important;
+}
+/* Modo "Fließend" (ila-columns-flow): UN texto partido en columnas, no una
+   traducción — en mobile la columna 2 es la continuación de la 1, así que va
+   sin el gris/filete de "versión de lo de arriba", solo con aire entre medio. */
+.ila-columns.ila-columns-flow .ila-col + .ila-col {
+  color: inherit;
+  border-left: none;
+  padding-left: 0;
+  margin-top: 1.1rem;
+}
+@media (min-width: 640px) {
+  .ila-columns.ila-columns-flow .ila-col + .ila-col {
+    margin-top: 0;
+  }
+}
 .ila-columns.ila-columns-head .ila-col-row:first-child .ila-col {
   font-weight: 700;
 }

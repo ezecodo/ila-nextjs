@@ -19,14 +19,22 @@ function unescapeHtml(text) {
     .replace(/&gt;/g, ">");
 }
 
-// ── Bloque "Spalten" (2–3 columnas en paralelo, p. ej. poema bilingüe) ────
+// ── Bloque "Spalten" (2–3 columnas) ───────────────────────────────────────
 // En el editor cada columna es texto plano con saltos de línea (como Poem);
-// una línea en blanco separa estrofas/párrafos. Se guarda ALINEADO POR
-// ESTROFA: fila N = estrofa N de cada columna, así el original y su
-// traducción quedan enfrentados aunque una ocupe más líneas (y en mobile se
-// apilan fila por fila — ver `.ila-columns` en globals.css). Solo usa <div> y
-// <br> (ningún <p>), así autoDetectHeadings/autoFormatHeadings de las páginas
-// públicas no lo tocan.
+// una línea en blanco separa estrofas/párrafos. Dos formas de guardarlo
+// (`layout`), porque hay dos tipos de texto a dos columnas en el impreso:
+// - "flow" (Fließend, default): UN texto que el impreso partió en columnas
+//   por espacio (p. ej. un poema alemán que sigue de la izq. a la der.) —
+//   cada columna fluye sola, sin huecos; en mobile, col. 1 entera y después
+//   la 2 (orden de lectura). Se guarda como UNA fila con una celda por
+//   columna (+ una fila aparte de encabezados si `header`).
+// - "aligned" (Strophen nebeneinander): textos que se leen EN PARALELO
+//   (original | traducción) — fila N = estrofa N de cada columna, así quedan
+//   enfrentadas aunque una ocupe más líneas; en mobile, cada fila se apila.
+//   Con texto que NO es paralelo mete huecos (la fila mide lo que la estrofa
+//   más alta), por eso no es el default.
+// Solo usa <div> y <br> (ningún <p>), así autoDetectHeadings/
+// autoFormatHeadings de las páginas públicas no lo tocan.
 const splitStanzas = (text) =>
   (text || "")
     .replace(/\r/g, "")
@@ -34,25 +42,43 @@ const splitStanzas = (text) =>
     .map((st) => st.replace(/^\n+|\n+$/g, ""))
     .filter((st) => st.trim());
 
-function columnsToHtml(cols, header) {
+// `title`: título opcional de toda la tabla (ancho completo, dentro del
+// marco), como <hN class="ila-columns-title"> — N = titleLevel (2–4, def. 4).
+const stanzaToHtml = (st) =>
+  (st || "")
+    .split("\n")
+    .map((l) => escapeHtml(l.trim()))
+    .join("<br>");
+
+function columnsToHtml(cols, header, title, titleLevel, layout = "aligned") {
   const list = (cols || []).slice(0, 3);
   const stanzas = list.map(splitStanzas);
-  const rows = Math.max(0, ...stanzas.map((st) => st.length));
-  if (!rows) return "";
-  let html = "";
-  for (let r = 0; r < rows; r++) {
-    const cells = stanzas
-      .map((st) => {
-        const cell = (st[r] || "")
-          .split("\n")
-          .map((l) => escapeHtml(l.trim()))
-          .join("<br>");
-        return `<div class="ila-col">${cell}</div>`;
-      })
+  const t = (title || "").replace(/\s+/g, " ").trim();
+  if (!stanzas.some((st) => st.length) && !t) return "";
+  const hl = [2, 3, 4].includes(Number(titleLevel)) ? Number(titleLevel) : 4;
+  // Filas: cada una = una celda por columna, con las estrofas indicadas.
+  let rowStanzas;
+  if (layout === "flow") {
+    // Encabezado (1ª estrofa de cada columna) en su propia fila, así queda
+    // enfrentado aunque el resto fluya libre.
+    rowStanzas = header
+      ? [stanzas.map((st) => st.slice(0, 1)), stanzas.map((st) => st.slice(1))]
+      : [stanzas];
+  } else {
+    const n = Math.max(0, ...stanzas.map((st) => st.length));
+    rowStanzas = Array.from({ length: n }, (_, r) =>
+      stanzas.map((st) => (st[r] != null ? [st[r]] : [])),
+    );
+  }
+  let html = t ? `<h${hl} class="ila-columns-title">${escapeHtml(t)}</h${hl}>` : "";
+  for (const row of rowStanzas) {
+    if (!row.some((cell) => cell.length)) continue;
+    const cells = row
+      .map((cell) => `<div class="ila-col">${cell.map(stanzaToHtml).join("<br><br>")}</div>`)
       .join("");
     html += `<div class="ila-col-row">${cells}</div>`;
   }
-  const cls = `ila-columns ila-columns-${list.length}${header ? " ila-columns-head" : ""}`;
+  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}`;
   return `<div class="${cls}">${html}</div>`;
 }
 
@@ -75,7 +101,16 @@ function columnsFromEl(el) {
       .filter(Boolean)
       .join("\n\n"),
   );
-  return { cols, header: el.classList.contains("ila-columns-head") };
+  const titleEl = Array.from(el.children).find((c) =>
+    c.classList.contains("ila-columns-title"),
+  );
+  return {
+    cols,
+    header: el.classList.contains("ila-columns-head"),
+    layout: el.classList.contains("ila-columns-flow") ? "flow" : "aligned",
+    title: titleEl ? titleEl.textContent.trim() : "",
+    titleLevel: titleEl ? Number(titleEl.tagName.slice(1)) || 4 : 4,
+  };
 }
 
 // Pairs:
@@ -115,9 +150,19 @@ export function qaToHtml(pairs) {
         isColumnsBlock,
         cols,
         columnsHeader,
+        columnsTitle,
+        columnsTitleLevel,
+        columnsLayout,
       } = pair;
 
-      if (isColumnsBlock) return columnsToHtml(cols, columnsHeader);
+      if (isColumnsBlock)
+        return columnsToHtml(
+          cols,
+          columnsHeader,
+          columnsTitle,
+          columnsTitleLevel,
+          columnsLayout,
+        );
 
       // Image block
       if (isImage) {
@@ -371,12 +416,15 @@ export function htmlToQa(html) {
     // Spalten: <div class="ila-columns"> (ver columnsToHtml)
     if (tag === "DIV" && el.classList.contains("ila-columns")) {
       if (currentPair) pairs.push(currentPair);
-      const { cols, header } = columnsFromEl(el);
+      const { cols, header, title, titleLevel, layout } = columnsFromEl(el);
       pairs.push({
         id: genId(),
         isColumnsBlock: true,
         cols,
         columnsHeader: header,
+        columnsTitle: title,
+        columnsTitleLevel: titleLevel,
+        columnsLayout: layout,
       });
       currentPair = null;
       continue;
@@ -768,6 +816,9 @@ function blocksToQa(blocks) {
         isColumnsBlock: true,
         cols: [...(block.cols || ["", ""])],
         columnsHeader: !!block.header,
+        columnsTitle: block.title || "",
+        columnsTitleLevel: block.titleLevel || 4,
+        columnsLayout: block.layout || "aligned",
       });
       currentPair = null;
     } else {
@@ -812,6 +863,9 @@ function pairsToBlocks(pairs) {
         type: "columns",
         cols: [...(pair.cols || ["", ""])],
         header: !!pair.columnsHeader,
+        title: pair.columnsTitle || "",
+        titleLevel: pair.columnsTitleLevel || 4,
+        layout: pair.columnsLayout || "aligned",
       });
     } else if (pair.isQuote) {
       blocks.push({
@@ -2380,6 +2434,18 @@ function PasteImportPanel({
     }
     add = add.replace(/^\s*\n|\n\s*$/g, "").trim();
     if (!add) return true;
+    // Título de la tabla enfocado: una sola línea, se agrega al final.
+    if (fc.col === "title") {
+      const flat = add.replace(/\s+/g, " ");
+      setBlocksSafe((prev) =>
+        prev.map((b, idx) =>
+          idx === fi && b.type === "columns"
+            ? { ...b, title: b.title ? `${b.title} ${flat}` : flat }
+            : b,
+        ),
+      );
+      return true;
+    }
     setBlocksSafe((prev) =>
       prev.map((b, idx) => {
         if (idx !== fi || b.type !== "columns") return b;
@@ -2710,7 +2776,14 @@ function PasteImportPanel({
         : type === "poem"
           ? { type: "poem", text: "" }
           : type === "columns"
-            ? { type: "columns", cols: ["", ""], header: false }
+            ? {
+                type: "columns",
+                cols: ["", ""],
+                header: false,
+                title: "",
+                titleLevel: 4,
+                layout: "flow",
+              }
             : { type, text: "" };
     setBlocksSafe((prev) => {
       const next = [...(prev || [])];
@@ -3591,10 +3664,37 @@ function PasteImportPanel({
                           />
                           1. Zeile = Überschrift
                         </label>
+                        {/* Fließend = un texto partido en columnas (cada
+                            columna fluye sola); Nebeneinander = textos en
+                            paralelo, estrofa N junto a estrofa N (ver
+                            columnsToHtml). Sin `layout` = bloque guardado
+                            antes de este selector → alineado. */}
+                        <div className="flex items-center border border-teal-200 rounded overflow-hidden">
+                          {[
+                            ["flow", "Fließend", "Ein Text, auf Spalten verteilt — jede Spalte fließt für sich (mobil: Spalte 1, dann Spalte 2)"],
+                            ["aligned", "Strophen nebeneinander", "Paralleltexte (z. B. Original | Übersetzung): Strophe 1 neben Strophe 1 usw."],
+                          ].map(([val, label, tip]) => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => updateBlockField(i, "layout", val)}
+                              title={tip}
+                              className={`px-2 h-6 text-[10px] font-bold transition-colors ${
+                                (block.layout || "aligned") === val
+                                  ? "bg-teal-600 text-white"
+                                  : "text-teal-600 hover:bg-teal-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
                         <span className="text-[11px] text-teal-600/80 flex-1 min-w-[12rem]">
                           Spalte anklicken → Text aus dem PDF landet dort ·
-                          Leerzeile = neue Strophe (Strophen stehen
-                          nebeneinander)
+                          Leerzeile = neue Strophe
+                          {(block.layout || "aligned") === "aligned"
+                            ? " · Strophen werden auf der Seite nebeneinander ausgerichtet"
+                            : ""}
                         </span>
                         <button
                           type="button"
@@ -3604,6 +3704,47 @@ function PasteImportPanel({
                         >
                           ✕
                         </button>
+                      </div>
+                      {/* Título de toda la tabla (opcional, ancho completo). */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <input
+                          type="text"
+                          value={block.title || ""}
+                          onFocus={() => {
+                            lastFocusedColumnRef.current = { blockIdx: i, col: "title" };
+                            setFocusedColumn({ blockIdx: i, col: "title" });
+                          }}
+                          onChange={(e) => updateBlockField(i, "title", e.target.value)}
+                          placeholder="Überschrift der Tabelle (optional)"
+                          className={`flex-1 min-w-0 bg-white/70 text-teal-950 font-bold outline-none rounded border px-2 py-1 placeholder:font-normal placeholder:text-teal-300 caret-[#BD0E0D] transition-colors ${
+                            (block.titleLevel || 4) === 2
+                              ? "text-lg"
+                              : (block.titleLevel || 4) === 3
+                                ? "text-base"
+                                : "text-sm"
+                          } ${
+                            focusedColumn?.blockIdx === i && focusedColumn?.col === "title"
+                              ? "border-teal-500 ring-2 ring-teal-200"
+                              : "border-teal-100"
+                          }`}
+                        />
+                        <div className="flex items-center gap-1 shrink-0">
+                          {[2, 3, 4].map((hl) => (
+                            <button
+                              key={hl}
+                              type="button"
+                              onClick={() => updateBlockField(i, "titleLevel", hl)}
+                              className={`px-2 h-6 rounded text-[10px] font-bold border transition-colors ${
+                                (block.titleLevel || 4) === hl
+                                  ? "bg-teal-600 text-white border-teal-600"
+                                  : "border-teal-200 text-teal-600 hover:bg-teal-100"
+                              }`}
+                              title={`Überschrift als H${hl}`}
+                            >
+                              H{hl}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                       <div
                         className="grid gap-3"
