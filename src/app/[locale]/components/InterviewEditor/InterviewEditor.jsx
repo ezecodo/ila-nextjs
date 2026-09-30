@@ -991,6 +991,38 @@ function mergeAnswerHtml(prevHtml, addHtml, markSeam = false) {
   return prev.innerHTML;
 }
 
+// Une el párrafo `p` al final de su hermano anterior (Backspace al inicio de
+// `p`), a mano en vez de dejarlo al navegador. Chrome, al fusionar párrafos,
+// trata cada <br> como un fin de párrafo: sube solo la PRIMERA línea de `p`
+// y deja el resto como párrafo aparte — si `p` tenía un Shift+Enter ya
+// corregido, ese salto "vuelve" a ser un párrafo (el arreglo de más abajo se
+// deshace al arreglar uno de más arriba). Acá se mueve el contenido completo.
+// Agrega un espacio en la unión si hace falta y deja el caret DESPUÉS de él:
+// así un Shift+Enter ahí no arranca la línea nueva con un &nbsp;.
+// Devuelve true si fusionó (el llamador hace preventDefault + onChange).
+function mergeParagraphIntoPrevious(p) {
+  const prev = p?.previousElementSibling;
+  if (!prev || prev.tagName !== "P" || p.tagName !== "P") return false;
+  // <br> final = relleno de párrafo vacío (o salto al final, invisible): se
+  // quita para que no aparezca un salto en la unión.
+  if (prev.lastChild?.nodeName === "BR") prev.lastChild.remove();
+  const pIsBlank =
+    !p.textContent.trim() && !p.querySelector("img, figure, video, iframe");
+  const needSpace =
+    !pIsBlank && /\S$/.test(prev.textContent) && /^\S/.test(p.textContent);
+  const anchor = document.createTextNode(needSpace ? " " : "");
+  prev.appendChild(anchor);
+  if (!pIsBlank) while (p.firstChild) prev.appendChild(p.firstChild);
+  p.remove();
+  const sel = window.getSelection();
+  const r = document.createRange();
+  r.setStart(anchor, anchor.length);
+  r.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(r);
+  return true;
+}
+
 // Coloca el caret en un offset de texto plano dentro de un contenteditable.
 function setCaretAtTextOffset(root, offset) {
   const sel = window.getSelection();
@@ -1584,6 +1616,43 @@ function DarkAnswerBlock({
                 if (!testRange.toString().replace(/\s+/g, "")) {
                   e.preventDefault();
                   onMergeUp(normalizeAnswerHtml(divRef.current.innerHTML));
+                  return;
+                }
+              }
+            }
+          }
+          // Backspace al inicio de un párrafo / Delete al final de uno, DENTRO
+          // del bloque: fusión propia (ver mergeParagraphIntoPrevious) en vez
+          // de la nativa, que parte el párrafo en su primer <br>.
+          if (
+            (e.key === "Backspace" || e.key === "Delete") &&
+            !e.shiftKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.ctrlKey
+          ) {
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
+              const range = sel.getRangeAt(0);
+              const node = range.startContainer;
+              const p = (node.nodeType === 3 ? node.parentElement : node)?.closest(
+                "p",
+              );
+              if (p && divRef.current.contains(p)) {
+                const edge = document.createRange();
+                edge.selectNodeContents(p);
+                if (e.key === "Backspace") edge.setEnd(node, range.startOffset);
+                else edge.setStart(node, range.startOffset);
+                const atEdge =
+                  !edge.toString().replace(/\s+/g, "") &&
+                  !edge.cloneContents().querySelector?.("img, br");
+                const target =
+                  e.key === "Backspace" ? p : p.nextElementSibling;
+                if (atEdge && target && mergeParagraphIntoPrevious(target)) {
+                  e.preventDefault();
+                  onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+                  updateCaret();
+                  return;
                 }
               }
             }
@@ -3309,10 +3378,19 @@ function PasteImportPanel({
                                 // ya tenía el bloque anterior), AFTER re-render.
                                 const tmp = document.createElement("div");
                                 tmp.innerHTML = blocks[i - 1]?.text || "";
+                                const prevText = tmp.textContent || "";
+                                const addTmp = document.createElement("div");
+                                addTmp.innerHTML = html;
+                                // mergeAnswerHtml mete un espacio en la unión
+                                // si las dos puntas son texto: el caret va
+                                // DESPUÉS de ese espacio, si no un Shift+Enter
+                                // ahí deja la línea nueva empezando con &nbsp;.
+                                const addedSpace =
+                                  /\S$/.test(prevText) &&
+                                  /^\S/.test(addTmp.textContent || "");
                                 focusTargetRef.current = i - 1;
-                                focusCaretOffsetRef.current = (
-                                  tmp.textContent || ""
-                                ).length;
+                                focusCaretOffsetRef.current =
+                                  prevText.length + (addedSpace ? 1 : 0);
                                 // Fusionar quita un bloque del medio — el
                                 // índice fijo de "PDF-Einfügung" quedaría
                                 // señalando el bloque que se corrió a ese
