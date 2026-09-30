@@ -1082,15 +1082,6 @@ export default function FromPdfPage() {
 
   return (
     <div className="w-full">
-      <style>{`
-        .pdfsel-textLayer { opacity: 1; line-height: 1; text-align: initial; }
-        .pdfsel-textLayer span, .pdfsel-textLayer br {
-          color: transparent; position: absolute; white-space: pre;
-          cursor: text; transform-origin: 0% 0%;
-        }
-        .pdfsel-textLayer ::selection { background: rgba(189,14,13,0.35); }
-      `}</style>
-
       <div className="px-4 pt-4">
         <div className="h-[3px] w-16 mb-2" style={{ background: "#BD0E0D" }} />
         <h1

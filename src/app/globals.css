@@ -805,3 +805,16 @@ span[data-pdf-seam="1"] {
   background-color: #fbbf24; /* amber-400 */
   border-radius: 1px;
 }
+
+/* Capa de texto de pdfjs sobre el canvas del Dossier-PDF (components/
+   DossierWorkbench/PdfPageView): texto INVISIBLE, solo para poder
+   seleccionarlo encima de la imagen de la página. Vive acá (global) y no en
+   un <style> de una página: el visor se usa en Artikel aus PDF y en el
+   editor de artículos — cuando estaba dentro de from-pdf/page.js, en el
+   editor la capa se pintaba encima del scan y el dossier se veía "corrupto". */
+.pdfsel-textLayer { opacity: 1; line-height: 1; text-align: initial; }
+.pdfsel-textLayer span, .pdfsel-textLayer br {
+  color: transparent; position: absolute; white-space: pre;
+  cursor: text; transform-origin: 0% 0%;
+}
+.pdfsel-textLayer ::selection { background: rgba(189,14,13,0.35); }
