@@ -1943,7 +1943,21 @@ function PasteImportPanel({
   const withBlockIds = (arr) =>
     (arr || []).map((b) => (b.id != null ? b : { ...b, id: genId() }));
   const [blocks, setBlocks] = useState(() => withBlockIds(initialBlocks));
+  // "Deshacer la última inserción desde el PDF" (botón ↶ / Cmd+Z): antes de
+  // cada lote que entra por apiRef se guarda una foto de los bloques. Una
+  // edición a mano (cualquier setBlocksSafe fuera de una inserción) vacía la
+  // pila: volver a una foto anterior a esa edición la borraría sin avisar.
+  // Así Cmd+Z solo se intercepta mientras lo último que pasó fue una
+  // inserción — el resto del tiempo sigue siendo el deshacer nativo del campo.
+  const undoStackRef = useRef([]);
+  const [undoCount, setUndoCount] = useState(0);
+  const insertingRef = useRef(false);
+  const undoBatchOpenRef = useRef(false);
   const setBlocksSafe = (updater) => {
+    if (!insertingRef.current && undoStackRef.current.length) {
+      undoStackRef.current = [];
+      setUndoCount(0);
+    }
     setBlocks((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
       return next == null ? next : withBlockIds(next);
@@ -2238,9 +2252,71 @@ function PasteImportPanel({
       return [...arr, { type: "poem", text: text.trim() }];
     });
   };
+  // Envuelve cada función de inserción: foto de los bloques UNA vez por lote
+  // (from-pdf llama appendText/appendHeading/… varias veces seguidas, sincrónico,
+  // para una misma selección — el lote se cierra en el próximo tick).
+  const withUndo =
+    (fn) =>
+    (...args) => {
+      if (!undoBatchOpenRef.current) {
+        undoBatchOpenRef.current = true;
+        setTimeout(() => {
+          undoBatchOpenRef.current = false;
+        }, 0);
+        undoStackRef.current = [...undoStackRef.current, blocks].slice(-20);
+        setUndoCount(undoStackRef.current.length);
+      }
+      insertingRef.current = true;
+      try {
+        return fn(...args);
+      } finally {
+        insertingRef.current = false;
+      }
+    };
   useEffect(() => {
     if (apiRef)
-      apiRef.current = { appendText, appendHeading, appendQuestion, appendPoem };
+      apiRef.current = {
+        appendText: withUndo(appendText),
+        appendHeading: withUndo(appendHeading),
+        appendQuestion: withUndo(appendQuestion),
+        appendPoem: withUndo(appendPoem),
+      };
+  });
+
+  const undoLastInsertion = () => {
+    const stack = undoStackRef.current;
+    if (!stack.length) return;
+    const snap = stack[stack.length - 1];
+    undoStackRef.current = stack.slice(0, -1);
+    setUndoCount(undoStackRef.current.length);
+    // Sacar el foco ANTES de restaurar: un contentEditable enfocado no se
+    // resincroniza con su value (ver DarkAnswerBlock) y seguiría mostrando
+    // el texto insertado aunque el estado ya no lo tenga.
+    if (document.activeElement && document.activeElement !== document.body)
+      document.activeElement.blur();
+    setBlocks(snap);
+    setInsertStartMark(null);
+    batchStartedRef.current = false;
+    batchInsertRef.current = null;
+  };
+
+  // Cmd/Ctrl+Z → deshacer la última inserción, solo si hay una pendiente
+  // (la pila se vacía con cualquier edición a mano) y el foco no está en un
+  // campo de afuera del editor de bloques (p. ej. los inputs del panel PDF).
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+      if ((e.key || "").toLowerCase() !== "z") return;
+      if (!undoStackRef.current.length) return;
+      const ae = document.activeElement;
+      const editable =
+        ae && (ae.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName));
+      if (editable && !scrollRef.current?.contains(ae)) return;
+      e.preventDefault();
+      undoLastInsertion();
+    };
+    document.addEventListener("keydown", onKey, true);
+    return () => document.removeEventListener("keydown", onKey, true);
   });
 
   // Tras insertar texto desde el PDF, llevar el caret y el scroll del editor
@@ -2780,6 +2856,17 @@ function PasteImportPanel({
                   Web
                 </a>
               )}
+              {undoCount > 0 && (
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={undoLastInsertion}
+                  className="text-xs text-amber-700 hover:text-amber-900 border border-amber-300 hover:border-amber-500 bg-amber-50 rounded px-3 py-1.5 transition-colors"
+                  title="Letzte Einfügung aus dem PDF rückgängig machen (⌘Z / Strg+Z)"
+                >
+                  ↶ Einfügung rückgängig
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setShowPreview(true)}
@@ -3014,7 +3101,7 @@ function PasteImportPanel({
               return (
                 <div
                   key={block.id ?? `${lang}-${i}`}
-                  className={`mb-0.5 relative ${isInsertStart ? "ring-2 ring-amber-400" : ""}`}
+                  className={`group/row mb-0.5 relative ${isInsertStart ? "ring-2 ring-amber-400" : ""}`}
                   onFocus={() => {
                     lastFocusedBlockRef.current = i;
                     setActiveAnswerIdx(block.type === "answer" ? i : null);
@@ -3040,6 +3127,22 @@ function PasteImportPanel({
                       className="absolute -top-2.5 left-2 z-10 flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm hover:bg-amber-300 transition-colors"
                     >
                       ▸ PDF-Einfügung ✕
+                    </button>
+                  )}
+                  {/* Borrar el bloque entero de un click (Fließtext, Frage,
+                      Zwischentitel — imagen/lista/poema ya traen su ✕). Antes
+                      había que vaciarlo a mano con Backspace letra por letra. */}
+                  {(block.type === "answer" ||
+                    block.type === "question" ||
+                    block.type === "subtitle") && (
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => deleteBlock(i)}
+                      title="Block löschen"
+                      className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center rounded-full text-xs text-gray-400 bg-white/80 border border-gray-200 opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100 hover:text-red-600 hover:border-red-300 transition-opacity"
+                    >
+                      ✕
                     </button>
                   )}
                   {/* ── IMAGE block ── */}

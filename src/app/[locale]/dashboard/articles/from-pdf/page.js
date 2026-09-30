@@ -370,21 +370,61 @@ function linesFromItemsLiteral(items) {
   }
   if (current.length) lines.push(current);
 
-  const out = [];
-  let prevY = null;
-  for (const line of lines) {
+  const rows = lines.map((line) => {
     line.sort((a, b) => a.x - b.x);
-    const text = line
-      .map((i) => i.str)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
-    const y = line[0].y;
+    return {
+      text: line
+        .map((i) => i.str)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim(),
+      left: Math.min(...line.map((i) => i.x)),
+      right: Math.max(...line.map((i) => i.right ?? i.x)),
+      y: line[0].y,
+    };
+  });
+  const colLeft = Math.min(...rows.map((r) => r.left));
+  const colRight = Math.max(...rows.map((r) => r.right));
+
+  // ¿`next` es la continuación de un verso que la maqueta cortó por falta de
+  // ancho (columnas angostas del impreso), y no un verso propio? Regla
+  // tipográfica: la primera palabra de `next` NO habría entrado al final de
+  // `prev` (por eso bajó de línea) — y además la línea sigue en minúscula
+  // (`Wenn du sie zum Weinen` / `bringst`) o `prev` corta con guion
+  // (`Bräuti-` / `gams`). Los versos de verdad suelen empezar en mayúscula,
+  // así que esa segunda condición es la que evita unir versos cortos.
+  const isWrapped = (prev, next) => {
+    if (!prev.text || !next.text) return false;
+    const hyphen = /[-\u00AD\u2010]$/.test(prev.text);
+    const lower = /^\p{Ll}/u.test(next.text);
+    if (!hyphen && !lower) return false;
+    const firstWord = next.text.split(" ")[0];
+    const nextW = next.right - next.left;
+    const firstWordW = (nextW * firstWord.length) / next.text.length;
+    const spaceW = medH * 0.25;
+    return prev.right + spaceW + firstWordW >= colLeft + (colRight - colLeft) * 0.95;
+  };
+
+  const out = [];
+  let prev = null;
+  for (const row of rows) {
     // Salto de línea bien más grande que lo típico = estrofa nueva en el
     // original (línea en blanco entre versos).
-    if (prevY != null && y - prevY > medH * 1.8) out.push("");
-    out.push(text);
-    prevY = y;
+    const stanzaBreak = prev != null && row.y - prev.y > medH * 1.8;
+    if (stanzaBreak) out.push("");
+    if (!stanzaBreak && prev && out.length && isWrapped(prev, row)) {
+      const last = out[out.length - 1];
+      // Guion de corte + minúscula = palabra partida (`Bräuti-gams` →
+      // `Bräutigams`); guion + mayúscula = compuesto (`Nord-Süd`), se deja.
+      out[out.length - 1] = /[-\u00AD\u2010]$/.test(last)
+        ? /^\p{Ll}/u.test(row.text)
+          ? last.slice(0, -1) + row.text
+          : last + row.text
+        : last + " " + row.text;
+    } else {
+      out.push(row.text);
+    }
+    prev = row;
   }
   return out.join("\n").replace(/\n{3,}/g, "\n\n");
 }
