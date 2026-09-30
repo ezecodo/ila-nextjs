@@ -19,6 +19,65 @@ function unescapeHtml(text) {
     .replace(/&gt;/g, ">");
 }
 
+// ── Bloque "Spalten" (2–3 columnas en paralelo, p. ej. poema bilingüe) ────
+// En el editor cada columna es texto plano con saltos de línea (como Poem);
+// una línea en blanco separa estrofas/párrafos. Se guarda ALINEADO POR
+// ESTROFA: fila N = estrofa N de cada columna, así el original y su
+// traducción quedan enfrentados aunque una ocupe más líneas (y en mobile se
+// apilan fila por fila — ver `.ila-columns` en globals.css). Solo usa <div> y
+// <br> (ningún <p>), así autoDetectHeadings/autoFormatHeadings de las páginas
+// públicas no lo tocan.
+const splitStanzas = (text) =>
+  (text || "")
+    .replace(/\r/g, "")
+    .split(/\n[ \t]*\n+/)
+    .map((st) => st.replace(/^\n+|\n+$/g, ""))
+    .filter((st) => st.trim());
+
+function columnsToHtml(cols, header) {
+  const list = (cols || []).slice(0, 3);
+  const stanzas = list.map(splitStanzas);
+  const rows = Math.max(0, ...stanzas.map((st) => st.length));
+  if (!rows) return "";
+  let html = "";
+  for (let r = 0; r < rows; r++) {
+    const cells = stanzas
+      .map((st) => {
+        const cell = (st[r] || "")
+          .split("\n")
+          .map((l) => escapeHtml(l.trim()))
+          .join("<br>");
+        return `<div class="ila-col">${cell}</div>`;
+      })
+      .join("");
+    html += `<div class="ila-col-row">${cells}</div>`;
+  }
+  const cls = `ila-columns ila-columns-${list.length}${header ? " ila-columns-head" : ""}`;
+  return `<div class="${cls}">${html}</div>`;
+}
+
+function columnsFromEl(el) {
+  const rows = Array.from(el.children).filter((r) =>
+    r.classList.contains("ila-col-row"),
+  );
+  const n =
+    Number((el.className.match(/ila-columns-(\d)/) || [])[1]) ||
+    Math.max(2, ...rows.map((r) => r.children.length));
+  const cols = Array.from({ length: Math.min(3, Math.max(2, n)) }, (_, c) =>
+    rows
+      .map((r) => {
+        const cell = r.children[c];
+        if (!cell) return "";
+        return unescapeHtml(
+          cell.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, ""),
+        ).trim();
+      })
+      .filter(Boolean)
+      .join("\n\n"),
+  );
+  return { cols, header: el.classList.contains("ila-columns-head") };
+}
+
 // Pairs:
 //   { id, question, answer, size? }           → Q&A  (size: "s"|"m"|"l", default "m")
 //   { id, question, answer, isSubtitle:true }  → section heading <h3>
@@ -53,7 +112,12 @@ export function qaToHtml(pairs) {
         ordered,
         isPoemBlock,
         text: poemText,
+        isColumnsBlock,
+        cols,
+        columnsHeader,
       } = pair;
+
+      if (isColumnsBlock) return columnsToHtml(cols, columnsHeader);
 
       // Image block
       if (isImage) {
@@ -159,11 +223,14 @@ export function htmlToQa(html) {
   });
 
   // Normalize non-poem DIVs (e.g. from contentEditable/Chrome) to <p> so they get processed
-  doc.body.querySelectorAll("div:not(.poem)").forEach((div) => {
-    const p = doc.createElement("p");
-    p.innerHTML = div.innerHTML;
-    div.parentNode.replaceChild(p, div);
-  });
+  // (Spalten: sus <div> son estructura, no párrafos — se dejan intactos.)
+  doc.body
+    .querySelectorAll("div:not(.poem):not(.ila-columns):not(.ila-col-row):not(.ila-col)")
+    .forEach((div) => {
+      const p = doc.createElement("p");
+      p.innerHTML = div.innerHTML;
+      div.parentNode.replaceChild(p, div);
+    });
 
   // If no element children exist, the content is plain text — parse with Q&A detection
   if (doc.body.children.length === 0 && doc.body.textContent.trim()) {
@@ -296,6 +363,20 @@ export function htmlToQa(html) {
         id: genId(),
         isPoemBlock: true,
         text: unescapeHtml(poemText),
+      });
+      currentPair = null;
+      continue;
+    }
+
+    // Spalten: <div class="ila-columns"> (ver columnsToHtml)
+    if (tag === "DIV" && el.classList.contains("ila-columns")) {
+      if (currentPair) pairs.push(currentPair);
+      const { cols, header } = columnsFromEl(el);
+      pairs.push({
+        id: genId(),
+        isColumnsBlock: true,
+        cols,
+        columnsHeader: header,
       });
       currentPair = null;
       continue;
@@ -680,6 +761,15 @@ function blocksToQa(blocks) {
       if (currentPair) pairs.push(currentPair);
       pairs.push({ id: genId(), isPoemBlock: true, text: block.text || "" });
       currentPair = null;
+    } else if (block.type === "columns") {
+      if (currentPair) pairs.push(currentPair);
+      pairs.push({
+        id: genId(),
+        isColumnsBlock: true,
+        cols: [...(block.cols || ["", ""])],
+        columnsHeader: !!block.header,
+      });
+      currentPair = null;
     } else {
       // answer — may be plain text or HTML (from contenteditable)
       if (!currentPair) currentPair = { id: genId(), question: "", answer: "" };
@@ -717,6 +807,12 @@ function pairsToBlocks(pairs) {
       });
     } else if (pair.isPoemBlock) {
       blocks.push({ type: "poem", text: pair.text || "" });
+    } else if (pair.isColumnsBlock) {
+      blocks.push({
+        type: "columns",
+        cols: [...(pair.cols || ["", ""])],
+        header: !!pair.columnsHeader,
+      });
     } else if (pair.isQuote) {
       blocks.push({
         type: "answer",
@@ -800,6 +896,12 @@ const BLOCK_STYLES = {
     badgeClass: "bg-purple-600 text-white text-[9px]",
     rowClass: "bg-purple-50/60 border-purple-100 hover:bg-purple-50",
     textClass: "text-purple-900",
+  },
+  columns: {
+    badge: "SP",
+    badgeClass: "bg-teal-600 text-white text-[9px]",
+    rowClass: "bg-teal-50/60 border-teal-100 hover:bg-teal-50",
+    textClass: "text-teal-900",
   },
 };
 
@@ -2035,6 +2137,12 @@ function PasteImportPanel({
   // texto JUSTO DESPUÉS de ese bloque, no al final. Al seleccionar en el PDF el
   // foco se va del editor, pero esta ref conserva el último bloque editado.
   const lastFocusedBlockRef = useRef(null);
+  // Columna del bloque "Spalten" que tuvo el foco por última vez:
+  // { blockIdx, col }. Si el último bloque enfocado es ese Spalten, el texto
+  // que entra desde el PDF va a ESA columna (ver appendToFocusedColumn).
+  const lastFocusedColumnRef = useRef(null);
+  // Mismo dato como state, solo para resaltar la columna destino en pantalla.
+  const [focusedColumn, setFocusedColumn] = useState(null);
   // Índice de inserción posicional en curso (lote desde el PDF). null = anexar
   // al final (comportamiento clásico). Se fija al primer append del lote y
   // avanza con cada bloque insertado para mantener el orden de lectura.
@@ -2252,11 +2360,43 @@ function PasteImportPanel({
       return [...arr, { type: "poem", text: text.trim() }];
     });
   };
+  // Texto desde el PDF con una columna de "Spalten" enfocada: se agrega al
+  // final de ESA columna (cada inserción como estrofa/párrafo nuevo, separada
+  // por una línea en blanco) en vez de crear bloques. `html` = la inserción
+  // viene como <p>…</p> (appendText); si no, texto plano con saltos (Poem,
+  // Zwischentitel, Frage). Devuelve true si la tomó.
+  const appendToFocusedColumn = (raw, isHtml) => {
+    const fi = lastFocusedBlockRef.current;
+    const fc = lastFocusedColumnRef.current;
+    if (fi == null || !fc || fc.blockIdx !== fi) return false;
+    if (blocks?.[fi]?.type !== "columns") return false;
+    let add = raw || "";
+    if (isHtml) {
+      const tmp = document.createElement("div");
+      tmp.innerHTML = add
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>\s*<p[^>]*>/gi, "\n\n");
+      add = tmp.textContent;
+    }
+    add = add.replace(/^\s*\n|\n\s*$/g, "").trim();
+    if (!add) return true;
+    setBlocksSafe((prev) =>
+      prev.map((b, idx) => {
+        if (idx !== fi || b.type !== "columns") return b;
+        const cols = [...(b.cols || ["", ""])];
+        const cur = (cols[fc.col] || "").replace(/\s+$/, "");
+        cols[fc.col] = cur ? `${cur}\n\n${add}` : add;
+        return { ...b, cols };
+      }),
+    );
+    return true;
+  };
+
   // Envuelve cada función de inserción: foto de los bloques UNA vez por lote
   // (from-pdf llama appendText/appendHeading/… varias veces seguidas, sincrónico,
   // para una misma selección — el lote se cierra en el próximo tick).
   const withUndo =
-    (fn) =>
+    (fn, isHtml = false) =>
     (...args) => {
       if (!undoBatchOpenRef.current) {
         undoBatchOpenRef.current = true;
@@ -2268,6 +2408,7 @@ function PasteImportPanel({
       }
       insertingRef.current = true;
       try {
+        if (appendToFocusedColumn(args[0], isHtml)) return;
         return fn(...args);
       } finally {
         insertingRef.current = false;
@@ -2276,7 +2417,7 @@ function PasteImportPanel({
   useEffect(() => {
     if (apiRef)
       apiRef.current = {
-        appendText: withUndo(appendText),
+        appendText: withUndo(appendText, true),
         appendHeading: withUndo(appendHeading),
         appendQuestion: withUndo(appendQuestion),
         appendPoem: withUndo(appendPoem),
@@ -2568,7 +2709,9 @@ function PasteImportPanel({
         ? { type: "list", items: [""], ordered: false }
         : type === "poem"
           ? { type: "poem", text: "" }
-          : { type, text: "" };
+          : type === "columns"
+            ? { type: "columns", cols: ["", ""], header: false }
+            : { type, text: "" };
     setBlocksSafe((prev) => {
       const next = [...(prev || [])];
       next.splice(afterIdx + 1, 0, newBlock);
@@ -3395,6 +3538,118 @@ function PasteImportPanel({
                     </div>
                   )}
 
+                  {/* ── SPALTEN block (2–3 columnas en paralelo) ── */}
+                  {block.type === "columns" && (
+                    <div
+                      className={`w-full rounded-xl border px-4 py-3 ${s.rowClass}`}
+                    >
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span
+                          className={`shrink-0 w-8 h-7 flex items-center justify-center rounded font-black text-[9px] ${s.badgeClass}`}
+                        >
+                          SP
+                        </span>
+                        <div className="flex items-center border border-teal-200 rounded overflow-hidden">
+                          {[2, 3].map((n) => (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() => {
+                                const cols = [...(block.cols || ["", ""])];
+                                if (n < cols.length) {
+                                  if (
+                                    cols.slice(n).some((c) => (c || "").trim()) &&
+                                    !window.confirm(
+                                      "Die 3. Spalte hat schon Text — trotzdem entfernen?",
+                                    )
+                                  )
+                                    return;
+                                  cols.length = n;
+                                } else {
+                                  while (cols.length < n) cols.push("");
+                                }
+                                updateBlockField(i, "cols", cols);
+                              }}
+                              className={`px-2 h-6 text-[10px] font-bold transition-colors ${
+                                (block.cols || []).length === n
+                                  ? "bg-teal-600 text-white"
+                                  : "text-teal-600 hover:bg-teal-100"
+                              }`}
+                              title={`${n} Spalten`}
+                            >
+                              {n}
+                            </button>
+                          ))}
+                        </div>
+                        <label className="flex items-center gap-1 text-[11px] text-teal-700 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={!!block.header}
+                            onChange={(e) =>
+                              updateBlockField(i, "header", e.target.checked)
+                            }
+                          />
+                          1. Zeile = Überschrift
+                        </label>
+                        <span className="text-[11px] text-teal-600/80 flex-1 min-w-[12rem]">
+                          Spalte anklicken → Text aus dem PDF landet dort ·
+                          Leerzeile = neue Strophe (Strophen stehen
+                          nebeneinander)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => deleteBlock(i)}
+                          title="Block löschen"
+                          className="w-6 h-6 flex items-center justify-center text-teal-400 hover:text-red-500 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div
+                        className="grid gap-3"
+                        style={{
+                          gridTemplateColumns: `repeat(${(block.cols || []).length || 2}, minmax(0, 1fr))`,
+                        }}
+                      >
+                        {(block.cols || ["", ""]).map((colText, c) => {
+                          const isTarget =
+                            focusedColumn?.blockIdx === i &&
+                            focusedColumn?.col === c;
+                          return (
+                            <textarea
+                              key={c}
+                              ref={(el) => {
+                                if (c === 0) blockRefsArr.current[i] = el;
+                              }}
+                              value={colText || ""}
+                              onFocus={() => {
+                                lastFocusedColumnRef.current = { blockIdx: i, col: c };
+                                setFocusedColumn({ blockIdx: i, col: c });
+                              }}
+                              onChange={(e) => {
+                                const cols = [...(block.cols || ["", ""])];
+                                cols[c] = e.target.value;
+                                updateBlockField(i, "cols", cols);
+                              }}
+                              rows={4}
+                              placeholder={`Spalte ${c + 1}`}
+                              className={`w-full bg-white/70 text-teal-950 text-sm outline-none resize-none leading-relaxed rounded border px-2 py-1.5 placeholder:text-teal-300 caret-[#BD0E0D] transition-colors ${
+                                isTarget
+                                  ? "border-teal-500 ring-2 ring-teal-200"
+                                  : "border-teal-100"
+                              }`}
+                              style={{
+                                minHeight: "80px",
+                                caretColor: "#BD0E0D",
+                                fieldSizing: "content",
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* ── ANSWER block (contenteditable + toolbar) ── */}
                   {block.type === "answer" && (
                     <div
@@ -3660,6 +3915,14 @@ function PasteImportPanel({
                 className="border border-dashed border-purple-300 hover:border-purple-500 text-purple-600 hover:text-purple-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
               >
                 📜 Poem
+              </button>
+              <button
+                type="button"
+                onClick={() => addBlock("columns", blocks.length - 1)}
+                className="border border-dashed border-teal-300 hover:border-teal-500 text-teal-600 hover:text-teal-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
+                title="2–3 Spalten nebeneinander (z. B. Gedicht Original | Übersetzung)"
+              >
+                ▥ Spalten
               </button>
               <div className="flex-1" />
               <button
@@ -4525,12 +4788,22 @@ export default function InterviewEditor({
   };
 
   const questionCount = pairs.filter(
-    (p) => !p.isSubtitle && !p.isImage && !p.isListBlock && !p.isPoemBlock,
+    (p) =>
+      !p.isSubtitle &&
+      !p.isImage &&
+      !p.isListBlock &&
+      !p.isPoemBlock &&
+      !p.isColumnsBlock,
   ).length;
   const blockCount = pairs.length;
   const hasContent = pairs.some(
     (p) =>
-      p.question || p.answer || p.isImage || p.isListBlock || p.isPoemBlock,
+      p.question ||
+      p.answer ||
+      p.isImage ||
+      p.isListBlock ||
+      p.isPoemBlock ||
+      p.isColumnsBlock,
   );
 
   const openEditor = () => {

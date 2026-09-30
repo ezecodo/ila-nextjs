@@ -695,6 +695,66 @@ body {
   margin-bottom: 1em; /* 👈 espacio entre estrofas */
 }
 
+/* Bloque "Spalten" del publilab (columnsToHtml en InterviewEditor.jsx): 2–3
+   columnas en paralelo (p. ej. poema original | traducción), guardado como
+   filas alineadas por estrofa — la estrofa N de cada columna comparte fila,
+   así quedan enfrentadas aunque una traducción ocupe más líneas. Desktop:
+   lado a lado. Mobile: cada fila se apila (estrofa original y justo debajo
+   su traducción), para seguir leyendo en paralelo sin columnas ilegibles.
+   Rectángulo sin redondear, mismo marco discreto que .poem (Brand Kit). */
+.ila-columns {
+  border: 1px solid #e5e7eb;
+  padding: 1.25rem 1.5rem;
+  margin: 1.75rem 0;
+  line-height: 1.6;
+}
+.dark .ila-columns {
+  border-color: #374151;
+}
+.ila-columns .ila-col-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+}
+.ila-columns .ila-col-row + .ila-col-row {
+  margin-top: 1.1rem;
+}
+.ila-columns .ila-col:empty {
+  display: none;
+}
+/* Mobile apilado: la 2ª/3ª celda de la fila (la traducción) se distingue con
+   un filete a la izquierda, para que se lea como "versión de lo de arriba". */
+.ila-columns .ila-col + .ila-col {
+  color: #4b5563;
+  border-left: 2px solid #e5e7eb;
+  padding-left: 0.75rem;
+}
+.dark .ila-columns .ila-col + .ila-col {
+  color: #d1d5db;
+  border-left-color: #374151;
+}
+.ila-columns.ila-columns-head .ila-col-row:first-child .ila-col {
+  font-weight: 700;
+}
+@media (min-width: 640px) {
+  .ila-columns.ila-columns-2 .ila-col-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem;
+  }
+  .ila-columns.ila-columns-3 .ila-col-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  .ila-columns .ila-col:empty {
+    display: block;
+  }
+  .ila-columns .ila-col + .ila-col {
+    color: inherit;
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
 .dossier-link {
   color: #0066cc;
   text-decoration: underline;
