@@ -498,8 +498,14 @@ body {
   color: inherit !important;
 }
 /* ESTILO PARA LÍNEAS QUE PARECEN TÍTULOS */
+/* 1rem (antes 0.5rem): con 0.5rem el punto y aparte casi no se distinguía
+   de un salto de línea dentro del párrafo (feedback de la redacción,
+   2026-10-01). Ojo: .article-content tiene white-space: pre-wrap, así que
+   en artículos cuyo HTML trae saltos de línea ENTRE párrafos (migrados) el
+   hueco se ve más grande que en los cargados con el publilab, que los
+   guarda pegados. */
 .article-content p {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   line-height: 1.6;
 }
 
