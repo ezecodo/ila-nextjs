@@ -1312,7 +1312,7 @@ function setCaretAtTextOffset(root, offset) {
 // línea en blanco = estrofa nueva. Negrita/cursiva con la barra flotante del
 // margen (mismo marginSlot que el Fließtext) o, sin margen, con la barrita
 // de arriba de la columna.
-function ColumnEditor({ value, onChange, onFocusCol, marginSlot, placeholder, highlighted, editorRef }) {
+function ColumnEditor({ value, onChange, onFocusCol, onEscape, marginSlot, placeholder, highlighted, editorRef }) {
   const ref = useRef(null);
   const [focused, setFocused] = useState(false);
   useEffect(() => {
@@ -1385,6 +1385,13 @@ function ColumnEditor({ value, onChange, onFocusCol, marginSlot, placeholder, hi
             e.preventDefault();
             document.execCommand("insertLineBreak");
             emit();
+          }
+          // Esc = salir del modo columna (stopPropagation: en Artikel aus PDF
+          // Esc también cierra el Vollbild, eso no tiene que pasar acá).
+          if (e.key === "Escape" && onEscape) {
+            e.preventDefault();
+            e.stopPropagation();
+            onEscape();
           }
         }}
         onPaste={(e) => {
@@ -2644,6 +2651,19 @@ function PasteImportPanel({
       return [...arr, { type: "poem", text: text.trim() }];
     });
   };
+  // Termina el "modo columna" de un bloque Spalten: lo próximo que entre
+  // desde el PDF va como bloques normales JUSTO DEBAJO de la tabla
+  // (lastFocusedBlockRef = la tabla → beginBatchPlacement inserta en i+1, o
+  // anexa al final si la tabla es el último bloque). Sin esto, si la tabla
+  // era el último bloque no había dónde hacer click para salir.
+  const endColumnMode = (i) => {
+    lastFocusedColumnRef.current = null;
+    setFocusedColumn(null);
+    lastFocusedBlockRef.current = i;
+    if (document.activeElement && document.activeElement !== document.body)
+      document.activeElement.blur();
+  };
+
   // Texto desde el PDF con una columna de "Spalten" enfocada: se agrega al
   // final de ESA columna (cada inserción como estrofa/párrafo nuevo, separada
   // por una línea en blanco) en vez de crear bloques. `html` = la inserción
@@ -3552,6 +3572,12 @@ function PasteImportPanel({
                   onFocus={() => {
                     lastFocusedBlockRef.current = i;
                     setActiveAnswerIdx(block.type === "answer" ? i : null);
+                    // Otro bloque enfocado → la columna de Spalten deja de
+                    // ser destino del PDF (y de verse resaltada como tal).
+                    if (block.type !== "columns" && lastFocusedColumnRef.current) {
+                      lastFocusedColumnRef.current = null;
+                      setFocusedColumn(null);
+                    }
                   }}
                   onBlur={(e) => {
                     // Si el foco se va afuera de esta fila entera, dejamos de
@@ -3940,6 +3966,27 @@ function PasteImportPanel({
                           ✕
                         </button>
                       </div>
+                      {/* Destino actual del texto del PDF + salida del modo
+                          columna (ver endColumnMode). */}
+                      {focusedColumn?.blockIdx === i && (
+                        <div className="flex items-center gap-2 mb-2 text-[11px]">
+                          <span className="px-2 py-0.5 rounded-full bg-teal-600 text-white font-bold">
+                            📥 PDF →{" "}
+                            {focusedColumn.col === "title"
+                              ? "Überschrift"
+                              : `Spalte ${focusedColumn.col + 1}`}
+                          </span>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => endColumnMode(i)}
+                            className="px-2 py-0.5 rounded-full border border-teal-300 text-teal-700 hover:bg-teal-100 transition-colors"
+                            title="Text aus dem PDF wieder als normale Blöcke einfügen — direkt unter dieser Tabelle (Esc)"
+                          >
+                            ✕ Weiter unter der Tabelle
+                          </button>
+                        </div>
+                      )}
                       {/* Título de toda la tabla (opcional, ancho completo). */}
                       <div className="flex items-center gap-2 mb-2">
                         <input
@@ -3950,6 +3997,13 @@ function PasteImportPanel({
                             setFocusedColumn({ blockIdx: i, col: "title" });
                           }}
                           onChange={(e) => updateBlockField(i, "title", e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              endColumnMode(i);
+                            }
+                          }}
                           placeholder="Überschrift der Tabelle (optional)"
                           className={`flex-1 min-w-0 bg-white/70 text-teal-950 font-bold outline-none rounded border px-2 py-1 placeholder:font-normal placeholder:text-teal-300 caret-[#BD0E0D] transition-colors ${
                             (block.titleLevel || 4) === 2
@@ -4001,6 +4055,7 @@ function PasteImportPanel({
                               marginSlot={marginSlot}
                               placeholder={`Spalte ${c + 1}`}
                               highlighted={isTarget}
+                              onEscape={() => endColumnMode(i)}
                               onFocusCol={() => {
                                 lastFocusedColumnRef.current = { blockIdx: i, col: c };
                                 setFocusedColumn({ blockIdx: i, col: c });

@@ -703,10 +703,24 @@ body {
    su traducción), para seguir leyendo en paralelo sin columnas ilegibles.
    Rectángulo sin redondear, mismo marco discreto que .poem (Brand Kit). */
 .ila-columns {
+  position: relative;
   border: 1px solid #e5e7eb;
   padding: 1.25rem 1.5rem;
   margin: 1.75rem 0;
   line-height: 1.6;
+}
+/* Rayita roja corta arriba a la izquierda, sobre el borde: la marca de
+   sección de ila (la misma de los encabezados del sitio). A propósito NO el
+   filete izquierdo del Vorspann — el Kasten ya lo evitó porque se confundían
+   a simple vista (ver comentario de `.article-content blockquote`). */
+.ila-columns::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 4rem;
+  height: 3px;
+  background: #BD0E0D;
 }
 .dark .ila-columns {
   border-color: #374151;
