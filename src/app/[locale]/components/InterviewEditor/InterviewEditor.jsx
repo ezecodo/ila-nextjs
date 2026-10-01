@@ -2035,16 +2035,50 @@ function DarkAnswerBlock({
               }
             }
           }
-          // Enter dentro de un Kasten = línea nueva DENTRO del mismo Kasten
-          // (nativo: <p> nuevo dentro del <blockquote>). Sin esto, partía el
-          // bloque en dos Kästen separados — dos recuadros en la web, y el
-          // segundo quedaba como Fließtext con un <blockquote> adentro.
+          // Enter dentro de un Kasten:
+          // - en el MEDIO (queda texto después del caret dentro del Kasten) =
+          //   línea nueva dentro del mismo Kasten (nativo: <p> nuevo dentro
+          //   del <blockquote>). Partir ahí dejaba dos Kästen separados — dos
+          //   recuadros en la web, y el segundo como Fließtext con un
+          //   <blockquote> adentro.
+          // - al FINAL del Kasten (nada después del caret) = salir: sigue al
+          //   split de siempre de abajo → bloque "A" nuevo debajo (el flujo
+          //   de trabajo de siempre para terminar un Kasten). Si la línea
+          //   actual está vacía (un Enter de más), se borra antes de salir.
           if (e.key === "Enter" && !e.shiftKey && onSplit) {
             const sel = window.getSelection();
-            const n = sel?.rangeCount ? sel.getRangeAt(0).startContainer : null;
+            const range = sel?.rangeCount ? sel.getRangeAt(0) : null;
+            const n = range ? range.startContainer : null;
             const nEl = n?.nodeType === 3 ? n.parentElement : n;
             const bq = nEl?.closest?.("blockquote");
-            if (bq && divRef.current.contains(bq)) return;
+            if (bq && divRef.current.contains(bq)) {
+              const rest = document.createRange();
+              rest.selectNodeContents(bq);
+              rest.setStart(range.startContainer, range.startOffset);
+              const atKastenEnd =
+                !rest.toString().trim() &&
+                !rest.cloneContents().querySelector?.("img, figure, video, iframe");
+              if (!atKastenEnd) return; // en el medio → nativo, dentro del Kasten
+              const line = nEl.closest("p");
+              if (
+                line &&
+                bq.contains(line) &&
+                line !== bq.firstElementChild &&
+                !line.textContent.trim() &&
+                !line.querySelector("img, figure, video, iframe")
+              ) {
+                const prevLine = line.previousElementSibling;
+                line.remove();
+                if (prevLine) {
+                  const r = document.createRange();
+                  r.selectNodeContents(prevLine);
+                  r.collapse(false);
+                  sel.removeAllRanges();
+                  sel.addRange(r);
+                }
+              }
+              // …y sigue al split normal (salir a un bloque nuevo).
+            }
           }
           if (e.key === "Enter" && !e.shiftKey && onSplit) {
             e.preventDefault();
