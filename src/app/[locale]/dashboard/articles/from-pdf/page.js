@@ -935,6 +935,44 @@ export default function FromPdfPage() {
   // campo de entrevistado/a.
   const isInterview = selectedBeitragstyp?.name === "Interview";
 
+  // Datos del artículo para la Vorschau completa del publilab (ArticlePreview):
+  // lo que el formulario ya tiene cargado, con la forma que espera la vista.
+  // Imágenes en el mismo orden con que se crean al guardar (ver handleSubmit):
+  // primero las del módulo estándar, después los recortes "haupt" del PDF.
+  const previewEdition = editions.find((ed) => String(ed.id) === String(editionId));
+  const previewSubtyp = selectedBeitragstyp?.subtypes?.find(
+    (st) => String(st.id) === String(beitragssubtypId)
+  );
+  // Las opciones de Regionen/Themen vienen como "Padre > Hijo"; la web
+  // muestra solo el nombre.
+  const lastLabel = (label) => String(label || "").split(" > ").pop();
+  const previewMeta = {
+    variant: editionId ? "ausgaben" : "online",
+    date: publicationDate,
+    title,
+    subtitle,
+    vorspannHtml: previewText,
+    additionalInfoHtml: additionalInfo,
+    beitragstyp: selectedBeitragstyp?.name || "",
+    beitragssubtyp: previewSubtyp?.name || "",
+    edition: previewEdition
+      ? { number: previewEdition.number, title: previewEdition.title }
+      : null,
+    authors: selAuthors.map((a) => a.name),
+    interviewees: selInterviewees.map((i) => i.label),
+    regions: selRegions.map((r) => ({ id: r.value, name: lastLabel(r.label) })),
+    topics: selTopics.map((t) => ({ id: t.value, name: lastLabel(t.label) })),
+    categories: categories
+      .filter((c) => selCategories.includes(c.id))
+      .map((c) => ({ id: c.id, name: c.name })),
+    images: [
+      ...galleryPreviews.map((img) => ({ url: img.url, alt: img.alt, title: img.title })),
+      ...images
+        .filter((img) => img.role === "haupt")
+        .map((img) => ({ url: img.url, alt: img.alt, title: img.title })),
+    ],
+  };
+
   // Cuerpo válido: en modo publilab cuenta el HTML (sin tags); si no, el texto.
   const hasBody = publilabOn
     ? contentHtml.replace(/<[^>]+>/g, "").trim().length > 0
@@ -1699,6 +1737,7 @@ export default function FromPdfPage() {
           onClose={closeBodyFullscreen}
           title={title}
           subtitle={subtitle}
+          previewMeta={previewMeta}
           availableImages={[
             ...images
               .filter((img) => img.role === "haupt")

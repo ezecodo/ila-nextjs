@@ -266,6 +266,58 @@ export default function ArticleFormV2({ articleId }) {
   const isBuchBesprechung = selectedTypObj?.name === "Buchbesprechung";
   const isNachruf = selectedTypObj?.name === "Nachruf";
 
+  // URLs para mostrar las imágenes del formulario en la Vorschau: las ya
+  // guardadas traen `url`; las nuevas son un File (blob URL, se libera al
+  // cambiar). La tapa nueva de una Buchbesprechung (bookImage) va primero,
+  // como en la web (la tapa = primera imagen del artículo).
+  const previewImageUrls = useMemo(() => {
+    const list = [];
+    if (isBuchBesprechung && bookImage instanceof File)
+      list.push({ url: URL.createObjectURL(bookImage), alt: mediaTitle || "", blob: true });
+    for (const img of gallery) {
+      if (img.url) list.push({ url: img.url, alt: img.alt || "", title: img.title || "" });
+      else if (img.file instanceof File)
+        list.push({ url: URL.createObjectURL(img.file), alt: img.alt || "", title: img.title || "", blob: true });
+    }
+    return list;
+  }, [gallery, bookImage, isBuchBesprechung, mediaTitle]);
+  useEffect(
+    () => () =>
+      previewImageUrls.forEach((img) => img.blob && URL.revokeObjectURL(img.url)),
+    [previewImageUrls]
+  );
+
+  // Datos para la Vorschau completa del publilab (ArticlePreview): el
+  // artículo entero como sale en la web, con lo que el formulario tiene
+  // cargado en este momento (mismo formato que en Artikel aus PDF).
+  const previewEditionObj = editions.find(
+    (ed) => String(ed.id) === String(selectedEdition)
+  );
+  const previewMeta = {
+    variant: isPrinted && selectedEdition ? "ausgaben" : "online",
+    date: useCustomDate && publicationDate ? publicationDate : new Date(),
+    title,
+    subtitle,
+    vorspannHtml: previewTextEnabled ? previewText : "",
+    additionalInfoHtml: additionalInfoEnabled ? additionalInfo : "",
+    beitragstyp: selectedTypObj?.name || "",
+    beitragssubtyp:
+      subtypen.find((st) => String(st.id) === String(selectedSubtyp))?.name || "",
+    edition:
+      isPrinted && previewEditionObj
+        ? { number: previewEditionObj.number, title: previewEditionObj.title }
+        : null,
+    authors: selectedAuthors.map((a) => a.label),
+    interviewees: isInterview ? selectedInterviewees.map((i) => i.label) : [],
+    regions: regions.map((r) => ({ id: r.value, name: String(r.label || "").split(" > ").pop() })),
+    topics: topics.map((t) => ({ id: t.value, name: String(t.label || "").split(" > ").pop() })),
+    categories: categories
+      .filter((c) => selectedCategories.includes(c.id))
+      .map((c) => ({ id: c.id, name: c.name })),
+    images: previewImageUrls.map(({ url, alt, title: imgTitle }) => ({ url, alt, title: imgTitle })),
+    mediaTitle,
+  };
+
   const beitragstypOptions = beitragstypen.map((typ) => ({
     id: typ.id,
     name: locale === "es" && typ.nameES ? typ.nameES : typ.name,
@@ -1064,6 +1116,7 @@ export default function ArticleFormV2({ articleId }) {
                   onChangeES={setContentES}
                   leftPanel={dossierLeftPanel}
                   apiRef={dossierApiRef}
+                  previewMeta={previewMeta}
                 />
                 {/* Entrevistado */}
                 <div className="pt-2 border-t border-gray-100 space-y-2">
@@ -1104,6 +1157,7 @@ export default function ArticleFormV2({ articleId }) {
                 onChangeES={setContentES}
                 leftPanel={dossierLeftPanel}
                 apiRef={dossierApiRef}
+                previewMeta={previewMeta}
               />
             )}
           </Section>

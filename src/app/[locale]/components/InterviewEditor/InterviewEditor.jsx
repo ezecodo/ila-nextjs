@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import ArticlePreview from "../ArticlePreview/ArticlePreview";
 
 // ── HTML ↔ Q&A conversion ─────────────────────────────────────────────────
 
@@ -19,9 +20,10 @@ function unescapeHtml(text) {
     .replace(/&gt;/g, ">");
 }
 
-// ── Bloque "Spalten" (2–3 columnas) ───────────────────────────────────────
-// En el editor cada columna es texto plano con saltos de línea (como Poem);
-// una línea en blanco separa estrofas/párrafos. Dos formas de guardarlo
+// ── Bloque "Spalten" (1–3 columnas) ───────────────────────────────────────
+// Cada columna es HTML RESTRINGIDO (ColumnEditor): texto, <br> y solo
+// negrita/cursiva (<b>/<i>) — sanitizeColHtml descarta todo lo demás. Una
+// línea en blanco (<br><br>) separa estrofas/párrafos. Dos formas de guardarlo
 // (`layout`), porque hay dos tipos de texto a dos columnas en el impreso:
 // - "flow" (Fließend, default): UN texto que el impreso partió en columnas
 //   por espacio (p. ej. un poema alemán que sigue de la izq. a la der.) —
@@ -35,20 +37,60 @@ function unescapeHtml(text) {
 //   más alta), por eso no es el default.
 // Solo usa <div> y <br> (ningún <p>), así autoDetectHeadings/
 // autoFormatHeadings de las páginas públicas no lo tocan.
-const splitStanzas = (text) =>
-  (text || "")
-    .replace(/\r/g, "")
-    .split(/\n[ \t]*\n+/)
-    .map((st) => st.replace(/^\n+|\n+$/g, ""))
-    .filter((st) => st.trim());
+// Deja una columna en HTML restringido: texto escapado, <br>, <b>, <i>. Los
+// <div>/<p> que mete un contenteditable (o un bloque viejo) pasan a salto
+// de línea. Acepta también texto plano con "\n" (bloques de antes del editor
+// enriquecido, cuando las columnas eran <textarea>).
+function sanitizeColHtml(html) {
+  const src = html || "";
+  if (!/<[a-z!/]/i.test(src)) return escapeHtml(src.replace(/\r/g, "")).replace(/\n/g, "<br>");
+  if (typeof window === "undefined") return src;
+  const tmp = document.createElement("div");
+  tmp.innerHTML = src;
+  let out = "";
+  const walk = (node) => {
+    for (const n of Array.from(node.childNodes)) {
+      if (n.nodeType === 3) {
+        out += escapeHtml(n.textContent);
+        continue;
+      }
+      if (n.nodeType !== 1) continue;
+      const tag = n.tagName;
+      if (tag === "BR") {
+        out += "<br>";
+      } else if (tag === "DIV" || tag === "P") {
+        if (out && !/<br>$/.test(out)) out += "<br>";
+        walk(n);
+      } else if (tag === "B" || tag === "STRONG") {
+        out += "<b>";
+        walk(n);
+        out += "</b>";
+      } else if (tag === "I" || tag === "EM") {
+        out += "<i>";
+        walk(n);
+        out += "</i>";
+      } else {
+        walk(n);
+      }
+    }
+  };
+  walk(tmp);
+  return out.replace(/<b><\/b>|<i><\/i>/g, "");
+}
+
+const colPlainText = (html) =>
+  unescapeHtml((html || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, ""));
+
+// Estrofas de una columna (HTML restringido): separadas por línea en blanco.
+const splitStanzas = (html) =>
+  sanitizeColHtml(html)
+    .split(/(?:\s*<br>\s*){2,}/)
+    .map((st) => st.replace(/^(?:\s*<br>)+|(?:<br>\s*)+$/g, "").trim())
+    .filter((st) => colPlainText(st).trim());
 
 // `title`: título opcional de toda la tabla (ancho completo, dentro del
 // marco), como <hN class="ila-columns-title"> — N = titleLevel (2–4, def. 4).
-const stanzaToHtml = (st) =>
-  (st || "")
-    .split("\n")
-    .map((l) => escapeHtml(l.trim()))
-    .join("<br>");
+const stanzaToHtml = (st) => st || "";
 
 function columnsToHtml(cols, header, title, titleLevel, layout = "aligned") {
   const list = (cols || []).slice(0, 3);
@@ -88,18 +130,15 @@ function columnsFromEl(el) {
   );
   const n =
     Number((el.className.match(/ila-columns-(\d)/) || [])[1]) ||
-    Math.max(2, ...rows.map((r) => r.children.length));
-  const cols = Array.from({ length: Math.min(3, Math.max(2, n)) }, (_, c) =>
+    Math.max(1, ...rows.map((r) => r.children.length));
+  const cols = Array.from({ length: Math.min(3, Math.max(1, n)) }, (_, c) =>
     rows
       .map((r) => {
         const cell = r.children[c];
-        if (!cell) return "";
-        return unescapeHtml(
-          cell.innerHTML.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, ""),
-        ).trim();
+        return cell ? sanitizeColHtml(cell.innerHTML) : "";
       })
-      .filter(Boolean)
-      .join("\n\n"),
+      .filter((h) => colPlainText(h).trim())
+      .join("<br><br>"),
   );
   const titleEl = Array.from(el.children).find((c) =>
     c.classList.contains("ila-columns-title"),
@@ -1179,6 +1218,69 @@ function mergeParagraphIntoPrevious(p) {
   return true;
 }
 
+// Backspace/Delete en el BORDE de un Kasten (<blockquote>): Chrome fusiona
+// por su cuenta la primera línea del Kasten con el párrafo de arriba (o el
+// párrafo de abajo con la última línea del Kasten) — saca texto del recuadro
+// y lo pega pegado al de afuera, sin espacio ("Absatz.Kasten Zeile…"). Y el
+// merge entre bloques (onMergeUp) metía un Kasten-bloque entero dentro del
+// Fließtext de arriba. Ninguno de los dos es nunca lo que se quiere: el
+// Kasten se deshace con el botón ❝, no con el teclado. Devuelve:
+// - "block": la tecla no hace nada (preventDefault).
+// - "removeBlank": la línea vacía del borde del Kasten ya se sacó acá (el
+//   llamador hace preventDefault + onChange).
+// - null: nada que ver con un Kasten, sigue la lógica normal.
+function kastenBoundaryAction(root, key) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+  const range = sel.getRangeAt(0);
+  const node = range.startContainer;
+  const el = node.nodeType === 3 ? node.parentElement : node;
+  if (!el || !root.contains(el)) return null;
+  const line = el.closest("p") || el.closest("blockquote");
+  if (!line || !root.contains(line) || line === root) return null;
+  const bq = line.tagName === "BLOCKQUOTE" ? line : line.closest("blockquote");
+  const inBq = !!bq && root.contains(bq);
+  const blank =
+    !line.textContent.trim() && !line.querySelector("img, figure, video, iframe");
+  const edge = document.createRange();
+  edge.selectNodeContents(line);
+  if (key === "Backspace") edge.setEnd(node, range.startOffset);
+  else edge.setStart(node, range.startOffset);
+  const atEdge =
+    !edge.toString().replace(/\s+/g, "") &&
+    !edge.cloneContents().querySelector?.("img, br");
+  if (!atEdge) return null;
+
+  if (key === "Backspace") {
+    // Primera línea del Kasten.
+    const firstOfKasten =
+      inBq && (line === bq || bq.firstElementChild === line);
+    if (firstOfKasten) {
+      if (blank && line !== bq && line.nextElementSibling) {
+        const next = line.nextElementSibling;
+        line.remove();
+        const r = document.createRange();
+        r.selectNodeContents(next);
+        r.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        return "removeBlank";
+      }
+      return "block";
+    }
+    // Primer párrafo justo DESPUÉS de un Kasten.
+    if (!inBq && line.previousElementSibling?.tagName === "BLOCKQUOTE")
+      return blank ? null : "block";
+    return null;
+  }
+  // Delete: última línea del Kasten, o párrafo justo ANTES de uno.
+  const lastOfKasten = inBq && (line === bq || bq.lastElementChild === line);
+  if (lastOfKasten && bq.nextElementSibling) return "block";
+  if (!inBq && line.nextElementSibling?.tagName === "BLOCKQUOTE")
+    return blank ? null : "block";
+  return null;
+}
+
 // Coloca el caret en un offset de texto plano dentro de un contenteditable.
 function setCaretAtTextOffset(root, offset) {
   const sel = window.getSelection();
@@ -1203,6 +1305,99 @@ function setCaretAtTextOffset(root, offset) {
   r.collapse(false);
   sel.removeAllRanges();
   sel.addRange(r);
+}
+
+// Una columna del bloque "Spalten": contenteditable con HTML restringido
+// (sanitizeColHtml). Enter = salto de línea (<br>), no párrafo — dos Enter =
+// línea en blanco = estrofa nueva. Negrita/cursiva con la barra flotante del
+// margen (mismo marginSlot que el Fließtext) o, sin margen, con la barrita
+// de arriba de la columna.
+function ColumnEditor({ value, onChange, onFocusCol, marginSlot, placeholder, highlighted, editorRef }) {
+  const ref = useRef(null);
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || document.activeElement === el) return;
+    const next = sanitizeColHtml(value || "");
+    if (el.innerHTML !== next) el.innerHTML = next;
+  }, [value]);
+  const emit = () => onChange(sanitizeColHtml(ref.current?.innerHTML || ""));
+  const exec = (cmd) => {
+    if (document.activeElement !== ref.current) ref.current?.focus();
+    document.execCommand("styleWithCSS", false, false);
+    document.execCommand(cmd, false, null);
+    emit();
+  };
+  const btn =
+    "w-6 h-6 flex items-center justify-center rounded text-xs text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors";
+  const toolbar = (vertical) => (
+    <div
+      className={
+        vertical
+          ? "flex flex-col items-center gap-0.5 bg-white border border-gray-200 rounded-lg shadow-sm p-1"
+          : "inline-flex w-fit items-center gap-0.5 px-1.5 py-1 bg-white border border-gray-200 rounded-lg shadow-sm"
+      }
+    >
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          exec("bold");
+        }}
+        className={`${btn} font-black`}
+        title="Fett"
+      >
+        B
+      </button>
+      <button
+        type="button"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          exec("italic");
+        }}
+        className={`${btn} italic`}
+        title="Kursiv"
+      >
+        I
+      </button>
+    </div>
+  );
+  return (
+    <div className="min-w-0 flex flex-col gap-1">
+      {focused && marginSlot ? createPortal(toolbar(true), marginSlot) : null}
+      {focused && <div className="lg:hidden">{toolbar(false)}</div>}
+      <div
+        ref={(el) => {
+          ref.current = el;
+          if (editorRef) editorRef(el);
+        }}
+        contentEditable
+        suppressContentEditableWarning
+        data-placeholder={placeholder}
+        onFocus={() => {
+          setFocused(true);
+          onFocusCol?.();
+        }}
+        onBlur={() => setFocused(false)}
+        onInput={emit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.isComposing) {
+            e.preventDefault();
+            document.execCommand("insertLineBreak");
+            emit();
+          }
+        }}
+        onPaste={(e) => {
+          e.preventDefault();
+          document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
+        }}
+        className={`min-h-[80px] w-full bg-white/70 text-teal-950 text-sm outline-none leading-relaxed rounded border px-2 py-1.5 caret-[#BD0E0D] transition-colors empty:before:content-[attr(data-placeholder)] empty:before:text-teal-300 ${
+          highlighted ? "border-teal-500 ring-2 ring-teal-200" : "border-teal-100"
+        }`}
+        style={{ caretColor: "#BD0E0D" }}
+      />
+    </div>
+  );
 }
 
 function DarkAnswerBlock({
@@ -1754,6 +1949,26 @@ function DarkAnswerBlock({
           );
         }}
         onKeyDown={(e) => {
+          // Borde de un Kasten: nunca mezclar su texto con el de afuera (ver
+          // kastenBoundaryAction). Va antes que todo lo demás — incluido el
+          // merge entre bloques, que si no metía el Kasten entero arriba.
+          if (
+            (e.key === "Backspace" || e.key === "Delete") &&
+            !e.shiftKey &&
+            !e.altKey &&
+            !e.metaKey &&
+            !e.ctrlKey &&
+            divRef.current.textContent.trim()
+          ) {
+            const action = kastenBoundaryAction(divRef.current, e.key);
+            if (action) {
+              e.preventDefault();
+              if (action === "removeBlank")
+                onChange(normalizeAnswerHtml(divRef.current.innerHTML));
+              updateCaret();
+              return;
+            }
+          }
           if (e.key === "Backspace") {
             if (!divRef.current.textContent.trim()) {
               e.preventDefault();
@@ -1812,6 +2027,17 @@ function DarkAnswerBlock({
                 }
               }
             }
+          }
+          // Enter dentro de un Kasten = línea nueva DENTRO del mismo Kasten
+          // (nativo: <p> nuevo dentro del <blockquote>). Sin esto, partía el
+          // bloque en dos Kästen separados — dos recuadros en la web, y el
+          // segundo quedaba como Fließtext con un <blockquote> adentro.
+          if (e.key === "Enter" && !e.shiftKey && onSplit) {
+            const sel = window.getSelection();
+            const n = sel?.rangeCount ? sel.getRangeAt(0).startContainer : null;
+            const nEl = n?.nodeType === 3 ? n.parentElement : n;
+            const bq = nEl?.closest?.("blockquote");
+            if (bq && divRef.current.contains(bq)) return;
           }
           if (e.key === "Enter" && !e.shiftKey && onSplit) {
             e.preventDefault();
@@ -2082,6 +2308,10 @@ function PasteImportPanel({
   // porque next/dynamic no lo reenvía).
   leftPanel = null,
   apiRef = null,
+  // Datos del artículo para la Vorschau completa (ver ArticlePreview): fecha,
+  // Vorspann, autor·in, edición, imágenes, Zusatzinfo… Opcional — sin esto
+  // la Vorschau muestra solo título/subtítulo + cuerpo.
+  previewMeta = null,
 }) {
   const [pastedHtml, setPastedHtml] = useState("");
   const [pastedText, setPastedText] = useState("");
@@ -2450,8 +2680,9 @@ function PasteImportPanel({
       prev.map((b, idx) => {
         if (idx !== fi || b.type !== "columns") return b;
         const cols = [...(b.cols || ["", ""])];
-        const cur = (cols[fc.col] || "").replace(/\s+$/, "");
-        cols[fc.col] = cur ? `${cur}\n\n${add}` : add;
+        const cur = sanitizeColHtml(cols[fc.col] || "").replace(/(?:\s*<br>)+$/, "");
+        const addHtml = escapeHtml(add).replace(/\n/g, "<br>");
+        cols[fc.col] = colPlainText(cur).trim() ? `${cur}<br><br>${addHtml}` : addHtml;
         return { ...b, cols };
       }),
     );
@@ -3611,7 +3842,7 @@ function PasteImportPanel({
                     </div>
                   )}
 
-                  {/* ── SPALTEN block (2–3 columnas en paralelo) ── */}
+                  {/* ── SPALTEN block (1–3 columnas) ── */}
                   {block.type === "columns" && (
                     <div
                       className={`w-full rounded-xl border px-4 py-3 ${s.rowClass}`}
@@ -3623,7 +3854,7 @@ function PasteImportPanel({
                           SP
                         </span>
                         <div className="flex items-center border border-teal-200 rounded overflow-hidden">
-                          {[2, 3].map((n) => (
+                          {[1, 2, 3].map((n) => (
                             <button
                               key={n}
                               type="button"
@@ -3631,9 +3862,9 @@ function PasteImportPanel({
                                 const cols = [...(block.cols || ["", ""])];
                                 if (n < cols.length) {
                                   if (
-                                    cols.slice(n).some((c) => (c || "").trim()) &&
+                                    cols.slice(n).some((c) => colPlainText(c).trim()) &&
                                     !window.confirm(
-                                      "Die 3. Spalte hat schon Text — trotzdem entfernen?",
+                                      "Die entfernten Spalten haben schon Text — trotzdem entfernen?",
                                     )
                                   )
                                     return;
@@ -3648,7 +3879,7 @@ function PasteImportPanel({
                                   ? "bg-teal-600 text-white"
                                   : "text-teal-600 hover:bg-teal-100"
                               }`}
-                              title={`${n} Spalten`}
+                              title={n === 1 ? "1 Spalte (Kasten mit Rahmen)" : `${n} Spalten`}
                             >
                               {n}
                             </button>
@@ -3669,6 +3900,7 @@ function PasteImportPanel({
                             paralelo, estrofa N junto a estrofa N (ver
                             columnsToHtml). Sin `layout` = bloque guardado
                             antes de este selector → alineado. */}
+                        {(block.cols || []).length > 1 && (
                         <div className="flex items-center border border-teal-200 rounded overflow-hidden">
                           {[
                             ["flow", "Fließend", "Ein Text, auf Spalten verteilt — jede Spalte fließt für sich (mobil: Spalte 1, dann Spalte 2)"],
@@ -3689,10 +3921,13 @@ function PasteImportPanel({
                             </button>
                           ))}
                         </div>
+                        )}
                         <span className="text-[11px] text-teal-600/80 flex-1 min-w-[12rem]">
                           Spalte anklicken → Text aus dem PDF landet dort ·
-                          Leerzeile = neue Strophe
-                          {(block.layout || "aligned") === "aligned"
+                          Leerzeile = neue Strophe · Fett/Kursiv: Text
+                          markieren
+                          {(block.cols || []).length > 1 &&
+                          (block.layout || "aligned") === "aligned"
                             ? " · Strophen werden auf der Seite nebeneinander ausgerichtet"
                             : ""}
                         </span>
@@ -3757,33 +3992,29 @@ function PasteImportPanel({
                             focusedColumn?.blockIdx === i &&
                             focusedColumn?.col === c;
                           return (
-                            <textarea
+                            <ColumnEditor
                               key={c}
-                              ref={(el) => {
+                              editorRef={(el) => {
                                 if (c === 0) blockRefsArr.current[i] = el;
                               }}
                               value={colText || ""}
-                              onFocus={() => {
+                              marginSlot={marginSlot}
+                              placeholder={`Spalte ${c + 1}`}
+                              highlighted={isTarget}
+                              onFocusCol={() => {
                                 lastFocusedColumnRef.current = { blockIdx: i, col: c };
                                 setFocusedColumn({ blockIdx: i, col: c });
                               }}
-                              onChange={(e) => {
-                                const cols = [...(block.cols || ["", ""])];
-                                cols[c] = e.target.value;
-                                updateBlockField(i, "cols", cols);
-                              }}
-                              rows={4}
-                              placeholder={`Spalte ${c + 1}`}
-                              className={`w-full bg-white/70 text-teal-950 text-sm outline-none resize-none leading-relaxed rounded border px-2 py-1.5 placeholder:text-teal-300 caret-[#BD0E0D] transition-colors ${
-                                isTarget
-                                  ? "border-teal-500 ring-2 ring-teal-200"
-                                  : "border-teal-100"
-                              }`}
-                              style={{
-                                minHeight: "80px",
-                                caretColor: "#BD0E0D",
-                                fieldSizing: "content",
-                              }}
+                              onChange={(html) =>
+                                setBlocksSafe((prev) =>
+                                  prev.map((b, idx) => {
+                                    if (idx !== i || b.type !== "columns") return b;
+                                    const cols = [...(b.cols || ["", ""])];
+                                    cols[c] = html;
+                                    return { ...b, cols };
+                                  }),
+                                )
+                              }
                             />
                           );
                         })}
@@ -3854,6 +4085,11 @@ function PasteImportPanel({
                           i === 0
                             ? null
                             : (html) => {
+                                // Un Kasten (bloque con quote) nunca se fusiona
+                                // con su vecino por teclado: el Fließtext
+                                // quedaba metido en el recuadro (o al revés).
+                                // Se deshace con ❝. No hace nada.
+                                if (blocks[i]?.quote || blocks[i - 1]?.quote) return;
                                 setBlocksSafe((prev) => {
                                   if (i === 0) return prev;
                                   const prevBlock = prev[i - 1];
@@ -4079,140 +4315,36 @@ function PasteImportPanel({
         </div>
       </div>
 
-      {/* ── Article preview modal ── */}
-      {showPreview &&
-        finalPairs &&
-        (() => {
-          // Same transforms as the article page (copied, not imported — never touch the article page)
-          const transformHtml = (html) => {
-            if (!html) return "";
-            // Strip inline font/color styles so Vorschau matches the actual article page
-            if (typeof window !== "undefined") {
-              const tmp = document.createElement("div");
-              tmp.innerHTML = html;
-              const MEDIA = new Set(["IMG", "FIGURE", "VIDEO", "IFRAME"]);
-              tmp.querySelectorAll("*").forEach((el) => {
-                if (!MEDIA.has(el.tagName)) {
-                  el.removeAttribute("style");
-                  el.removeAttribute("class");
-                }
-              });
-              html = tmp.innerHTML;
-            }
-            // Un Zitat/Kasten (<blockquote>) suele tener un texto corto —
-            // justo el patrón que buscan los pasos 1 y 2 de abajo. Sin
-            // protegerlo, el <p> de adentro se convertía en <h3>/<h4> y la
-            // Vorschau mostraba el Kasten con bold de título en vez del
-            // estilo de caja real. Se saca antes de esos dos pasos y se
-            // restaura después (mismo mecanismo que la página del artículo).
-            const bqStash = [];
-            html = html.replace(/<blockquote>[\s\S]*?<\/blockquote>/gi, (m) => {
-              bqStash.push(m);
-              return `\u0000BQ${bqStash.length - 1}\u0000`;
-            });
-            // 1. autoFormatHeadings: <p><strong>Title</strong></p> → <h3>
-            html = html.replace(
-              /<p>\s*<strong>([^<>{}]{3,80})<\/strong>\s*<\/p>/gi,
-              (m, inner) => {
-                const ok =
-                  inner.length > 0 &&
-                  inner.length < 120 &&
-                  /^[A-ZÄÖÜÑÁÉÍÓÚ]/.test(inner) &&
-                  !/[.!?]$/.test(inner);
-                return ok ? `<h3>${inner}</h3>` : m;
-              },
-            );
-            // 2. autoDetectHeadings: short plain <p> → <h3> or <h4>
-            const hasH4 = /<h4\b/i.test(html);
-            html = html.replace(/<p>([\s\S]*?)<\/p>/gi, (m, inner) => {
-              const text = inner
-                .replace(/<br\s*\/?>/gi, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-              const isShort = text.length > 0 && text.length <= 140;
-              const startsUpper = /^[""'\(\[]?[A-ZÄÖÜÑÁÉÍÓÚ]/.test(text);
-              const endsHeading =
-                /[?!:]\s*$/.test(text) || !/[.!?]$/.test(text);
-              const isQuestion = /\?\s*$/.test(text);
-              const fewSentences = (text.match(/[.!?]/g) || []).length <= 1;
-              if (!hasH4 && isQuestion && isShort) return `<h4>${text}</h4>`;
-              if (isShort && startsUpper && endsHeading && fewSentences)
-                return `<h3>${text}</h3>`;
-              return m;
-            });
-            html = html.replace(
-              /\u0000BQ(\d+)\u0000/g,
-              (_, i) => bqStash[Number(i)],
-            );
-            // 3. wrapInlineImagesWithCaption
-            html = html.replace(/<img([^>]+)>/gi, (match, attrs) => {
-              const caption = attrs.match(/alt="([^"]*)"/)?.[1]?.trim() || "";
-              const credit = attrs.match(/title="([^"]*)"/)?.[1]?.trim() || "";
-              const align = attrs.match(/data-align="([^"]*)"/)?.[1]?.trim() || "";
-              const floatClass =
-                align === "left"
-                  ? " inline-image-left"
-                  : align === "right"
-                    ? " inline-image-right"
-                    : "";
-              if (!caption && !credit && !floatClass) return match;
-              const w = attrs.match(/width:\s*(\d+)%/)?.[1];
-              const figStyle = floatClass && w ? ` style="width:${w}%"` : "";
-              const figcap =
-                caption || credit
-                  ? `<figcaption>${
-                      caption && credit
-                        ? `${caption}<span class="image-credit"> · ${credit}</span>`
-                        : caption || credit
-                    }</figcaption>`
-                  : "";
-              return `<figure class="inline-image-figure${floatClass}"${figStyle}>${match}${figcap}</figure>`;
-            });
-            return html;
-          };
-          return (
-            <div className="fixed inset-0 z-[10000] flex flex-col bg-white">
-              <div className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white">
-                <span className="text-sm font-semibold text-gray-500">
-                  Vorschau — Artikelinhalt
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(false)}
-                  className="text-xs text-gray-500 hover:text-gray-900 border border-gray-300 rounded px-3 py-1.5 transition-colors"
-                >
-                  ✕ Schließen
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <main className="max-w-4xl mx-auto px-4 py-6 md:px-6">
-                  {/* Title + subtitle — same structure as article page */}
-                  {(articleTitle || articleSubtitle) && (
-                    <div className="max-w-3xl mx-auto mb-6">
-                      {articleTitle && (
-                        <h1 className="text-4xl md:text-5xl font-serif font-bold leading-tight text-gray-900 mb-4 break-words">
-                          {articleTitle}
-                        </h1>
-                      )}
-                      {articleSubtitle && (
-                        <h2 className="text-lg md:text-xl font-light italic text-gray-600 mb-8">
-                          {articleSubtitle}
-                        </h2>
-                      )}
-                    </div>
-                  )}
-                  {/* Body content — directly inside max-w-4xl, same as article page */}
-                  <div
-                    className="article-content text-gray-700"
-                    dangerouslySetInnerHTML={{
-                      __html: transformHtml(qaToHtml(finalPairs)),
-                    }}
-                  />
-                </main>
-              </div>
-            </div>
-          );
-        })()}
+      {/* ── Vorschau: el artículo completo como sale en la web ── */}
+      {/* Antes tenía su propia copia del formateo (desincronizada de la web) y
+          borraba todas las clases del HTML — Poem, Spalten, links a Dossiers
+          salían distinto. Ahora usa ArticlePreview: mismo formateo que la
+          página pública (src/lib/articleRender.js) y mismo marco. */}
+      {showPreview && finalPairs && (
+        <div className="fixed inset-0 z-[10000] flex flex-col bg-white dark:bg-[#0a0a0a]">
+          <div className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white">
+            <span className="text-sm font-semibold text-gray-500">
+              Vorschau — so erscheint der Artikel auf der Website
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              className="text-xs text-gray-500 hover:text-gray-900 border border-gray-300 rounded px-3 py-1.5 transition-colors"
+            >
+              ✕ Schließen
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <ArticlePreview
+              title={articleTitle}
+              subtitle={articleSubtitle}
+              {...(previewMeta || {})}
+              locale={lang}
+              bodyHtml={qaToHtml(finalPairs)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Lang switch splash */}
       {langSplash && (
@@ -4889,6 +5021,7 @@ export default function InterviewEditor({
   splitMode = false,
   leftPanel = null,
   apiRef = null,
+  previewMeta = null,
   onClose,
 }) {
   const [pairs, setPairs] = useState(() => htmlToQa(value));
@@ -4983,6 +5116,7 @@ export default function InterviewEditor({
         onInsertAvailable={onInsertAvailable}
         leftPanel={leftPanel}
         apiRef={apiRef}
+        previewMeta={previewMeta}
       />
     );
   }
@@ -5007,6 +5141,7 @@ export default function InterviewEditor({
           onInsertAvailable={onInsertAvailable}
           leftPanel={leftPanel}
           apiRef={apiRef}
+          previewMeta={previewMeta}
         />
       )}
 
