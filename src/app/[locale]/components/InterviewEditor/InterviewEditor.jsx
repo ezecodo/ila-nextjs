@@ -88,11 +88,31 @@ const splitStanzas = (html) =>
     .map((st) => st.replace(/^(?:\s*<br>)+|(?:<br>\s*)+$/g, "").trim())
     .filter((st) => colPlainText(st).trim());
 
+// "Fließtext" (`prose`): el texto traído del PDF viene con los saltos de línea
+// de la maqueta (columna angosta del impreso) y, en un Kasten de ancho
+// completo, queda como una tira angosta con medio recuadro vacío. Con prose
+// los saltos simples dentro de un párrafo pasan a espacio (y se deshace el
+// corte de palabra con guion: "Kolo-" + "nien" → "Kolonien"); la línea en
+// blanco sigue separando párrafos. No aplica a versos — por eso es opt-in.
+const reflowStanza = (st) =>
+  st.split(/\s*<br>\s*/).reduce((acc, line) => {
+    if (!acc) return line;
+    if (!line) return acc;
+    if (
+      /[a-zäöüß]-$/.test(acc) &&
+      /^[a-zäöüß]/.test(line) &&
+      !/^(und|oder|bzw)\b/.test(line)
+    )
+      return acc.slice(0, -1) + line;
+    return `${acc} ${line}`;
+  }, "");
+const reflowColHtml = (html) => splitStanzas(html).map(reflowStanza).join("<br><br>");
+
 // `title`: título opcional de toda la tabla (ancho completo, dentro del
 // marco), como <hN class="ila-columns-title"> — N = titleLevel (2–4, def. 4).
 const stanzaToHtml = (st) => st || "";
 
-function columnsToHtml(cols, header, title, titleLevel, layout = "aligned") {
+function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", prose = false) {
   const list = (cols || []).slice(0, 3);
   const stanzas = list.map(splitStanzas);
   const t = (title || "").replace(/\s+/g, " ").trim();
@@ -120,7 +140,7 @@ function columnsToHtml(cols, header, title, titleLevel, layout = "aligned") {
       .join("");
     html += `<div class="ila-col-row">${cells}</div>`;
   }
-  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}`;
+  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}${prose ? " ila-columns-prose" : ""}`;
   return `<div class="${cls}">${html}</div>`;
 }
 
@@ -147,6 +167,7 @@ function columnsFromEl(el) {
     cols,
     header: el.classList.contains("ila-columns-head"),
     layout: el.classList.contains("ila-columns-flow") ? "flow" : "aligned",
+    prose: el.classList.contains("ila-columns-prose"),
     title: titleEl ? titleEl.textContent.trim() : "",
     titleLevel: titleEl ? Number(titleEl.tagName.slice(1)) || 4 : 4,
   };
@@ -192,6 +213,7 @@ export function qaToHtml(pairs) {
         columnsTitle,
         columnsTitleLevel,
         columnsLayout,
+        columnsProse,
       } = pair;
 
       if (isColumnsBlock)
@@ -201,6 +223,7 @@ export function qaToHtml(pairs) {
           columnsTitle,
           columnsTitleLevel,
           columnsLayout,
+          columnsProse,
         );
 
       // Image block
@@ -455,7 +478,7 @@ export function htmlToQa(html) {
     // Spalten: <div class="ila-columns"> (ver columnsToHtml)
     if (tag === "DIV" && el.classList.contains("ila-columns")) {
       if (currentPair) pairs.push(currentPair);
-      const { cols, header, title, titleLevel, layout } = columnsFromEl(el);
+      const { cols, header, title, titleLevel, layout, prose } = columnsFromEl(el);
       pairs.push({
         id: genId(),
         isColumnsBlock: true,
@@ -464,6 +487,7 @@ export function htmlToQa(html) {
         columnsTitle: title,
         columnsTitleLevel: titleLevel,
         columnsLayout: layout,
+        columnsProse: prose,
       });
       currentPair = null;
       continue;
@@ -858,6 +882,7 @@ function blocksToQa(blocks) {
         columnsTitle: block.title || "",
         columnsTitleLevel: block.titleLevel || 4,
         columnsLayout: block.layout || "aligned",
+        columnsProse: !!block.prose,
       });
       currentPair = null;
     } else {
@@ -905,6 +930,7 @@ function pairsToBlocks(pairs) {
         title: pair.columnsTitle || "",
         titleLevel: pair.columnsTitleLevel || 4,
         layout: pair.columnsLayout || "aligned",
+        prose: !!pair.columnsProse,
       });
     } else if (pair.isQuote) {
       blocks.push({
@@ -2735,7 +2761,8 @@ function PasteImportPanel({
         if (idx !== fi || b.type !== "columns") return b;
         const cols = [...(b.cols || ["", ""])];
         const cur = sanitizeColHtml(cols[fc.col] || "").replace(/(?:\s*<br>)+$/, "");
-        const addHtml = escapeHtml(add).replace(/\n/g, "<br>");
+        let addHtml = escapeHtml(add).replace(/\n/g, "<br>");
+        if (b.prose) addHtml = reflowColHtml(addHtml);
         cols[fc.col] = colPlainText(cur).trim() ? `${cur}<br><br>${addHtml}` : addHtml;
         return { ...b, cols };
       }),
@@ -3964,6 +3991,35 @@ function PasteImportPanel({
                             }
                           />
                           1. Zeile = Überschrift
+                        </label>
+                        {/* Fließtext: saca los saltos de línea de la maqueta
+                            (ver reflowStanza). Al tildarlo reacomoda lo ya
+                            cargado; lo que entre después del PDF también. */}
+                        <label
+                          className="flex items-center gap-1 text-[11px] text-teal-700 cursor-pointer select-none"
+                          title="Zeilenumbrüche aus dem PDF entfernen — der Text fließt über die ganze Breite (Leerzeile = neuer Absatz). Nicht für Gedichte."
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!block.prose}
+                            onChange={(e) => {
+                              const on = e.target.checked;
+                              setBlocksSafe((prev) =>
+                                prev.map((b, idx) =>
+                                  idx === i && b.type === "columns"
+                                    ? {
+                                        ...b,
+                                        prose: on,
+                                        cols: on
+                                          ? (b.cols || []).map(reflowColHtml)
+                                          : b.cols,
+                                      }
+                                    : b,
+                                ),
+                              );
+                            }}
+                          />
+                          Fließtext
                         </label>
                         {/* Fließend = un texto partido en columnas (cada
                             columna fluye sola); Nebeneinander = textos en
