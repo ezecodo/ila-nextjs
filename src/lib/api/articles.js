@@ -62,10 +62,6 @@ export async function getArticleById(id) {
 
 export async function getArticleByLegacyPath(path) {
   try {
-    console.log("\n\n🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥");
-    console.log("📌 BUSCANDO ARTICLE CON PATH:", path);
-    console.log("🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥\n\n");
-
     const article = await prisma.article.findFirst({
       where: {
         legacyPath: path,

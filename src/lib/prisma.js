@@ -6,7 +6,11 @@ const globalForPrisma = globalThis;
 const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: ["query", "error", "warn"],
+    // "query" solo fuera de producción: en el server llenaba ~/.pm2/logs (24 GB)
+    log:
+      process.env.NODE_ENV === "production"
+        ? ["error", "warn"]
+        : ["query", "error", "warn"],
   });
 
 if (process.env.NODE_ENV !== "production") {
