@@ -79,7 +79,15 @@ export default function useDossierWorkbench({
   // Callbacks del llamador en una ref: los usan handlers registrados una vez
   // y funciones que cierran sobre estado del llamador (p. ej. el campo activo).
   const cbRef = useRef({});
-  cbRef.current = { onCropImage, onError, routeTextRegion, onTextWithoutEditor };
+  cbRef.current = { onCropImage, onError, routeTextRegion, onTextWithoutEditor, editorApiRef };
+
+  // ¿El texto se extrae literal (cada línea del PDF = una línea)? Sí en Modo
+  // Poema y también cuando el destino es una columna de "Spalten": ahí la
+  // reconstrucción de párrafos de prosa unía los versos en un bloque corrido
+  // y se perdía la disposición del original.
+  const literalNow = () =>
+    poemModeRef.current ||
+    !!cbRef.current.editorApiRef?.current?.isColumnTarget?.();
 
   // Captura la selección nativa del usuario sobre el text layer.
   useEffect(() => {
@@ -91,7 +99,7 @@ export default function useDossierWorkbench({
         const el = node?.nodeType === 3 ? node.parentElement : node;
         if (el && el.closest(".pdfsel-textLayer")) {
           lastSelectionRef.current = text;
-          bodyParasRef.current = getSelectionParagraphs(poemModeRef.current);
+          bodyParasRef.current = getSelectionParagraphs(literalNow());
           setSelectionPreview(cleanSelection(text).slice(0, 140));
         }
       }
@@ -152,6 +160,15 @@ export default function useDossierWorkbench({
       api.appendPoem(raw);
       return;
     }
+    // Destino = columna de "Spalten": mismo camino literal (appendPoem lo
+    // desvía a la columna enfocada con sus saltos de línea). Se quitan las
+    // marcas "## " por si la selección se había reconstruido como prosa antes
+    // de enfocar la columna.
+    if (api?.isColumnTarget?.()) {
+      if (!raw || !raw.trim()) return;
+      api.appendPoem(raw.replace(/^#{2,3}\s+/gm, ""));
+      return;
+    }
     const chunk = reflowBodySelection(raw);
     if (!chunk) return;
     // Sin publilab abierto (vista normal de from-pdf) se acumula en el texto
@@ -186,12 +203,14 @@ export default function useDossierWorkbench({
   // columnas (orden de lectura) y los anexa — al cuerpo, salvo que el
   // llamador lo mande a otro campo (routeTextRegion).
   const takeTextRegion = (items) => {
-    const text = paragraphsFromItems(items, poemModeRef.current);
+    const literal = literalNow();
+    const text = paragraphsFromItems(items, literal);
     if (!text) return;
     setSelectionPreview(cleanSelection(text).slice(0, 140));
     // Modo Poema: siempre al cuerpo (bloque Poem), sin importar qué campo
     // estaba enfocado — un poema no tiene sentido como Titel/Vorspann/etc.
-    if (poemModeRef.current) {
+    // Lo mismo si el destino es una columna de "Spalten".
+    if (literal) {
       appendChunkToEditor(text);
       return;
     }

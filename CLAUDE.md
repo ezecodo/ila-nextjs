@@ -717,6 +717,10 @@ await deleteFile(url);
 - **Migrar módulos restantes** de Cloudinary a storage local (ver lista de módulos pendientes arriba)
 - **Auth en `/api/media/pdfs-private/`** — implementar verificación de sesión + PDF-Abo antes de lanzar
 - ~~Backup de `~/ila-uploads/`~~ — resuelto, ver "Sistema de Backups (DB + uploads)".
+- **Actualizar Next.js** (importante, evaluado 2026-10-02; hoy `next ^15.5.7`, React 18.3.1, next-auth 5 beta, ESLint 8) — en dos pasos, nunca durante una semana de layout:
+  1. **Último parche de 15.5.x** (riesgo bajo, es lo que importa por seguridad): `npm install` + build + probar. Chequear antes con `npm view next dist-tags` cuál es el parche vigente y si la 15 sigue con soporte.
+  2. **Salto a Next 16** (riesgo medio-alto, en rama aparte y con ronda de pruebas de login, dashboard y editores). Puntos ya identificados en este código: (a) acceso síncrono a `params`/`searchParams` eliminado — ~40 archivos de `src/app` los usan y solo ~12 tienen `await`, revisar uno por uno; (b) Turbopack pasa a ser el build por defecto y `next.config.ts` tiene config de webpack (Sentry) — adaptar o forzar webpack; (c) `middleware.js` pasa a llamarse `proxy` (el nombre viejo queda obsoleto) — es el archivo de auth + i18n; (d) `next lint` desaparece (migrar a ESLint CLI) y React probablemente deba subir a 19, verificando `react-pageflip`, `react-slick`, `react-select` y Quill. Toca archivos protegidos (`package.json`, `next.config.ts`, `middleware.js`): confirmar antes.
+- **Disco del servidor** — ver `SERVER_DISK_NEXTCLOUD.md` (temporales de Nextcloud Office + logs de PM2; prevención automática pendiente).
 
 ### Imágenes existentes en Cloudinary
 - Las URLs antiguas de Cloudinary siguen funcionando mientras la cuenta esté activa

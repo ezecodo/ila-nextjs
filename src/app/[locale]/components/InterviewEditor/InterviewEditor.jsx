@@ -2772,6 +2772,16 @@ function PasteImportPanel({
         appendHeading: withUndo(appendHeading),
         appendQuestion: withUndo(appendQuestion),
         appendPoem: withUndo(appendPoem),
+        // ¿Lo próximo que entre va a una columna de "Spalten"? La mesa de
+        // trabajo lo consulta para extraer el texto literal (línea por línea,
+        // como en el PDF) en vez de reconstruir párrafos de prosa.
+        isColumnTarget: () => {
+          const fi = lastFocusedBlockRef.current;
+          const fc = lastFocusedColumnRef.current;
+          return (
+            fi != null && !!fc && fc.blockIdx === fi && blocks?.[fi]?.type === "columns"
+          );
+        },
       };
   });
 
