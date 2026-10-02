@@ -45,7 +45,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        console.log("🟢 JWT Callback - User:", user); // 🔍 Verifica si user tiene id
         token.id = user.id || user.sub || token.id; // 🔥 Usa sub si no hay id
         token.role = user.role || token.role;
       }
@@ -53,12 +52,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }) {
-      console.log("🟢 Sesión Callback - Token recibido:", token); // 🔍 Verifica el token
       if (session?.user) {
         session.user.id = token.id || token.sub || null; // 🔥 Asegura que el ID esté presente
         session.user.role = token.role;
       }
-      console.log("🟢 Sesión generada:", session); // 🔍 Verifica si el ID está en la sesión
       return session;
     },
   },
