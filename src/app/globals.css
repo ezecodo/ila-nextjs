@@ -760,6 +760,23 @@ body {
 .article-content .ila-columns .ila-columns-title {
   margin: 0 0 1rem 0 !important;
 }
+/* Foto del Kasten (img.ila-columns-img): arriba de todo, a todo el ancho del
+   marco. Con pie/crédito llega envuelta en <figure class="inline-image-figure">
+   (wrapInlineImagesWithCaption); sin ellos, el <img> suelto. */
+.ila-columns img.ila-columns-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 1rem 0;
+}
+.ila-columns figure.inline-image-figure,
+.article-content .ila-columns figure.inline-image-figure {
+  margin: 0 0 1rem 0;
+}
+.ila-columns figure.inline-image-figure img.ila-columns-img {
+  margin: 0;
+  border-radius: 0;
+}
 /* Modo "Fließend" (ila-columns-flow): UN texto partido en columnas, no una
    traducción — en mobile la columna 2 es la continuación de la 1, así que va
    sin el gris/filete de "versión de lo de arriba", solo con aire entre medio. */

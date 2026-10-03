@@ -112,11 +112,16 @@ const reflowColHtml = (html) => splitStanzas(html).map(reflowStanza).join("<br><
 // marco), como <hN class="ila-columns-title"> — N = titleLevel (2–4, def. 4).
 const stanzaToHtml = (st) => st || "";
 
-function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", prose = false) {
+// `image` ({ url, alt, title }, opcional): foto arriba de todo, dentro del
+// marco (Kasten con foto). Va como <img class="ila-columns-img"> suelto; el
+// pie (alt) y el crédito (title) los arma wrapInlineImagesWithCaption al
+// renderizar, igual que en cualquier imagen del cuerpo.
+function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", prose = false, image = null) {
   const list = (cols || []).slice(0, 3);
   const stanzas = list.map(splitStanzas);
   const t = (title || "").replace(/\s+/g, " ").trim();
-  if (!stanzas.some((st) => st.length) && !t) return "";
+  const imgUrl = (image?.url || "").trim();
+  if (!stanzas.some((st) => st.length) && !t && !imgUrl) return "";
   const hl = [2, 3, 4].includes(Number(titleLevel)) ? Number(titleLevel) : 4;
   // Filas: cada una = una celda por columna, con las estrofas indicadas.
   let rowStanzas;
@@ -132,7 +137,12 @@ function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", pros
       stanzas.map((st) => (st[r] != null ? [st[r]] : [])),
     );
   }
-  let html = t ? `<h${hl} class="ila-columns-title">${escapeHtml(t)}</h${hl}>` : "";
+  let html = "";
+  if (imgUrl) {
+    const iTitle = (image.title || "").trim();
+    html += `<img class="ila-columns-img" src="${escapeHtml(imgUrl)}" alt="${escapeHtml((image.alt || "").trim())}"${iTitle ? ` title="${escapeHtml(iTitle)}"` : ""} />`;
+  }
+  if (t) html += `<h${hl} class="ila-columns-title">${escapeHtml(t)}</h${hl}>`;
   for (const row of rowStanzas) {
     if (!row.some((cell) => cell.length)) continue;
     const cells = row
@@ -163,8 +173,16 @@ function columnsFromEl(el) {
   const titleEl = Array.from(el.children).find((c) =>
     c.classList.contains("ila-columns-title"),
   );
+  const imgEl = el.querySelector("img.ila-columns-img");
   return {
     cols,
+    image: imgEl
+      ? {
+          url: imgEl.getAttribute("src") || "",
+          alt: imgEl.getAttribute("alt") || "",
+          title: imgEl.getAttribute("title") || "",
+        }
+      : null,
     header: el.classList.contains("ila-columns-head"),
     layout: el.classList.contains("ila-columns-flow") ? "flow" : "aligned",
     prose: el.classList.contains("ila-columns-prose"),
@@ -224,6 +242,7 @@ export function qaToHtml(pairs) {
           columnsTitleLevel,
           columnsLayout,
           columnsProse,
+          imageUrl ? { url: imageUrl, alt: imageAlt, title: imageTitle } : null,
         );
 
       // Image block
@@ -478,7 +497,7 @@ export function htmlToQa(html) {
     // Spalten: <div class="ila-columns"> (ver columnsToHtml)
     if (tag === "DIV" && el.classList.contains("ila-columns")) {
       if (currentPair) pairs.push(currentPair);
-      const { cols, header, title, titleLevel, layout, prose } = columnsFromEl(el);
+      const { cols, header, title, titleLevel, layout, prose, image } = columnsFromEl(el);
       pairs.push({
         id: genId(),
         isColumnsBlock: true,
@@ -488,6 +507,9 @@ export function htmlToQa(html) {
         columnsTitleLevel: titleLevel,
         columnsLayout: layout,
         columnsProse: prose,
+        imageUrl: image?.url || "",
+        imageAlt: image?.alt || "",
+        imageTitle: image?.title || "",
       });
       currentPair = null;
       continue;
@@ -883,6 +905,9 @@ function blocksToQa(blocks) {
         columnsTitleLevel: block.titleLevel || 4,
         columnsLayout: block.layout || "aligned",
         columnsProse: !!block.prose,
+        imageUrl: block.imageUrl || "",
+        imageAlt: block.imageAlt || "",
+        imageTitle: block.imageTitle || "",
       });
       currentPair = null;
     } else {
@@ -931,6 +956,9 @@ function pairsToBlocks(pairs) {
         titleLevel: pair.columnsTitleLevel || 4,
         layout: pair.columnsLayout || "aligned",
         prose: !!pair.columnsProse,
+        imageUrl: pair.imageUrl || "",
+        imageAlt: pair.imageAlt || "",
+        imageTitle: pair.imageTitle || "",
       });
     } else if (pair.isQuote) {
       blocks.push({
@@ -2483,6 +2511,10 @@ function PasteImportPanel({
   const focusCaretOffsetRef = useRef(null);
   const imageInputRef = useRef(null);
   const insertAtRef = useRef(null); // index after which to insert the image
+  // Índice del bloque Spalten que espera una foto (botón "🖼 Bild" del
+  // bloque): la imagen elegida/subida va a ESE bloque en vez de crear un
+  // bloque de imagen. null = inserción normal.
+  const columnImageTargetRef = useRef(null);
   // Último bloque editable que tuvo el foco (onFocus burbujea desde el
   // contenteditable/textarea). Lo usa la inserción desde el PDF para meter el
   // texto JUSTO DESPUÉS de ese bloque, no al final. Al seleccionar en el PDF el
@@ -3172,8 +3204,24 @@ function PasteImportPanel({
     focusTargetRef.current = idx + (beforeHtml ? 1 : 0);
   };
 
-  const triggerImageInsert = (afterIndex) => {
+  // Si un bloque Spalten pidió la foto, se la queda (devuelve true).
+  const setColumnImageIfTargeted = ({ url, alt = "", title = "" }) => {
+    const target = columnImageTargetRef.current;
+    if (target == null) return false;
+    columnImageTargetRef.current = null;
+    setBlocksSafe((prev) =>
+      (prev || []).map((b, idx) =>
+        idx === target && b.type === "columns"
+          ? { ...b, imageUrl: url, imageAlt: alt, imageTitle: title }
+          : b,
+      ),
+    );
+    return true;
+  };
+
+  const triggerImageInsert = (afterIndex, columnBlockIdx = null) => {
     insertAtRef.current = afterIndex;
+    columnImageTargetRef.current = columnBlockIdx;
     // Si hay imágenes recortadas para ofrecer, abrir el selector; si no, ir
     // directo al file-upload de siempre.
     if (availableImages.length > 0 && onInsertAvailable) {
@@ -3185,6 +3233,7 @@ function PasteImportPanel({
 
   // Inserta un bloque de imagen ya con URL persistente en la posición guardada.
   const insertImageBlock = ({ url, alt = "", title = "" }) => {
+    if (setColumnImageIfTargeted({ url, alt, title })) return;
     const newBlock = {
       type: "image",
       imageUrl: url,
@@ -3232,22 +3281,7 @@ function PasteImportPanel({
       fd.append("file", file);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = await res.json();
-      if (data.url) {
-        const newBlock = {
-          type: "image",
-          imageUrl: data.url,
-          imageAlt: "",
-          imageTitle: "",
-          imageWidth: "50",
-          imageAlign: "center",
-        };
-        const insertAt = insertAtRef.current ?? (blocks ? blocks.length : 0);
-        setBlocksSafe((prev) => {
-          const next = [...(prev || [])];
-          next.splice(insertAt, 0, newBlock);
-          return next;
-        });
-      }
+      if (data.url) insertImageBlock({ url: data.url });
     } catch (err) {
       console.error("Image upload error:", err);
     } finally {
@@ -4021,6 +4055,16 @@ function PasteImportPanel({
                           />
                           Fließtext
                         </label>
+                        {!block.imageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => triggerImageInsert(i + 1, i)}
+                            title="Bild oben in den Kasten setzen (Kasten mit Foto)"
+                            className="px-2 h-6 rounded border border-teal-200 text-[10px] font-bold text-teal-600 hover:bg-teal-100 transition-colors"
+                          >
+                            🖼 Bild
+                          </button>
+                        )}
                         {/* Fließend = un texto partido en columnas (cada
                             columna fluye sola); Nebeneinander = textos en
                             paralelo, estrofa N junto a estrofa N (ver
@@ -4084,6 +4128,50 @@ function PasteImportPanel({
                             title="Text aus dem PDF wieder als normale Blöcke einfügen — direkt unter dieser Tabelle (Esc)"
                           >
                             ✕ Weiter unter der Tabelle
+                          </button>
+                        </div>
+                      )}
+                      {/* Foto del Kasten (opcional): va arriba de todo, dentro
+                          del marco. Bildunterschrift = alt, Bildnachweis = title
+                          (así los arma wrapInlineImagesWithCaption). */}
+                      {block.imageUrl && (
+                        <div className="flex items-center gap-3 mb-2">
+                          <img
+                            src={block.imageUrl}
+                            alt={block.imageAlt || ""}
+                            className="h-12 w-16 object-cover rounded border border-teal-200 shrink-0"
+                          />
+                          <div className="flex-1 flex flex-col gap-1 min-w-0">
+                            <input
+                              type="text"
+                              value={block.imageAlt || ""}
+                              onChange={(e) => updateBlockField(i, "imageAlt", e.target.value)}
+                              placeholder="Bildunterschrift…"
+                              className="w-full bg-transparent text-teal-900 text-xs outline-none placeholder:text-teal-300 border-b border-teal-200 focus:border-teal-500 pb-0.5"
+                            />
+                            <input
+                              type="text"
+                              value={block.imageTitle || ""}
+                              onChange={(e) => updateBlockField(i, "imageTitle", e.target.value)}
+                              placeholder="Bildnachweis…"
+                              className="w-full bg-transparent text-teal-700 text-xs outline-none placeholder:text-teal-300 pb-0.5"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setBlocksSafe((prev) =>
+                                prev.map((b, idx) =>
+                                  idx === i && b.type === "columns"
+                                    ? { ...b, imageUrl: "", imageAlt: "", imageTitle: "" }
+                                    : b,
+                                ),
+                              )
+                            }
+                            title="Bild aus dem Kasten entfernen"
+                            className="w-6 h-6 flex items-center justify-center text-teal-400 hover:text-red-500 transition-colors shrink-0"
+                          >
+                            ✕
                           </button>
                         </div>
                       )}
@@ -5209,7 +5297,7 @@ export default function InterviewEditor({
       setLastBlocks(blocks ?? null);
       if (onUrlInserted) {
         importedPairs.forEach((p) => {
-          if (p.isImage && p.imageUrl) onUrlInserted(p.imageUrl);
+          if ((p.isImage || p.isColumnsBlock) && p.imageUrl) onUrlInserted(p.imageUrl);
         });
       }
     }
