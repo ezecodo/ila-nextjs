@@ -777,6 +777,29 @@ body {
   margin: 0;
   border-radius: 0;
 }
+/* Ancho del recuadro (ila-columns-w35/50/75) y lado (ila-columns-left/right):
+   solo desktop, igual que las imágenes flotadas; en mobile, ancho completo.
+   Sin lado = centrado. Flotado, el texto del artículo lo envuelve (los
+   títulos ya hacen clear, ver `.article-content h2, h3, h4`). */
+@media (min-width: 768px) {
+  .ila-columns.ila-columns-w35 { width: 35%; }
+  .ila-columns.ila-columns-w50 { width: 50%; }
+  .ila-columns.ila-columns-w75 { width: 75%; }
+  .ila-columns.ila-columns-w35,
+  .ila-columns.ila-columns-w50,
+  .ila-columns.ila-columns-w75 {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .ila-columns.ila-columns-left {
+    float: left;
+    margin: 0.4rem 1.75rem 1rem 0;
+  }
+  .ila-columns.ila-columns-right {
+    float: right;
+    margin: 0.4rem 0 1rem 1.75rem;
+  }
+}
 /* Modo "Fließend" (ila-columns-flow): UN texto partido en columnas, no una
    traducción — en mobile la columna 2 es la continuación de la 1, así que va
    sin el gris/filete de "versión de lo de arriba", solo con aire entre medio. */

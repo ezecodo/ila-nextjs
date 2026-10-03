@@ -116,7 +116,13 @@ const stanzaToHtml = (st) => st || "";
 // marco (Kasten con foto). Va como <img class="ila-columns-img"> suelto; el
 // pie (alt) y el crédito (title) los arma wrapInlineImagesWithCaption al
 // renderizar, igual que en cualquier imagen del cuerpo.
-function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", prose = false, image = null) {
+// `box` ({ width, align }, opcional): ancho del recuadro entero en desktop
+// (S/M/L = 35/50/75 %; sin clase = ancho completo) y, si es angosto, a qué
+// lado va con el texto del artículo envolviéndolo (left/right; si no,
+// centrado). La foto ocupa siempre el ancho del marco, así que achicar el
+// recuadro es lo que achica la foto. En mobile siempre ancho completo.
+const COL_WIDTHS = ["35", "50", "75"];
+function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", prose = false, image = null, box = null) {
   const list = (cols || []).slice(0, 3);
   const stanzas = list.map(splitStanzas);
   const t = (title || "").replace(/\s+/g, " ").trim();
@@ -150,7 +156,11 @@ function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", pros
       .join("");
     html += `<div class="ila-col-row">${cells}</div>`;
   }
-  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}${prose ? " ila-columns-prose" : ""}`;
+  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}${prose ? " ila-columns-prose" : ""}${
+    COL_WIDTHS.includes(String(box?.width))
+      ? ` ila-columns-w${box.width}${box.align === "left" || box.align === "right" ? ` ila-columns-${box.align}` : ""}`
+      : ""
+  }`;
   return `<div class="${cls}">${html}</div>`;
 }
 
@@ -183,6 +193,12 @@ function columnsFromEl(el) {
           title: imgEl.getAttribute("title") || "",
         }
       : null,
+    width: (el.className.match(/ila-columns-w(\d+)/) || [])[1] || "100",
+    align: el.classList.contains("ila-columns-left")
+      ? "left"
+      : el.classList.contains("ila-columns-right")
+        ? "right"
+        : "center",
     header: el.classList.contains("ila-columns-head"),
     layout: el.classList.contains("ila-columns-flow") ? "flow" : "aligned",
     prose: el.classList.contains("ila-columns-prose"),
@@ -232,6 +248,8 @@ export function qaToHtml(pairs) {
         columnsTitleLevel,
         columnsLayout,
         columnsProse,
+        columnsWidth,
+        columnsAlign,
       } = pair;
 
       if (isColumnsBlock)
@@ -243,6 +261,7 @@ export function qaToHtml(pairs) {
           columnsLayout,
           columnsProse,
           imageUrl ? { url: imageUrl, alt: imageAlt, title: imageTitle } : null,
+          { width: columnsWidth, align: columnsAlign },
         );
 
       // Image block
@@ -497,7 +516,7 @@ export function htmlToQa(html) {
     // Spalten: <div class="ila-columns"> (ver columnsToHtml)
     if (tag === "DIV" && el.classList.contains("ila-columns")) {
       if (currentPair) pairs.push(currentPair);
-      const { cols, header, title, titleLevel, layout, prose, image } = columnsFromEl(el);
+      const { cols, header, title, titleLevel, layout, prose, image, width, align } = columnsFromEl(el);
       pairs.push({
         id: genId(),
         isColumnsBlock: true,
@@ -507,6 +526,8 @@ export function htmlToQa(html) {
         columnsTitleLevel: titleLevel,
         columnsLayout: layout,
         columnsProse: prose,
+        columnsWidth: width,
+        columnsAlign: align,
         imageUrl: image?.url || "",
         imageAlt: image?.alt || "",
         imageTitle: image?.title || "",
@@ -905,6 +926,8 @@ function blocksToQa(blocks) {
         columnsTitleLevel: block.titleLevel || 4,
         columnsLayout: block.layout || "aligned",
         columnsProse: !!block.prose,
+        columnsWidth: block.width || "100",
+        columnsAlign: block.align || "center",
         imageUrl: block.imageUrl || "",
         imageAlt: block.imageAlt || "",
         imageTitle: block.imageTitle || "",
@@ -956,6 +979,8 @@ function pairsToBlocks(pairs) {
         titleLevel: pair.columnsTitleLevel || 4,
         layout: pair.columnsLayout || "aligned",
         prose: !!pair.columnsProse,
+        width: pair.columnsWidth || "100",
+        align: pair.columnsAlign || "center",
         imageUrl: pair.imageUrl || "",
         imageAlt: pair.imageAlt || "",
         imageTitle: pair.imageTitle || "",
@@ -4055,6 +4080,54 @@ function PasteImportPanel({
                           />
                           Fließtext
                         </label>
+                        {/* Ancho del recuadro entero (la foto ocupa siempre
+                            el ancho del marco) + lado, si es angosto: mismo
+                            patrón S/M/L + ⬅⬛➡ que el bloque de imagen. */}
+                        <div className="flex items-center border border-teal-200 rounded overflow-hidden">
+                          {[
+                            ["35", "S"],
+                            ["50", "M"],
+                            ["75", "L"],
+                            ["100", "■"],
+                          ].map(([val, label]) => (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => updateBlockField(i, "width", val)}
+                              title={val === "100" ? "Kasten: volle Breite" : `Kastenbreite ${val} % (mobil immer volle Breite)`}
+                              className={`px-2 h-6 text-[10px] font-bold transition-colors ${
+                                (block.width || "100") === val
+                                  ? "bg-teal-600 text-white"
+                                  : "text-teal-600 hover:bg-teal-100"
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        {(block.width || "100") !== "100" && (
+                          <div className="flex items-center border border-teal-200 rounded overflow-hidden">
+                            {[
+                              ["left", "⬅", "Links — Text umfließt rechts"],
+                              ["center", "⬛", "Zentriert (Block)"],
+                              ["right", "➡", "Rechts — Text umfließt links"],
+                            ].map(([val, label, tip]) => (
+                              <button
+                                key={val}
+                                type="button"
+                                title={tip}
+                                onClick={() => updateBlockField(i, "align", val)}
+                                className={`px-2 h-6 text-[10px] font-bold transition-colors ${
+                                  (block.align || "center") === val
+                                    ? "bg-teal-600 text-white"
+                                    : "text-teal-600 hover:bg-teal-100"
+                                }`}
+                              >
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                         {!block.imageUrl && (
                           <button
                             type="button"
