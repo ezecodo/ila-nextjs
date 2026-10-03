@@ -3148,6 +3148,21 @@ function PasteImportPanel({
     setInsertStartMark(null);
   };
 
+  // Mover un bloque Spalten: si era el destino del texto del PDF (columna
+  // enfocada), el destino lo sigue a su nueva posición — si no, la próxima
+  // selección del PDF caería en el bloque que quedó en el índice viejo.
+  const moveColumnsBlock = (i, dir) => {
+    const j = i + dir;
+    if (!blocks || j < 0 || j >= blocks.length) return;
+    moveBlock(i, dir);
+    const fc = lastFocusedColumnRef.current;
+    if (fc?.blockIdx === i) {
+      lastFocusedColumnRef.current = { ...fc, blockIdx: j };
+      if (lastFocusedBlockRef.current === i) lastFocusedBlockRef.current = j;
+      setFocusedColumn((cur) => (cur?.blockIdx === i ? { ...cur, blockIdx: j } : cur));
+    }
+  };
+
   const addBlock = (type, afterIdx) => {
     const newBlock =
       type === "list"
@@ -4174,6 +4189,28 @@ function PasteImportPanel({
                             ? " · Strophen werden auf der Seite nebeneinander ausgerichtet"
                             : ""}
                         </span>
+                        {/* Reordenar: subir/bajar el Kasten de bloque en bloque
+                            (p. ej. hasta el párrafo que debe envolverlo). */}
+                        <div className="flex items-center border border-teal-200 rounded overflow-hidden shrink-0">
+                          <button
+                            type="button"
+                            title="Nach oben"
+                            disabled={i === 0}
+                            onClick={() => moveColumnsBlock(i, -1)}
+                            className="px-2 h-6 text-[11px] font-bold text-teal-600 hover:bg-teal-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          >
+                            ↑
+                          </button>
+                          <button
+                            type="button"
+                            title="Nach unten"
+                            disabled={i === (blocks?.length ?? 1) - 1}
+                            onClick={() => moveColumnsBlock(i, 1)}
+                            className="px-2 h-6 text-[11px] font-bold text-teal-600 hover:bg-teal-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          >
+                            ↓
+                          </button>
+                        </div>
                         <button
                           type="button"
                           onClick={() => deleteBlock(i)}
