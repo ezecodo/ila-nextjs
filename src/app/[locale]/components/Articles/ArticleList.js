@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import MiniArticleCardGrid from "./MiniArticleCardGrid";
 import MiniArticleCardList from "./MiniArticleCardList";
+import InFeedBanner from "../Banners/InFeedBanner/InFeedBanner";
 
 import Pagination from "../Pagination/Pagination";
 import { useTranslations, useLocale } from "next-intl";
@@ -17,6 +18,9 @@ export default function ArticleList({
   selectedIds = [],
   onToggleSelect = null,
   onRemoveFavorite = null,
+  // Opt-in (hoy solo la búsqueda): mete el banner "In eigener Sache" como card después
+  // de la N-ésima card. Favoritos, expediciones, autores, etc. no lo pasan.
+  inFeedBannerAfter = null,
 }) {
   const [articles, setArticles] = useState(articlesProp || []);
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,18 +88,24 @@ export default function ArticleList({
   return (
     <div>
       <div className={containerClassName}>
-        {filteredArticles.map((article) => {
+        {filteredArticles.map((article, idx) => {
           const selIndex = selectedIds.indexOf(article.id);
+          const showBanner =
+            view === "grid" &&
+            inFeedBannerAfter != null &&
+            idx === Math.min(inFeedBannerAfter, filteredArticles.length) - 1;
           return (
-            <CardComponent
-              key={article.id}
-              article={article}
-              selectionMode={selectionMode}
-              selected={selIndex !== -1}
-              selectionIndex={selIndex !== -1 ? selIndex + 1 : null}
-              onToggleSelect={onToggleSelect}
-              onRemoveFavorite={onRemoveFavorite}
-            />
+            <Fragment key={article.id}>
+              <CardComponent
+                article={article}
+                selectionMode={selectionMode}
+                selected={selIndex !== -1}
+                selectionIndex={selIndex !== -1 ? selIndex + 1 : null}
+                onToggleSelect={onToggleSelect}
+                onRemoveFavorite={onRemoveFavorite}
+              />
+              {showBanner && <InFeedBanner />}
+            </Fragment>
           );
         })}
       </div>

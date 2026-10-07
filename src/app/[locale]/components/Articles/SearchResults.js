@@ -194,7 +194,7 @@ const SearchResults = () => {
         <p>{t("loading")}</p>
       ) : articles.length > 0 ? (
         <>
-          <ArticleList articlesProp={articles} />
+          <ArticleList articlesProp={articles} inFeedBannerAfter={3} />
           {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}

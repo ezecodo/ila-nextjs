@@ -28,6 +28,7 @@ export const navSections = [
     items: [
       { labelKey: "history", href: "/about/history" },
       { labelKey: "editorialTeam", href: "/about/editorial" },
+      { labelKey: "authorsList", href: "/authors" },
       {
         labelKey: "service",
         items: [

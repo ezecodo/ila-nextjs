@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import FavoriteButton from "../../components/FavoriteButton/FavoriteButton";
 import YearTimeline from "../../components/RelatedArticles/YearTimeline";
+import InFeedBanner from "../../components/Banners/InFeedBanner/InFeedBanner";
 
 const PAGE_SIZE = 24;
 
@@ -272,7 +273,7 @@ export default function RelatedAllPage() {
         <p className="py-16 text-center text-gray-500">{t("noResults")}</p>
       ) : (
         <ul className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((a) => {
+          {items.map((a, idx) => {
             const aTitle =
               isES && a.isTranslatedES && a.titleES ? a.titleES : a.title;
             const aSubtitle =
@@ -284,8 +285,8 @@ export default function RelatedAllPage() {
               ? new Date(a.edition.datePublished).getFullYear()
               : null;
             return (
+              <Fragment key={a.id}>
               <li
-                key={a.id}
                 className="group relative flex flex-col border border-gray-200 transition-all duration-300 hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:hover:border-gray-600"
               >
                 <Link
@@ -337,6 +338,9 @@ export default function RelatedAllPage() {
                   <FavoriteButton articleId={a.id} variant="mini" />
                 </div>
               </li>
+              {/* Banner "In eigener Sache" como 4ª card de cada página */}
+              {idx === Math.min(2, items.length - 1) && <InFeedBanner as="li" />}
+              </Fragment>
             );
           })}
         </ul>

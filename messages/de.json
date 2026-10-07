@@ -92,6 +92,7 @@
     "aboutUs": "Über uns",
     "history": "Geschichte der ila",
     "editorialTeam": "die Redaktion",
+    "authorsList": "Autor*innen",
     "speakers": "Referent:innen",
     "network": "Netzwerk",
     "contact": "Kontakt",
@@ -1639,6 +1640,9 @@
   },
   "entitiesIndex": {
     "authorsTitle": "Alle Autor*innen",
+    "sortLabel": "Sortieren:",
+    "sortByCount": "Nach Anzahl",
+    "sortByName": "Alphabetisch",
     "topicsTitle": "Alle Themen",
     "regionsTitle": "Alle Regionen",
     "articleCount": "{count} Artikel",
@@ -1752,5 +1756,64 @@
     "removed": "Portugiesische Fassung entfernt.",
     "confirmRemove": "Portugiesische Fassung dieses Artikels wirklich entfernen?",
     "cancel": "Abbrechen"
+  },
+  "bannerHelp": {
+    "title": "Anleitung: Banner selbst erstellen und ändern",
+    "show": "Anzeigen ▾",
+    "hide": "Ausblenden ▴",
+    "intro": "Die Banner in der rechten Spalte neben dem aktuellen Dossier könnt ihr hier selbst bearbeiten – ohne Programmierung. Links seht ihr während der Bearbeitung immer eine Live-Vorschau, genau so, wie das Banner auf der Website aussehen wird. Erst mit dem Speichern-Button geht eine Änderung online.",
+    "recipes": [
+      {
+        "title": "Neues Banner erstellen",
+        "steps": [
+          "Oben rechts auf „Nuevo Banner“ klicken.",
+          "Unter „Tipo de banner“ die Option „🧩 Banner por bloques (sidebar)“ wählen (wichtig: voreingestellt ist der andere Typ).",
+          "Im Reiter „📝 Contenido“ unter „+ Agregar bloque“ die gewünschten Bausteine hinzufügen – z. B. „📝 Texto libre“ für Überschrift und Text, „🔘 Botón (CTA)“ für einen Button.",
+          "Alle Felder auf Deutsch (DE) und Spanisch (ES) ausfüllen. Bei „📝 Texto libre“: die Überschrift gehört ins Feld „Título“ (groß) – „Kicker“ ist nur eine kleine Zeile darüber und optional.",
+        "Bei längeren Texten unter „Cuánto texto se ve“ die Option „Todo el texto“ wählen – sonst wird der Text nach 3 Zeilen abgeschnitten.",
+          "Im Reiter „🎨 Diseño“ die Hintergrundfarbe wählen („Color Inicio“ / „Color Fin“ – zweimal dieselbe Farbe ergibt eine einfarbige Fläche).",
+          "Im Reiter „⚙️ Configuración“: Position „Sidebar de Edición — Apilado (todos visibles)“, Zeitraum mit „Fecha Inicio“ / „Fecha Fin“, „Banner Activo“ angehakt lassen.",
+          "Auf „Crear Banner“ klicken – fertig."
+        ]
+      },
+      {
+        "title": "Text oder Buttons in einem Banner ändern",
+        "steps": [
+          "In der Liste unten beim gewünschten Banner auf „Editar“ klicken.",
+          "Im Reiter „📝 Contenido“ den Text direkt in den Feldern ändern.",
+          "Neuen Button: „+ Agregar bloque“ → „🔘 Botón (CTA)“, Beschriftung DE/ES und Link eintragen (z. B. /order/abo).",
+          "Reihenfolge der Bausteine: am Griff ⠿ ziehen oder mit ↑↓ verschieben. Einen Baustein entfernen: 🗑.",
+          "Auf „Actualizar Banner“ klicken."
+        ]
+      },
+      {
+        "title": "Banner vorübergehend ausblenden",
+        "steps": [
+          "Beim Banner auf „Editar“ klicken.",
+          "Im Reiter „⚙️ Configuración“ den Haken bei „Banner Activo“ entfernen.",
+          "Auf „Actualizar Banner“ klicken. Das Banner bleibt gespeichert und kann jederzeit wieder aktiviert werden.",
+          "„Eliminar“ löscht das Banner dagegen endgültig – nur verwenden, wenn ihr es sicher nicht mehr braucht."
+        ]
+      },
+      {
+        "title": "Reihenfolge der Banner festlegen",
+        "steps": [
+          "Beim Banner auf „Editar“ klicken und in „⚙️ Configuración“ das Feld „Orden“ ändern.",
+          "Die kleinere Zahl steht weiter oben (0 vor 1 vor 2 …).",
+          "„Apilado“ = alle Banner untereinander, immer sichtbar. „Carrusel“ = die Banner wechseln sich automatisch ab."
+        ]
+      }
+    ],
+    "tipsTitle": "Gut zu wissen",
+    "tips": [
+      "Die Höhe der Banner ist fest. Was nicht hineinpasst, wird abgeschnitten – in der Vorschau seht ihr genau, was sichtbar bleibt. Dann den Text kürzen, beim Baustein die Größe auf „Chico“ oder „Mediano“ stellen oder bei „📝 Texto libre“ unter „Cuánto texto se ve“ mehr Zeilen zulassen.",
+      "Links auf Seiten der ila-Website beginnen mit „/“ (z. B. /order/abo, /support/donations, /support/participate). Externe Links mit „https://…“.",
+      "Farben: Rot ist die ila-Farbe; Grün ist für das Digital-Abo reserviert. Für Hinweise und Aufrufe eignet sich z. B. ein dunkles Grau.",
+      "Die Website zeigt Deutsch oder Spanisch je nach Sprache der Lesenden – deshalb immer beide Felder ausfüllen.",
+      "Damit ein Banner zusätzlich zwischen den Artikeln erscheint (innerhalb jedes Artikels, sowie in der Suche und bei „Relacionados“, mit dem Hinweis „In eigener Sache“): in „⚙️ Configuración“ „📰 También mostrar entre los artículos“ anhaken."
+    ]
+  },
+  "inFeedBanner": {
+    "label": "In eigener Sache"
   }
 }

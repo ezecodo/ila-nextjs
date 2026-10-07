@@ -69,6 +69,10 @@ export default function Header() {
   });
 
   const [mounted, setMounted] = useState(false);
+  // Para el ícono/título del botón de tema: en el servidor no hay localStorage ni
+  // prefers-color-scheme (darkMode siempre sale false), así que hasta montar se dibuja
+  // como "claro" — si no, React tira error de hidratación con el sistema en modo oscuro.
+  const isDark = mounted && darkMode;
   const launchConfetti = () => {
     // Primera ráfaga
     confetti({
@@ -458,7 +462,7 @@ export default function Header() {
                 onClick={() => setDarkMode(!darkMode)}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors"
               >
-                {darkMode ? (
+                {isDark ? (
                   <FaSun size={16} className="text-yellow-300" />
                 ) : (
                   <FaMoon size={15} />
@@ -667,10 +671,10 @@ export default function Header() {
                 <div className="border-l border-white/20 pl-4 flex items-center gap-3">
                   <button
                     onClick={() => setDarkMode(!darkMode)}
-                    title={darkMode ? t("switch_light") : t("switch_dark")}
+                    title={isDark ? t("switch_light") : t("switch_dark")}
                     className="flex items-center justify-center text-white/70 hover:text-white transition-colors"
                   >
-                    {darkMode ? <FaSun size={12} className="text-yellow-300" /> : <FaMoon size={11} />}
+                    {isDark ? <FaSun size={12} className="text-yellow-300" /> : <FaMoon size={11} />}
                   </button>
 
                   {session ? (
@@ -734,10 +738,10 @@ export default function Header() {
                   {/* Dark mode */}
                   <button
                     onClick={() => setDarkMode(!darkMode)}
-                    title={darkMode ? t("switch_light") : t("switch_dark")}
+                    title={isDark ? t("switch_light") : t("switch_dark")}
                     className="flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#BD0E0D] dark:hover:text-red-400 transition-colors"
                   >
-                    {darkMode ? <FaSun size={12} className="text-yellow-500" /> : <FaMoon size={11} />}
+                    {isDark ? <FaSun size={12} className="text-yellow-500" /> : <FaMoon size={11} />}
                   </button>
 
                   {/* Usuario */}

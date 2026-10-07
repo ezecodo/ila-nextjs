@@ -48,6 +48,16 @@ export const ALIGN_OPTIONS = [
   { value: "right", label: "➡ Derecha" },
 ];
 
+// Posición vertical del contenido dentro del alto fijo del banner. "center" es el
+// comportamiento de siempre (banners guardados sin `valign` se leen así); "top" pega
+// los bloques al borde superior (p. ej. logo arriba y el texto debajo).
+export const DEFAULT_VALIGN = "center";
+export const VALIGN_OPTIONS = [
+  { value: "top", label: "⬆ Arriba" },
+  { value: "center", label: "⬛ Centro" },
+  { value: "bottom", label: "⬇ Abajo" },
+];
+
 // Tamaño de fuente/ícono del bloque — independiente del layout (que sigue siendo flujo
 // automático). No es "cuánto espacio ocupa" sino "qué tan grande se ve" su contenido.
 export const DEFAULT_SIZE = "md";
@@ -55,6 +65,17 @@ export const SIZE_OPTIONS = [
   { value: "sm", label: "Chico" },
   { value: "md", label: "Mediano" },
   { value: "lg", label: "Grande" },
+];
+
+// Tamaño propio de cada campo del bloque "texto libre" (kickerSize/titleSize/bodySize).
+// "" = usa el tamaño general del bloque (`size`) — así los banners guardados antes de que
+// existiera esto se ven igual. "xl" solo existe a nivel campo, no en el selector del bloque.
+export const TEXT_FIELD_SIZE_OPTIONS = [
+  { value: "", label: "Como el bloque" },
+  { value: "sm", label: "Chico" },
+  { value: "md", label: "Mediano" },
+  { value: "lg", label: "Grande" },
+  { value: "xl", label: "Muy grande" },
 ];
 
 // Estética del kicker del bloque "texto libre": "plain" (texto chico gris/blanco, el look
@@ -66,6 +87,7 @@ export const DEFAULT_KICKER_STYLE = "plain";
 export const KICKER_STYLE_OPTIONS = [
   { value: "plain", label: "Texto simple" },
   { value: "chip", label: "Chip (como los encabezados de sección)" },
+  { value: "strong", label: "Destacado (grande, en negrita)" },
 ];
 
 // Cuánto texto del cuerpo se muestra en el bloque "texto libre" antes de recortar con "…".
@@ -129,10 +151,20 @@ export const DIGIABO_DEFAULT_PITCH = {
 // ya guardados en la base (incluidos los de las vueltas anteriores de este mismo feature,
 // con campos `pos`/`span` sueltos en cada bloque que ya no se usan) siguen renderizando,
 // simplemente ignorando esos campos de más.
+// `inFeed`: el banner además aparece como card entre los artículos (home, búsqueda,
+// relacionados, final de cada artículo — ver InFeedBanner.jsx). Vive en el JSON y no en
+// `position` para que un mismo banner pueda estar en el sidebar Y entre los artículos.
 export function normalizeBlocks(raw) {
-  if (Array.isArray(raw)) return { align: DEFAULT_ALIGN, items: raw };
-  if (raw && Array.isArray(raw.items)) {
-    return { align: raw.align || DEFAULT_ALIGN, items: raw.items };
+  if (Array.isArray(raw)) {
+    return { align: DEFAULT_ALIGN, valign: DEFAULT_VALIGN, inFeed: false, items: raw };
   }
-  return { align: DEFAULT_ALIGN, items: [] };
+  if (raw && Array.isArray(raw.items)) {
+    return {
+      align: raw.align || DEFAULT_ALIGN,
+      valign: raw.valign || DEFAULT_VALIGN,
+      inFeed: !!raw.inFeed,
+      items: raw.items,
+    };
+  }
+  return { align: DEFAULT_ALIGN, valign: DEFAULT_VALIGN, inFeed: false, items: [] };
 }

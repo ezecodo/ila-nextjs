@@ -92,6 +92,7 @@
     "aboutUs": "Sobre Nosotros",
     "history": "La historia de ila",
     "editorialTeam": "Redacción",
+    "authorsList": "Autorías",
     "speakers": "Ponentes",
     "network": "Red",
     "contact": "Contacto",
@@ -1638,6 +1639,9 @@
   },
   "entitiesIndex": {
     "authorsTitle": "Todas las autorías",
+    "sortLabel": "Ordenar:",
+    "sortByCount": "Por cantidad",
+    "sortByName": "Alfabético",
     "topicsTitle": "Todos los temas",
     "regionsTitle": "Todas las regiones",
     "articleCount": "{count} artículos",
@@ -1751,5 +1755,64 @@
     "removed": "Versión en portugués quitada.",
     "confirmRemove": "¿Quitar la versión en portugués de este artículo?",
     "cancel": "Cancelar"
+  },
+  "bannerHelp": {
+    "title": "Guía: crear y cambiar banners por tu cuenta",
+    "show": "Mostrar ▾",
+    "hide": "Ocultar ▴",
+    "intro": "Los banners de la columna derecha, junto al dossier actual, los podés editar acá sin programar nada. A la izquierda vas viendo una vista previa en vivo, igual a como va a quedar en la web. Ningún cambio se publica hasta que tocás el botón de guardar.",
+    "recipes": [
+      {
+        "title": "Crear un banner nuevo",
+        "steps": [
+          "Arriba a la derecha, clic en „Nuevo Banner“.",
+          "En „Tipo de banner“ elegí „🧩 Banner por bloques (sidebar)“ (ojo: viene marcado el otro tipo).",
+          "En la pestaña „📝 Contenido“, con „+ Agregar bloque“ sumá las piezas que necesites: p. ej. „📝 Texto libre“ para título y texto, „🔘 Botón (CTA)“ para un botón.",
+          "Completá todo en alemán (DE) y en español (ES). En „📝 Texto libre“: el título va en el campo „Título“ (grande) — „Kicker“ es solo una línea chica arriba, opcional.",
+        "Con textos largos, en „Cuánto texto se ve“ elegí „Todo el texto“ — si no, se corta a las 3 líneas.",
+          "En „🎨 Diseño“ elegí el color de fondo („Color Inicio“ / „Color Fin“ — el mismo color en los dos da un fondo liso).",
+          "En „⚙️ Configuración“: posición „Sidebar de Edición — Apilado (todos visibles)“, fechas en „Fecha Inicio“ / „Fecha Fin“, y „Banner Activo“ tildado.",
+          "Clic en „Crear Banner“ y listo."
+        ]
+      },
+      {
+        "title": "Cambiar textos o botones de un banner",
+        "steps": [
+          "En la lista de abajo, clic en „Editar“ en el banner que quieras.",
+          "En „📝 Contenido“ cambiá el texto directamente en los campos.",
+          "Botón nuevo: „+ Agregar bloque“ → „🔘 Botón (CTA)“, texto DE/ES y link (p. ej. /order/abo).",
+          "Orden de los bloques: arrastrá desde ⠿ o usá ↑↓. Para quitar un bloque: 🗑.",
+          "Clic en „Actualizar Banner“."
+        ]
+      },
+      {
+        "title": "Ocultar un banner por un tiempo",
+        "steps": [
+          "Clic en „Editar“ en ese banner.",
+          "En „⚙️ Configuración“ destildá „Banner Activo“.",
+          "Clic en „Actualizar Banner“. El banner queda guardado y se puede volver a activar cuando quieras.",
+          "„Eliminar“, en cambio, lo borra para siempre — usalo solo si seguro no lo vas a necesitar."
+        ]
+      },
+      {
+        "title": "Elegir el orden de los banners",
+        "steps": [
+          "Clic en „Editar“ y en „⚙️ Configuración“ cambiá el campo „Orden“.",
+          "El número más chico va más arriba (0 antes que 1, antes que 2…).",
+          "„Apilado“ = todos los banners uno debajo del otro, siempre visibles. „Carrusel“ = van rotando solos."
+        ]
+      }
+    ],
+    "tipsTitle": "Bueno saber",
+    "tips": [
+      "Los banners tienen alto fijo. Lo que no entra se corta — en la vista previa ves exactamente qué queda visible. En ese caso acortá el texto, poné el bloque en „Chico“ o „Mediano“ o en „📝 Texto libre“ subí „Cuánto texto se ve“.",
+      "Los links a páginas de la web de ila empiezan con „/“ (p. ej. /order/abo, /support/donations, /support/participate). Links externos, con „https://…“.",
+      "Colores: el rojo es el de ila; el verde está reservado para el Digital-Abo. Para avisos o llamados funciona bien, p. ej., un gris oscuro.",
+      "La web muestra alemán o español según el idioma de quien lee — por eso siempre hay que completar los dos campos.",
+      "Para que un banner aparezca además entre los artículos (dentro de cada artículo, y en la búsqueda y „Relacionados“, con la etiqueta „In eigener Sache“): en „⚙️ Configuración“ tildá „📰 También mostrar entre los artículos“."
+    ]
+  },
+  "inFeedBanner": {
+    "label": "Mensaje de ila"
   }
 }

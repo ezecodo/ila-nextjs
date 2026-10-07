@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import BannerHelp from "./BannerHelp";
 import BannerSlide, { BANNER_HEIGHT } from "../../components/Banners/SlideBanner/BannerSlide";
 import {
   BLOCK_DEFS,
@@ -10,9 +11,12 @@ import {
   STAT_REGISTRY,
   ALIGN_OPTIONS,
   DEFAULT_ALIGN,
+  DEFAULT_VALIGN,
+  VALIGN_OPTIONS,
   SIZE_OPTIONS,
   BODY_LINES_OPTIONS,
   KICKER_STYLE_OPTIONS,
+  TEXT_FIELD_SIZE_OPTIONS,
   normalizeBlocks,
 } from "../../components/Banners/SlideBanner/blocks";
 
@@ -54,7 +58,7 @@ function getBlankForm() {
     position: "top",
     type: "cta",
     order: 0,
-    blocks: { align: DEFAULT_ALIGN, items: [] },
+    blocks: { align: DEFAULT_ALIGN, valign: DEFAULT_VALIGN, items: [] },
   };
 }
 
@@ -332,6 +336,14 @@ export default function BannersPage() {
     setFormData((prev) => ({ ...prev, blocks: { ...prev.blocks, align } }));
   };
 
+  const setValign = (valign) => {
+    setFormData((prev) => ({ ...prev, blocks: { ...prev.blocks, valign } }));
+  };
+
+  const setInFeed = (inFeed) => {
+    setFormData((prev) => ({ ...prev, blocks: { ...prev.blocks, inFeed } }));
+  };
+
   const addBlock = (blockType) => {
     setFormData((prev) => ({
       ...prev,
@@ -416,6 +428,8 @@ export default function BannersPage() {
           {showForm ? "Cancelar" : "Nuevo Banner"}
         </button>
       </div>
+
+      <BannerHelp />
 
       {showForm && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg mb-8 p-6">
@@ -748,6 +762,31 @@ export default function BannersPage() {
                       </div>
                     </div>
 
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Posición vertical del contenido
+                      </label>
+                      <div className="flex gap-2">
+                        {VALIGN_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => setValign(opt.value)}
+                            className={`px-3 py-1.5 text-sm rounded border ${
+                              (formData.blocks.valign || DEFAULT_VALIGN) === opt.value
+                                ? "bg-red-600 text-white border-red-600"
+                                : "border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        „Arriba“ pega el logo (o el primer bloque) al borde superior.
+                      </p>
+                    </div>
+
                     {formData.blocks.items.length === 0 && (
                       <p className="text-sm text-gray-500 italic">
                         Todavía no agregaste ningún bloque. Elegí uno abajo
@@ -865,6 +904,25 @@ export default function BannersPage() {
                         {/* --- Texto --- */}
                         {block.type === "text" && (
                           <div className="space-y-3">
+                            <div className="flex items-center justify-between gap-2 -mb-2">
+                              <label className="text-xs text-gray-500">
+                                Antetítulo / Kicker — línea chica arriba del título (opcional)
+                              </label>
+                              <select
+                                value={block.kickerSize || ""}
+                                onChange={(e) =>
+                                  updateBlock(index, { kickerSize: e.target.value })
+                                }
+                                title="Tamaño de este campo"
+                                className="px-2 py-0.5 text-xs rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                              >
+                                {TEXT_FIELD_SIZE_OPTIONS.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                               <input
                                 type="text"
@@ -899,6 +957,25 @@ export default function BannersPage() {
                                 </option>
                               ))}
                             </select>
+                            <div className="flex items-center justify-between gap-2 -mb-2">
+                              <label className="text-xs text-gray-500">
+                                Título — el texto grande
+                              </label>
+                              <select
+                                value={block.titleSize || ""}
+                                onChange={(e) =>
+                                  updateBlock(index, { titleSize: e.target.value })
+                                }
+                                title="Tamaño de este campo"
+                                className="px-2 py-0.5 text-xs rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                              >
+                                {TEXT_FIELD_SIZE_OPTIONS.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                               <input
                                 type="text"
@@ -918,6 +995,25 @@ export default function BannersPage() {
                                 className="w-full px-3 py-2 border rounded dark:bg-gray-700 text-sm"
                                 placeholder="Título (ES)"
                               />
+                            </div>
+                            <div className="flex items-center justify-between gap-2 -mb-2">
+                              <label className="text-xs text-gray-500">
+                                Texto
+                              </label>
+                              <select
+                                value={block.bodySize || ""}
+                                onChange={(e) =>
+                                  updateBlock(index, { bodySize: e.target.value })
+                                }
+                                title="Tamaño de este campo"
+                                className="px-2 py-0.5 text-xs rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                              >
+                                {TEXT_FIELD_SIZE_OPTIONS.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </option>
+                                ))}
+                              </select>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                               <textarea
@@ -1308,6 +1404,28 @@ export default function BannersPage() {
                       </p>
                     </div>
 
+                    {formData.type === "custom" && (
+                      <div className="rounded border border-gray-200 dark:border-gray-700 p-3">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={!!formData.blocks.inFeed}
+                            onChange={(e) => setInFeed(e.target.checked)}
+                          />
+                          <span className="text-sm font-medium">
+                            📰 También mostrar entre los artículos
+                          </span>
+                        </label>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Además de su posición, el banner aparece dentro de cada
+                          artículo (a un tercio del texto) y como una card
+                          más en los resultados de búsqueda y en „Relacionados“ — con
+                          la etiqueta „In eigener Sache“. Si hay varios marcados, se
+                          muestra el de menor „Orden“.
+                        </p>
+                      </div>
+                    )}
+
                     {(formData.position === "edition-sidebar" ||
                       formData.position === "edition-sidebar-stacked") && (
                       <div>
@@ -1422,6 +1540,12 @@ export default function BannersPage() {
                     banner.position === "edition-sidebar-stacked") &&
                     ` · orden ${banner.order}`}
                 </span>
+                {banner.type === "custom" &&
+                  normalizeBlocks(banner.blocks).inFeed && (
+                    <span className="px-2 py-1 rounded bg-amber-100 text-amber-800">
+                      📰 entre artículos
+                    </span>
+                  )}
                 <span className="flex items-center">
                   {new Date(banner.startDate).toLocaleDateString()} -{" "}
                   {new Date(banner.endDate).toLocaleDateString()}

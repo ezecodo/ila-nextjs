@@ -25,6 +25,7 @@ export const BANNER_HEIGHT = 356;
 const futura = { fontFamily: "Futura Cyrillic, Arial, sans-serif" };
 
 const JUSTIFY = { left: "flex-start", center: "center", right: "flex-end" };
+const ALIGN_CONTENT = { top: "flex-start", center: "center", bottom: "flex-end" };
 
 function bg(banner) {
   const from = banner.bgGradientFrom || "#BD0E0D";
@@ -101,21 +102,31 @@ function StatsBlock({ block, stats, locale }) {
 // Un poco más grande que STAT_LABEL_SIZE (mismo espíritu tipográfico: bold,
 // mayúsculas, tracking-wide) — pedido explícito: que el kicker "plain" se
 // vea como el texto que describe los números de stats, pero más grande.
+// Kicker "Destacado": misma línea arriba del título, pero con peso de titular.
+const KICKER_STRONG_SIZE = {
+  sm: "text-base md:text-lg",
+  md: "text-lg md:text-xl",
+  lg: "text-xl md:text-2xl",
+  xl: "text-2xl md:text-3xl",
+};
 const KICKER_SIZE = {
   sm: "text-[11px] md:text-xs",
   md: "text-xs md:text-sm",
   lg: "text-sm md:text-base",
+  xl: "text-base md:text-lg",
 };
 
 const TEXT_TITLE_SIZE = {
   sm: "text-base md:text-lg",
   md: "text-lg md:text-xl",
   lg: "text-2xl md:text-3xl",
+  xl: "text-3xl md:text-4xl",
 };
 const TEXT_BODY_SIZE = {
   sm: "text-[11px] md:text-xs",
   md: "text-xs md:text-sm",
   lg: "text-sm md:text-base",
+  xl: "text-base md:text-lg",
 };
 
 // Cuánto texto se ve antes de recortar con "…" (ver DEFAULT_BODY_LINES/BODY_LINES_OPTIONS
@@ -127,15 +138,26 @@ const LINE_CLAMP = {
   0: "",
 };
 
-function TextBlock({ block, locale }) {
+function TextBlock({ block, locale, wide }) {
   const kicker = pick(block, "kickerDe", "kickerEs", locale);
   const title = pick(block, "titleDe", "titleEs", locale);
   const body = pick(block, "bodyDe", "bodyEs", locale);
   if (!kicker && !title && !body) return null;
   const bodyClamp = LINE_CLAMP[block.bodyLines] ?? LINE_CLAMP[3];
+  // Cada campo puede tener su tamaño; si no, hereda el del bloque.
+  const kickerSize = block.kickerSize || block.size;
+  const titleSize = block.titleSize || block.size;
+  const bodySize = block.bodySize || block.size;
   return (
-    <div className="flex flex-col gap-1 max-w-[320px]">
-      {kicker && (block.kickerStyle === "chip" ? (
+    <div className={`flex flex-col gap-1 ${wide ? "max-w-[640px]" : "max-w-[320px]"}`}>
+      {kicker && (block.kickerStyle === "strong" ? (
+        <p
+          className={`${sizeClass(kickerSize, KICKER_STRONG_SIZE)} font-bold uppercase tracking-wide text-white leading-tight`}
+          style={futura}
+        >
+          {kicker}
+        </p>
+      ) : block.kickerStyle === "chip" ? (
         // Mismo espíritu que el chip de QuietSectionHeader (VERANSTALTUNGEN/
         // AKTUELLES) pero blanco translúcido en vez de rojo sólido — un chip
         // rojo se perdería en un banner que ya es rojo (ver blocks.js).
@@ -150,21 +172,21 @@ function TextBlock({ block, locale }) {
         // cuerpo, no Futura — acá no es un elemento de marca como el logo o
         // el título, es un rótulo descriptivo) — solo un poco más grande.
         <p
-          className={`-mt-6 ${sizeClass(block.size, KICKER_SIZE)} font-semibold uppercase tracking-wide text-white/80`}
+          className={`-mt-6 ${sizeClass(kickerSize, KICKER_SIZE)} font-semibold uppercase tracking-wide text-white/80`}
         >
           {kicker}
         </p>
       ))}
       {title && (
         <h3
-          className={`${sizeClass(block.size, TEXT_TITLE_SIZE)} font-extrabold leading-tight tracking-tight line-clamp-2`}
+          className={`${sizeClass(titleSize, TEXT_TITLE_SIZE)} font-extrabold leading-tight tracking-tight line-clamp-2`}
           style={futura}
         >
           {title}
         </h3>
       )}
       {body && (
-        <p className={`${sizeClass(block.size, TEXT_BODY_SIZE)} leading-snug text-white/90 ${bodyClamp}`}>
+        <p className={`${sizeClass(bodySize, TEXT_BODY_SIZE)} leading-snug text-white/90 ${bodyClamp}`}>
           {body}
         </p>
       )}
@@ -237,21 +259,42 @@ function DigiAboBlock({ block, locale }) {
 // mientras el propio dropdown del editor mostraba "Mediano" seleccionado — desajuste entre
 // lo que se veía elegido y lo que en realidad se renderizaba. Ahora el fallback es
 // "default", coherente con el resto de los bloques (sizeClass() cae a la escala "md").
-const LOGO_SIZE = { sm: "compact", md: "default", lg: "large" };
+// "Chico" no usa el size "compact" de IlaLogo50: ahí el texto (132px) no entra en la
+// caja de 96px y la "a" sale cortada. Se achica el logo "default" (168px) con CSS.
+const LOGO_SIZE = { sm: "default", md: "default", lg: "large" };
+const LOGO_SCALE = { sm: 0.6 };
+const LOGO_BASE_PX = 168; // ancho/alto del size "default" de IlaLogo50
 
 function LogoBlock({ block }) {
   // Sin el "50": es un mark decorativo del banner, no algo atado al aniversario.
   // w-full: el logo siempre ocupa la fila entera del flujo automático, así lo
   // que venga después (un kicker, un texto) siempre cae en una línea nueva,
   // debajo — nadie quiere algo apretado al costado del wordmark grande.
+  const logo = (
+    <IlaLogo50
+      size={LOGO_SIZE[block.size] || "default"}
+      show50={false}
+      isLink={false}
+      animated={false}
+    />
+  );
+  const scale = LOGO_SCALE[block.size];
   return (
     <div className="w-full flex justify-center">
-      <IlaLogo50
-        size={LOGO_SIZE[block.size] || "default"}
-        show50={false}
-        isLink={false}
-        animated={false}
-      />
+      {scale ? (
+        <div
+          style={{
+            width: LOGO_BASE_PX * scale,
+            height: LOGO_BASE_PX * scale,
+          }}
+        >
+          <div style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}>
+            {logo}
+          </div>
+        </div>
+      ) : (
+        logo
+      )}
     </div>
   );
 }
@@ -265,14 +308,35 @@ const BLOCK_RENDERERS = {
   digiAbo: DigiAboBlock,
 };
 
-export default function BannerSlide({ banner, stats, locale }) {
+// `fill`: modo card entre artículos (InFeedBanner) — ocupa el alto de su celda de grilla
+// (mínimo BANNER_HEIGHT) en vez del alto fijo, y sin el -mx-2 full-bleed del sidebar mobile.
+// `badge`: texto de un chip arriba a la izquierda ("In eigener Sache") — el contenido
+// baja un poco para que el chip nunca tape el primer bloque.
+// `wide`: recuadro a todo el ancho (final del artículo) — el texto puede ser más ancho
+// que en el sidebar y el alto se ajusta al contenido en vez de quedar fijo.
+export default function BannerSlide({
+  banner,
+  stats,
+  locale,
+  fill = false,
+  badge = null,
+  wide = false,
+}) {
   const accent = banner.bgGradientFrom || "#BD0E0D";
-  const { align, items } = normalizeBlocks(banner.blocks);
+  const { align, valign, items } = normalizeBlocks(banner.blocks);
 
   return (
     <div
-      className="relative overflow-hidden text-white shadow-md -mx-2 sm:mx-0"
-      style={{ ...bg(banner), height: BANNER_HEIGHT, flexShrink: 0 }}
+      className={`relative overflow-hidden text-white shadow-md ${fill || wide ? "flex flex-1 flex-col" : "-mx-2 sm:mx-0"}`}
+      style={{
+        ...bg(banner),
+        ...(fill
+          ? { minHeight: BANNER_HEIGHT }
+          : wide
+            ? { minHeight: 200 }
+            : { height: BANNER_HEIGHT }),
+        flexShrink: 0,
+      }}
     >
       {/* Textura + viñeta — para que un bloque de color sólido no quede tan plano */}
       <div
@@ -291,17 +355,34 @@ export default function BannerSlide({ banner, stats, locale }) {
         }}
       />
 
+      {badge && (
+        <span className="absolute left-3 top-3 z-10 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-900">
+          {badge}
+        </span>
+      )}
+
       {/* Flujo automático: los bloques se acomodan solos uno al lado del otro y bajan de
           línea cuando no entran — nunca se pisan, sin coordenadas manuales. */}
       <div
-        className="relative flex h-full flex-wrap content-center items-center gap-x-6 gap-y-4 overflow-hidden px-6 py-4 text-center"
-        style={{ justifyContent: JUSTIFY[align] || "center", textAlign: align }}
+        className={`relative flex ${fill || wide ? "flex-1" : "h-full"} flex-wrap items-center gap-x-6 gap-y-4 overflow-hidden px-6 ${badge ? (wide ? "pb-8 pt-12" : "pb-4 pt-12") : "py-4"} text-center`}
+        style={{
+          justifyContent: JUSTIFY[align] || "center",
+          alignContent: ALIGN_CONTENT[valign] || "center",
+          textAlign: align,
+        }}
       >
         {items.map((block, i) => {
           const Renderer = BLOCK_RENDERERS[block.type];
           if (!Renderer) return null;
           return (
-            <Renderer key={i} block={block} stats={stats} locale={locale} accent={accent} />
+            <Renderer
+              key={i}
+              block={block}
+              stats={stats}
+              locale={locale}
+              accent={accent}
+              wide={wide}
+            />
           );
         })}
       </div>

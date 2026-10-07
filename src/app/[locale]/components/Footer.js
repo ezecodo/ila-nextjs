@@ -95,6 +95,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/authors" className={styles.link}>
+                  {t("authorsList")}
+                </Link>
+              </li>
+              <li>
                 <Link href="/about/network" className={styles.link}>
                   {t("network")}
                 </Link>

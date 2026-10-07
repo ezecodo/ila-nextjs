@@ -19,6 +19,7 @@ import { ArticleListenProvider } from "../../components/ArticleListen/ArticleLis
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import ShareBar from "../../components/ShareBar/ShareBar";
+import InFeedBanner from "../../components/Banners/InFeedBanner/InFeedBanner";
 import { useTranslations } from "next-intl";
 import { articleTransforms } from "@/lib/articleRender";
 
@@ -159,6 +160,23 @@ export default function LegacyArticlePage() {
   }
 
   // Parte el HTML en 2 mitades por cantidad de </p>, para insertar el banner inline.
+  // Parte el HTML en 3 tercios por cantidad de </p> (banner "In eigener Sache" a 1/3 y
+  // banner de donación a 2/3). Devuelve null si hay menos de 6 párrafos — en ese caso
+  // se usa splitHtmlAtMiddleParagraph (un solo hueco).
+  function splitHtmlInThirds(html) {
+    if (!html) return null;
+    const closings = [];
+    const re = /<\/p>/gi;
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      closings.push(m.index + m[0].length);
+    }
+    if (closings.length < 6) return null;
+    const first = closings[Math.floor(closings.length / 3) - 1];
+    const second = closings[Math.floor((closings.length * 2) / 3) - 1];
+    return [html.slice(0, first), html.slice(first, second), html.slice(second)];
+  }
+
   function splitHtmlAtMiddleParagraph(html) {
     if (!html) return { firstHalf: "", secondHalf: "", splitWorked: false };
     const closings = [];
@@ -770,14 +788,55 @@ export default function LegacyArticlePage() {
                 />
               );
             }
+            // Banners dentro del artículo. Van FUERA de .article-content: ahí los h3
+            // tienen color !important (globals.css) y el título del banner saldría
+            // gris sobre el fondo de color.
+            // - Artículo largo (6+ párrafos): banner "In eigener Sache" (si hay uno
+            //   marcado "entre los artículos" en /dashboard/banners) a 1/3 y el de
+            //   donación a 2/3 — los dos, separados.
+            // - Artículo corto (4–5 párrafos): un solo hueco; el "In eigener Sache"
+            //   tiene prioridad y, si no hay ninguno marcado, va el de donación.
+            const thirds = splitHtmlInThirds(fullHtml);
+            if (thirds) {
+              return (
+                <div className="mt-6" itemProp="articleBody">
+                  <div
+                    className="article-content text-gray-700 dark:text-gray-200"
+                    dangerouslySetInnerHTML={{ __html: thirds[0] }}
+                  />
+                  <InFeedBanner variant="inline" />
+                  <div
+                    className="article-content text-gray-700 dark:text-gray-200"
+                    dangerouslySetInnerHTML={{ __html: thirds[1] }}
+                  />
+                  <div className="article-content text-gray-700 dark:text-gray-200">
+                    <DonationInlineBanner />
+                  </div>
+                  <div
+                    className="article-content text-gray-700 dark:text-gray-200"
+                    dangerouslySetInnerHTML={{ __html: thirds[2] }}
+                  />
+                </div>
+              );
+            }
             return (
-              <div
-                className="article-content text-gray-700 dark:text-gray-200 mt-6"
-                itemProp="articleBody"
-              >
-                <div dangerouslySetInnerHTML={{ __html: firstHalf }} />
-                <DonationInlineBanner />
-                <div dangerouslySetInnerHTML={{ __html: secondHalf }} />
+              <div className="mt-6" itemProp="articleBody">
+                <div
+                  className="article-content text-gray-700 dark:text-gray-200"
+                  dangerouslySetInnerHTML={{ __html: firstHalf }}
+                />
+                <InFeedBanner
+                  variant="inline"
+                  fallback={
+                    <div className="article-content text-gray-700 dark:text-gray-200">
+                      <DonationInlineBanner />
+                    </div>
+                  }
+                />
+                <div
+                  className="article-content text-gray-700 dark:text-gray-200"
+                  dangerouslySetInnerHTML={{ __html: secondHalf }}
+                />
               </div>
             );
           })()}
