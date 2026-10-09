@@ -63,7 +63,10 @@ export default function PdfPageView({ pdfDoc, pageNumber, pdfjs, width, cropMode
     let cancelled = false;
 
     pdfDoc.getPage(pageNumber).then(async (page) => {
-      if (cancelled) return;
+      // El canvas solo existe mientras la página está visible: si salió del
+      // viewport mientras cargaba, React ya lo desmontó (ref en null) aunque
+      // el cleanup de este efecto todavía no haya corrido.
+      if (cancelled || !canvasRef.current || !textLayerRef.current) return;
       const base = page.getViewport({ scale: 1 });
       const scale = width / base.width;
       const viewport = page.getViewport({ scale });

@@ -120,6 +120,43 @@ function linesToParagraphs(items, domFont) {
       lines.push(cur);
     }
   }
+  // Subíndices / superíndices (el "2" de CO₂, m², una llamada de nota): son
+  // un span propio, más chico y corrido en vertical media línea — más que la
+  // tolerancia de arriba — así que quedaban como una "línea" aparte y el
+  // dígito aparecía recién al final de la línea ("CO -Ausstoß … für 2 die").
+  // Se devuelven a la línea vecina que los contiene; el orden por X de abajo
+  // los deja en su lugar. Altura de referencia = mediana baja de los spans
+  // de la línea anfitriona (no l.h, que un drop cap infla y haría pasar por
+  // "chica" a la línea normal de abajo).
+  const refH = (l) => {
+    const hs = l.items.map((i) => i.h).sort((a, b) => a - b);
+    return hs[Math.floor((hs.length - 1) / 2)];
+  };
+  const absorbed = new Set();
+  for (let i = 0; i < lines.length; i++) {
+    const o = lines[i];
+    const oText = o.items.map((it) => it.str).join("").trim();
+    if (!oText || oText.length > 3) continue;
+    for (const host of [lines[i - 1], lines[i + 1]]) {
+      if (!host || absorbed.has(host)) continue;
+      const hh = refH(host);
+      if (o.h > hh * 0.85) continue; // no es más chico que el texto
+      if (o.left < host.left - hh || o.right > host.right + hh) continue;
+      // Tiene que pisar en vertical la caja de la línea: una línea normal de
+      // letra chica (pie de foto, número de página) empieza más abajo.
+      if (o.y >= host.y + hh * 0.85 || o.y + o.h <= host.y + hh * 0.15) continue;
+      host.items.push(...o.items);
+      host.left = Math.min(host.left, o.left);
+      host.right = Math.max(host.right, o.right);
+      absorbed.add(o);
+      break;
+    }
+  }
+  if (absorbed.size) {
+    const kept = lines.filter((l) => !absorbed.has(l));
+    lines.length = 0;
+    lines.push(...kept);
+  }
   // Texto + fuente dominante de cada línea.
   for (const l of lines) {
     l.items.sort((a, b) => a.x - b.x);
