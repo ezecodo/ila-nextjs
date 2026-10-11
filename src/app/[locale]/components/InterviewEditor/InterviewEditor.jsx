@@ -121,13 +121,28 @@ const stanzaToHtml = (st) => st || "";
 // lado va con el texto del artículo envolviéndolo (left/right; si no,
 // centrado). La foto ocupa siempre el ancho del marco, así que achicar el
 // recuadro es lo que achica la foto. En mobile siempre ancho completo.
+// `extra.colImages` ([{ url, alt, title } | null, …], una por columna,
+// opcional): fotos lado a lado (p. ej. un tríptico con su pie cada una). Van
+// en una fila propia arriba del texto — `.ila-col-row.ila-col-imgrow`, una
+// celda por columna con un <img class="ila-col-img"> suelto (pie/crédito =
+// alt/title, igual que la foto del Kasten). `extra.frameless`: sin marco ni
+// padding (clase `ila-columns-plain`) — una fila de fotos no es un Kasten.
 const COL_WIDTHS = ["35", "50", "75"];
-function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", prose = false, image = null, box = null) {
+const colImgTag = (img, cls) => {
+  const iTitle = (img.title || "").trim();
+  return `<img class="${cls}" src="${escapeHtml(img.url.trim())}" alt="${escapeHtml((img.alt || "").trim())}"${iTitle ? ` title="${escapeHtml(iTitle)}"` : ""} />`;
+};
+function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", prose = false, image = null, box = null, extra = null) {
   const list = (cols || []).slice(0, 3);
   const stanzas = list.map(splitStanzas);
   const t = (title || "").replace(/\s+/g, " ").trim();
   const imgUrl = (image?.url || "").trim();
-  if (!stanzas.some((st) => st.length) && !t && !imgUrl) return "";
+  const colImgs = list.map((_, c) => {
+    const ci = extra?.colImages?.[c];
+    return ci && (ci.url || "").trim() ? ci : null;
+  });
+  const hasColImgs = colImgs.some(Boolean);
+  if (!stanzas.some((st) => st.length) && !t && !imgUrl && !hasColImgs) return "";
   const hl = [2, 3, 4].includes(Number(titleLevel)) ? Number(titleLevel) : 4;
   // Filas: cada una = una celda por columna, con las estrofas indicadas.
   let rowStanzas;
@@ -144,11 +159,14 @@ function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", pros
     );
   }
   let html = "";
-  if (imgUrl) {
-    const iTitle = (image.title || "").trim();
-    html += `<img class="ila-columns-img" src="${escapeHtml(imgUrl)}" alt="${escapeHtml((image.alt || "").trim())}"${iTitle ? ` title="${escapeHtml(iTitle)}"` : ""} />`;
-  }
+  if (imgUrl) html += colImgTag(image, "ila-columns-img");
   if (t) html += `<h${hl} class="ila-columns-title">${escapeHtml(t)}</h${hl}>`;
+  if (hasColImgs) {
+    const cells = colImgs
+      .map((ci) => `<div class="ila-col">${ci ? colImgTag(ci, "ila-col-img") : ""}</div>`)
+      .join("");
+    html += `<div class="ila-col-row ila-col-imgrow">${cells}</div>`;
+  }
   for (const row of rowStanzas) {
     if (!row.some((cell) => cell.length)) continue;
     const cells = row
@@ -156,7 +174,7 @@ function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", pros
       .join("");
     html += `<div class="ila-col-row">${cells}</div>`;
   }
-  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}${prose ? " ila-columns-prose" : ""}${
+  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}${prose ? " ila-columns-prose" : ""}${extra?.frameless ? " ila-columns-plain" : ""}${
     COL_WIDTHS.includes(String(box?.width))
       ? ` ila-columns-w${box.width}${box.align === "left" || box.align === "right" ? ` ila-columns-${box.align}` : ""}`
       : ""
@@ -165,12 +183,15 @@ function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", pros
 }
 
 function columnsFromEl(el) {
-  const rows = Array.from(el.children).filter((r) =>
+  const allRows = Array.from(el.children).filter((r) =>
     r.classList.contains("ila-col-row"),
   );
+  // La fila de fotos por columna no es texto: se lee aparte (colImages).
+  const imgRow = allRows.find((r) => r.classList.contains("ila-col-imgrow"));
+  const rows = allRows.filter((r) => r !== imgRow);
   const n =
     Number((el.className.match(/ila-columns-(\d)/) || [])[1]) ||
-    Math.max(1, ...rows.map((r) => r.children.length));
+    Math.max(1, ...allRows.map((r) => r.children.length));
   const cols = Array.from({ length: Math.min(3, Math.max(1, n)) }, (_, c) =>
     rows
       .map((r) => {
@@ -184,8 +205,20 @@ function columnsFromEl(el) {
     c.classList.contains("ila-columns-title"),
   );
   const imgEl = el.querySelector("img.ila-columns-img");
+  const colImages = cols.map((_, c) => {
+    const ci = imgRow?.children[c]?.querySelector("img");
+    return ci && ci.getAttribute("src")
+      ? {
+          url: ci.getAttribute("src"),
+          alt: ci.getAttribute("alt") || "",
+          title: ci.getAttribute("title") || "",
+        }
+      : null;
+  });
   return {
     cols,
+    colImages,
+    frameless: el.classList.contains("ila-columns-plain"),
     image: imgEl
       ? {
           url: imgEl.getAttribute("src") || "",
@@ -250,6 +283,8 @@ export function qaToHtml(pairs) {
         columnsProse,
         columnsWidth,
         columnsAlign,
+        columnsImages,
+        columnsFrameless,
       } = pair;
 
       if (isColumnsBlock)
@@ -262,6 +297,7 @@ export function qaToHtml(pairs) {
           columnsProse,
           imageUrl ? { url: imageUrl, alt: imageAlt, title: imageTitle } : null,
           { width: columnsWidth, align: columnsAlign },
+          { colImages: columnsImages, frameless: columnsFrameless },
         );
 
       // Image block
@@ -516,7 +552,7 @@ export function htmlToQa(html) {
     // Spalten: <div class="ila-columns"> (ver columnsToHtml)
     if (tag === "DIV" && el.classList.contains("ila-columns")) {
       if (currentPair) pairs.push(currentPair);
-      const { cols, header, title, titleLevel, layout, prose, image, width, align } = columnsFromEl(el);
+      const { cols, header, title, titleLevel, layout, prose, image, width, align, colImages, frameless } = columnsFromEl(el);
       pairs.push({
         id: genId(),
         isColumnsBlock: true,
@@ -528,6 +564,8 @@ export function htmlToQa(html) {
         columnsProse: prose,
         columnsWidth: width,
         columnsAlign: align,
+        columnsImages: colImages,
+        columnsFrameless: frameless,
         imageUrl: image?.url || "",
         imageAlt: image?.alt || "",
         imageTitle: image?.title || "",
@@ -928,6 +966,8 @@ function blocksToQa(blocks) {
         columnsProse: !!block.prose,
         columnsWidth: block.width || "100",
         columnsAlign: block.align || "center",
+        columnsImages: [...(block.colImages || [])],
+        columnsFrameless: !!block.frameless,
         imageUrl: block.imageUrl || "",
         imageAlt: block.imageAlt || "",
         imageTitle: block.imageTitle || "",
@@ -981,6 +1021,8 @@ function pairsToBlocks(pairs) {
         prose: !!pair.columnsProse,
         width: pair.columnsWidth || "100",
         align: pair.columnsAlign || "center",
+        colImages: [...(pair.columnsImages || [])],
+        frameless: !!pair.columnsFrameless,
         imageUrl: pair.imageUrl || "",
         imageAlt: pair.imageAlt || "",
         imageTitle: pair.imageTitle || "",
@@ -3244,24 +3286,39 @@ function PasteImportPanel({
     focusTargetRef.current = idx + (beforeHtml ? 1 : 0);
   };
 
-  // Si un bloque Spalten pidió la foto, se la queda (devuelve true).
+  // Si un bloque Spalten pidió la foto, se la queda (devuelve true). Con
+  // `col` va a esa columna (colImages); sin él, es la foto de todo el Kasten.
   const setColumnImageIfTargeted = ({ url, alt = "", title = "" }) => {
     const target = columnImageTargetRef.current;
     if (target == null) return false;
     columnImageTargetRef.current = null;
     setBlocksSafe((prev) =>
-      (prev || []).map((b, idx) =>
-        idx === target && b.type === "columns"
-          ? { ...b, imageUrl: url, imageAlt: alt, imageTitle: title }
-          : b,
-      ),
+      (prev || []).map((b, idx) => {
+        if (idx !== target.blockIdx || b.type !== "columns") return b;
+        if (target.col == null)
+          return { ...b, imageUrl: url, imageAlt: alt, imageTitle: title };
+        const colImages = [...(b.colImages || [])];
+        colImages[target.col] = { url, alt, title };
+        return { ...b, colImages };
+      }),
     );
     return true;
   };
 
-  const triggerImageInsert = (afterIndex, columnBlockIdx = null) => {
+  const updateColImage = (blockIdx, col, patch) =>
+    setBlocksSafe((prev) =>
+      (prev || []).map((b, idx) => {
+        if (idx !== blockIdx || b.type !== "columns") return b;
+        const colImages = [...(b.colImages || [])];
+        colImages[col] = patch ? { ...colImages[col], ...patch } : null;
+        return { ...b, colImages };
+      }),
+    );
+
+  const triggerImageInsert = (afterIndex, columnBlockIdx = null, col = null) => {
     insertAtRef.current = afterIndex;
-    columnImageTargetRef.current = columnBlockIdx;
+    columnImageTargetRef.current =
+      columnBlockIdx == null ? null : { blockIdx: columnBlockIdx, col };
     // Si hay imágenes recortadas para ofrecer, abrir el selector; si no, ir
     // directo al file-upload de siempre.
     if (availableImages.length > 0 && onInsertAvailable) {
@@ -4033,9 +4090,10 @@ function PasteImportPanel({
                                 const cols = [...(block.cols || ["", ""])];
                                 if (n < cols.length) {
                                   if (
-                                    cols.slice(n).some((c) => colPlainText(c).trim()) &&
+                                    (cols.slice(n).some((c) => colPlainText(c).trim()) ||
+                                      (block.colImages || []).slice(n).some((ci) => ci?.url)) &&
                                     !window.confirm(
-                                      "Die entfernten Spalten haben schon Text — trotzdem entfernen?",
+                                      "Die entfernten Spalten haben schon Text oder ein Bild — trotzdem entfernen?",
                                     )
                                   )
                                     return;
@@ -4043,7 +4101,13 @@ function PasteImportPanel({
                                 } else {
                                   while (cols.length < n) cols.push("");
                                 }
-                                updateBlockField(i, "cols", cols);
+                                setBlocksSafe((prev) =>
+                                  prev.map((b, idx) =>
+                                    idx === i && b.type === "columns"
+                                      ? { ...b, cols, colImages: (b.colImages || []).slice(0, n) }
+                                      : b,
+                                  ),
+                                );
                               }}
                               className={`px-2 h-6 text-[10px] font-bold transition-colors ${
                                 (block.cols || []).length === n
@@ -4143,11 +4207,24 @@ function PasteImportPanel({
                             ))}
                           </div>
                         )}
+                        <label
+                          className="flex items-center gap-1 text-[11px] text-teal-700 cursor-pointer select-none"
+                          title="Ohne Rahmen und Innenabstand — z. B. für eine Reihe von Fotos nebeneinander"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!block.frameless}
+                            onChange={(e) =>
+                              updateBlockField(i, "frameless", e.target.checked)
+                            }
+                          />
+                          ohne Rahmen
+                        </label>
                         {!block.imageUrl && (
                           <button
                             type="button"
                             onClick={() => triggerImageInsert(i + 1, i)}
-                            title="Bild oben in den Kasten setzen (Kasten mit Foto)"
+                            title="Ein Bild über die ganze Breite oben in den Kasten setzen (Kasten mit Foto) — Bilder pro Spalte: Knopf über der jeweiligen Spalte"
                             className="px-2 h-6 rounded border border-teal-200 text-[10px] font-bold text-teal-600 hover:bg-teal-100 transition-colors"
                           >
                             🖼 Bild
@@ -4343,9 +4420,55 @@ function PasteImportPanel({
                           const isTarget =
                             focusedColumn?.blockIdx === i &&
                             focusedColumn?.col === c;
+                          const colImg = block.colImages?.[c];
                           return (
+                            <div key={c} className="flex flex-col gap-1.5 min-w-0">
+                              {/* Foto de esta columna (opcional): sale arriba
+                                  del texto, lado a lado con las de las otras
+                                  columnas. Pie = alt, crédito = title. */}
+                              {colImg?.url ? (
+                                <div className="flex items-start gap-2">
+                                  <img
+                                    src={colImg.url}
+                                    alt={colImg.alt || ""}
+                                    className="h-12 w-12 object-cover rounded border border-teal-200 shrink-0"
+                                  />
+                                  <div className="flex-1 flex flex-col gap-1 min-w-0">
+                                    <input
+                                      type="text"
+                                      value={colImg.alt || ""}
+                                      onChange={(e) => updateColImage(i, c, { alt: e.target.value })}
+                                      placeholder="Bildunterschrift…"
+                                      className="w-full bg-transparent text-teal-900 text-xs outline-none placeholder:text-teal-300 border-b border-teal-200 focus:border-teal-500 pb-0.5"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={colImg.title || ""}
+                                      onChange={(e) => updateColImage(i, c, { title: e.target.value })}
+                                      placeholder="Bildnachweis…"
+                                      className="w-full bg-transparent text-teal-700 text-xs outline-none placeholder:text-teal-300 pb-0.5"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateColImage(i, c, null)}
+                                    title="Bild aus dieser Spalte entfernen"
+                                    className="w-6 h-6 flex items-center justify-center text-teal-400 hover:text-red-500 transition-colors shrink-0"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => triggerImageInsert(i + 1, i, c)}
+                                  title={`Bild über Spalte ${c + 1} setzen`}
+                                  className="self-start px-2 h-6 rounded border border-teal-200 text-[10px] font-bold text-teal-600 hover:bg-teal-100 transition-colors"
+                                >
+                                  🖼 Bild in Spalte {c + 1}
+                                </button>
+                              )}
                             <ColumnEditor
-                              key={c}
                               editorRef={(el) => {
                                 if (c === 0) blockRefsArr.current[i] = el;
                               }}
@@ -4369,6 +4492,7 @@ function PasteImportPanel({
                                 )
                               }
                             />
+                            </div>
                           );
                         })}
                       </div>
@@ -5408,6 +5532,8 @@ export default function InterviewEditor({
       if (onUrlInserted) {
         importedPairs.forEach((p) => {
           if ((p.isImage || p.isColumnsBlock) && p.imageUrl) onUrlInserted(p.imageUrl);
+          if (p.isColumnsBlock)
+            (p.columnsImages || []).forEach((ci) => ci?.url && onUrlInserted(ci.url));
         });
       }
     }

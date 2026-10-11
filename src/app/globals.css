@@ -777,6 +777,49 @@ body {
   margin: 0;
   border-radius: 0;
 }
+/* Fotos por columna (.ila-col-imgrow, una celda por columna con un
+   img.ila-col-img): lado a lado desde 640px como el resto de la fila; en
+   mobile apiladas a ancho completo, sin el gris/filete de "traducción". Cada
+   foto ocupa el ancho de su columna; el pie/crédito lo arma
+   wrapInlineImagesWithCaption (figure.inline-image-figure). */
+.ila-columns .ila-col-imgrow {
+  gap: 1.25rem;
+  align-items: start;
+}
+.ila-columns .ila-col-imgrow .ila-col + .ila-col {
+  color: inherit;
+  border-left: none;
+  padding-left: 0;
+}
+.ila-columns img.ila-col-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+}
+.ila-columns .ila-col-imgrow figure.inline-image-figure,
+.article-content .ila-columns .ila-col-imgrow figure.inline-image-figure {
+  margin: 0;
+}
+.ila-columns figure.inline-image-figure img.ila-col-img {
+  margin: 0;
+  border-radius: 0;
+}
+/* En "Fließend" las celdas apiladas traen margin-top propio: acá ya separa
+   el gap de la fila. */
+.ila-columns.ila-columns-flow .ila-col-imgrow .ila-col + .ila-col {
+  margin-top: 0;
+}
+/* "ohne Rahmen" (ila-columns-plain): sin marco, rayita ni padding — p. ej.
+   una fila de fotos, que no es un Kasten. */
+.ila-columns.ila-columns-plain {
+  border: none;
+  padding: 0;
+}
+.ila-columns.ila-columns-plain::before {
+  display: none;
+}
 /* Ancho del recuadro (ila-columns-w35/50/75) y lado (ila-columns-left/right):
    solo desktop, igual que las imágenes flotadas; en mobile, ancho completo.
    Sin lado = centrado. Flotado, el texto del artículo lo envuelve (los
