@@ -127,6 +127,10 @@ const stanzaToHtml = (st) => st || "";
 // celda por columna con un <img class="ila-col-img"> suelto (pie/crédito =
 // alt/title, igual que la foto del Kasten). `extra.frameless`: sin marco ni
 // padding (clase `ila-columns-plain`) — una fila de fotos no es un Kasten.
+// `extra.tinted`: fondo de color fijo (clase `ila-columns-tint`, verde claro
+// definido en globals.css — no elegible) para marcar un texto/serie de fotos
+// aparte del artículo, como el fondo gris del impreso. Dos bloques con fondo
+// seguidos se ven como una sola superficie.
 const COL_WIDTHS = ["35", "50", "75"];
 const colImgTag = (img, cls) => {
   const iTitle = (img.title || "").trim();
@@ -174,7 +178,7 @@ function columnsToHtml(cols, header, title, titleLevel, layout = "aligned", pros
       .join("");
     html += `<div class="ila-col-row">${cells}</div>`;
   }
-  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}${prose ? " ila-columns-prose" : ""}${extra?.frameless ? " ila-columns-plain" : ""}${
+  const cls = `ila-columns ila-columns-${list.length}${layout === "flow" ? " ila-columns-flow" : ""}${header ? " ila-columns-head" : ""}${prose ? " ila-columns-prose" : ""}${extra?.frameless ? " ila-columns-plain" : ""}${extra?.tinted ? " ila-columns-tint" : ""}${
     COL_WIDTHS.includes(String(box?.width))
       ? ` ila-columns-w${box.width}${box.align === "left" || box.align === "right" ? ` ila-columns-${box.align}` : ""}`
       : ""
@@ -219,6 +223,7 @@ function columnsFromEl(el) {
     cols,
     colImages,
     frameless: el.classList.contains("ila-columns-plain"),
+    tinted: el.classList.contains("ila-columns-tint"),
     image: imgEl
       ? {
           url: imgEl.getAttribute("src") || "",
@@ -285,6 +290,7 @@ export function qaToHtml(pairs) {
         columnsAlign,
         columnsImages,
         columnsFrameless,
+        columnsTinted,
       } = pair;
 
       if (isColumnsBlock)
@@ -297,7 +303,7 @@ export function qaToHtml(pairs) {
           columnsProse,
           imageUrl ? { url: imageUrl, alt: imageAlt, title: imageTitle } : null,
           { width: columnsWidth, align: columnsAlign },
-          { colImages: columnsImages, frameless: columnsFrameless },
+          { colImages: columnsImages, frameless: columnsFrameless, tinted: columnsTinted },
         );
 
       // Image block
@@ -552,7 +558,7 @@ export function htmlToQa(html) {
     // Spalten: <div class="ila-columns"> (ver columnsToHtml)
     if (tag === "DIV" && el.classList.contains("ila-columns")) {
       if (currentPair) pairs.push(currentPair);
-      const { cols, header, title, titleLevel, layout, prose, image, width, align, colImages, frameless } = columnsFromEl(el);
+      const { cols, header, title, titleLevel, layout, prose, image, width, align, colImages, frameless, tinted } = columnsFromEl(el);
       pairs.push({
         id: genId(),
         isColumnsBlock: true,
@@ -566,6 +572,7 @@ export function htmlToQa(html) {
         columnsAlign: align,
         columnsImages: colImages,
         columnsFrameless: frameless,
+        columnsTinted: tinted,
         imageUrl: image?.url || "",
         imageAlt: image?.alt || "",
         imageTitle: image?.title || "",
@@ -968,6 +975,7 @@ function blocksToQa(blocks) {
         columnsAlign: block.align || "center",
         columnsImages: [...(block.colImages || [])],
         columnsFrameless: !!block.frameless,
+        columnsTinted: !!block.tinted,
         imageUrl: block.imageUrl || "",
         imageAlt: block.imageAlt || "",
         imageTitle: block.imageTitle || "",
@@ -1023,6 +1031,7 @@ function pairsToBlocks(pairs) {
         align: pair.columnsAlign || "center",
         colImages: [...(pair.columnsImages || [])],
         frameless: !!pair.columnsFrameless,
+        tinted: !!pair.columnsTinted,
         imageUrl: pair.imageUrl || "",
         imageAlt: pair.imageAlt || "",
         imageTitle: pair.imageTitle || "",
@@ -3298,8 +3307,14 @@ function PasteImportPanel({
         if (target.col == null)
           return { ...b, imageUrl: url, imageAlt: alt, imageTitle: title };
         const colImages = [...(b.colImages || [])];
+        // Primera foto de columna: el bloque pasa a ancho completo (una fila
+        // de fotos en un recuadro S/M/L queda diminuta). Después se puede
+        // volver a achicar a mano.
+        const first = !colImages.some((ci) => ci?.url);
         colImages[target.col] = { url, alt, title };
-        return { ...b, colImages };
+        return first
+          ? { ...b, colImages, width: "100", align: "center" }
+          : { ...b, colImages };
       }),
     );
     return true;
@@ -4219,6 +4234,20 @@ function PasteImportPanel({
                             }
                           />
                           ohne Rahmen
+                        </label>
+                        <label
+                          className="flex items-center gap-1 text-[11px] text-teal-700 cursor-pointer select-none"
+                          title="Farbiger Hintergrund (festes Hellgrün) — hebt einen eigenen Text oder eine Fotoserie vom Artikel ab. Zwei Blöcke mit Hintergrund direkt untereinander wirken wie eine Fläche."
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!!block.tinted}
+                            onChange={(e) =>
+                              updateBlockField(i, "tinted", e.target.checked)
+                            }
+                          />
+                          <span className="inline-block w-2.5 h-2.5 border border-teal-300 bg-[#edf4ec]" />
+                          Hintergrund
                         </label>
                         {!block.imageUrl && (
                           <button

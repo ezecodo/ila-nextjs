@@ -827,6 +827,28 @@ body {
 .ila-columns.ila-columns-plain::before {
   display: none;
 }
+/* "Hintergrund" (ila-columns-tint): fondo de color FIJO (no elegible) para
+   marcar un texto o una serie de fotos aparte del artículo — el equivalente
+   al fondo gris del impreso. Verde de marca (#89B881) muy aclarado. Va
+   después de `-plain` a propósito: sin marco, el fondo igual necesita su
+   padding. Dos bloques con fondo seguidos (fotos + su texto) se pegan y se
+   leen como una sola superficie. */
+/* Con fondo no hay marco ni rayita roja (tildado o no "ohne Rahmen"): el
+   fondo ya delimita el bloque, y el borde gris encima lo ensuciaba. */
+.ila-columns.ila-columns-tint {
+  background: #edf4ec;
+  padding: 1.25rem 1.5rem;
+  border: none;
+}
+.ila-columns.ila-columns-tint::before {
+  display: none;
+}
+.dark .ila-columns.ila-columns-tint {
+  background: #1e2a1c;
+}
+.ila-columns.ila-columns-tint + .ila-columns.ila-columns-tint {
+  margin-top: -1.75rem;
+}
 /* Ancho del recuadro (ila-columns-w35/50/75) y lado (ila-columns-left/right):
    solo desktop, igual que las imágenes flotadas; en mobile, ancho completo.
    Sin lado = centrado. Flotado, el texto del artículo lo envuelve (los
