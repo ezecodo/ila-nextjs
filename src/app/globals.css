@@ -791,6 +791,13 @@ body {
   border-left: none;
   padding-left: 0;
 }
+/* Una fila de fotos necesita todo el ancho: si arriba quedó un Kasten o una
+   imagen flotando (float), las filas (display:grid) se encogen al hueco que
+   deja el float y las fotos salen diminutas. Por eso baja hasta pasar el
+   float — salvo que el propio bloque sea el flotado. */
+.ila-columns:has(> .ila-col-imgrow):not(.ila-columns-left):not(.ila-columns-right) {
+  clear: both;
+}
 .ila-columns img.ila-col-img {
   display: block;
   width: 100%;
