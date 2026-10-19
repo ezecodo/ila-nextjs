@@ -1580,7 +1580,8 @@
       "available_one": "{count} edición disponible",
       "available_other": "{count} ediciones disponibles",
       "empty": "Aún no hay ediciones PDF disponibles.",
-      "open": "Abrir →"
+      "open": "Abrir →",
+      "download": "Descargar PDF"
     },
     "favorites_heading": "Artículos Favoritos",
     "pdf_bundle": {

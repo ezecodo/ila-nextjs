@@ -1581,7 +1581,8 @@
       "available_one": "{count} Ausgabe verfügbar",
       "available_other": "{count} Ausgaben verfügbar",
       "empty": "Noch keine PDF-Ausgaben verfügbar.",
-      "open": "Öffnen →"
+      "open": "Öffnen →",
+      "download": "PDF herunterladen"
     },
     "favorites_heading": "Lieblingsartikel",
     "pdf_bundle": {

@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { FaDownload } from "react-icons/fa";
 
 const PdfReader = dynamic(
   () => import("../../components/PdfReader/PdfReader"),
-  { ssr: false }
+  { ssr: false },
 );
 
 export default function PdfDossiers({ locale }) {
@@ -47,9 +48,7 @@ export default function PdfDossiers({ locale }) {
     return (
       <div className="flex flex-col items-center justify-center h-48 text-center gap-3">
         <span className="text-4xl">📭</span>
-        <p className="text-gray-500 text-sm">
-          {t("empty")}
-        </p>
+        <p className="text-gray-500 text-sm">{t("empty")}</p>
       </div>
     );
   }
@@ -58,7 +57,9 @@ export default function PdfDossiers({ locale }) {
     <div>
       <h2 className="text-xl font-bold text-gray-800 mb-1">{t("heading")}</h2>
       <p className="text-gray-400 text-sm mb-6">
-        {editions.length === 1 ? t("available_one", { count: 1 }) : t("available_other", { count: editions.length })}
+        {editions.length === 1
+          ? t("available_one", { count: 1 })
+          : t("available_other", { count: editions.length })}
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -82,52 +83,68 @@ export default function PdfDossiers({ locale }) {
 
 function EditionCard({ edition, locale, onOpen }) {
   const t = useTranslations("user_dashboard.pdf_dossiers");
-  const title = locale === "es" && edition.titleES ? edition.titleES : edition.title;
+  const title =
+    locale === "es" && edition.titleES ? edition.titleES : edition.title;
   const year = new Date(edition.datePublished).getFullYear();
 
   return (
-    <button
-      onClick={onOpen}
-      className="group flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left"
-    >
-      {/* Portada */}
-      <div className="relative w-full aspect-[3/4] bg-gray-100">
-        {edition.coverImage ? (
-          <Image
-            src={edition.coverImage}
-            alt={`ila ${edition.number}`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 50vw, 20vw"
-          />
-        ) : (
-          <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: "#BD0E0D" }}
-          >
-            <span
-              className="text-white text-2xl font-black"
-              style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+    <div className="relative group hover:-translate-y-0.5 transition-transform duration-200">
+      <button
+        onClick={onOpen}
+        className="w-full flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm group-hover:shadow-md transition-shadow duration-200 text-left"
+      >
+        {/* Portada */}
+        <div className="relative w-full aspect-[3/4] bg-gray-100">
+          {edition.coverImage ? (
+            <Image
+              src={edition.coverImage}
+              alt={`ila ${edition.number}`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 50vw, 20vw"
+            />
+          ) : (
+            <div
+              className="w-full h-full flex items-center justify-center"
+              style={{ background: "#BD0E0D" }}
             >
-              ila
+              <span
+                className="text-white text-2xl font-black"
+                style={{ fontFamily: "Futura Cyrillic, Arial, sans-serif" }}
+              >
+                ila
+              </span>
+            </div>
+          )}
+          {/* Overlay al hover */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-bold bg-[#BD0E0D] px-3 py-1.5 rounded-lg">
+              {t("open")}
             </span>
           </div>
-        )}
-        {/* Overlay al hover */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-200 flex items-center justify-center">
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-bold bg-[#BD0E0D] px-3 py-1.5 rounded-lg">
-            {t("open")}
-          </span>
         </div>
-      </div>
 
-      {/* Info */}
-      <div className="p-3">
-        <p className="text-xs text-gray-400 font-mono">#{edition.number} · {year}</p>
-        <p className="text-xs font-semibold text-gray-700 mt-0.5 line-clamp-2 leading-tight">
-          {title}
-        </p>
-      </div>
-    </button>
+        {/* Info */}
+        <div className="p-3">
+          <p className="text-xs text-gray-400 font-mono">
+            #{edition.number} · {year}
+          </p>
+          <p className="text-xs font-semibold text-gray-700 mt-0.5 line-clamp-2 leading-tight">
+            {title}
+          </p>
+        </div>
+      </button>
+
+      {/* Descarga: hermano del botón (un <a> no puede ir dentro de un <button>) */}
+      <a
+        href={edition.pdf.pdfUrl}
+        download={`ila-${edition.number}.pdf`}
+        title={t("download")}
+        aria-label={t("download")}
+        className="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white/90 text-gray-700 shadow hover:bg-[#BD0E0D] hover:text-white transition-colors"
+      >
+        <FaDownload className="text-sm" />
+      </a>
+    </div>
   );
 }
