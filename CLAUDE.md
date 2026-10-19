@@ -150,6 +150,7 @@ Fila de botones/dropdowns fija arriba de todo el dashboard admin (`sticky top-0`
 4. El suscriptor hace click → llega a `/auth/signup?pdfAbo=true&email=...&name=...` con el form pre-rellenado y el email bloqueado
 5. Al registrarse, `PdfAboInvitation` se marca `isRedeemed: true` y se vincula al `User`
 6. El suscriptor ve el módulo "📰 Mis Dossiers (PDF)" en `/dashboard-users`
+7. En cada tarjeta de ese módulo (`PdfDossiers.jsx`) hay un botón ⬇ para descargar el PDF (`<a download="ila-<number>.pdf">`, hermano del `<button>` de la tarjeta — un link no puede ir dentro de un botón). El nombre bonito solo se aplica si el PDF es del mismo origen que la página (en local, cross-origin, el navegador lo abre en pestaña). Ojo: sigue sin auth en `/api/media/pdfs-private/` (ver abajo).
 
 ### Acceso a PDFs privados
 - Los PDFs se sirven desde `/api/media/pdfs-private/...` — actualmente sin auth (pendiente implementar verificación)
