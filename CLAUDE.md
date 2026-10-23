@@ -473,6 +473,17 @@ export default function MiPaginaDashboard() {
 - El escaneo de años/total usa `take: 1000` como tope de seguridad — si una región muy grande del archivo lo supera, subir el tope o migrar a `count` + `groupBy` por año.
 - Helper `attachImage` adjunta la primera imagen (`contentType: "ARTICLE"`, `contentId = beitragsId || id`).
 
+## Dossiers relacionados ("Verwandte Dossiers")
+
+Carrusel `components/Editions/RelatedDossiers.js` en la página del dossier (`editions/[id]/page.js`), alimentado por `GET /api/editions/related?editionId=&limit=`.
+
+- **Similitud TF-IDF (coseno)**, no conteo de tags compartidos. Cada dossier es un vector de regiones + temas de sus artículos (+ los del propio Edition) + palabras del título/subtítulo (stemming mínimo: `Rechter`/`Rechte` → `rechte`, `Frauen` → `frau`; `Recht` queda aparte). Peso = `(1 + log nº de artículos con el término) × log(N / nº de dossiers con él)`.
+- **Por qué** (2026-10-23): el criterio viejo (región ×2 + tema ×1, contando tags distintos, pool de los 80 más recientes) lo decidían tags omnipresentes (Lateinamerika, USA, Menschenrechte…) y premiaba a los dossiers con muchos tags. La ila 499 *Rechter Geschichtsrevisionismus* mostraba dos dossiers de mujeres; ahora muestra Rechte Netzwerke y Rechter Rollback.
+- **El título es necesario**: el etiquetado de artículos es fragmentado (Rechtsruck 4 artículos vs Rechtspopulismus 29 vs Ultrarechter Umbau…) y los Edition casi no tienen temas propios — sin el título, la 499 no encontraba ningún dossier sobre la derecha. `TITLE_WEIGHT = 0.7`.
+- Términos que solo tiene un dossier se descartan; dossiers con menos de 4 artículos cargados (archivo viejo) tienen penalización suave.
+- **Índice cacheado en memoria del proceso 1 h** (armarlo tarda ~1,8 s, recorre todos los dossiers con portada). Un dossier que no está en el índice lo reconstruye una vez.
+- Mejora pendiente que **no es de código**: que la redacción ponga 2–3 temas a nivel dossier (`Edition.topics`, ya entran con peso alto) y unifique etiquetas sinónimas.
+
 ## Búsqueda del sitio (`/search`)
 
 ### Modo "todos los artículos" (sin query)
