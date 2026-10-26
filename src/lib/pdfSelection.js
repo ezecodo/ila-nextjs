@@ -438,8 +438,47 @@ function linesFromItemsLiteral(items) {
   return out.join("\n").replace(/\n{3,}/g, "\n\n");
 }
 
+// Texto con "sombra": algunos títulos sobre foto (p. ej. "It takes four to
+// tango") se maquetaron como DOS cajas de texto iguales, una corrida 1–3 px
+// detrás de la otra, para que se lea sobre la imagen. En el text-layer son dos
+// spans con el mismo texto casi en la misma posición → al extraer salía
+// duplicado ("It takes four to tango It takes four to tango" o palabras
+// intercaladas). Se descarta el span que repite el MISMO texto a menos de
+// media altura de línea de otro ya visto. Texto real repetido nunca está
+// superpuesto así, por eso el umbral es seguro. Limitación: si la maqueta
+// partió la sombra en spans distintos que el texto (otra división de
+// palabras), no se detecta.
+export function dropShadowDuplicates(items) {
+  if (!items || items.length < 2) return items || [];
+  const norm = (s) => (s || "").replace(/\s+/g, " ").trim();
+  const seen = new Map(); // texto normalizado → items ya aceptados
+  const out = [];
+  let dropped = 0;
+  for (const it of items) {
+    const key = norm(it.str);
+    const prev = key ? seen.get(key) : null;
+    const isShadow = prev?.some((p) => {
+      const tol = Math.min(p.h, it.h) * 0.5;
+      return Math.abs(p.x - it.x) <= tol && Math.abs(p.y - it.y) <= tol;
+    });
+    if (isShadow) {
+      dropped++;
+      continue;
+    }
+    if (key) {
+      if (prev) prev.push(it);
+      else seen.set(key, [it]);
+    }
+    out.push(it);
+  }
+  if (dropped && typeof console !== "undefined")
+    console.debug("[shadowText] spans duplicados descartados:", dropped);
+  return out;
+}
+
 export function paragraphsFromItems(items, literal = false) {
   if (!items || !items.length) return "";
+  items = dropShadowDuplicates(items);
   if (literal) return linesFromItemsLiteral(items);
 
   // Fuente dominante del cuerpo (ponderada por nº de caracteres). Los
@@ -521,10 +560,12 @@ export function paragraphsFromItems(items, literal = false) {
   return out.filter(Boolean).join("\n\n");
 }
 
-export function getSelectionParagraphs(literal = false) {
-  if (typeof window === "undefined") return "";
+// Spans del text-layer que toca la selección nativa, como items de
+// paragraphsFromItems (+ `el` para recuperar el orden del DOM).
+function selectionItems() {
+  if (typeof window === "undefined") return [];
   const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return "";
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return [];
   const range = sel.getRangeAt(0);
 
   const spans = Array.from(
@@ -532,9 +573,8 @@ export function getSelectionParagraphs(literal = false) {
   ).filter(
     (s) => s.textContent && s.textContent.trim() && range.intersectsNode(s)
   );
-  if (!spans.length) return "";
 
-  const items = spans.map((s) => {
+  return spans.map((s) => {
     const r = s.getBoundingClientRect();
     return {
       str: s.textContent,
@@ -543,7 +583,43 @@ export function getSelectionParagraphs(literal = false) {
       y: r.top,
       h: r.height,
       font: s.style.fontFamily || "",
+      el: s,
     };
   });
+}
+
+export function getSelectionParagraphs(literal = false) {
+  const items = selectionItems();
+  if (!items.length) return "";
   return paragraphsFromItems(items, literal);
+}
+
+// Texto plano de la selección (lo que toman Titel/Untertitel/Autor:in con
+// "← Auswahl" o el Textbereich-a-campo). Igual que sel.toString(), salvo que
+// si la selección tiene texto con sombra (ver dropShadowDuplicates) se arma
+// sin las copias. Sin sombras devuelve sel.toString() tal cual.
+export function getSelectionText() {
+  if (typeof window === "undefined") return "";
+  const sel = window.getSelection();
+  const raw = sel ? sel.toString() : "";
+  const items = selectionItems();
+  if (items.length < 2) return raw;
+  const kept = dropShadowDuplicates(items);
+  if (kept.length === items.length) return raw;
+  // Orden del DOM (= orden en que el navegador arma toString) y salto de
+  // línea cuando cambia la línea visual; cleanSelection después lo aplana.
+  let out = "";
+  let prev = null;
+  for (const it of kept) {
+    if (prev) {
+      const minH = Math.min(it.h, prev.h);
+      if (Math.abs(it.y - prev.y) > minH * 0.5) out += "\n";
+      // Misma línea: espacio solo si hay hueco real (un span puede cortar
+      // a mitad de palabra; los spans de solo espacio no entran en items).
+      else if (it.x - prev.right > minH * 0.15 && !/\s$/.test(out) && !/^\s/.test(it.str)) out += " ";
+    }
+    out += it.str;
+    prev = it;
+  }
+  return out;
 }

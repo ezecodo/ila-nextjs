@@ -8,6 +8,7 @@ import {
   reflowBodySelection,
   paragraphsFromItems,
   getSelectionParagraphs,
+  getSelectionText,
 } from "@/lib/pdfSelection";
 import PdfPageView from "./PdfPageView";
 
@@ -99,9 +100,10 @@ export default function useDossierWorkbench({
         const node = sel.anchorNode;
         const el = node?.nodeType === 3 ? node.parentElement : node;
         if (el && el.closest(".pdfsel-textLayer")) {
-          lastSelectionRef.current = text;
+          // Sin las copias de texto con sombra (ver dropShadowDuplicates).
+          lastSelectionRef.current = getSelectionText() || text;
           bodyParasRef.current = getSelectionParagraphs(literalNow());
-          setSelectionPreview(cleanSelection(text).slice(0, 140));
+          setSelectionPreview(cleanSelection(lastSelectionRef.current).slice(0, 140));
         }
       }
     };
