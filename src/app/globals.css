@@ -886,8 +886,22 @@ body {
     margin-top: 0;
   }
 }
-.ila-columns.ila-columns-head .ila-col-row:first-child .ila-col {
+/* "Titel pro Spalte" (casilla del bloque, clase ila-columns-head): la 1ª
+   fila de texto = un título por columna, con tamaño de título (≈ h4/h3 del
+   artículo), no solo negrita. `:first-of-type` y no `:first-child`: delante
+   puede ir el título general (<hN>) o la foto del Kasten (<img>/<figure>),
+   que no son <div> — con :first-child la regla no aplicaba en esos casos.
+   La fila de fotos por columna sí es un <div>: se salta con el `+`. */
+.ila-columns.ila-columns-head .ila-col-row:not(.ila-col-imgrow):first-of-type .ila-col,
+.ila-columns.ila-columns-head .ila-col-imgrow + .ila-col-row .ila-col {
   font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.35;
+  color: #1f2937;
+}
+.dark .ila-columns.ila-columns-head .ila-col-row:not(.ila-col-imgrow):first-of-type .ila-col,
+.dark .ila-columns.ila-columns-head .ila-col-imgrow + .ila-col-row .ila-col {
+  color: #f3f4f6;
 }
 @media (min-width: 640px) {
   .ila-columns.ila-columns-2 .ila-col-row {

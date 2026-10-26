@@ -66,7 +66,8 @@ export default function useDossierWorkbench({
   // dentro, lo reordena por columnas y lo inyecta como bloques en el publilab.
   const [textRegionMode, setTextRegionMode] = useState(false);
   // "Modo Poema": ver comentario largo en linesFromItemsLiteral — desactiva
-  // fusión de párrafos/detección de columnas y manda todo a un bloque Poem,
+  // fusión de párrafos/detección de columnas y manda todo a un bloque Spalten
+  // de una columna (antes, bloque Poem — ver appendPoem en InterviewEditor),
   // preservando cada salto de línea tal cual está en el PDF. Ref en paralelo
   // porque getSelectionParagraphs se llama desde un listener registrado una
   // sola vez (onSelChange, deps []) — leer el state ahí daría un valor stale.
@@ -150,7 +151,7 @@ export default function useDossierWorkbench({
     // Modo Poema: el texto ya viene literal (getSelectionParagraphs con
     // literal=true) — nada de reflowBodySelection (fusiona líneas en
     // párrafos, pensado para prosa) ni detección de título/Frage. Va directo
-    // a un bloque Poem, preservando cada salto de línea tal cual.
+    // a un bloque Spalten de 1 columna, preservando cada salto de línea.
     if (poemModeRef.current) {
       if (!raw || !raw.trim()) return;
       if (!api) {
@@ -207,7 +208,7 @@ export default function useDossierWorkbench({
     const text = paragraphsFromItems(items, literal);
     if (!text) return;
     setSelectionPreview(cleanSelection(text).slice(0, 140));
-    // Modo Poema: siempre al cuerpo (bloque Poem), sin importar qué campo
+    // Modo Poema: siempre al cuerpo (bloque Spalten), sin importar qué campo
     // estaba enfocado — un poema no tiene sentido como Titel/Vorspann/etc.
     // Lo mismo si el destino es una columna de "Spalten".
     if (literal) {

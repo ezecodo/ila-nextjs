@@ -2783,15 +2783,29 @@ function PasteImportPanel({
     }
     setBlocksSafe((prev) => [...(prev || []), { type: "question", text: text.trim(), headingLevel: 4 }]);
   };
-  // Poema (bloque "P"). A diferencia de appendText, NO fusiona oraciones ni
-  // reconstruye párrafos — conserva cada salto de línea tal cual llega (ver
-  // "Modo Poema"/linesFromItemsLiteral en from-pdf/page.js). Si el lote
-  // continúa un poema ya insertado (p. ej. varias estrofas seleccionadas por
+  // Gedicht (herramienta "Gedicht" de la mesa de trabajo). A diferencia de
+  // appendText, NO fusiona oraciones ni reconstruye párrafos — conserva cada
+  // salto de línea tal cual llega (ver "Modo Poema"/linesFromItemsLiteral).
+  // Crea un bloque Spalten de UNA columna (antes era un bloque Poem aparte; el
+  // botón 📜 Poem se sacó para que haya un solo camino: Spalten). Si el lote
+  // continúa un poema recién insertado (varias estrofas seleccionadas por
   // separado), se agrega al MISMO bloque separado por una línea en blanco
-  // (igual criterio que "Leerzeile = neue Strophe" del bloque Poem manual).
+  // (= estrofa nueva). `gedicht` es una marca solo de sesión para no meter
+  // estrofas en un Spalten que la persona armó para otra cosa.
   const appendPoem = (text) => {
     if (!text || !text.trim()) return;
+    // Un bloque Poem viejo vacío y enfocado sigue pudiendo recibir el texto.
     if (fillFocusedEmptyBlock("poem", text.trim())) return;
+    const stanzaHtml = escapeHtml(text.trim()).replace(/\n/g, "<br>");
+    const newBlock = {
+      type: "columns",
+      cols: [stanzaHtml],
+      header: false,
+      title: "",
+      titleLevel: 4,
+      layout: "flow",
+      gedicht: true,
+    };
     const positional = beginBatchPlacement("poem");
     pendingScrollRef.current = true;
     if (positional) {
@@ -2800,7 +2814,7 @@ function PasteImportPanel({
       lastInsertedIdxRef.current = at;
       setBlocksSafe((prev) => {
         const next = [...(prev || [])];
-        next.splice(at, 0, { type: "poem", text: text.trim() });
+        next.splice(at, 0, newBlock);
         return next;
       });
       return;
@@ -2808,15 +2822,16 @@ function PasteImportPanel({
     setBlocksSafe((prev) => {
       const arr = prev || [];
       const last = arr[arr.length - 1];
-      if (last && last.type === "poem") {
+      if (last && last.type === "columns" && last.gedicht && (last.cols || []).length === 1) {
         const next = [...arr];
+        const cur = sanitizeColHtml(last.cols[0] || "").replace(/(?:\s*<br>)+$/, "");
         next[next.length - 1] = {
           ...last,
-          text: (last.text || "") + "\n\n" + text.trim(),
+          cols: [colPlainText(cur).trim() ? `${cur}<br><br>${stanzaHtml}` : stanzaHtml],
         };
         return next;
       }
-      return [...arr, { type: "poem", text: text.trim() }];
+      return [...arr, newBlock];
     });
   };
   // Termina el "modo columna" de un bloque Spalten: lo próximo que entre
@@ -3462,15 +3477,6 @@ function PasteImportPanel({
     if (textareaRef.current) textareaRef.current.value = "";
   };
 
-  const usedHtml =
-    pastedHtml &&
-    /<(strong|b|span[^>]+font-weight|h[1-6])\b/i.test(pastedHtml) &&
-    blocks?.some((b) => b.type === "question" || b.type === "subtitle");
-  const questionCount =
-    blocks?.filter((b) => b.type === "question").length ?? 0;
-  const subtitleCount =
-    blocks?.filter((b) => b.type === "subtitle").length ?? 0;
-  const answerCount = blocks?.filter((b) => b.type === "answer").length ?? 0;
   const finalPairs = blocks ? blocksToQa(blocks) : null;
   const hasBlocks = blocks && blocks.length > 0;
 
@@ -3514,19 +3520,6 @@ function PasteImportPanel({
           )}
           {hasBlocks && (
             <>
-              <span className="text-xs text-gray-500 hidden sm:block">
-                {usedHtml ? "✅ Fettdruck" : "⚠️ per «?»"}
-                {" · "}
-                <span className="text-[#BD0E0D] font-bold">
-                  {questionCount} F
-                </span>
-                {" · "}
-                <span className="text-amber-600 font-bold">
-                  {subtitleCount} T
-                </span>
-                {" · "}
-                <span className="text-gray-500">{answerCount} A</span>
-              </span>
               {articleLegacyPath && (
                 <a
                   href={`/${lang}${articleLegacyPath}`}
@@ -4135,7 +4128,10 @@ function PasteImportPanel({
                             </button>
                           ))}
                         </div>
-                        <label className="flex items-center gap-1 text-[11px] text-teal-700 cursor-pointer select-none">
+                        <label
+                          className="flex items-center gap-1 text-[11px] text-teal-700 cursor-pointer select-none"
+                          title="Erster Absatz jeder Spalte (bis zur ersten Leerzeile) = Titel dieser Spalte. In jeder Spalte: Titel schreiben, 2× Enter, dann der Text."
+                        >
                           <input
                             type="checkbox"
                             checked={!!block.header}
@@ -4143,7 +4139,7 @@ function PasteImportPanel({
                               updateBlockField(i, "header", e.target.checked)
                             }
                           />
-                          1. Zeile = Überschrift
+                          Titel pro Spalte
                         </label>
                         {/* Fließtext: saca los saltos de línea de la maqueta
                             (ver reflowStanza). Al tildarlo reacomoda lo ya
@@ -4791,13 +4787,6 @@ function PasteImportPanel({
                 className="border border-dashed border-green-300 hover:border-green-500 text-green-600 hover:text-green-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
               >
                 ☰ Liste
-              </button>
-              <button
-                type="button"
-                onClick={() => addBlock("poem", blocks.length - 1)}
-                className="border border-dashed border-purple-300 hover:border-purple-500 text-purple-600 hover:text-purple-700 rounded-lg py-2 px-4 text-xs font-bold transition-colors"
-              >
-                📜 Poem
               </button>
               <button
                 type="button"
