@@ -115,7 +115,7 @@ export default function LatestEditionWithArticles() {
     async function fetchAllEditions() {
       try {
         console.time("LatestEdition1:editions");
-        const res = await fetch("/api/editions?sort=desc");
+        const res = await fetch("/api/editions?sort=desc&published=true");
         if (!res.ok) {
           const msg = await res.text();
           throw new Error(`API /api/editions fallo: ${res.status} ${msg}`);

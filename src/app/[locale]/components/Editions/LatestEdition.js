@@ -25,7 +25,7 @@ export default function LatestEditionWithArticles() {
   useEffect(() => {
     async function fetchAllEditions() {
       try {
-        const response = await fetch("/api/editions?sort=desc");
+        const response = await fetch("/api/editions?sort=desc&published=true");
         const data = await response.json();
         setEditions(data);
         if (data.length) {

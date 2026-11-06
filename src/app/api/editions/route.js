@@ -87,7 +87,11 @@ export async function GET(req) {
     // (listado paginado del dashboard) o una sesión admin normal navegando la
     // lista plana (p. ej. el selector "Magazinausgabe" al cargar un artículo,
     // que necesita poder elegir un dossier todavía en borrador).
-    if (!admin && session?.user?.role !== "admin") {
+    // `?published=true` fuerza el filtro aunque la sesión sea admin: lo usan las
+    // vistas públicas (landing) para que un admin logueado vea lo mismo que un
+    // lector y no aparezca un Dossier en borrador sin artículos.
+    const publishedOnly = searchParams.get("published") === "true";
+    if (publishedOnly || (!admin && session?.user?.role !== "admin")) {
       where.isPublished = true;
     }
 

@@ -18,7 +18,7 @@ export default function EditionsList() {
   useEffect(() => {
     async function fetchEditions() {
       try {
-        const response = await fetch("/api/editions");
+        const response = await fetch("/api/editions?published=true");
         if (!response.ok) {
           throw new Error(t("editionsError"));
         }

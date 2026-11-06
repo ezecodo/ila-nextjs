@@ -14,7 +14,7 @@ export default function NoArticlesAvailable({ edition }) {
   useEffect(() => {
     async function loadTranslatedEditions() {
       try {
-        const res = await fetch("/api/editions?translated=true&sort=desc");
+        const res = await fetch("/api/editions?translated=true&sort=desc&published=true");
         const data = await res.json();
         // Mostrar máximo 6 ediciones
         setTranslatedEditions(Array.isArray(data) ? data.slice(0, 6) : []);

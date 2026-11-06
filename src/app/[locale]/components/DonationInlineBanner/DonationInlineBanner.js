@@ -52,7 +52,7 @@ export default function DonationInlineBanner() {
   useEffect(() => {
     async function loadCovers() {
       try {
-        const res = await fetch("/api/editions?limit=20");
+        const res = await fetch("/api/editions?limit=20&published=true");
         const data = await res.json();
         const coverImages = data.map((d) => d.coverImage).filter(Boolean);
         setCovers(coverImages.sort(() => Math.random() - 0.5));

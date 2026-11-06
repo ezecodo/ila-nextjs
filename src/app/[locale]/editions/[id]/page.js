@@ -178,7 +178,7 @@ export default function EditionDetails() {
   // Lista de ediciones (orden número desc) para navegar entre dossiers desde
   // las portadas vecinas que asoman detrás de la portada activa.
   useEffect(() => {
-    fetch("/api/editions?sort=desc")
+    fetch("/api/editions?sort=desc&published=true")
       .then((r) => r.json())
       .then((d) =>
         setAllEditions(

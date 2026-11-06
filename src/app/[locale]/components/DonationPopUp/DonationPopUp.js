@@ -31,7 +31,7 @@ export default function DonationPopup({ articleId }) {
   useEffect(() => {
     async function loadCovers() {
       try {
-        const res = await fetch("/api/editions?limit=20");
+        const res = await fetch("/api/editions?limit=20&published=true");
         const data = await res.json();
         const coverImages = data.map((d) => d.coverImage);
 

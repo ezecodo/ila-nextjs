@@ -325,7 +325,7 @@ export default function DigitalAboShowcase() {
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/editions?limit=12")
+    fetch("/api/editions?limit=12&published=true")
       .then((r) => r.json())
       .then((data) => {
         if (!alive) return;

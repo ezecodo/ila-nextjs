@@ -112,7 +112,7 @@ export default function GlobeMap() {
   // Portadas de dossiers para el fondo (mismo patrón que el popup de donación)
   const [covers, setCovers] = useState([]);
   useEffect(() => {
-    fetch("/api/editions?limit=20")
+    fetch("/api/editions?limit=20&published=true")
       .then((r) => r.json())
       .then((data) => {
         const imgs = (data || [])
