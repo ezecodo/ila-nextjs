@@ -10,7 +10,11 @@ export async function generateMetadata({ params }) {
 
   const slug = legacyPath.join("/");
   const fullPath = `/ausgaben/${slug}`;
-  const canonicalUrl = `${SITE_URL}${fullPath}`;
+  // Canonical SIEMPRE con locale: la URL sin locale (/ausgaben/...) redirige
+  // a /de/... y Google ignora un canonical que apunta a una redirección.
+  const deUrl = `${SITE_URL}/de${fullPath}`;
+  const esUrl = `${SITE_URL}/es${fullPath}`;
+  let canonicalUrl = `${SITE_URL}/${locale}${fullPath}`;
 
   const article = await getArticleByLegacyPath(fullPath);
   if (!article) {
@@ -24,9 +28,23 @@ export async function generateMetadata({ params }) {
 
   // 👇 Ahora usa "locale" en lugar de "params.locale"
   const isES = locale === "es";
+  // Mismo criterio que page.js: la versión ES solo es pública si la
+  // traducción está APROBADA; si no, /es/... muestra el texto alemán →
+  // es un duplicado de /de/... y el canonical tiene que apuntar ahí.
+  const esApproved = article.translationStatus === "approved";
+  const showES = isES && esApproved;
+  canonicalUrl = showES ? esUrl : deUrl;
+  const alternates = {
+    canonical: canonicalUrl,
+    languages: {
+      de: deUrl,
+      ...(esApproved ? { es: esUrl } : {}),
+      "x-default": deUrl,
+    },
+  };
 
   const title = `${
-    isES && article.isTranslatedES ? article.titleES : article.title
+    showES ? article.titleES : article.title
   } – ila`;
 
   const fallbackDescription = isES
@@ -34,7 +52,7 @@ export async function generateMetadata({ params }) {
     : "Artikel erschienen in ILA – Das Lateinamerika-Magazin.";
 
   const description =
-    (isES && article.isTranslatedES
+    (showES
       ? article.subtitleES || article.previewTextES
       : article.subtitle || article.previewText) || fallbackDescription;
 
@@ -65,12 +83,12 @@ export async function generateMetadata({ params }) {
 
   const authorsMeta = article.authors.map((a) => ({
     name: a.name,
-    url: `${SITE_URL}/authors/${a.id}`,
+    url: `${SITE_URL}/${locale}/authors/${a.id}`,
   }));
-  const ogAuthors = article.authors.map((a) => `${SITE_URL}/authors/${a.id}`);
+  const ogAuthors = article.authors.map((a) => `${SITE_URL}/${locale}/authors/${a.id}`);
 
   const keywords = [
-    isES && article.isTranslatedES ? article.titleES : article.title,
+    showES ? article.titleES : article.title,
     ...article.authors.map((a) => a.name),
     ...article.regions.map((r) => r.name),
     ...article.topics.map((t) => t.name),
@@ -81,7 +99,7 @@ export async function generateMetadata({ params }) {
     description,
     keywords,
 
-    alternates: { canonical: canonicalUrl },
+    alternates,
     robots: { index: true, follow: true },
     authors: authorsMeta,
 
