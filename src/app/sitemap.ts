@@ -27,10 +27,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/about/privacy",
     "/about/speakers",
     "/aktuell/aktuelles",
+    "/archive",
+    "/authors",
+    "/entities/regions",
+    "/entities/topics",
     "/contents/current-issue",
     "/editions",
     "/events",
     "/order/abo",
+    "/order/digital-abo",
     "/order/single-dossier-order",
     "/search",
     "/support/donations",
@@ -55,11 +60,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     where: {
       isPublished: true,
       legacyPath: { not: null },
+      // Artículos de un dossier en borrador dan 404 al público (gate de Edition)
+      OR: [{ editionId: null }, { edition: { isPublished: true } }],
     },
     select: {
       legacyPath: true,
       updatedAt: true,
-      isTranslatedES: true,
+      translationStatus: true,
     },
   });
 
@@ -67,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     (article: {
       legacyPath: string | null;
       updatedAt: Date;
-      isTranslatedES: boolean;
+      translationStatus: string | null;
     }) => {
       const pages = [
         {
@@ -78,8 +85,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       ];
 
-      // Solo añadir versión ES si está traducido
-      if (article.isTranslatedES) {
+      // Versión ES solo si la traducción está APROBADA (mismo criterio que la
+      // página pública: con "submitted" /es muestra el alemán → duplicado)
+      if (article.translationStatus === "approved") {
         pages.push({
           url: `${baseUrl}/es${article.legacyPath}`,
           lastModified: article.updatedAt,
@@ -94,6 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // ========== EDICIONES ==========
   const editions = await prisma.edition.findMany({
+    where: { isPublished: true }, // dossiers en borrador dan 404 al público
     select: { id: true, datePublished: true },
   });
 
