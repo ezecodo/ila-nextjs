@@ -215,6 +215,7 @@ const DashboardStats = () => {
             { label: t("topics"), href: "/dashboard/topics" },
             { label: t("dossiersPdf"), href: "/dashboard/admin/dossiers-pdf" },
             { label: t("missingImages"), href: "/dashboard/admin/fehlende-bilder" },
+            { label: t("interletter"), href: "/dashboard/interletter" },
           ]}
           pathname={pathname}
         />
@@ -588,6 +589,13 @@ const DashboardStats = () => {
               onClick={closeMobile}
             >
               {t("missingImages")}
+            </Link>
+            <Link
+              href="/dashboard/interletter"
+              className={mobileLinkClass("/dashboard/interletter")}
+              onClick={closeMobile}
+            >
+              {t("interletter")}
             </Link>
 
             {/* Bestellungen */}

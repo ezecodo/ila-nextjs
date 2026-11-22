@@ -806,3 +806,46 @@ model BackupLog {
   filesTransferred Int? // solo backups de tipo uploads (archivos nuevos/actualizados esa corrida)
   totalSizeBytes   Int? // solo backups de tipo uploads (peso total acumulado en Drive a esa fecha)
 }
+
+// ── InterLetter (mailing a autor*innen, Illustrator*innen, Fotograf*innen) ──
+// Lista cerrada y curada por la AG Web. Ver /dashboard/interletter.
+model InterletterRecipient {
+  id               Int                   @id @default(autoincrement())
+  name             String
+  email            String                @unique
+  languages        String                @default("de") // "de,es,pt" — informativo por ahora (el mail lleva todos los idiomas activos)
+  consentNote      String?               @db.Text // cómo/cuándo aceptó recibirlo (RGPD)
+  unsubscribeToken String                @unique @default(cuid())
+  unsubscribedAt   DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  deliveries       InterletterDelivery[]
+}
+
+// Cada InterLetter enviado. `content` = el borrador completo (textos + temas
+// tal como salieron), para el archivo.
+model Interletter {
+  id             Int                   @id @default(autoincrement())
+  subject        String                @db.VarChar(500)
+  content        Json
+  sentAt         DateTime              @default(now())
+  sentByEmail    String?
+  recipientCount Int                   @default(0)
+  failedCount    Int                   @default(0)
+  deliveries     InterletterDelivery[]
+}
+
+model InterletterDelivery {
+  id            Int                  @id @default(autoincrement())
+  interletterId Int
+  recipientId   Int
+  resendId      String?
+  status        String // "sent" | "failed"
+  error         String?              @db.Text
+  createdAt     DateTime             @default(now())
+  interletter   Interletter          @relation(fields: [interletterId], references: [id], onDelete: Cascade)
+  recipient     InterletterRecipient @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([interletterId])
+  @@index([recipientId])
+}

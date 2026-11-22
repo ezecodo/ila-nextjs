@@ -635,6 +635,15 @@ Notas:
 - Respetar locale: usar campos ES (`titleES`/`subtitleES`/`summaryES`) solo si `isTranslatedES`.
 - **No se ve en localhost** (WhatsApp no puede scrapearlo) y **WhatsApp cachea agresivo** el preview de una URL ya compartida — para testear, usar otra URL tras deployar.
 
+## SEO: robots, sitemap, canonical y hreflang (2026-11-09)
+
+Disparado por avisos de Google Search Console. Todo deployado.
+- **`src/app/robots.ts`** (antes no existía ningún robots): bloquea **solo rutas privadas** (`/api/admin|auth|user|users|globila|orders|subscriptions|activity-log|dashboard|analytics`, `/api/articles/favorites`, `/{de,es}/dashboard`, `/{de,es}/auth/`, `/{de,es}/pdf-reader`) + declara el sitemap. **No bloquear todo `/api/`**: muchas páginas públicas son client components que cargan su contenido por `/api/...` y Google necesita pedirlo para renderizarlas. robots matchea por **prefijo**: `/de/auth/` lleva barra final para no bloquear `/de/authors`. Si se protege una ruta `/api` nueva, sumarla.
+- **`src/app/sitemap.ts`**: excluye dossiers con `Edition.isPublished=false` y sus artículos (dan 404 al público); la URL `/es/...` de un artículo solo entra con `translationStatus === "approved"` (mismo criterio que la página — con `submitted` muestra el alemán = duplicado).
+- **Canonical de artículos** (`ausgaben`/`online` `generateMetadata.js`): **siempre con locale**. Antes `ausgaben` daba `/ausgaben/...` sin `/de`, que redirige → Google ignora un canonical que redirige → ~5.000 "Duplicada sin canónica". ES no aprobado → canonical a la versión `/de`. hreflang `de` / `es` (solo si aprobado) / `x-default`→de. Título/descr. ES también solo si aprobado.
+- **Páginas por entidad** (`/entities/{topics,regions,categories}/[id]`, `/authors/[id]`): eran client components con el `<title>` genérico del sitio y sin canonical. Cada `[id]` tiene ahora un `layout.js` server que reexporta `entityMetadata(kind)` de **`src/lib/entityMetadata.js`** (título "Nombre – Thema – ila", canonical con locale, hreflang de/es; id inexistente → `noindex`; error de BD → metadatos genéricos sin romper la página).
+- Aviso "401" de Search Console del 27-oct-2026: fue la caída/reactivación de Hetzner, no un bug.
+
 ## Escuchar artículos (TTS) — `components/ArticleListen/`
 
 Motor de Text-to-Speech con la Web Speech API del navegador. Disparador en la ShareBar; corre en `ArticleListenProvider.jsx` + `useArticleTTS.js`. Resalta párrafo + palabra mientras lee. Gating: super-admin (`e.zeangeloni@gmail.com`) siempre; el resto según feature flags. Ver también el "Cuarto" (`/dashboard/cuarto`) como laboratorio del experimento.
