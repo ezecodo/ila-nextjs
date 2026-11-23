@@ -1,41 +1,35 @@
 "use client";
 
-// Lista de destinatarios del InterLetter (curada a mano por la AG Web).
-// Alta individual, importación pegando una lista, edición y borrado. La baja
-// la hace cada persona desde el link del mail: acá no se reactiva a nadie.
+// Paso 3 — Lista de destinatarios (curada a mano por la AG Web).
+// Alta individual, importación con vista previa (pegar o subir CSV), edición
+// y borrado. La baja la hace cada persona desde el link del mail: acá no se
+// reactiva a nadie.
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useTranslations } from "next-intl";
-import { FaEdit, FaTrash } from "react-icons/fa";
-import { EMAIL_RE } from "@/lib/interletterEmail";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { FaEdit, FaTrash, FaUpload, FaUserPlus, FaFileImport } from "react-icons/fa";
+import { EMAIL_RE, cleanLanguages } from "@/lib/interletterEmail";
+import { Modal } from "./ui";
+import { LANGS, FLAG, inputCls, labelCls, btnPrimary, btnSecondary } from "./shared";
 
-const LANGS = ["de", "es", "pt"];
-const FLAG = { de: "🇩🇪", es: "🇪🇸", pt: "🇧🇷" };
 const emptyForm = { id: null, name: "", email: "", languages: ["de"], consentNote: "" };
 
-const inputCls =
-  "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#BD0E0D]";
-const labelCls = "block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1";
-
-// Una línea de la importación → { name, email, languages }.
-// Acepta: "Name <mail@x.de>", "Name; mail@x.de; de,es", "mail@x.de", también con tab o coma.
+// Una línea → { name, email, languages }. Acepta "Name <mail>", "Name; mail; de,es",
+// "mail", con ; , o tab. Todo lo anterior al email es el nombre; lo posterior, idiomas.
 function parseLine(line) {
   const l = line.trim();
   if (!l) return null;
   const angle = l.match(/^(.*?)<([^>]+)>(.*)$/);
   if (angle) {
     return {
-      name: angle[1].replace(/[;,\t"]+$/g, "").replace(/"/g, "").trim(),
+      name: angle[1].replace(/[;,\t"]+/g, " ").trim(),
       email: angle[2].trim(),
       languages: angle[3].replace(/^[\s;,\t]+/, ""),
     };
   }
-  // Separador: ; o tab; si no hay ninguno, coma ("Name, mail, de,es" también sirve:
-  // todo lo que va antes del email es el nombre y todo lo de después, idiomas).
   const sep = /[;\t]/.test(l) ? /[;\t]/ : /,/;
-  const parts = l.split(sep).map((p) => p.trim()).filter(Boolean);
+  const parts = l.split(sep).map((p) => p.replace(/^"|"$/g, "").trim()).filter(Boolean);
   const emailIdx = parts.findIndex((p) => p.includes("@"));
-  if (emailIdx < 0) return { name: l, email: "", languages: "" };
+  if (emailIdx < 0) return { name: l, email: "", languages: "", header: /e-?mail/i.test(l) };
   return {
     name: parts.slice(0, emailIdx).join(" "),
     email: parts[emailIdx],
@@ -43,15 +37,19 @@ function parseLine(line) {
   };
 }
 
-export default function RecipientsPanel() {
-  const t = useTranslations("interletter");
+export default function RecipientsPanel({ t, onCountChange }) {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
+  const [formOpen, setFormOpen] = useState(false);
   const [formMsg, setFormMsg] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
   const [importText, setImportText] = useState("");
-  const [importMsg, setImportMsg] = useState("");
+  const [importResult, setImportResult] = useState("");
+  const [importing, setImporting] = useState(false);
   const [query, setQuery] = useState("");
+  const [showUnsub, setShowUnsub] = useState(false);
+  const fileRef = useRef(null);
 
   const load = useCallback(async () => {
     try {
@@ -67,20 +65,43 @@ export default function RecipientsPanel() {
     load();
   }, [load]);
 
-  const active = list.filter((r) => !r.unsubscribedAt).length;
+  const active = list.filter((r) => !r.unsubscribedAt);
+  const unsubscribed = list.length - active.length;
+  useEffect(() => {
+    if (!loading) onCountChange?.(active.length);
+  }, [active.length, loading, onCountChange]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((r) => r.name.toLowerCase().includes(q) || r.email.includes(q));
-  }, [list, query]);
+    return list
+      .filter((r) => showUnsub || !r.unsubscribedAt)
+      .filter((r) => !q || r.name.toLowerCase().includes(q) || r.email.includes(q));
+  }, [list, query, showUnsub]);
+
+  // Vista previa de la importación (calculada en el navegador).
+  const preview = useMemo(() => {
+    const existing = new Set(list.map((r) => r.email));
+    const seen = new Set();
+    return importText
+      .split(/\r?\n/)
+      .map(parseLine)
+      .filter((p) => p && !p.header)
+      .map((p) => {
+        const email = p.email.trim().toLowerCase();
+        let status = "new";
+        if (!EMAIL_RE.test(email)) status = "invalid";
+        else if (existing.has(email) || seen.has(email)) status = "exists";
+        seen.add(email);
+        return { ...p, email, languages: cleanLanguages(p.languages), status };
+      });
+  }, [importText, list]);
+  const toImport = preview.filter((p) => p.status === "new");
 
   async function saveForm(e) {
     e.preventDefault();
     setFormMsg("");
-    if (!EMAIL_RE.test(form.email.trim())) {
-      setFormMsg(t("rcInvalidEmail"));
-      return;
-    }
+    if (!EMAIL_RE.test(form.email.trim().toLowerCase())) return setFormMsg(t("rcInvalidEmail"));
+    if (!form.languages.length) return setFormMsg(t("rcNoLanguage"));
     const payload = {
       name: form.name,
       email: form.email,
@@ -99,41 +120,42 @@ export default function RecipientsPanel() {
           body: JSON.stringify({ items: [payload] }),
         });
     const d = await res.json();
-    if (!res.ok) {
-      setFormMsg(d.error || t("rcError"));
-      return;
-    }
-    if (!form.id && d.created === 0) {
-      setFormMsg(t("rcExists"));
-      return;
-    }
+    if (!res.ok) return setFormMsg(d.error || t("rcError"));
+    if (!form.id && d.created === 0) return setFormMsg(t("rcExists"));
     setForm(emptyForm);
+    setFormOpen(false);
     load();
   }
 
   async function runImport() {
-    setImportMsg("");
-    const items = importText.split(/\r?\n/).map(parseLine).filter(Boolean);
-    if (!items.length) return;
-    const res = await fetch("/api/admin/interletter/recipients", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
-    });
-    const d = await res.json();
-    if (!res.ok) {
-      setImportMsg(d.error || t("rcError"));
-      return;
+    if (!toImport.length) return;
+    setImporting(true);
+    try {
+      const res = await fetch("/api/admin/interletter/recipients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: toImport }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || t("rcError"));
+      setImportResult(t("rcImportDone", { count: d.created }));
+      setImportText("");
+      setImportOpen(false);
+      load();
+    } catch (e) {
+      setImportResult(e.message);
+    } finally {
+      setImporting(false);
     }
-    let msg = t("rcImportResult", {
-      created: d.created,
-      skipped: d.skipped.length,
-      invalid: d.invalid.length,
-    });
-    if (d.invalid.length) msg += ` — ${t("rcInvalidList")}: ${d.invalid.join(", ")}`;
-    setImportMsg(msg);
-    if (!d.invalid.length) setImportText("");
-    load();
+  }
+
+  function readFile(e) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => setImportText(String(reader.result || ""));
+    reader.readAsText(f, "utf-8");
+    e.target.value = "";
   }
 
   async function remove(r) {
@@ -143,157 +165,231 @@ export default function RecipientsPanel() {
   }
 
   function edit(r) {
-    setForm({
-      id: r.id,
-      name: r.name,
-      email: r.email,
-      languages: r.languages.split(","),
-      consentNote: r.consentNote || "",
-    });
+    setForm({ id: r.id, name: r.name, email: r.email, languages: r.languages.split(","), consentNote: r.consentNote || "" });
     setFormMsg("");
+    setFormOpen(true);
   }
 
-  return (
-    <div className="space-y-6 text-sm">
-      {/* Alta / edición */}
-      <form onSubmit={saveForm} className="p-4 border border-gray-200 dark:border-gray-700 space-y-3">
-        <h3 className="font-bold text-gray-900 dark:text-gray-100">{form.id ? t("rcEdit") : t("rcAdd")}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          <div>
-            <label className={labelCls}>{t("rcName")}</label>
-            <input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          </div>
-          <div>
-            <label className={labelCls}>{t("rcEmail")}</label>
-            <input
-              type="email"
-              className={inputCls}
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              required
-            />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <span className={labelCls + " mb-0"}>{t("rcLanguages")}:</span>
-          {LANGS.map((l) => (
-            <label key={l} className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="checkbox"
-                className="accent-[#BD0E0D]"
-                checked={form.languages.includes(l)}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    languages: e.target.checked ? [...form.languages, l] : form.languages.filter((x) => x !== l),
-                  })
-                }
-              />
-              {FLAG[l]} {l.toUpperCase()}
-            </label>
-          ))}
-        </div>
-        <div>
-          <label className={labelCls}>{t("rcConsent")}</label>
-          <input
-            className={inputCls}
-            value={form.consentNote}
-            placeholder={t("rcConsentPh")}
-            onChange={(e) => setForm({ ...form, consentNote: e.target.value })}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <button type="submit" className="px-4 py-2 font-semibold rounded-md bg-[#BD0E0D] hover:bg-[#a50c0b] text-white">
-            {form.id ? t("rcUpdate") : t("rcSave")}
-          </button>
-          {form.id && (
-            <button
-              type="button"
-              onClick={() => setForm(emptyForm)}
-              className="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600"
-            >
-              {t("rcCancel")}
-            </button>
-          )}
-          {formMsg && <span className="text-red-600">{formMsg}</span>}
-        </div>
-      </form>
+  const statusLabel = { new: t("rcPrevNew"), exists: t("rcPrevExists"), invalid: t("rcPrevInvalid") };
+  const statusCls = {
+    new: "text-green-700 dark:text-green-400",
+    exists: "text-gray-400",
+    invalid: "text-[#BD0E0D]",
+  };
 
-      {/* Importación */}
-      <details className="p-4 border border-gray-200 dark:border-gray-700">
-        <summary className="font-bold cursor-pointer text-gray-900 dark:text-gray-100">{t("rcImport")}</summary>
-        <p className="text-[11px] text-gray-500 my-2 whitespace-pre-line">{t("rcImportHint")}</p>
-        <textarea
-          rows={6}
-          className={inputCls + " font-mono text-xs"}
-          value={importText}
-          placeholder={"Maria Pérez <maria@example.org>\nJonas Becker; jonas@example.de; de,es"}
-          onChange={(e) => setImportText(e.target.value)}
-        />
-        <div className="mt-2 flex flex-wrap items-center gap-3">
+  return (
+    <div className="space-y-5 text-sm">
+      {/* Resumen + acciones */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {loading ? "…" : active.length}{" "}
+            <span className="text-base font-semibold">{t("rcActiveLabel")}</span>
+          </p>
+          {unsubscribed > 0 && <p className="text-xs text-gray-500">{t("rcUnsubscribedCount", { count: unsubscribed })}</p>}
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={runImport}
-            disabled={!importText.trim()}
-            className="px-4 py-2 font-semibold rounded-md bg-[#BD0E0D] hover:bg-[#a50c0b] text-white disabled:opacity-50"
+            className={btnPrimary}
+            onClick={() => {
+              setForm(emptyForm);
+              setFormMsg("");
+              setFormOpen(true);
+            }}
           >
-            {t("rcImportBtn")}
+            <FaUserPlus /> {t("rcAdd")}
           </button>
-          {importMsg && <span className="text-gray-700 dark:text-gray-300">{importMsg}</span>}
+          <button type="button" className={btnSecondary} onClick={() => setImportOpen(true)}>
+            <FaFileImport /> {t("rcImport")}
+          </button>
         </div>
-      </details>
+      </div>
+      {importResult && <p className="text-green-700 dark:text-green-400">{importResult}</p>}
 
       {/* Lista */}
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-          <span className="font-semibold text-gray-900 dark:text-gray-100">
-            {t("rcActive", { count: active })}
-            {list.length > active && (
-              <span className="font-normal text-gray-500"> · {t("rcUnsubscribedCount", { count: list.length - active })}</span>
-            )}
-          </span>
-          <input
-            className={inputCls + " max-w-[220px]"}
-            placeholder={t("rcSearch")}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+      {!loading && list.length === 0 ? (
+        <div className="p-8 text-center border-2 border-dashed border-gray-300 dark:border-gray-600 space-y-2">
+          <p className="font-semibold text-gray-700 dark:text-gray-200">{t("rcEmptyTitle")}</p>
+          <p className="text-gray-500">{t("rcEmptyText")}</p>
         </div>
-        {loading ? (
-          <p className="text-gray-400">…</p>
-        ) : filtered.length === 0 ? (
-          <p className="text-gray-400">{t("rcEmpty")}</p>
-        ) : (
-          <ul className="border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800">
-            {filtered.map((r) => (
-              <li key={r.id} className={`flex items-start gap-3 px-3 py-2 ${r.unsubscribedAt ? "opacity-50" : ""}`}>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold text-gray-900 dark:text-gray-100">
-                    {r.name}{" "}
-                    <span className="font-normal text-xs">{r.languages.split(",").map((l) => FLAG[l]).join(" ")}</span>
-                    {r.unsubscribedAt && (
-                      <span className="ml-2 text-[11px] px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-                        {t("rcUnsubscribed")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 truncate">{r.email}</div>
-                  {r.consentNote && <div className="text-[11px] text-gray-400 truncate">{r.consentNote}</div>}
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            <input className={`${inputCls} max-w-xs`} placeholder={t("rcSearch")} value={query} onChange={(e) => setQuery(e.target.value)} />
+            {unsubscribed > 0 && (
+              <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
+                <input type="checkbox" className="accent-[#BD0E0D]" checked={showUnsub} onChange={(e) => setShowUnsub(e.target.checked)} />
+                {t("rcShowUnsub")}
+              </label>
+            )}
+          </div>
+          <div className="border border-gray-200 dark:border-gray-700 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-800 text-left text-xs text-gray-500 uppercase tracking-wide">
+                <tr>
+                  <th className="px-3 py-2">{t("rcName")}</th>
+                  <th className="px-3 py-2">{t("rcEmail")}</th>
+                  <th className="px-3 py-2">{t("rcLanguages")}</th>
+                  <th className="px-3 py-2 text-center" title={t("rcDeliveries")}>✉</th>
+                  <th className="px-3 py-2" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {filtered.map((r) => (
+                  <tr key={r.id} className={r.unsubscribedAt ? "opacity-50" : ""}>
+                    <td className="px-3 py-2">
+                      <div className="font-semibold text-gray-900 dark:text-gray-100">{r.name}</div>
+                      {r.consentNote && <div className="text-xs text-gray-400 truncate max-w-[220px]">{r.consentNote}</div>}
+                      {r.unsubscribedAt && (
+                        <span className="text-[11px] px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700">{t("rcUnsubscribed")}</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-gray-600 dark:text-gray-300 break-all">{r.email}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">{r.languages.split(",").map((l) => FLAG[l]).join(" ")}</td>
+                    <td className="px-3 py-2 text-center text-gray-500">{r._count?.deliveries || 0}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-right">
+                      <button type="button" onClick={() => edit(r)} className="p-1 text-gray-400 hover:text-gray-900" title={t("rcEdit")}>
+                        <FaEdit size={13} />
+                      </button>
+                      <button type="button" onClick={() => remove(r)} className="p-1 text-gray-400 hover:text-[#BD0E0D]" title={t("rcDelete")}>
+                        <FaTrash size={12} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-4 text-center text-gray-400">
+                      {t("rcNoMatch")}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-500">{t("rcUnsubExplain")}</p>
+        </>
+      )}
+
+      {/* Alta / edición */}
+      {formOpen && (
+        <Modal
+          title={form.id ? t("rcEdit") : t("rcAdd")}
+          onClose={() => setFormOpen(false)}
+          footer={
+            <>
+              <button type="button" className={btnSecondary} onClick={() => setFormOpen(false)}>
+                {t("cancel")}
+              </button>
+              <button type="submit" form="il-recipient-form" className={btnPrimary}>
+                {form.id ? t("save") : t("rcAddBtn")}
+              </button>
+            </>
+          }
+        >
+          <form id="il-recipient-form" onSubmit={saveForm} className="space-y-4 text-sm">
+            <div className="space-y-1">
+              <label className={labelCls}>{t("rcName")}</label>
+              <input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required autoFocus />
+            </div>
+            <div className="space-y-1">
+              <label className={labelCls}>{t("rcEmail")}</label>
+              <input type="email" className={inputCls} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+            </div>
+            <div className="space-y-1">
+              <span className={labelCls}>{t("rcLanguages")}</span>
+              <p className="text-xs text-gray-500">{t("rcLanguagesHelp")}</p>
+              <div className="flex gap-4">
+                {LANGS.map((l) => (
+                  <label key={l} className="flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="accent-[#BD0E0D]"
+                      checked={form.languages.includes(l)}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          languages: e.target.checked ? [...form.languages, l] : form.languages.filter((x) => x !== l),
+                        })
+                      }
+                    />
+                    {FLAG[l]} {t(`lang_${l}`)}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className={labelCls}>{t("rcConsent")}</label>
+              <p className="text-xs text-gray-500">{t("rcConsentHelp")}</p>
+              <input className={inputCls} value={form.consentNote} placeholder={t("rcConsentPh")} onChange={(e) => setForm({ ...form, consentNote: e.target.value })} />
+            </div>
+            {formMsg && <p className="text-[#BD0E0D]">{formMsg}</p>}
+          </form>
+        </Modal>
+      )}
+
+      {/* Importación con vista previa */}
+      {importOpen && (
+        <Modal
+          wide
+          title={t("rcImport")}
+          onClose={() => setImportOpen(false)}
+          footer={
+            <>
+              <button type="button" className={btnSecondary} onClick={() => setImportOpen(false)}>
+                {t("cancel")}
+              </button>
+              <button type="button" className={btnPrimary} onClick={runImport} disabled={!toImport.length || importing}>
+                {importing ? "…" : t("rcImportBtn", { count: toImport.length })}
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-3 text-sm">
+            <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">{t("rcImportHelp")}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button type="button" className={btnSecondary} onClick={() => fileRef.current?.click()}>
+                <FaUpload size={12} /> {t("rcUploadCsv")}
+              </button>
+              <span className="text-xs text-gray-400">{t("rcOrPaste")}</span>
+              <input ref={fileRef} type="file" accept=".csv,.txt,text/csv,text/plain" className="hidden" onChange={readFile} />
+            </div>
+            <textarea
+              rows={6}
+              className={`${inputCls} font-mono text-xs`}
+              value={importText}
+              placeholder={"Maria Pérez <maria@example.org>\nJonas Becker; jonas@example.de; de,es"}
+              onChange={(e) => setImportText(e.target.value)}
+            />
+            {preview.length > 0 && (
+              <>
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  {t("rcPreviewSummary", {
+                    nw: toImport.length,
+                    exists: preview.filter((p) => p.status === "exists").length,
+                    invalid: preview.filter((p) => p.status === "invalid").length,
+                  })}
+                </p>
+                <div className="max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-700">
+                  <table className="w-full text-xs">
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {preview.map((p, i) => (
+                        <tr key={i}>
+                          <td className={`px-2 py-1 font-semibold whitespace-nowrap ${statusCls[p.status]}`}>{statusLabel[p.status]}</td>
+                          <td className="px-2 py-1">{p.name || "—"}</td>
+                          <td className="px-2 py-1 break-all">{p.email || "—"}</td>
+                          <td className="px-2 py-1 whitespace-nowrap">{p.languages.split(",").map((l) => FLAG[l]).join(" ")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <span className="text-[11px] text-gray-400 whitespace-nowrap mt-1" title={t("rcDeliveries")}>
-                  ✉ {r._count?.deliveries || 0}
-                </span>
-                <button type="button" onClick={() => edit(r)} className="p-1 text-gray-500 hover:text-gray-900" title={t("rcEdit")}>
-                  <FaEdit size={13} />
-                </button>
-                <button type="button" onClick={() => remove(r)} className="p-1 text-gray-500 hover:text-red-600" title={t("rcDelete")}>
-                  <FaTrash size={12} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              </>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

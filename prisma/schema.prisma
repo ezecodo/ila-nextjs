@@ -822,17 +822,24 @@ model InterletterRecipient {
   deliveries       InterletterDelivery[]
 }
 
-// Cada InterLetter enviado. `content` = el borrador completo (textos + temas
-// tal como salieron), para el archivo.
+// Cada InterLetter: borrador (status "draft", lo edita toda la AG Web desde
+// el dashboard) o enviado ("sent", queda en el archivo). `content` = el
+// borrador completo (textos + temas tal como salieron).
 model Interletter {
   id             Int                   @id @default(autoincrement())
+  status         String                @default("sent") // "draft" | "sent"
   subject        String                @db.VarChar(500)
   content        Json
-  sentAt         DateTime              @default(now())
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @default(now()) @updatedAt
+  updatedByEmail String?
+  sentAt         DateTime?
   sentByEmail    String?
   recipientCount Int                   @default(0)
   failedCount    Int                   @default(0)
   deliveries     InterletterDelivery[]
+
+  @@index([status])
 }
 
 model InterletterDelivery {
