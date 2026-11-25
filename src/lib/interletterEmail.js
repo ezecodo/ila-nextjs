@@ -113,10 +113,12 @@ export function activeLangs(draft) {
 // alemán que un hueco). La Vorschau marca aparte los campos sin traducir.
 const pick = (obj, lang) => (obj?.[lang] || "").trim() || (obj?.de || "").trim();
 
-const BODY = `margin:0 0 16px 0; font-family:${FONT}; font-size:16px; line-height:1.55; color:#000000;`;
+// Compacto a pedido de la AG Web (reunión 2026-11-24, modelo en Word):
+// cuerpo 15px / 1.4, poco aire entre párrafos y bloques.
+const BODY = `margin:0 0 10px 0; font-family:${FONT}; font-size:15px; line-height:1.4; color:#000000;`;
 
 function sectionLabel(text) {
-  return `<p style="margin:32px 0 14px 0; font-family:${FONT}; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#000000; border-bottom:1px solid #dddddd; padding-bottom:6px;">${escapeHtml(text)}</p>`;
+  return `<p style="margin:22px 0 10px 0; font-family:${FONT}; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#000000; border-bottom:1px solid #dddddd; padding-bottom:4px;">${escapeHtml(text)}</p>`;
 }
 
 function renderTopic(tp, lang) {
@@ -129,12 +131,12 @@ function renderTopic(tp, lang) {
   const kw = pick(tp.keywords, lang);
   const deadline = formatDate(tp.deadline, lang);
   return `
-    <div style="margin:0 0 26px 0;">
-      ${prefix ? `<p style="margin:0 0 2px 0; font-family:${FONT}; font-size:14px; font-weight:700; color:${RED};">${prefix}</p>` : ""}
-      <p style="margin:0 0 8px 0; font-family:${FONT}; font-size:21px; line-height:1.25; font-weight:700; color:${RED};">${title}</p>
-      ${kw ? `<p style="margin:0 0 10px 0; font-family:${FONT}; font-size:15px; line-height:1.45; color:#000000;"><strong>${c.keywords}:</strong> ${escapeHtml(kw)}</p>` : ""}
+    <div style="margin:0 0 18px 0;">
+      ${prefix ? `<p style="margin:0; font-family:${FONT}; font-size:13px; font-weight:700; color:${RED};">${prefix}</p>` : ""}
+      <p style="margin:0 0 4px 0; font-family:${FONT}; font-size:20px; line-height:1.2; font-weight:700; color:${RED};">${title}</p>
+      ${kw ? `<p style="margin:0 0 6px 0; font-family:${FONT}; font-size:15px; line-height:1.4; color:#000000;"><strong>${c.keywords}:</strong> ${escapeHtml(kw)}</p>` : ""}
       ${paragraphs(pick(tp.desc, lang), BODY)}
-      ${deadline ? `<p style="margin:0; font-family:${FONT}; font-size:16px; color:#000000;"><strong>${c.deadline}:</strong> <strong style="color:${RED};">${deadline}</strong></p>` : ""}
+      ${deadline ? `<p style="margin:0; font-family:${FONT}; font-size:15px; color:#000000;"><strong>${c.deadline}:</strong> <strong style="color:${RED};">${deadline}</strong></p>` : ""}
     </div>`;
 }
 
@@ -149,17 +151,17 @@ function renderLanguage(draft, lang, langs, headerSrc, isFirst) {
     const notes = [];
     if (langs.includes("es")) notes.push("🇪🇸 Versión en español más abajo");
     if (langs.includes("pt")) notes.push("🇧🇷 Versão em português mais abaixo");
-    scroll = `<p style="margin:0 0 20px 0; font-family:${FONT}; font-size:14px; color:#555555;">${notes.join(" · ")}</p>`;
+    scroll = `<p style="margin:0 0 14px 0; font-family:${FONT}; font-size:13px; color:#555555;">${notes.join(" · ")}</p>`;
   }
 
   return `
     <tr><td style="padding:0;"><img src="${headerSrc(lang)}" width="600" alt="${escapeHtml(c.headerAlt)}" style="display:block; width:100%; max-width:600px; height:auto; border:0;"></td></tr>
-    <tr><td lang="${lang}" style="padding:30px 36px 8px 36px;">
+    <tr><td lang="${lang}" style="padding:24px 32px 4px 32px;">
       ${scroll}
       ${paragraphs(pick(draft.intro, lang), BODY)}
       ${current ? sectionLabel(c.current) + renderTopic(current, lang) : ""}
       ${next.length ? sectionLabel(c.next) + next.map((tp) => renderTopic(tp, lang)).join("") : ""}
-      ${pick(draft.participate, lang) ? `<div style="margin:30px 0 0 0;">${paragraphs(pick(draft.participate, lang), BODY)}</div>` : ""}
+      ${pick(draft.participate, lang) ? `<div style="margin:20px 0 0 0;">${paragraphs(pick(draft.participate, lang), BODY)}</div>` : ""}
       ${paragraphs(pick(draft.notes, lang), BODY)}
       ${paragraphs(pick(draft.closing, lang), BODY)}
     </td></tr>`;
@@ -181,7 +183,7 @@ export function renderInterletterEmail(draft, opts = {}) {
     opts.headerSrc || ((lang) => `${assetBase}/interletter/header-${lang}.png?v=${HEADER_VERSION}`);
   const unsubscribeUrl = opts.unsubscribeUrl || "#";
 
-  const separator = `<tr><td align="center" style="padding:20px 0 26px 0; font-family:${FONT}; font-size:20px; letter-spacing:0.5em; color:${RED};">******</td></tr>`;
+  const separator = `<tr><td align="center" style="padding:14px 0 18px 0; font-family:${FONT}; font-size:18px; letter-spacing:0.5em; color:${RED};">******</td></tr>`;
   const body = langs
     .map((lang, i) => (i > 0 ? separator : "") + renderLanguage(draft, lang, langs, headerSrc, i === 0))
     .join("");
@@ -204,7 +206,7 @@ export function renderInterletterEmail(draft, opts = {}) {
         <td align="center" style="padding:24px 12px;">
           <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px; width:100%; background-color:#ffffff;">
             ${body}
-            <tr><td style="padding:8px 36px 32px 36px;">
+            <tr><td style="padding:4px 32px 26px 32px;">
               <hr style="border:0; border-top:1px solid #cccccc; margin:16px 0 22px 0;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 16px auto;">
                 <tr><td style="border:1px solid #888888; border-radius:4px;">
