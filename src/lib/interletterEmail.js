@@ -149,8 +149,8 @@ function renderLanguage(draft, lang, langs, headerSrc, isFirst) {
   let scroll = "";
   if (isFirst && langs.length > 1) {
     const notes = [];
-    if (langs.includes("es")) notes.push("🇪🇸 Versión en español más abajo");
-    if (langs.includes("pt")) notes.push("🇧🇷 Versão em português mais abaixo");
+    if (langs.includes("es")) notes.push("Versión en español más abajo");
+    if (langs.includes("pt")) notes.push("Versão em português mais abaixo");
     scroll = `<p style="margin:0 0 14px 0; font-family:${FONT}; font-size:13px; color:#555555;">${notes.join(" · ")}</p>`;
   }
 

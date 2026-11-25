@@ -1,7 +1,10 @@
 // Constantes y helpers del módulo InterLetter (dashboard). Sin JSX.
 
 export const LANGS = ["de", "es", "pt"];
-export const FLAG = { de: "🇩🇪", es: "🇪🇸", pt: "🇧🇷" };
+// Sin banderas (pedido de la AG Web, 2026-11-24): una bandera es un país, no
+// un idioma (🇪🇸 para el español de América Latina no va). Se deja el nombre
+// FLAG para no tocar todos los usos.
+export const FLAG = { de: "DE", es: "ES", pt: "PT" };
 export const DEEPL_TARGET = { es: "ES", pt: "PT-BR" };
 
 // Campos traducibles: del mail y de cada tema.
