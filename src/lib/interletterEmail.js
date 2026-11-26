@@ -114,8 +114,8 @@ export function activeLangs(draft) {
 const pick = (obj, lang) => (obj?.[lang] || "").trim() || (obj?.de || "").trim();
 
 // Compacto a pedido de la AG Web (reunión 2026-11-24, modelo en Word):
-// cuerpo 15px / 1.4, poco aire entre párrafos y bloques.
-const BODY = `margin:0 0 10px 0; font-family:${FONT}; font-size:15px; line-height:1.4; color:#000000;`;
+// cuerpo 15px / 1.3, poco aire entre párrafos y bloques.
+const BODY = `margin:0 0 10px 0; font-family:${FONT}; font-size:15px; line-height:1.3; color:#000000;`;
 
 function sectionLabel(text) {
   return `<p style="margin:22px 0 10px 0; font-family:${FONT}; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#000000; border-bottom:1px solid #dddddd; padding-bottom:4px;">${escapeHtml(text)}</p>`;
@@ -133,8 +133,8 @@ function renderTopic(tp, lang) {
   return `
     <div style="margin:0 0 18px 0;">
       ${prefix ? `<p style="margin:0; font-family:${FONT}; font-size:13px; font-weight:700; color:${RED};">${prefix}</p>` : ""}
-      <p style="margin:0 0 4px 0; font-family:${FONT}; font-size:20px; line-height:1.2; font-weight:700; color:${RED};">${title}</p>
-      ${kw ? `<p style="margin:0 0 6px 0; font-family:${FONT}; font-size:15px; line-height:1.4; color:#000000;"><strong>${c.keywords}:</strong> ${escapeHtml(kw)}</p>` : ""}
+      <p style="margin:0 0 4px 0; font-family:${FONT}; font-size:22px; line-height:1.2; font-weight:700; color:${RED};">${title}</p>
+      ${kw ? `<p style="margin:0 0 6px 0; font-family:${FONT}; font-size:15px; line-height:1.3; color:#000000;"><strong>${c.keywords}:</strong> ${escapeHtml(kw)}</p>` : ""}
       ${paragraphs(pick(tp.desc, lang), BODY)}
       ${deadline ? `<p style="margin:0; font-family:${FONT}; font-size:15px; color:#000000;"><strong>${c.deadline}:</strong> <strong style="color:${RED};">${deadline}</strong></p>` : ""}
     </div>`;
