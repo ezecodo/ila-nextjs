@@ -2014,5 +2014,193 @@
     "already": "{email} ya está dado de baja.",
     "notFound": "Este enlace de baja no es válido. Escribinos a ila-bonn@t-online.de.",
     "error": "Algo salió mal. Probá de nuevo más tarde."
+  },
+  "interletterFaq": {
+    "button": "Preguntas frecuentes",
+    "title": "InterLetter – preguntas frecuentes",
+    "intro": "Acá está explicado todo lo que hace falta para el InterLetter, desde la idea hasta el envío. Hagan clic en una pregunta para ver la respuesta, o busquen una palabra arriba.",
+    "search": "Buscar, p. ej. «DeepL», «entrega», «baja» …",
+    "noResults": "No hay ninguna pregunta sobre eso. Prueben con otra palabra.",
+    "footer": "¿Falta algo o no queda claro? Avísenle a la AG Web y lo agregamos acá.",
+    "sections": [
+      {
+        "title": "¿De qué se trata?",
+        "items": [
+          {
+            "q": "¿Qué es el InterLetter?",
+            "a": "Un correo para autoras y autores, ilustradoras e ilustradores, fotógrafas y fotógrafos que colaboran con la ila, unas diez veces al año.\n\nPresenta el tema central actual y los dos siguientes, para que la gente pueda proponer a tiempo textos, fotos o ilustraciones. No es publicidad de la revista."
+          },
+          {
+            "q": "¿Qué trae el correo y en qué orden?",
+            "a": "1. Imagen de cabecera de la ila\n2. Introducción\n3. Tema actual\n4. Los próximos temas\n5. «Cómo participar»\n6. Avisos (si los hay)\n7. Despedida\n\nSi hay varios idiomas, después viene el mismo bloque en el idioma siguiente, de nuevo con cabecera. Al final de todo están el botón para darse de baja y la dirección de la ila."
+          },
+          {
+            "q": "¿Qué muestra la vista previa de la derecha?",
+            "a": "Exactamente el correo que se envía: cada cambio aparece al instante. Con los íconos de arriba se cambia entre computadora y celular.\n\nEs normal que en los programas de correo reales haya pequeñas diferencias: la tipografía Myriad Pro solo se ve si está instalada en el equipo; si no, el programa usa una parecida."
+          },
+          {
+            "q": "¿Quién puede editar el InterLetter?",
+            "a": "Todas las personas con acceso de administración al panel (AG Web). Los borradores se guardan en el servidor, no en el navegador de cada uno: todos ven los mismos borradores y pueden seguir trabajando en ellos."
+          }
+        ]
+      },
+      {
+        "title": "Paso a paso",
+        "items": [
+          {
+            "q": "¿Cómo empiezo un InterLetter nuevo?",
+            "a": "Clic en «Nuevo InterLetter». Hay tres opciones:\n\n• «A partir del último InterLetter»: el camino normal. Se copian los textos y los temas avanzan un lugar (ver «Temas»).\n• «Empezar vacío»: textos estándar y tres temas vacíos.\n• «Ver un ejemplo»: un ejemplo completo para probar. ¡No enviarlo!"
+          },
+          {
+            "q": "¿Qué pasos hay?",
+            "a": "1. Textos: asunto, introducción, «Cómo participar», avisos, despedida\n2. Temas: el tema actual y los siguientes\n3. Destinatarios: quién recibe el correo\n4. Revisar y enviar: lista de control, correo de prueba, envío\n\nSe puede saltar entre pasos arriba en cualquier momento. Los símbolos significan:\n✓ verde = listo\n⚠ amarillo = aviso, se puede enviar igual\n✕ rojo = falta algo, el envío está bloqueado"
+          },
+          {
+            "q": "¿Tengo que guardar?",
+            "a": "No. Todo se guarda solo, más o menos un segundo después de escribir. Arriba a la derecha aparece «Guardado …» con la hora.\n\nSi dice «Cambios sin guardar …», esperen un momento antes de salir de la página o cerrar la ventana."
+          },
+          {
+            "q": "¿Puedo dejarlo y seguir después?",
+            "a": "Sí. Con «Resumen» se vuelve a la lista. El borrador queda en «Borradores» y con «Seguir editando» se continúa. Otras personas de la AG Web también pueden hacerlo."
+          },
+          {
+            "q": "¿Qué pasa si dos personas editan el mismo borrador a la vez?",
+            "a": "Aparece un aviso amarillo y nada se pisa sin preguntar. Se puede elegir:\n\n• «Cargar la versión de …»: quedarse con la versión de la otra persona (se pierden sus últimos cambios).\n• «Guardar mi versión (la reemplaza)»: vale su versión.\n\nLo más fácil: ponerse de acuerdo sobre quién está trabajando."
+          },
+          {
+            "q": "¿Cómo hago párrafos? ¿Se puede poner negrita o un enlace?",
+            "a": "Una línea en blanco = párrafo nuevo. Un salto de línea simple se mantiene.\n\nNo hay negrita, cursiva ni enlaces en el texto. Las direcciones web se escriben tal cual (p. ej. www.ila-web.de): la mayoría de los programas de correo las vuelven clicables solos."
+          },
+          {
+            "q": "¿Qué es la «Línea de vista previa»?",
+            "a": "Está en «Más opciones», en el paso Textos. Es la línea corta que muchos programas de correo muestran junto al asunto en la bandeja de entrada. Es opcional: se puede dejar vacía."
+          },
+          {
+            "q": "¿Qué hace «Cargar ejemplo» arriba en el editor?",
+            "a": "Reemplaza todo el borrador por el ejemplo (antes pide confirmación). Es solo para probar."
+          }
+        ]
+      },
+      {
+        "title": "Temas",
+        "items": [
+          {
+            "q": "¿Cuántos temas van en el correo?",
+            "a": "Tres: el tema actual y los dos siguientes. El primero de la lista es siempre el «Tema actual»; el orden se cambia con las flechas ↑ ↓.\n\nTambién se pueden poner más de tres (salen todos en el correo); en ese caso solo aparece un aviso."
+          },
+          {
+            "q": "¿Qué lleva cada tema?",
+            "a": "• Número de ila\n• «Sale en» (mes)\n• Entrega de textos terminados (fecha)\n• Título\n• 2–4 palabras clave\n• Descripción\n\nEl mes y la fecha aparecen solos en el formato de cada idioma. Un tema sin título no sale en el correo."
+          },
+          {
+            "q": "¿Qué fecha de entrega pongo?",
+            "a": "Siempre el plazo más temprano: el de los textos en español, portugués o inglés, que todavía hay que traducir."
+          },
+          {
+            "q": "¿Cómo avanzan los temas en el siguiente InterLetter?",
+            "a": "Pasa solo al elegir «A partir del último InterLetter» (o «Usar de base» en el archivo):\n\n• El tema actual anterior se quita.\n• Los dos siguientes suben un lugar: el primero pasa a ser el nuevo tema actual. Se copian con todos sus datos y traducciones.\n• Al final se agrega un tema vacío.\n\nEjemplo: esta vez ila 502, 503, 504 → la próxima 503, 504 y un tema nuevo.\n\nSolo hay que completar el tema nuevo y revisar si cambió algo en los otros (p. ej. una fecha de entrega)."
+          },
+          {
+            "q": "¿De qué InterLetter se toman los temas?",
+            "a": "Siempre del último enviado, no de un borrador. Se copia cómo estaba en ese momento: lo que haya cambiado desde entonces se corrige en el borrador nuevo."
+          }
+        ]
+      },
+      {
+        "title": "Idiomas y traducción",
+        "items": [
+          {
+            "q": "¿En qué idiomas sale el InterLetter?",
+            "a": "El alemán va siempre. Español y portugués se activan o desactivan en «Idiomas del correo:».\n\nTodos reciben el mismo correo con todos los idiomas activos, uno detrás del otro. Arriba de todo aparece un aviso como «Versión en español más abajo»."
+          },
+          {
+            "q": "¿Cómo traduzco?",
+            "a": "En «Editar en:» se elige el idioma. Encima de cada campo aparece en gris el texto en alemán como ayuda. El número junto al idioma (p. ej. 8/12) muestra cuántos campos ya están traducidos."
+          },
+          {
+            "q": "¿Cómo funciona el botón de DeepL?",
+            "a": "«Traducciones faltantes con DeepL» completa solo los campos vacíos: lo que ya está traducido no se toca.\n\nImportante:\n• Tarda unos segundos. Mientras dice «Traduciendo …», no escriban nada: esos cambios se pueden perder.\n• Después, revisen siempre: DeepL es una ayuda, no una traducción terminada.\n• Si un campo queda vacío, DeepL no respondió: vuelvan a apretar o tradúzcanlo a mano."
+          },
+          {
+            "q": "¿Qué pasa si un campo no está traducido?",
+            "a": "En ese lugar del correo aparece el texto en alemán, mejor que un hueco. En el editor ese campo tiene un borde amarillo y la lista de control lo recuerda."
+          },
+          {
+            "q": "¿Para qué sirven los idiomas de cada persona?",
+            "a": "Por ahora son solo informativos. Todos reciben el correo con todos los idiomas activos, sin importar lo que figure en la persona."
+          }
+        ]
+      },
+      {
+        "title": "Destinatarios",
+        "items": [
+          {
+            "q": "¿Quién recibe el InterLetter?",
+            "a": "Todas las personas de la lista que no se dieron de baja. La lista vale para todos los InterLetter, no para uno solo.\n\nCada persona recibe su propio correo: nadie ve las direcciones de los demás."
+          },
+          {
+            "q": "¿Cómo agrego a una persona?",
+            "a": "«Añadir persona» → nombre, correo, idiomas y una nota sobre el consentimiento. Si la dirección ya está en la lista, se avisa."
+          },
+          {
+            "q": "¿Para qué es la «Nota sobre el consentimiento»?",
+            "a": "Por protección de datos (RGPD): anotar brevemente cómo y cuándo la persona aceptó recibirlo. Por ejemplo: «Escribe para la ila desde 2019, aceptó por teléfono el 3/12»."
+          },
+          {
+            "q": "¿Cómo importo muchas personas de una vez?",
+            "a": "«Importar lista» → pegar la lista o subir un archivo CSV. Una persona por línea, por ejemplo:\n\nMaria Pérez <maria@example.org>\nJonas Becker; jonas@example.de; de,es\njonas@example.de\n\nAntes de importar se ve cada línea como: nueva / ya existe / no válida. Solo se agregan las nuevas.\n\nConsejo para Excel: usar «Guardar como → CSV UTF-8»; si no, las tildes y diéresis salen mal."
+          },
+          {
+            "q": "¿Cómo se da de baja alguien?",
+            "a": "Con el botón al final del correo. Se abre una página que vuelve a preguntar: solo después de confirmar ahí la persona queda dada de baja.\n\nQuien se da de baja ya no recibe más InterLetter. En la lista se ve con «Mostrar dados de baja» (en gris)."
+          },
+          {
+            "q": "Alguien se dio de baja sin querer. ¿Qué hago?",
+            "a": "Darse de baja lo decide cada persona, por eso no hay botón de «volver a dar de alta». Si quiere recibirlo de nuevo: borrar a la persona y agregarla otra vez (mejor con una nota)."
+          },
+          {
+            "q": "¿Qué pasa al borrar a una persona?",
+            "a": "Se elimina definitivamente, junto con el registro de qué InterLetter recibió y cuándo (protección de datos)."
+          }
+        ]
+      },
+      {
+        "title": "Correo de prueba y envío",
+        "items": [
+          {
+            "q": "¿Cómo mando un correo de prueba?",
+            "a": "En el paso «Revisar y enviar», clic en «Mandar correo de prueba». Llega solo a su propia dirección (con la que iniciaron sesión) y el asunto empieza con [TEST].\n\nHáganlo siempre antes del envío y mírenlo en el celular y en la computadora. Si después cambian algo, la lista de control recuerda mandar otro."
+          },
+          {
+            "q": "El enlace para darse de baja del correo de prueba dice «no válido». ¿Es un error?",
+            "a": "No, es normal: el correo de prueba no tiene un enlace de baja real. En el envío de verdad cada persona recibe el suyo, y funciona."
+          },
+          {
+            "q": "¿Cómo envío el InterLetter?",
+            "a": "1. En «Revisar y enviar», mirar la lista de control. Resolver primero los puntos rojos: «Arreglar» lleva al lugar correcto.\n2. Clic en «Enviar a … personas …».\n3. Revisar el resumen (asunto, cantidad, remitente).\n4. Marcar la casilla y enviar.\n\nEl envío no se puede deshacer."
+          },
+          {
+            "q": "¿Desde qué dirección sale el correo y a dónde van las respuestas?",
+            "a": "Remitente: ila InterLetter <interletter@ila-web.de>.\nLas respuestas van directo a ila-bonn@t-online.de: quien hace clic en «Responder» le escribe a la redacción."
+          },
+          {
+            "q": "¿Qué pasa después del envío?",
+            "a": "El InterLetter pasa a «Enviados», con fecha, cantidad y quién lo envió. Ya no se puede editar.\n\n• «Ver» muestra el correo enviado.\n• «Usar de base» empieza el siguiente InterLetter, con los temas avanzando un lugar."
+          },
+          {
+            "q": "Al enviar aparece «Die Empfängerliste hat sich geändert».",
+            "a": "Ese mensaje (en alemán) significa que mientras tanto alguien agregó a una persona o alguien se dio de baja. Por seguridad no se envía nada. Recarguen la página, revisen el número y vuelvan a enviar."
+          },
+          {
+            "q": "En el archivo dice «… no entregados». ¿Y ahora?",
+            "a": "No se pudo enviar el correo a esas personas. Por favor no lo manden de nuevo sin más: primero avisen a la parte técnica, para que nadie lo reciba dos veces."
+          },
+          {
+            "q": "¿Hay un límite de correos?",
+            "a": "Sí: como máximo 100 correos por día, junto con los demás correos de la web (p. ej. confirmaciones de pedidos). Con más de 100 personas aparece un aviso: en ese caso, hablen antes con la parte técnica."
+          }
+        ]
+      }
+    ]
   }
 }

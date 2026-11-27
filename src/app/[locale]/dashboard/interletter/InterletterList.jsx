@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from "react";
 import { FaPlus, FaEdit, FaTrash, FaEye, FaCopy, FaEnvelopeOpenText, FaFileAlt, FaMagic, FaRedo } from "react-icons/fa";
 import { renderInterletterEmail } from "@/lib/interletterEmail";
 import { HelpBox, Modal } from "./ui";
+import InterletterFaq from "./InterletterFaq";
 import { sampleDraft } from "./interletterSample";
 import { defaultDraft, nextFromPrevious, formatDateTime, btnPrimary, btnSecondary } from "./shared";
 
@@ -95,9 +96,12 @@ export default function InterletterList({ t, onOpen, flash }) {
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-2xl">{t("intro")}</p>
         </div>
-        <button type="button" className={btnPrimary} onClick={() => setNewOpen(true)} disabled={busy}>
-          <FaPlus /> {t("newInterletter")}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <InterletterFaq />
+          <button type="button" className={btnPrimary} onClick={() => setNewOpen(true)} disabled={busy}>
+            <FaPlus /> {t("newInterletter")}
+          </button>
+        </div>
       </div>
 
       {flash && <div className="p-3 border border-green-300 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 text-sm">{flash}</div>}

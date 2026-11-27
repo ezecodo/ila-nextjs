@@ -17,7 +17,9 @@
 //   Stichworte, descripción, fecha de entrega de textos terminados.
 // - NO mezclar con "gerade erschienen" (no es publicidad del Heft).
 // - Bloque "so macht ihr mit" + saludo del Redaktionsteam.
-// - Separador entre idiomas: ******. Al final: línea + botón de baja.
+// - Entre idiomas: solo aire (el header de cada idioma ya los separa; las
+//   ****** del borrador se sacaron a pedido, 2026-11-27). Al final: línea +
+//   botón de baja.
 
 export const LANGS = ["de", "es", "pt"];
 const SITE = "https://www.ila-web.de";
@@ -183,7 +185,7 @@ export function renderInterletterEmail(draft, opts = {}) {
     opts.headerSrc || ((lang) => `${assetBase}/interletter/header-${lang}.png?v=${HEADER_VERSION}`);
   const unsubscribeUrl = opts.unsubscribeUrl || "#";
 
-  const separator = `<tr><td align="center" style="padding:14px 0 18px 0; font-family:${FONT}; font-size:18px; letter-spacing:0.5em; color:${RED};">******</td></tr>`;
+  const separator = `<tr><td style="padding:0; height:28px; line-height:28px; font-size:0;">&nbsp;</td></tr>`;
   const body = langs
     .map((lang, i) => (i > 0 ? separator : "") + renderLanguage(draft, lang, langs, headerSrc, i === 0))
     .join("");

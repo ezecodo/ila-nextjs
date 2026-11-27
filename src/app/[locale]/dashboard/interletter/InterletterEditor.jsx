@@ -24,6 +24,7 @@ import ContentStep from "./ContentStep";
 import TopicsStep from "./TopicsStep";
 import RecipientsPanel from "./RecipientsPanel";
 import ReviewStep from "./ReviewStep";
+import InterletterFaq from "./InterletterFaq";
 import { StatusIcon, HelpBox } from "./ui";
 import { sampleDraft } from "./interletterSample";
 import {
@@ -268,6 +269,7 @@ export default function InterletterEditor({ id, t, sessionEmail, onBack, onSent 
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <SaveIndicator save={save} t={t} />
+          <InterletterFaq />
           <button type="button" onClick={loadSample} className={btnSecondary} title={t("sampleHint")}>
             <FaMagic size={12} /> {t("loadSample")}
           </button>

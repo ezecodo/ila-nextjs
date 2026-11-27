@@ -2015,5 +2015,193 @@
     "already": "{email} ist bereits abgemeldet.",
     "notFound": "Dieser Abmeldelink ist ungültig. Schreib uns einfach an ila-bonn@t-online.de.",
     "error": "Etwas ist schiefgelaufen. Bitte versuch es später noch einmal."
+  },
+  "interletterFaq": {
+    "button": "Häufige Fragen",
+    "title": "InterLetter – häufige Fragen",
+    "intro": "Hier ist alles erklärt, was ihr für den InterLetter braucht – von der Idee bis zum Versand. Klickt auf eine Frage, um die Antwort zu sehen, oder sucht oben nach einem Stichwort.",
+    "search": "Suchen, z. B. „DeepL“, „Abgabe“, „abmelden“ …",
+    "noResults": "Dazu gibt es keine Frage. Probiert ein anderes Wort.",
+    "footer": "Etwas fehlt oder ist unklar? Sagt der AG Web Bescheid, dann ergänzen wir es hier.",
+    "sections": [
+      {
+        "title": "Worum geht es?",
+        "items": [
+          {
+            "q": "Was ist der InterLetter?",
+            "a": "Ein E-Mail an Autor*innen, Illustrator*innen und Fotograf*innen, die mit der ila zusammenarbeiten – etwa zehnmal im Jahr.\n\nEr stellt das aktuelle Schwerpunktthema und die zwei nächsten vor, damit die Leute rechtzeitig Texte, Fotos oder Illustrationen vorschlagen können. Er ist keine Werbung für das Heft."
+          },
+          {
+            "q": "Was steht im Mail, und in welcher Reihenfolge?",
+            "a": "1. Kopfbild der ila\n2. Einleitung\n3. Aktuelles Thema\n4. Die nächsten Themen\n5. „So macht ihr mit“\n6. Hinweise (wenn es welche gibt)\n7. Gruß\n\nBei mehreren Sprachen kommt danach derselbe Block noch einmal in der nächsten Sprache, wieder mit Kopfbild. Ganz unten stehen der Abmelde-Button und die Adresse der ila."
+          },
+          {
+            "q": "Was zeigt die Vorschau rechts?",
+            "a": "Genau das Mail, das verschickt wird – jede Änderung erscheint sofort. Mit den Symbolen oben könnt ihr zwischen Computer und Handy umschalten.\n\nKleine Unterschiede in echten Mailprogrammen sind normal: Die Schrift Myriad Pro sieht man nur, wenn sie auf dem Gerät installiert ist, sonst nimmt das Programm eine ähnliche Schrift."
+          },
+          {
+            "q": "Wer kann den InterLetter bearbeiten?",
+            "a": "Alle mit Admin-Zugang zum Dashboard (AG Web). Die Entwürfe liegen auf dem Server, nicht im eigenen Browser: Alle sehen dieselben Entwürfe und können daran weiterarbeiten."
+          }
+        ]
+      },
+      {
+        "title": "Schritt für Schritt",
+        "items": [
+          {
+            "q": "Wie fange ich einen neuen InterLetter an?",
+            "a": "Auf „Neuer InterLetter“ klicken. Es gibt drei Möglichkeiten:\n\n• „Auf Basis des letzten InterLetters“ – der normale Weg: Texte werden übernommen, die Themen rücken nach (siehe „Themen“).\n• „Leer beginnen“ – Standardtexte und drei leere Themen.\n• „Beispiel ansehen“ – ein ausgefülltes Beispiel zum Ausprobieren. Nicht verschicken!"
+          },
+          {
+            "q": "Welche Schritte gibt es?",
+            "a": "1. Texte – Betreff, Einleitung, „So macht ihr mit“, Hinweise, Gruß\n2. Themen – aktuelles Thema und die nächsten\n3. Empfänger*innen – wer das Mail bekommt\n4. Prüfen & senden – Checkliste, Testmail, Versand\n\nIhr könnt oben jederzeit zwischen den Schritten springen. Die Zeichen daneben bedeuten:\n✓ grün = fertig\n⚠ gelb = Hinweis, man darf trotzdem verschicken\n✕ rot = es fehlt etwas, der Versand ist gesperrt"
+          },
+          {
+            "q": "Muss ich speichern?",
+            "a": "Nein. Alles wird automatisch gespeichert, etwa eine Sekunde nach dem Tippen. Oben rechts steht dann „Gespeichert …“ mit Uhrzeit.\n\nSteht dort „Ungespeicherte Änderungen …“, kurz warten, bevor ihr die Seite verlasst oder das Fenster schließt."
+          },
+          {
+            "q": "Kann ich aufhören und später weitermachen?",
+            "a": "Ja. Mit „Übersicht“ zurück zur Liste. Der Entwurf steht unter „Entwürfe“ – mit „Weiterbearbeiten“ geht es weiter. Das können auch andere aus der AG Web."
+          },
+          {
+            "q": "Was passiert, wenn zwei Personen gleichzeitig am selben Entwurf arbeiten?",
+            "a": "Dann erscheint ein gelber Hinweis, und nichts wird einfach überschrieben. Ihr könnt wählen:\n\n• „Version von … laden“ – die Version der anderen Person übernehmen (eure letzten Änderungen gehen dabei verloren).\n• „Meine Version speichern (überschreibt)“ – eure Version gilt.\n\nAm einfachsten: kurz absprechen, wer gerade dran ist."
+          },
+          {
+            "q": "Wie mache ich Absätze? Geht fett oder ein Link?",
+            "a": "Eine Leerzeile = neuer Absatz. Ein einfacher Zeilenumbruch bleibt so stehen.\n\nFett, kursiv oder Links gibt es im Text nicht. Webadressen schreibt ihr einfach aus (z. B. www.ila-web.de) – die meisten Mailprogramme machen sie von selbst anklickbar."
+          },
+          {
+            "q": "Was ist die „Vorschauzeile“?",
+            "a": "Unter „Weitere Einstellungen“ im Schritt Texte. Das ist die kurze Zeile, die viele Mailprogramme im Posteingang neben dem Betreff zeigen. Freiwillig – leer lassen ist in Ordnung."
+          },
+          {
+            "q": "Was macht „Beispiel laden“ oben im Editor?",
+            "a": "Es ersetzt den ganzen Entwurf durch das Beispiel (vorher wird nachgefragt). Nur zum Ausprobieren gedacht."
+          }
+        ]
+      },
+      {
+        "title": "Themen",
+        "items": [
+          {
+            "q": "Wie viele Themen kommen ins Mail?",
+            "a": "Drei: das aktuelle Thema und die zwei nächsten. Das erste in der Liste ist immer das „Aktuelle Thema“; die Reihenfolge ändert ihr mit den Pfeilen ↑ ↓.\n\nMehr als drei geht auch (alle erscheinen im Mail), dann gibt es nur einen Hinweis."
+          },
+          {
+            "q": "Was gehört zu einem Thema?",
+            "a": "• ila-Nummer\n• „Erscheint im“ (Monat)\n• Abgabe fertiger Texte (Datum)\n• Titel\n• 2–4 Stichworte\n• Beschreibung\n\nMonat und Datum erscheinen im Mail automatisch im Format jeder Sprache. Ein Thema ohne Titel kommt nicht ins Mail."
+          },
+          {
+            "q": "Welches Abgabedatum trage ich ein?",
+            "a": "Immer den früheren Termin – den für Texte auf Spanisch, Portugiesisch oder Englisch, die noch übersetzt werden müssen."
+          },
+          {
+            "q": "Wie rücken die Themen beim nächsten InterLetter nach?",
+            "a": "Das passiert automatisch, wenn ihr „Auf Basis des letzten InterLetters“ wählt (oder im Archiv „Als Vorlage“):\n\n• Das bisherige aktuelle Thema fällt weg.\n• Die zwei nächsten rücken auf – das erste davon wird das neue aktuelle Thema. Alle Angaben und Übersetzungen werden mitgenommen.\n• Am Ende kommt ein leeres Thema dazu.\n\nBeispiel: Diesmal ila 502, 503, 504 → nächstes Mal 503, 504 und ein neues Thema.\n\nIhr müsst also nur das neue Thema ausfüllen – und kurz prüfen, ob sich bei den anderen etwas geändert hat (z. B. ein Abgabedatum)."
+          },
+          {
+            "q": "Von welchem InterLetter werden die Themen übernommen?",
+            "a": "Immer vom zuletzt verschickten – nicht von einem Entwurf. Übernommen wird der Stand von damals. Was sich seitdem geändert hat, im neuen Entwurf korrigieren."
+          }
+        ]
+      },
+      {
+        "title": "Sprachen und Übersetzung",
+        "items": [
+          {
+            "q": "In welchen Sprachen geht der InterLetter raus?",
+            "a": "Deutsch ist immer dabei. Spanisch und Portugiesisch schaltet ihr bei „Sprachen im Mail:“ an oder aus.\n\nAlle bekommen dasselbe Mail mit allen eingeschalteten Sprachen nacheinander. Ganz oben steht ein Hinweis wie „Versión en español más abajo“."
+          },
+          {
+            "q": "Wie übersetze ich?",
+            "a": "Bei „Bearbeiten auf:“ die Sprache wählen. Über jedem Feld steht dann grau der deutsche Text als Hilfe. Die Zahl neben der Sprache (z. B. 8/12) zeigt, wie viele Felder schon übersetzt sind."
+          },
+          {
+            "q": "Wie funktioniert der DeepL-Knopf?",
+            "a": "„Fehlende Übersetzungen mit DeepL“ füllt nur leere Felder – schon Übersetztes wird nicht überschrieben.\n\nWichtig:\n• Es dauert ein paar Sekunden. Solange „Übersetzt …“ dasteht, bitte nichts tippen – sonst können diese Änderungen verloren gehen.\n• Danach immer gegenlesen: DeepL ist eine Hilfe, keine fertige Übersetzung.\n• Bleibt ein Feld leer, hat DeepL nicht geantwortet: noch einmal drücken oder von Hand übersetzen."
+          },
+          {
+            "q": "Was passiert, wenn ein Feld nicht übersetzt ist?",
+            "a": "Dann steht im Mail an dieser Stelle der deutsche Text – besser als eine Lücke. Im Editor ist so ein Feld gelb umrandet, und die Checkliste erinnert daran."
+          },
+          {
+            "q": "Wofür sind die Sprachen bei jeder Person?",
+            "a": "Im Moment nur zur Information. Alle bekommen das Mail mit allen eingeschalteten Sprachen, egal was bei der Person eingetragen ist."
+          }
+        ]
+      },
+      {
+        "title": "Empfänger*innen",
+        "items": [
+          {
+            "q": "Wer bekommt den InterLetter?",
+            "a": "Alle Personen in der Liste, die sich nicht abgemeldet haben. Die Liste gilt für alle InterLetter, nicht nur für einen.\n\nJede Person bekommt ein eigenes Mail – niemand sieht die Adressen der anderen."
+          },
+          {
+            "q": "Wie füge ich eine Person hinzu?",
+            "a": "„Person hinzufügen“ → Name, E-Mail, Sprachen und eine Notiz zur Einwilligung. Ist die Adresse schon in der Liste, wird das gemeldet."
+          },
+          {
+            "q": "Wozu die „Notiz zur Einwilligung“?",
+            "a": "Wegen des Datenschutzes (DSGVO): kurz festhalten, wie und wann die Person zugestimmt hat. Zum Beispiel: „Schreibt seit 2019 für die ila, am 3.12. telefonisch zugestimmt.“"
+          },
+          {
+            "q": "Wie importiere ich viele Personen auf einmal?",
+            "a": "„Liste importieren“ → die Liste einfügen oder eine CSV-Datei hochladen. Eine Person pro Zeile, zum Beispiel:\n\nMaria Pérez <maria@example.org>\nJonas Becker; jonas@example.de; de,es\njonas@example.de\n\nVor dem Import seht ihr für jede Zeile: neu / schon vorhanden / ungültig. Nur neue Personen werden übernommen.\n\nTipp für Excel: „Speichern unter → CSV UTF-8“ wählen, sonst werden Umlaute und Akzente falsch angezeigt."
+          },
+          {
+            "q": "Wie meldet sich jemand ab?",
+            "a": "Mit dem Button ganz unten im Mail. Es öffnet sich eine Seite, die noch einmal nachfragt – erst nach dem Klick dort ist die Person abgemeldet.\n\nAbgemeldete bekommen keine InterLetter mehr. In der Liste seht ihr sie mit „Abgemeldete anzeigen“ (grau)."
+          },
+          {
+            "q": "Jemand hat sich aus Versehen abgemeldet. Was tun?",
+            "a": "Abmelden entscheidet die Person selbst, deshalb gibt es keinen „Wieder anmelden“-Knopf. Wenn sie den InterLetter wieder möchte: die Person löschen und neu hinzufügen (am besten mit einer Notiz dazu)."
+          },
+          {
+            "q": "Was passiert beim Löschen einer Person?",
+            "a": "Sie wird endgültig entfernt, zusammen mit dem Verlauf, wann sie welchen InterLetter bekommen hat (Datenschutz)."
+          }
+        ]
+      },
+      {
+        "title": "Testmail und Versand",
+        "items": [
+          {
+            "q": "Wie schicke ich eine Testmail?",
+            "a": "Im Schritt „Prüfen & senden“ auf „Testmail schicken“. Sie geht nur an eure eigene Adresse (die, mit der ihr eingeloggt seid), der Betreff beginnt mit [TEST].\n\nMacht das immer vor dem Versand und schaut die Testmail auf dem Handy und am Computer an. Wenn ihr danach noch etwas ändert, erinnert die Checkliste an eine neue Testmail."
+          },
+          {
+            "q": "Der Abmelde-Link in der Testmail sagt „ungültig“. Ist das ein Fehler?",
+            "a": "Nein, das ist normal: Die Testmail hat keinen echten Abmelde-Link. Im richtigen Versand bekommt jede Person ihren eigenen, der funktioniert."
+          },
+          {
+            "q": "Wie verschicke ich den InterLetter?",
+            "a": "1. Im Schritt „Prüfen & senden“ die Checkliste ansehen. Rote Punkte zuerst lösen – „Beheben“ bringt euch zur richtigen Stelle.\n2. „An … Personen senden …“ klicken.\n3. Zusammenfassung prüfen (Betreff, Anzahl, Absender).\n4. Häkchen setzen und senden.\n\nDer Versand kann nicht rückgängig gemacht werden."
+          },
+          {
+            "q": "Von welcher Adresse kommt das Mail, und wohin gehen Antworten?",
+            "a": "Absender: ila InterLetter <interletter@ila-web.de>.\nAntworten gehen direkt an ila-bonn@t-online.de – wer auf „Antworten“ klickt, schreibt also der Redaktion."
+          },
+          {
+            "q": "Was passiert nach dem Versand?",
+            "a": "Der InterLetter steht dann unter „Versendet“, mit Datum, Anzahl und wer ihn verschickt hat. Er kann nicht mehr bearbeitet werden.\n\n• „Ansehen“ zeigt das verschickte Mail.\n• „Als Vorlage“ startet den nächsten InterLetter, mit nachrückenden Themen."
+          },
+          {
+            "q": "Beim Senden kommt „Die Empfängerliste hat sich geändert“.",
+            "a": "In der Zwischenzeit wurde jemand hinzugefügt oder hat sich abgemeldet. Zur Sicherheit wird dann nichts verschickt. Seite neu laden, die Zahl prüfen und noch einmal senden."
+          },
+          {
+            "q": "Im Archiv steht „… nicht zugestellt“. Was jetzt?",
+            "a": "Dann konnte das Mail an diese Personen nicht verschickt werden. Bitte nicht einfach noch einmal senden – zuerst der Technik Bescheid geben, damit niemand das Mail doppelt bekommt."
+          },
+          {
+            "q": "Gibt es eine Grenze, wie viele Mails man schicken kann?",
+            "a": "Ja: höchstens 100 Mails pro Tag, zusammen mit den anderen Mails der Website (z. B. Bestellbestätigungen). Bei mehr als 100 Personen erscheint ein Hinweis – dann bitte vorher mit der Technik sprechen."
+          }
+        ]
+      }
+    ]
   }
 }
