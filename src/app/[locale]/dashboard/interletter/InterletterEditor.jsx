@@ -57,6 +57,9 @@ export default function InterletterEditor({ id, t, sessionEmail, onBack, onSent 
   const [activeCount, setActiveCount] = useState(null);
   const [translating, setTranslating] = useState(false);
   const [testState, setTestState] = useState({ status: "idle" });
+  // Direcciones de la Testmail (texto libre, separadas por coma). Arranca con
+  // el email de la sesión; se puede sumar a alguien más (p. ej. en una reunión).
+  const [testTo, setTestTo] = useState("");
   const [origin, setOrigin] = useState("");
 
   const baseRef = useRef(null); // updatedAt de la versión sobre la que editamos
@@ -76,6 +79,10 @@ export default function InterletterEditor({ id, t, sessionEmail, onBack, onSent 
     baseRef.current = d.updatedAt;
     setSave({ state: "saved", at: d.updatedAt, by: d.updatedByEmail });
   }, [id]);
+
+  useEffect(() => {
+    if (sessionEmail) setTestTo((v) => v || sessionEmail);
+  }, [sessionEmail]);
 
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -176,16 +183,25 @@ export default function InterletterEditor({ id, t, sessionEmail, onBack, onSent 
   const testView = { ...testState, stale: testState.status === "ok" && testState.hash !== draftHash };
 
   async function sendTest() {
+    const to = testTo
+      .split(/[\s,;]+/)
+      .map((e) => e.trim())
+      .filter(Boolean);
     setTestState({ status: "sending" });
     try {
       const res = await fetch("/api/admin/interletter/test-send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draftRef.current),
+        body: JSON.stringify({ draft: draftRef.current, to }),
       });
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "Error");
-      setTestState({ status: "ok", to: d.to, hash: JSON.stringify(draftRef.current) });
+      setTestState({
+        status: "ok",
+        to: d.to.join(", "),
+        failed: d.failed?.length ? d.failed.join(", ") : "",
+        hash: JSON.stringify(draftRef.current),
+      });
     } catch (e) {
       setTestState({ status: "error", msg: `${t("testError")}: ${e.message}` });
     }
@@ -396,9 +412,10 @@ export default function InterletterEditor({ id, t, sessionEmail, onBack, onSent 
               activeCount={activeCount}
               testState={testView}
               onSendTest={sendTest}
+              testTo={testTo}
+              setTestTo={setTestTo}
               onSend={sendAll}
               goStep={setStep}
-              sessionEmail={sessionEmail}
             />
           )}
 

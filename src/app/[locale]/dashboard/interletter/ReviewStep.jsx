@@ -3,20 +3,49 @@
 // Paso 4 — Revisar y enviar: checklist (cada punto lleva al paso donde se
 // arregla), Testmail y ventana de envío con confirmación explícita.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaPaperPlane, FaEnvelope, FaArrowRight } from "react-icons/fa";
 import { interletterSubject } from "@/lib/interletterEmail";
 import { StatusIcon, Modal } from "./ui";
-import { activeLangList, FLAG, btnPrimary, btnSecondary } from "./shared";
+import { activeLangList, FLAG, btnPrimary, btnSecondary, inputCls, labelCls } from "./shared";
 
 // Límite diario del plan gratuito de Resend (incluye los mails transaccionales).
 const DAILY_LIMIT = 100;
 
-export default function ReviewStep({ t, draft, issues, activeCount, testState, onSendTest, onSend, goStep, sessionEmail }) {
+export default function ReviewStep({
+  t,
+  draft,
+  issues,
+  activeCount,
+  testState,
+  onSendTest,
+  onSend,
+  goStep,
+  testTo,
+  setTestTo,
+}) {
   const [dialog, setDialog] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  // Destinatarios activos, para sumarlos a la Testmail con el desplegable.
+  const [recipients, setRecipients] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/admin/interletter/recipients")
+      .then((r) => r.json())
+      .then((d) => Array.isArray(d) && setRecipients(d.filter((x) => !x.unsubscribedAt)))
+      .catch(() => {});
+  }, []);
+
+  const testList = testTo
+    .split(/[\s,;]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const addTestAddress = (email) => {
+    if (!email || testList.includes(email.toLowerCase())) return;
+    setTestTo(testTo.trim() ? `${testTo.trim().replace(/[,;]\s*$/, "")}, ${email}` : email);
+  };
 
   const errors = issues.filter((i) => i.level === "error");
   const warnings = issues.filter((i) => i.level === "warn");
@@ -92,13 +121,51 @@ export default function ReviewStep({ t, draft, issues, activeCount, testState, o
       {/* Testmail */}
       <div className="p-4 border border-gray-200 dark:border-gray-700 space-y-2">
         <h3 className="font-bold text-gray-900 dark:text-gray-100">{t("testTitle")}</h3>
-        <p className="text-gray-600 dark:text-gray-300">{t("testText", { email: sessionEmail || "" })}</p>
-        <button type="button" onClick={onSendTest} disabled={testState.status === "sending"} className={btnSecondary}>
+        <p className="text-gray-600 dark:text-gray-300">{t("testText")}</p>
+        <div className="space-y-1">
+          <label className={labelCls} htmlFor="il-test-to">
+            {t("testTo")}
+          </label>
+          <input
+            id="il-test-to"
+            className={inputCls}
+            value={testTo}
+            onChange={(e) => setTestTo(e.target.value)}
+            placeholder="name@example.org, …"
+          />
+          <p className="text-xs text-gray-500">{t("testToHelp")}</p>
+          {recipients.length > 0 && (
+            <select
+              className={`${inputCls} max-w-sm`}
+              value=""
+              onChange={(e) => addTestAddress(e.target.value)}
+              aria-label={t("testAddFromList")}
+            >
+              <option value="">{t("testAddFromList")}</option>
+              {recipients
+                .filter((r) => !testList.includes(r.email.toLowerCase()))
+                .map((r) => (
+                  <option key={r.id} value={r.email}>
+                    {r.name} – {r.email}
+                  </option>
+                ))}
+            </select>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onSendTest}
+          disabled={testState.status === "sending" || !testTo.trim()}
+          className={btnSecondary}
+        >
           <FaEnvelope /> {testState.status === "sending" ? t("sending") : t("sendTest")}
         </button>
         {testState.status === "error" && <p className="text-[#BD0E0D]">{testState.msg}</p>}
         {testState.status === "ok" && !testState.stale && (
           <p className="text-green-700 dark:text-green-400">{t("testSent", { email: testState.to })}</p>
+        )}
+        {testState.status === "ok" && testState.failed && (
+          <p className="text-[#BD0E0D]">{t("testFailedSome", { email: testState.failed })}</p>
         )}
       </div>
 

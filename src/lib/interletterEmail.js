@@ -163,7 +163,13 @@ function renderLanguage(draft, lang, langs, headerSrc, isFirst) {
       ${paragraphs(pick(draft.intro, lang), BODY)}
       ${current ? sectionLabel(c.current) + renderTopic(current, lang) : ""}
       ${next.length ? sectionLabel(c.next) + next.map((tp) => renderTopic(tp, lang)).join("") : ""}
-      ${pick(draft.participate, lang) ? `<div style="margin:20px 0 0 0;">${paragraphs(pick(draft.participate, lang), BODY)}</div>` : ""}
+      ${
+        // Línea gris (la misma de los títulos de sección) para que "So macht
+        // ihr mit" no quede pegado a la descripción del último tema.
+        pick(draft.participate, lang)
+          ? `<div style="margin:22px 0 0 0; padding-top:16px; border-top:1px solid #dddddd;">${paragraphs(pick(draft.participate, lang), BODY)}</div>`
+          : ""
+      }
       ${paragraphs(pick(draft.notes, lang), BODY)}
       ${paragraphs(pick(draft.closing, lang), BODY)}
     </td></tr>`;

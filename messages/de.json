@@ -1979,11 +1979,15 @@
     "issueTopicNoIssue": "Thema {n}: ila-Nummer oder Erscheinungsmonat fehlt.",
     "issueTranslation": "{lang}: {missing} Felder noch nicht übersetzt (dort erscheint der deutsche Text).",
     "issueNoRecipients": "Es gibt keine aktiven Empfänger*innen.",
-    "testTitle": "1. Testmail an dich",
-    "testText": "Geht nur an {email} und sieht genau so aus wie bei allen anderen. Der Abmeldelink funktioniert in der Testmail nicht.",
+    "testTitle": "1. Testmail",
+    "testText": "Geht nur an die Adressen unten und sieht genau so aus wie bei allen anderen. Der Abmeldelink funktioniert in der Testmail nicht.",
+    "testTo": "An",
+    "testAddFromList": "+ Aus der Empfängerliste hinzufügen …",
+    "testToHelp": "Mehrere Adressen mit Komma trennen (höchstens 5). Jede Adresse bekommt ein eigenes Mail – niemand sieht die anderen.",
+    "testFailedSome": "Nicht zugestellt an: {email}",
     "sendTest": "Testmail schicken",
     "sending": "Sendet …",
-    "testSent": "✓ Testmail an {email} geschickt – schau in dein Postfach.",
+    "testSent": "✓ Testmail geschickt an: {email}",
     "testError": "Testmail konnte nicht gesendet werden",
     "sendTitle": "2. An alle senden",
     "sendText": "Jede Person bekommt ein eigenes Mail (niemand sieht die anderen Adressen). Antworten gehen an ila-bonn@t-online.de.",
@@ -2170,7 +2174,7 @@
         "items": [
           {
             "q": "Wie schicke ich eine Testmail?",
-            "a": "Im Schritt „Prüfen & senden“ auf „Testmail schicken“. Sie geht nur an eure eigene Adresse (die, mit der ihr eingeloggt seid), der Betreff beginnt mit [TEST].\n\nMacht das immer vor dem Versand und schaut die Testmail auf dem Handy und am Computer an. Wenn ihr danach noch etwas ändert, erinnert die Checkliste an eine neue Testmail."
+            "a": "Im Schritt „Prüfen & senden“ auf „Testmail schicken“. Sie geht an die Adressen im Feld „An“ – zuerst steht dort eure eigene (die, mit der ihr eingeloggt seid). Ihr könnt weitere Adressen mit Komma dazuschreiben oder darunter aus der Empfängerliste auswählen (höchstens 5), z. B. um jemandem zu zeigen, wie das Mail ankommt. Jede Adresse bekommt ein eigenes Mail, der Betreff beginnt mit [TEST].\n\nMacht das immer vor dem Versand und schaut die Testmail auf dem Handy und am Computer an. Wenn ihr danach noch etwas ändert, erinnert die Checkliste an eine neue Testmail."
           },
           {
             "q": "Der Abmelde-Link in der Testmail sagt „ungültig“. Ist das ein Fehler?",

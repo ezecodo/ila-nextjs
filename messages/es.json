@@ -1978,11 +1978,15 @@
     "issueTopicNoIssue": "Tema {n}: falta el número de ila o el mes de salida.",
     "issueTranslation": "{lang}: {missing} campos sin traducir (ahí aparece el texto en alemán).",
     "issueNoRecipients": "No hay destinatarios activos.",
-    "testTitle": "1. Correo de prueba para vos",
-    "testText": "Solo va a {email} y llega exactamente igual que a los demás. El enlace de baja no funciona en la prueba.",
+    "testTitle": "1. Correo de prueba",
+    "testText": "Solo va a las direcciones de abajo y llega exactamente igual que a los demás. El enlace de baja no funciona en la prueba.",
+    "testTo": "Para",
+    "testAddFromList": "+ Añadir de la lista de destinatarios …",
+    "testToHelp": "Varias direcciones separadas por coma (5 como máximo). Cada una recibe su propio correo: nadie ve las demás.",
+    "testFailedSome": "No se pudo enviar a: {email}",
     "sendTest": "Mandar correo de prueba",
     "sending": "Enviando …",
-    "testSent": "✓ Correo de prueba enviado a {email}: mirá tu bandeja.",
+    "testSent": "✓ Correo de prueba enviado a: {email}",
     "testError": "No se pudo enviar el correo de prueba",
     "sendTitle": "2. Enviar a todos",
     "sendText": "Cada persona recibe su propio correo (nadie ve las otras direcciones). Las respuestas llegan a ila-bonn@t-online.de.",
@@ -2169,7 +2173,7 @@
         "items": [
           {
             "q": "¿Cómo mando un correo de prueba?",
-            "a": "En el paso «Revisar y enviar», clic en «Mandar correo de prueba». Llega solo a su propia dirección (con la que iniciaron sesión) y el asunto empieza con [TEST].\n\nHáganlo siempre antes del envío y mírenlo en el celular y en la computadora. Si después cambian algo, la lista de control recuerda mandar otro."
+            "a": "En el paso «Revisar y enviar», clic en «Mandar correo de prueba». Llega a las direcciones del campo «Para»: primero aparece la propia (con la que iniciaron sesión). Se pueden agregar otras separadas por coma o elegirlas abajo de la lista de destinatarios (5 como máximo), por ejemplo para mostrarle a alguien cómo llega el correo. Cada dirección recibe su propio correo y el asunto empieza con [TEST].\n\nHáganlo siempre antes del envío y mírenlo en el celular y en la computadora. Si después cambian algo, la lista de control recuerda mandar otro."
           },
           {
             "q": "El enlace para darse de baja del correo de prueba dice «no válido». ¿Es un error?",
